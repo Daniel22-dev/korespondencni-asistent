@@ -2,18 +2,21 @@
 
 Samostatný repozitář aplikace pro Gymnázium, Ostrava-Hrabůvka.
 
-- **Verze:** 5.3.0
+- **Verze:** 5.3.1
 - **Doporučený název repozitáře:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
 
-## Co přináší verze 5.3.0
+## Co přináší verze 5.3.1
 
-- úvodní volba tří jasných pracovních cest bez duplicitního přepínače,
-- společný bezpečnostní blok pro anonymizaci a přesný náhled obsahu pro Gemini,
-- oddělený rozbor, nastavení odpovědi a výběr jedné ze tří variant,
-- pracovní přehled je sbalený a finální akce jsou zvýrazněné,
-- lokální návrat jmen zohledňuje české oslovení a profil odesílatele.
+- odstraněný duplicitní bezpečnostní průvodce v horní části aplikace,
+- jeden souvislý a klidnější blok pro označení jmen, kontrolu náhrad a finální náhled,
+- poznámka pro odpověď je prokazatelně součástí promptu a před odesláním se znovu anonymizuje,
+- po výběru jedné varianty jsou zbývající dvě opravdu skryté,
+- zjednodušená patička a srozumitelně popsané pracovní nástroje,
+- vývojářské nástroje se běžnému učiteli nezobrazují; otevřou se pouze s `?dev=1` nebo `?test`,
+- aktualizovaný interaktivní manuál používaný aplikací i AI Studiem.
+
 
 ## Nahrání na GitHub
 

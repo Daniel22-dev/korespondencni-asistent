@@ -872,6 +872,63 @@ body.dark .assistant-drawer .check-item.warn{color:#ffd48a}
   .variant-choice-grid .draft{display:flex}
   .variant-choice-grid .draft[hidden]{display:none!important}
 }
+
+
+/* ===================== KS 5.3.1 — KLIDNĚJŠÍ JEDNOTNÝ PRŮCHOD ===================== */
+/* Anonymizace a přesný náhled tvoří jeden souvislý pracovní blok. */
+.privacy-stage{display:block!important;padding:16px;background:var(--paper);border:1px solid color-mix(in srgb,var(--accent) 34%,var(--line));box-shadow:0 12px 32px rgba(20,30,40,.07)}
+.privacy-stage-head{padding:0 2px 13px;margin-bottom:0;border-bottom:0}
+.privacy-stage .privacy-local-panel{margin:0;padding:17px 17px 13px;border:1px solid var(--line);border-bottom:0;border-radius:14px 14px 0 0;background:var(--paper)}
+.privacy-stage .privacy-outgoing-panel{margin:0;padding:0;border:0;background:transparent}
+.privacy-stage .privacy-outgoing-panel .lock{width:auto;margin:0;padding:10px 16px;border-radius:0;background:var(--desk);border:1px solid var(--line);border-top:0;color:var(--ink);letter-spacing:0;font:850 12px/1.2 var(--sans)}
+.privacy-stage .privacy-outgoing-panel .lock svg{width:16px;height:16px;color:var(--accent-text)}
+.privacy-stage .outside-wrap{margin:0;padding:14px 16px 17px;border:1px solid var(--line);border-top:0;border-radius:0 0 14px 14px;background:var(--paper);box-shadow:none}
+.privacy-stage .outside-wrap::before{display:none}
+.privacy-stage .safe-local-label{margin:0 0 10px;padding:9px 11px;border:1px solid var(--line);background:var(--desk);color:var(--ink-soft);font-weight:650}
+.privacy-stage .safe-local-label strong{color:var(--ink);font-size:12.8px}
+.privacy-stage .out-zone{margin:8px 0;color:var(--ink-soft)}
+.privacy-stage .tapview{min-height:190px;max-height:390px;border-width:2px}
+.privacy-stage .preview{max-height:230px;background:color-mix(in srgb,var(--desk) 44%,var(--paper));border-color:var(--line)}
+.privacy-stage .ready-banner{display:none!important}
+.privacy-stage .safety-counts{display:none!important}
+.privacy-stage .preview-summary{padding:8px 10px;background:var(--desk)}
+.privacy-stage .privacy-triad{display:flex;flex-wrap:wrap;gap:6px}
+.privacy-stage .privacy-tile{padding:0;border:0;background:transparent;font-weight:650}
+.privacy-stage .privacy-tile+ .privacy-tile::before{content:"·";margin-right:6px;color:var(--ink-soft)}
+.privacy-stage .privacy-tile b{display:inline;margin-right:4px}
+.privacy-stage .preview-risk-list{margin-top:7px}
+.privacy-stage .safety.warn{border-color:color-mix(in srgb,var(--accent) 30%,var(--line));background:color-mix(in srgb,var(--accent) 8%,var(--paper));color:var(--ink-soft)}
+.privacy-stage .safety.warn .sicon,.privacy-stage .safety.warn .safety-action{color:var(--accent-text)}
+.privacy-stage #in_prevToggle,.privacy-stage #my_prevToggle{display:none}
+body.dark .privacy-stage{background:var(--paper);box-shadow:0 12px 32px rgba(0,0,0,.25)}
+body.dark .privacy-stage .safe-local-label{background:var(--desk);color:var(--ink-soft)}
+body.dark .privacy-stage .preview{background:var(--desk)}
+
+/* Autorovy display:flex nesmí přebít atribut hidden. */
+.variant-choice-grid .draft[hidden],.variant-choice-card[hidden]{display:none!important}
+
+/* Nabídka nástrojů má viditelné vysvětlení a jasné interakční stavy. */
+.tools-menu{min-width:300px;max-width:min(360px,calc(100vw - 24px))}
+.tools-menu button{align-items:flex-start;padding:10px 11px;border:1px solid transparent}
+.tools-menu button:hover,.tools-menu button:focus-visible{border-color:var(--line);background:var(--desk);outline:none}
+.tools-menu button>span:last-child{display:flex;flex-direction:column;gap:2px;min-width:0}
+.tools-menu button small{display:block;color:var(--ink-soft);font:600 11px/1.35 var(--sans)}
+.dev-tool-card{cursor:pointer;text-align:left;color:var(--ink);transition:border-color .15s,transform .15s,background .15s}
+.dev-tool-card span{display:block;color:var(--ink-soft);font:600 11.5px/1.4 var(--sans)}
+.dev-tool-card:hover,.dev-tool-card:focus-visible{border-color:var(--accent);background:var(--desk);transform:translateY(-1px);outline:none}
+body.dark .dev-tool-card{background:var(--desk);color:var(--ink)}
+body.dark .dev-tool-card b{color:var(--ink)}
+body.dark .dev-tool-card span{color:var(--ink-soft)}
+
+@media(max-width:640px){
+  .privacy-stage{padding:10px}
+  .privacy-stage .privacy-local-panel{padding:13px 12px 10px}
+  .privacy-stage .outside-wrap{padding:12px}
+  .privacy-stage .tapview{min-height:150px;max-height:300px}
+  .tools-menu{min-width:0}
+}
+
+.field-safety-note{margin:6px 0 0;color:var(--ink-soft);font:600 11.5px/1.42 var(--sans)}
 </style>
 </head>
 <body>
@@ -896,16 +953,6 @@ body.dark .assistant-drawer .check-item.warn{color:#ffd48a}
 
     <h1>Korespondenční asistent</h1>
     <p class="lede"><b>Pomůže skrýt citlivé údaje před odesláním k modelu.</b> Rozbor a odpověď, nebo oprava, přepis a sestavení tvého textu — vždy s povinnou kontrolou náhledu. Před každým odesláním ověř, že v textu nezůstala skutečná jména ani jiné citlivé údaje.</p>
-
-    <details class="safety-guide" id="safetyGuideInline" open>
-      <summary><b>Bezpečný postup</b><span>Vložit → anonymizovat → ověřit → vytvořit</span></summary>
-      <div class="mini-steps">
-        <div class="mini-step"><strong>1) Vlož text</strong>Obsah se zatím nikam neposílá.</div>
-        <div class="mini-step"><strong>2) Anonymizuj</strong>Skryj jména a další citlivé údaje.</div>
-        <div class="mini-step"><strong>3) Ověř náhled</strong>Potvrď jen text bez identifikujících údajů.</div>
-        <div class="mini-step"><strong>4) Vytvoř výstup</strong>Teprve potom se anonymizovaný text odešle do Gemini.</div>
-      </div>
-    </details>
 
     <div class="ui-mode-row" aria-label="Režim rozhraní">
       <span class="ui-mode-label">Režim:</span>
@@ -1033,12 +1080,12 @@ body.dark .assistant-drawer .check-item.warn{color:#ffd48a}
 
       <div id="in_step2" class="privacy-stage" style="display:none">
         <div class="privacy-stage-head">
-          <p class="eyebrow">Bezpečnostní příprava · bez odeslání</p>
-          <h2>Označ údaje a hned vedle zkontroluj přesný obsah pro Gemini</h2>
-          <p>Levá část zůstává pouze v tomto prohlížeči. Pravá část je jediný text, který může po tvém potvrzení odejít do AI.</p>
+          <p class="eyebrow">Bezpečnostní příprava · vše v jednom kroku</p>
+          <h2>Zkontroluj anonymizovaný text před odesláním</h2>
+          <p>E-maily a telefony aplikace skryje automaticky. Jména a vlastní názvy označ ťuknutím v hlavním poli; pod ním pak jednou potvrď přesný kontrolní náhled pro Gemini.</p>
         </div>
         <div class="card privacy-local-panel">
-          <div class="step-head"><span class="step-no">2A</span><span class="step-title">A. Označ citlivé údaje — zůstávají jen v prohlížeči</span></div>
+          <div class="step-head"><span class="step-no">2</span><span class="step-title">Anonymizace a kontrola v jednom pracovním bloku</span></div>
           <p class="tap-hint">Ťukni na jméno nebo údaj, který chceš skrýt — zežloutne jako značka. U jména a příjmení stačí ťuknout na jednu část; aplikace spojí sousední celé jméno do jedné osoby. Ťuknutím na značku ho zase odkryješ. Chceš upravit samotný text? Uprav ho nahoře a dej <b>Anonymizovat znovu</b>.</p>
           <div class="tap-cue"><span class="arrow action-icon" data-ic="down" aria-hidden="true"></span><span>Ťukni na jména a vlastní názvy v textu níže — skryjí se jako značka. E-maily a telefony jsou už skryté.</span></div>
           <div class="tapview" id="in_view"></div>
@@ -1059,17 +1106,17 @@ body.dark .assistant-drawer .check-item.warn{color:#ffd48a}
         </div>
 
         <div class="threshold privacy-outgoing-panel">
-          <span class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>B. Hranice bezpečnosti</span>
+          <span class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Finální kontrola před odesláním</span>
           <div class="outside-wrap">
-            <p class="safe-local-label"><strong>Od této hranice začíná obsah pro Gemini.</strong> Níže vidíš přesně to, co se odešle až po zaškrtnutí kontroly a stisknutí hlavního tlačítka.</p>
-            <p class="zone-label out-zone"><span class="dot"></span>Toto by odešlo do Gemini</p>
+            <p class="safe-local-label"><strong>Přesný obsah pro Gemini.</strong> Níže je jen kontrolní kopie anonymizovaného textu. Odešle se až po tvém potvrzení a stisknutí hlavního tlačítka.</p>
+            <p class="zone-label out-zone"><span class="dot"></span>Kontrolní náhled · jen ke čtení</p>
             <div class="safety" id="in_safety">Semafor anonymizace se zobrazí po vložení textu.</div>
             <div class="safe-fallback" id="in_safeFallback" aria-live="polite"></div>
-            <button class="btn ghost small" id="in_prevToggle" title="Náhled je povinně viditelný. Tlačítko k němu jen sjede a krátce ho zvýrazní." style="margin:0 0 8px"><span class="action-icon" data-ic="down" aria-hidden="true"></span>Přejít na náhled</button>
+            <button class="btn ghost small" id="in_prevToggle" title="Náhled je povinně viditelný. Tlačítko k němu jen sjede a krátce ho zvýrazní." style="margin:0 0 8px"><span class="action-icon" data-ic="down" aria-hidden="true"></span>Zvýraznit kontrolní náhled</button>
             <div class="ready-banner" id="in_readyBanner" aria-live="polite"></div>
             <div class="preview-summary" id="in_previewSummary" aria-live="polite"></div>
             <div class="preview" id="in_preview"></div>
-            <label class="review-check"><input type="checkbox" id="in_reviewOk" aria-label="Potvrzuji kontrolu anonymizace přijatého e-mailu"><span><strong>Zkontrolováno.</strong> V náhledu nevidím skutečná jména, e-maily, telefony ani jiné citlivé údaje. Oranžová upozornění jsem posoudil(a); pokud nejde o citlivý údaj, mohu pokračovat.</span></label>
+            <label class="review-check"><input type="checkbox" id="in_reviewOk" aria-label="Potvrzuji kontrolu anonymizace přijatého e-mailu"><span><strong>Zkontrolováno.</strong> V náhledu nevidím skutečná jména, e-maily, telefony ani jiné citlivé údaje. Kontrolní upozornění jsem posoudil(a); pokud nejde o citlivý údaj, mohu pokračovat.</span></label>
             <div class="row actsticky">
               <button class="btn primary" id="in_analyzeBtn" title="Odešle očištěný text Gemini a vrátí rozbor." disabled><span class="action-icon">🔎</span>Rozebrat <span class="req">1 ⚡</span></button>
             </div>
@@ -1099,12 +1146,12 @@ body.dark .assistant-drawer .check-item.warn{color:#ffd48a}
 
       <div id="my_step2" class="privacy-stage" style="display:none">
         <div class="privacy-stage-head">
-          <p class="eyebrow">Bezpečnostní příprava · bez odeslání</p>
-          <h2>Označ údaje a hned vedle zkontroluj přesný obsah pro Gemini</h2>
-          <p>Levá část zůstává pouze v tomto prohlížeči. Pravá část je jediný text, který může po tvém potvrzení odejít do AI.</p>
+          <p class="eyebrow">Bezpečnostní příprava · vše v jednom kroku</p>
+          <h2>Zkontroluj anonymizovaný text před odesláním</h2>
+          <p>E-maily a telefony aplikace skryje automaticky. Jména a vlastní názvy označ ťuknutím v hlavním poli; pod ním pak jednou potvrď přesný kontrolní náhled pro Gemini.</p>
         </div>
         <div class="card privacy-local-panel">
-          <div class="step-head"><span class="step-no">2A</span><span class="step-title">A. Označ citlivé údaje — zůstávají jen v prohlížeči</span></div>
+          <div class="step-head"><span class="step-no">2</span><span class="step-title">Anonymizace a kontrola v jednom pracovním bloku</span></div>
           <p class="tap-hint">Ťukni na jméno nebo údaj, který chceš skrýt — zežloutne jako značka. U jména a příjmení stačí ťuknout na jednu část; aplikace spojí sousední celé jméno do jedné osoby. Ťuknutím na značku ho zase odkryješ. Chceš upravit samotný text? Uprav ho nahoře a dej <b>Anonymizovat znovu</b>.</p>
           <div class="tap-cue"><span class="arrow action-icon" data-ic="down" aria-hidden="true"></span><span>Ťukni na jména a vlastní názvy v textu níže — skryjí se jako značka. E-maily a telefony jsou už skryté.</span></div>
           <div class="tapview" id="my_view"></div>
@@ -1125,17 +1172,17 @@ body.dark .assistant-drawer .check-item.warn{color:#ffd48a}
         </div>
 
         <div class="threshold privacy-outgoing-panel">
-          <span class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>B. Hranice bezpečnosti</span>
+          <span class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Finální kontrola před odesláním</span>
           <div class="outside-wrap">
-            <p class="safe-local-label"><strong>Od této hranice začíná obsah pro Gemini.</strong> Níže vidíš přesně to, co se odešle až po zaškrtnutí kontroly a stisknutí hlavního tlačítka.</p>
-            <p class="zone-label out-zone"><span class="dot"></span>Toto by odešlo do Gemini</p>
+            <p class="safe-local-label"><strong>Přesný obsah pro Gemini.</strong> Níže je jen kontrolní kopie anonymizovaného textu. Odešle se až po tvém potvrzení a stisknutí hlavního tlačítka.</p>
+            <p class="zone-label out-zone"><span class="dot"></span>Kontrolní náhled · jen ke čtení</p>
             <div class="safety" id="my_safety">Semafor anonymizace se zobrazí po vložení textu.</div>
             <div class="safe-fallback" id="my_safeFallback" aria-live="polite"></div>
-            <button class="btn ghost small" id="my_prevToggle" title="Náhled je povinně viditelný. Tlačítko k němu jen sjede a krátce ho zvýrazní." style="margin:0 0 8px"><span class="action-icon" data-ic="down" aria-hidden="true"></span>Přejít na náhled</button>
+            <button class="btn ghost small" id="my_prevToggle" title="Náhled je povinně viditelný. Tlačítko k němu jen sjede a krátce ho zvýrazní." style="margin:0 0 8px"><span class="action-icon" data-ic="down" aria-hidden="true"></span>Zvýraznit kontrolní náhled</button>
             <div class="ready-banner" id="my_readyBanner" aria-live="polite"></div>
             <div class="preview-summary" id="my_previewSummary" aria-live="polite"></div>
             <div class="preview" id="my_preview"></div>
-            <label class="review-check"><input type="checkbox" id="my_reviewOk" aria-label="Potvrzuji kontrolu anonymizace vlastního e-mailu"><span><strong>Zkontrolováno.</strong> V náhledu nevidím skutečná jména, e-maily, telefony ani jiné citlivé údaje. Oranžová upozornění jsem posoudil(a); pokud nejde o citlivý údaj, mohu pokračovat.</span></label>
+            <label class="review-check"><input type="checkbox" id="my_reviewOk" aria-label="Potvrzuji kontrolu anonymizace vlastního e-mailu"><span><strong>Zkontrolováno.</strong> V náhledu nevidím skutečná jména, e-maily, telefony ani jiné citlivé údaje. Kontrolní upozornění jsem posoudil(a); pokud nejde o citlivý údaj, mohu pokračovat.</span></label>
 
             <div class="res-card params" style="margin-top:14px;background:var(--paper)">
               <div class="pgroup advanced-only" id="my_tplGroup">
@@ -1323,11 +1370,10 @@ body.dark .assistant-drawer .check-item.warn{color:#ffd48a}
   <div id="toasts"></div>
   <footer class="foot" aria-label="Patička aplikace">
     <div class="footer-tools-panel">
-      <span class="app-meta">Korespondenční asistent · v<span id="ver"></span> <span class="desktop-foot-extra">· dvojklik na slovo = synonyma</span></span>
+      <span class="app-meta">Korespondenční asistent · v<span id="ver"></span></span>
       <div class="footer-tools-row">
-        <span class="footer-tools-title">Nástroje a nápověda</span>
+        <span class="footer-tools-title">Další možnosti</span>
       </div>
-      <span class="tools-hint">Profil, historie, změny, správa dat a testy jsou dostupné v samostatném pracovním bloku.</span>
     </div>
     <div class="legal-divider" aria-hidden="true"></div>
     <span class="owner-lines">
@@ -1342,11 +1388,12 @@ body.dark .assistant-drawer .check-item.warn{color:#ffd48a}
 "use strict";
 
 const RELEASE = {
-  version: "5.3.0",
+  version: "5.3.1",
   date: "2026-07-26",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.3.1: testovací úpravy pracovního toku — odstraněn duplicitní bezpečný postup v záhlaví, anonymizace a kontrolní náhled sjednoceny do jednoho klidnějšího bloku, klíč náhrad zůstává sbalený, poznámka pro odpověď výslovně potvrzuje zapojení do promptu a opakovanou anonymizaci, po volbě návrhu se ostatní varianty skutečně skryjí, patička a nabídka nástrojů jsou zjednodušené, vývojářské nástroje jsou dostupné jen přes režim ?dev=1 nebo ?test a interaktivní manuál byl aktualizován.",
     "5.3.0: zjednodušené workflow — nová úvodní volba tří pracovních cest, spojený bezpečnostní blok anonymizace a přesného náhledu pro Gemini, zřetelně oddělený rozbor a nastavení odpovědi, čistý výběr jedné ze tří variant bez duplicitních ovladačů, sbalený pracovní přehled, výraznější finální akce a české oslovení při lokálním vrácení jmen.",
     "5.2.6: zásadní oprava anonymizace — skryjí se i české pádové tvary jmen včetně krátkých, doťukané tvary se spojí do jedné osoby a zbylý tvar už skrytého jména odeslání zastaví; interní testy nemažou lokální data a fungují i mimo testovací adresu; sjednoceno nastavení modelů Gemini, doplněn návrat z manuálu a ošetřen import cizího souboru nastavení.",
     "5.2.5: opraven export při nevyplněném profilu, přesnější shoda tvarů jmen, tři školní scénáře, úplné mazání lokálních dat včetně pracovního stolu, méně blokujících falešných poplachů, bezpečné vědomé pokračování u samotné termínové heuristiky, sjednocené styly pracovního stolu a ikony, import EML ve středoevropských kódováních a zpřesněné informace o bezplatné úrovni Gemini API.",
@@ -1410,7 +1457,7 @@ const RELEASE = {
   ],
 };
 const $ = (id) => document.getElementById(id);
-$("ver").textContent = RELEASE.version;
+const versionEl=$("ver"); if(versionEl) versionEl.textContent=RELEASE.version;
 const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;" }[c]));
 const escAttr = (s) => esc(s).replace(/"/g,"&quot;").replace(/'/g,"&#39;");
 const EMPTY_MARK = '<span class="empty empty-mark">— prázdné —</span>';
@@ -1684,7 +1731,7 @@ function updateProgress(p){
 
 
 ;
-/* AI Studio GHRAB — GHRAB Material v1 adapter (Korespondenční asistent 5.3.0, bridge 1.3) */
+/* AI Studio GHRAB — GHRAB Material v1 adapter (Korespondenční asistent 5.3.1, bridge 1.3) */
 (function(){
   'use strict';
   const KEY='ghrab.handoff.v1',EVENTS='ghrab.pilot.events.v2',MAX_SOURCE=180000;
@@ -1896,7 +1943,8 @@ function setApiError(container, err, retryFn){
   if(!container) return;
   const id="retry_"+Math.random().toString(36).slice(2);
   const devId="dev_"+Math.random().toString(36).slice(2);
-  container.innerHTML='<div class="error"><b>Nepovedlo se:</b> '+esc(friendlyApiMessage(err))+'<div class="retry-row"><button class="btn small" id="'+id+'">Zkusit znovu</button><button class="btn ghost small" id="'+devId+'">Vývojářské nástroje</button></div></div>';
+  const devMode=typeof DEV_MODE!=="undefined"&&DEV_MODE;
+  container.innerHTML='<div class="error"><b>Nepovedlo se:</b> '+esc(friendlyApiMessage(err))+'<div class="retry-row"><button class="btn small" id="'+id+'">Zkusit znovu</button>'+(devMode?'<button class="btn ghost small" id="'+devId+'">Vývojářské nástroje</button>':'')+'</div></div>';
   const b=$(id); if(b && retryFn) b.onclick=()=>retryFn();
   const dev=$(devId); if(dev) dev.onclick=openDeveloperTools;
 }
@@ -2102,6 +2150,11 @@ function czechCaseForms(name){
   if(/a$/.test(lo)){
     const s=lo.slice(0,-1); ["y","u","o","ou"].forEach(x=>out.add(s+x)); out.add(femaleDative(s)); out.add(s+"ovi");
     return out;
+  }
+  // Pohyblivé „e“ v běžných mužských jménech: Karel → Karla/Karlovi/Karlem/Karle,
+  // Pavel → Pavla/Pavlovi/Pavlem/Pavle. Jde o konkrétní tvary, ne prefixovou shodu.
+  if(/el$/.test(lo) && lo.length>=4){
+    const s=lo.slice(0,-2)+"l"; ["a","ovi","em","e"].forEach(x=>out.add(s+x));
   }
   if(/ý$/.test(lo)){
     const s=lo.slice(0,-1); ["ého","ému","ým","í"].forEach(x=>out.add(s+x));
@@ -2328,7 +2381,7 @@ function doAnon(p){
   const st=ST[p]; st.raw=raw; st.emailN=0; st.phoneN=0; st.km=[]; st.sensitiveAck=false;
   buildKey(st, autoDetect(raw));
   afterKeyChange(p);
-  const kd=E(p,"keyDetails"); if(kd) kd.open=document.body.classList.contains("ui-advanced");
+  const kd=E(p,"keyDetails"); if(kd) kd.open=false;
   E(p,"step2").style.display="grid";
   E(p,"step2").scrollIntoView({behavior:"smooth",block:"start"});
   updateProgress(p);
@@ -2535,7 +2588,7 @@ function safetyAudit(text,p){
       action:sensitive?"Neodesílat konkrétní údaje. Zobečni situaci a odstraň identifikátory.":"Neodesílat, nejdřív uprav text."
     };
   }
-  if(iss.warn.length) return {level:"warn", title:"Oranžová – pouze ke kontrole", msg:"Heuristika upozorňuje na "+iss.warn.join("; ")+". Samotné oranžové upozornění generování neblokuje.", action:"Pokračuj po ruční kontrole: pokud nejde o osobní nebo citlivý údaj, potvrď checkbox."};
+  if(iss.warn.length) return {level:"warn", title:"Kontrolní upozornění", msg:"Aplikace upozorňuje na "+iss.warn.join("; ")+". Upozornění samo o sobě generování neblokuje.", action:"Posuď nález očima. Pokud nejde o osobní nebo citlivý údaj, potvrď kontrolu."};
   return {level:"ok", title:"Zelená", msg:"Nevidím zjevný e-mail, telefon, rodné číslo, adresu ani podezřelé jméno. Přesto ještě projdi náhled očima.", action:"Pokračuj až po ruční kontrole náhledu."};
 }
 function renderSafetyCounts(p){
@@ -2582,7 +2635,7 @@ function renderReadyBanner(p, audit){
   if(clean.trim() && audit && (audit.level==="ok" || audit.level==="warn")){
     const warn=audit.level==="warn";
     el.className="ready-banner show"+(warn?" warn":"");
-    el.innerHTML='<span class="rb-icon" aria-hidden="true">'+(warn?'!':'✓')+'</span><span><b>'+(warn?'Náhled má pouze kontrolní upozornění.':'Náhled je připraven ke kontrole.')+'</b><small>'+(warn?'Oranžová generování neblokuje. Posuď označené položky, potvrď checkbox a pokračuj, pokud nejde o citlivé údaje.':'Přečti ho očima a teprve potom potvrď checkbox pod náhledem.')+'</small></span>';
+    el.innerHTML='<span class="rb-icon" aria-hidden="true">'+(warn?'!':'✓')+'</span><span><b>'+(warn?'Náhled obsahuje kontrolní upozornění.':'Náhled je připraven ke kontrole.')+'</b><small>'+(warn?'Posuď označené položky, potvrď kontrolu a pokračuj jen tehdy, pokud nejde o citlivé údaje.':'Přečti ho očima a teprve potom potvrď checkbox pod náhledem.')+'</small></span>';
   } else {
     el.className="ready-banner";
     el.innerHTML="";
@@ -3152,7 +3205,7 @@ function renderAnalysis(d){
     '<div class="pgroup advanced-only"><div class="plabel">Orientační délka standardní varianty</div>'+chipGroup("in_delka",DELKA,"stredni")+'</div>'+
     '<div class="pgroup simple-hide"><div class="plabel" title="Vykání nebo tykání ve výsledné odpovědi.">Oslovení</div>'+chipGroup("in_oslov",OSLOV,"vykani")+'</div>'+
     '<div class="pgroup advanced-only"><div class="plabel" title="V jakém jazyce má být odpověď.">Jazyk odpovědi</div>'+chipGroup("in_lang",LANG,(readChip("outlang")||"cs"))+'</div>'+
-    '<div class="pgroup advanced-only"><div class="plabel" title="Cokoli navíc — třeba na co nereagovat nebo co zmínit.">Poznámka pro odpověď</div><input id="in_note" type="text" title="Skutečná jména aplikace podle klíče anonymizuje." placeholder="např. navrhni telefonickou domluvu; ať odpověď nepůsobí obranně" style="width:100%;font:13px var(--sans);padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink)"></div>'+
+    '<div class="pgroup advanced-only"><div class="plabel" title="Cokoli navíc — třeba na co nereagovat nebo co zmínit.">Poznámka pro odpověď</div><input id="in_note" type="text" title="Poznámka je součástí promptu. Před odesláním se znovu anonymizuje a kontroluje." placeholder="např. napiš, že školy neznám; navrhni telefonickou domluvu"><p class="field-safety-note">Poznámka se skutečně promítne do návrhu. Před odesláním se znovu anonymizuje; známé jméno se nahradí značkou a neznámý citlivý údaj odeslání zastaví.</p></div>'+
     '<div class="simple-action-note simple-only"><b>Jednoduchý režim:</b> použije doporučený záměr a bezpečné výchozí nastavení.</div>'+
     '<div class="choice-summary advanced-only" id="in_choiceSummary"></div>'+
     '<div class="row actsticky"><button class="btn primary" id="in_replyBtn" title="Vytvoří stručnou, standardní a diplomatickou variantu."><span class="action-icon">✉️</span>Vytvořit 3 varianty <span class="req">1 ⚡</span></button></div>'+
@@ -3190,7 +3243,8 @@ async function genReplies(){
   const checked=allEls.filter(c=>c.checked).map(c=>ST.in.pozadavky[+c.dataset.ask]).filter(Boolean);
   const unchecked=allEls.filter(c=>!c.checked).map(c=>ST.in.pozadavky[+c.dataset.ask]).filter(Boolean);
   if(allEls.length && !checked.length){ state.innerHTML='<div class="error"><b>Není vybrán žádný požadavek.</b> Zaškrtni alespoň jeden bod, na který má odpověď reagovat.</div>'; return; }
-  const note=safeAuxiliaryText("in",($("in_note")&&$("in_note").value.trim())||"",state,"Poznámka pro odpověď");
+  const noteRaw=($("in_note")&&$("in_note").value.trim())||"";
+  const note=safeAuxiliaryText("in",noteRaw,state,"Poznámka pro odpověď");
   if(note===null || !enforcePreflight("in",state,note?[note]:[])) return;
   const threadLine=ST.in.analysis&&ST.in.analysis.vlakno&&ST.in.analysis.vlakno.jeVlakno?"\nJde o e-mailové vlákno. Odpověz na poslední relevantní zprávu a neopakuj již uzavřené části.":"";
   const prompt="Přijatý e-mail nebo vlákno (se značkami):\n\"\"\"\n"+ST.in.clean+"\n\"\"\"\n\n"+
@@ -3604,23 +3658,21 @@ function buildFooterTools(){
 
   const panel=document.createElement("div"); panel.className="footer-tools-panel";
   const meta=document.createElement("span"); meta.className="app-meta";
-  const buildTag=(RELEASE.build&&RELEASE.build!=="__BUILD__")?(' · build '+esc(RELEASE.build)):'';
-  meta.innerHTML='Korespondenční asistent · v'+esc(RELEASE.version)+buildTag+' <span class="desktop-foot-extra">· dvojklik na slovo = synonyma</span>';
+  meta.textContent='Korespondenční asistent · v'+RELEASE.version;
 
   const row=document.createElement("div"); row.className="footer-tools-row";
-  const title=document.createElement("span"); title.className="footer-tools-title"; title.textContent="Nástroje a nápověda";
+  const title=document.createElement("span"); title.className="footer-tools-title"; title.textContent="Další možnosti";
   const wrap=document.createElement("span"); wrap.className="tools-wrap";
-  const btn=document.createElement("button"); btn.className="tools-btn"; btn.type="button"; btn.textContent="Otevřít nástroje ▴"; btn.title="Profil, historie, změny, bezpečný začátek a testy"; btn.setAttribute("aria-expanded","false");
+  const btn=document.createElement("button"); btn.className="tools-btn"; btn.type="button"; btn.textContent="Otevřít nabídku ▴"; btn.title="Profil, uložené výstupy, šablony a správa dat"; btn.setAttribute("aria-expanded","false");
   const menu=document.createElement("div"); menu.className="tools-menu"; menu.setAttribute("role","menu");
-  toolsActions.forEach(a=>{ const b=document.createElement("button"); b.type="button"; b.title=a.title||a.label; b.innerHTML='<span class="action-icon">'+esc(a.icon||"•")+'</span><span>'+esc(a.label)+'</span>'; b.onclick=()=>{ menu.classList.remove("open"); btn.setAttribute("aria-expanded","false"); a.fn&&a.fn(); }; menu.appendChild(b); });
+  toolsActions.forEach(a=>{ const b=document.createElement("button"); b.type="button"; b.title=a.title||a.label; b.innerHTML='<span class="action-icon">'+esc(a.icon||"•")+'</span><span><b>'+esc(a.label)+'</b><small>'+esc(a.title||"")+'</small></span>'; b.onclick=()=>{ menu.classList.remove("open"); btn.setAttribute("aria-expanded","false"); a.fn&&a.fn(); }; menu.appendChild(b); });
   btn.onclick=(e)=>{ e.stopPropagation(); const open=!menu.classList.contains("open"); menu.classList.toggle("open",open); btn.setAttribute("aria-expanded",open?"true":"false"); };
   document.addEventListener("click",(e)=>{ if(!wrap.contains(e.target)){ menu.classList.remove("open"); btn.setAttribute("aria-expanded","false"); } });
   document.addEventListener("keydown",(e)=>{ if(e.key==="Escape"){ menu.classList.remove("open"); btn.setAttribute("aria-expanded","false"); } });
   wrap.appendChild(btn); wrap.appendChild(menu);
   row.appendChild(title); row.appendChild(wrap);
 
-  const hint=document.createElement("span"); hint.className="tools-hint"; hint.textContent="Profil, historie, změny, správa dat a testy jsou dostupné v samostatném pracovním bloku.";
-  panel.appendChild(meta); panel.appendChild(row); panel.appendChild(hint);
+  panel.appendChild(meta); panel.appendChild(row);
   foot.appendChild(panel);
 
   const divider=document.createElement("div"); divider.className="legal-divider"; divider.setAttribute("aria-hidden","true"); foot.appendChild(divider);
@@ -3904,9 +3956,10 @@ async function runKorespTests(){
       assertTest(!$("in_analyzeBtn").disabled,"oranžové upozornění zablokovalo generování");
     });
     await test("Doplňující pokyny se anonymizují a hlídají", async()=>{
-      ST.in.km=[{real:"Anna",token:"osoba A",auto:false}]; ST.in.clean="Bezpečný text.";
+      ST.in.km=[{real:"Anna",token:"osoba A",auto:false},{real:"Karel",token:"osoba B",auto:false}]; ST.in.clean="Bezpečný text.";
       assertTest(safeAuxiliaryText("in","pracoval jsem s Annou",null,"Poznámka").includes("osoba A"),"známé jméno v poznámce nebylo anonymizováno");
-      assertTest(safeAuxiliaryText("in","pracoval jsem s Klárou",null,"Poznámka")!==null,"oranžová heuristika v poznámce nesmí blokovat odeslání");
+      assertTest(safeAuxiliaryText("in","Vyřiď Karlovi, aby odpověděl.",null,"Poznámka").includes("osoba B"),"skloňované jméno v poznámce nebylo anonymizováno");
+      assertTest(safeAuxiliaryText("in","pracoval jsem s Klárou",null,"Poznámka")!==null,"kontrolní heuristika v poznámce nesmí bez důvodu blokovat odeslání");
     });
     await test("Import EML: vnořené MIME a kódované hlavičky", async()=>{
       const eml='From: =?UTF-8?Q?Petr_Nov=C3=A1k?= <petr@example.cz>\nSubject: =?UTF-8?Q?P=C5=99edm=C4=9Bt_test?=\nContent-Type: multipart/mixed; boundary="outer"\n\n--outer\nContent-Type: multipart/alternative; boundary="inner"\n\n--inner\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: quoted-printable\n\nDobr=C3=BD den.\n--inner--\n--outer--';
@@ -3917,7 +3970,8 @@ async function runKorespTests(){
       window.__TEST_MOCK_GEMINI=async()=>({shrnuti:"Rodič žádá o konzultaci.",naladeni:{stupen:"neutral",popis:"věcné"},pozadavky:["Domluvit termín"],upozorneni:[],doporucenyZamer:"schuzka"});
       E("in","raw").value="Dobrý den, prosím o konzultaci. Tel. 777 123 456."; doAnon("in"); E("in","reviewOk").checked=true; updateSendGate("in");
       assertTest($("in_previewSummary").textContent.includes("Co je skryto") && $("in_previewSummary").textContent.includes("Co je rizikové") && $("in_previewSummary").textContent.includes("Co odejde modelu") && $("in_previewSummary").textContent.includes("telefon"),"kompaktní souhrn po anonymizaci se nezobrazil");
-      assertTest($("in_safety").textContent.includes("Pokračuj") || $("in_safety").textContent.includes("Zkontroluj") || $("in_safety").textContent.includes("Neodesílat"),"semafor nezobrazuje akční text");
+      const safetyAction=$("in_safety").querySelector(".safety-action");
+      assertTest(!!safetyAction && safetyAction.textContent.trim().length>0,"bezpečnostní kontrola nezobrazuje akční text");
       await $("in_analyzeBtn").onclick();
       await waitFor(()=>$("in_results").textContent.includes("Rodič žádá"));
     });
@@ -3938,6 +3992,7 @@ async function runKorespTests(){
       cards[1].querySelector('.act-pick-variant').click();
       assertTest(cards[1].classList.contains('selected-variant')&&!cards[1].hidden,"vybraná varianta není aktivní");
       assertTest(cards[0].hidden&&cards[2].hidden,"nevybrané varianty se neschovaly");
+      assertTest(getComputedStyle(cards[0]).display==="none"&&getComputedStyle(cards[2]).display==="none","nevybrané varianty zůstaly vizuálně zobrazené");
       const actions=cards[1].querySelector('.actions');
       assertTest(actions&&!actions.hidden,"finální akce se po výběru nezobrazily");
       document.querySelector('#backToVariants').click();
@@ -3972,12 +4027,13 @@ async function runKorespTests(){
       assertTest(!!document.querySelector(".tools-btn"),"chybí menu Nástroje");
       assertTest(!!document.querySelector(".footer-tools-panel") && !!document.querySelector(".legal-divider") && !!document.querySelector(".owner-lines"),"patička není rozdělena na funkční a právní část");
       setUiMode("simple");
-      const flow=document.querySelector("#safetyGuideInline");
-      assertTest(!!flow,"chybí jednotný bezpečný průvodce");
-      assertTest(flow.textContent.includes("Vlož text") && flow.textContent.includes("Anonymizuj") && flow.textContent.includes("Ověř náhled") && flow.textContent.includes("Vytvoř výstup"),"průvodce neobsahuje úplný čtyřkrokový tok");
+      assertTest(!document.querySelector("#safetyGuideInline"),"duplicitní bezpečný postup zůstal v záhlaví");
+      const flow=document.querySelector("#appProgress");
+      assertTest(!!flow,"chybí hlavní čtyřkrokový průběh");
+      assertTest(flow.textContent.includes("Vložit text") && flow.textContent.includes("Anonymizovat") && flow.textContent.includes("Ověřit náhled") && flow.textContent.includes("Vytvořit výstup"),"hlavní průběh neobsahuje úplný čtyřkrokový tok");
       const modeExplain=document.querySelector("#uiModeExplain");
       assertTest(!!modeExplain && modeExplain.textContent.includes("Jednoduchý") && modeExplain.textContent.includes("Pokročilý") && modeExplain.textContent.includes("tón"),"chybí vysvětlení jednoduchého a pokročilého režimu");
-      assertTest(getComputedStyle(flow).display!=="none","bezpečný průvodce se v jednoduchém režimu nesmí skrýt");
+      assertTest(getComputedStyle(flow).display!=="none","hlavní průběh se v jednoduchém režimu nesmí skrýt");
       const hidden=getComputedStyle(document.querySelector("#my_choiceSummary")).display==="none";
       assertTest(hidden,"souhrn pokročilých voleb se v jednoduchém režimu nezakryl");
     });
@@ -4033,7 +4089,8 @@ async function runKorespTests(){
       assertTest(!dump.includes("tajný text") && !dump.includes("hotový e-mail"),"technický log obsahuje text/prompt");
       assertTest(typeof openDeveloperTools==="function" && typeof openOpsLog==="function","chybí vývojářské nástroje nebo technický log");
       const labels=toolsActions.map(a=>a.label).join("|");
-      assertTest(!labels.includes("Debug prompt") && !labels.includes("Spustit testy") && labels.includes("Vývojářské nástroje"),"debug/testy nejsou oddělené do Vývojářských nástrojů");
+      assertTest(!labels.includes("Debug prompt") && !labels.includes("Spustit testy"),"debug nebo testy zůstaly jako samostatné položky");
+      assertTest(DEV_MODE?labels.includes("Vývojářské nástroje"):!labels.includes("Vývojářské nástroje"),"viditelnost vývojářských nástrojů neodpovídá režimu ?dev=1 / ?test");
     });
 
     await test("Historie ukládá jen anonymizovanou verzi", async()=>{
@@ -4448,11 +4505,11 @@ function initDesk(){
 
 /* Nástroje se registrují ještě před buildFooterTools() v 80-pwa-start.js. */
 if(typeof footBtn==="function"){
-  footBtn("Pracovní koncepty","⌑","Bezpečně uložené anonymizované koncepty",openDraftsManager);
-  footBtn("Textové bloky a podpisy","✍","Oblíbené formulace a více podpisů",()=>{if(activeDraft)openBlocksManager(activeDraft,activePaneName);else manageSignatures();});
-  footBtn("Školní situace","⚡","Knihovna každodenních školních scénářů",openScenarioLibrary);
-  footBtn("Připomínky","◷","Čekám na odpověď a navazující termíny",openFollowupsManager);
-  footBtn("Sdílená školní knihovna","⇄","Export a import šablon pro kolegy",openSchoolLibraryManager);
+  footBtn("Uložené koncepty","⌑","Rozpracované anonymizované e-maily uložené v tomto prohlížeči",openDraftsManager);
+  footBtn("Formulace a podpisy","✍","Opakované věty, závěry a podpisy pro rychlé vložení",()=>{if(activeDraft)openBlocksManager(activeDraft,activePaneName);else manageSignatures();});
+  footBtn("Šablony školních situací","⚡","Přednastavení pro běžné situace, například schůzku, omluvu nebo připomínku",openScenarioLibrary);
+  footBtn("Čekám na odpověď","◷","Lokální přehled e-mailů, u kterých chceš hlídat navazující termín",openFollowupsManager);
+  footBtn("Školní balíček šablon","⇄","Export nebo import společných formulací a šablon pro kolegy",openSchoolLibraryManager);
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initDesk);else initDesk();
 })();
@@ -4489,14 +4546,12 @@ function registerPwa(){
 bindShellControls();
 registerPwa();
 loadKey(); loadModel(); initUiMode();
-footBtn("Profil odesílatele", "👤", "Tvé jméno, role a podpis", ()=>{ if(window.__openProfile) window.__openProfile(); });
-footBtn("Poslední výstupy", "🕘", "Naposledy hotové e-maily", ()=>{ if(window.__openHistory) window.__openHistory(); });
-footBtn("Co je nového", "✨", "Přehled změn", openChangelog);
-footBtn("Bezpečný začátek", "🛡️", "Znovu zobrazit bezpečnostní průvodce", ()=>openSecurityGuide(true));
-footBtn("Prohlídka aplikace", "🧭", "Krátká prohlídka: klíč, zóny, ťukání na jména", ()=>openOnboardingTour(true));
-footBtn("Školní návod", "📘", "Jednostránkový návod pro kolegy", openSchoolGuide);
-footBtn("Správa dat", "🧹", "Smazání lokálních dat a režim neukládat historii", openDataManager);
-footBtn("Vývojářské nástroje", "🧪", "Testy, debug prompt a technický log", openDeveloperTools);
+footBtn("Profil odesílatele", "👤", "Jméno, role a podpis doplňované do hotových e-mailů", ()=>{ if(window.__openProfile) window.__openProfile(); });
+footBtn("Poslední výstupy", "🕘", "Anonymizované výstupy uložené v tomto prohlížeči", ()=>{ if(window.__openHistory) window.__openHistory(); });
+footBtn("Přehled změn", "✨", "Co se změnilo v aktuálních verzích aplikace", openChangelog);
+footBtn("Správa dat", "🧹", "Historie, export nastavení a smazání lokálních dat", openDataManager);
+const DEV_MODE=IS_TEST_MODE||new URLSearchParams(location.search).has("dev");
+if(DEV_MODE) footBtn("Vývojářské nástroje", "🧪", "Automatické testy, debug prompt a technický log", openDeveloperTools);
 compactAdvancedParams();
 buildFooterTools();
 paintIcons(); applyFsIcon();

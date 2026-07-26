@@ -81,7 +81,7 @@ function renderAnalysis(d){
     '<div class="pgroup advanced-only"><div class="plabel">Orientační délka standardní varianty</div>'+chipGroup("in_delka",DELKA,"stredni")+'</div>'+
     '<div class="pgroup simple-hide"><div class="plabel" title="Vykání nebo tykání ve výsledné odpovědi.">Oslovení</div>'+chipGroup("in_oslov",OSLOV,"vykani")+'</div>'+
     '<div class="pgroup advanced-only"><div class="plabel" title="V jakém jazyce má být odpověď.">Jazyk odpovědi</div>'+chipGroup("in_lang",LANG,(readChip("outlang")||"cs"))+'</div>'+
-    '<div class="pgroup advanced-only"><div class="plabel" title="Cokoli navíc — třeba na co nereagovat nebo co zmínit.">Poznámka pro odpověď</div><input id="in_note" type="text" title="Skutečná jména aplikace podle klíče anonymizuje." placeholder="např. navrhni telefonickou domluvu; ať odpověď nepůsobí obranně" style="width:100%;font:13px var(--sans);padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink)"></div>'+
+    '<div class="pgroup advanced-only"><div class="plabel" title="Cokoli navíc — třeba na co nereagovat nebo co zmínit.">Poznámka pro odpověď</div><input id="in_note" type="text" title="Poznámka je součástí promptu. Před odesláním se znovu anonymizuje a kontroluje." placeholder="např. napiš, že školy neznám; navrhni telefonickou domluvu"><p class="field-safety-note">Poznámka se skutečně promítne do návrhu. Před odesláním se znovu anonymizuje; známé jméno se nahradí značkou a neznámý citlivý údaj odeslání zastaví.</p></div>'+
     '<div class="simple-action-note simple-only"><b>Jednoduchý režim:</b> použije doporučený záměr a bezpečné výchozí nastavení.</div>'+
     '<div class="choice-summary advanced-only" id="in_choiceSummary"></div>'+
     '<div class="row actsticky"><button class="btn primary" id="in_replyBtn" title="Vytvoří stručnou, standardní a diplomatickou variantu."><span class="action-icon">✉️</span>Vytvořit 3 varianty <span class="req">1 ⚡</span></button></div>'+
@@ -119,7 +119,8 @@ async function genReplies(){
   const checked=allEls.filter(c=>c.checked).map(c=>ST.in.pozadavky[+c.dataset.ask]).filter(Boolean);
   const unchecked=allEls.filter(c=>!c.checked).map(c=>ST.in.pozadavky[+c.dataset.ask]).filter(Boolean);
   if(allEls.length && !checked.length){ state.innerHTML='<div class="error"><b>Není vybrán žádný požadavek.</b> Zaškrtni alespoň jeden bod, na který má odpověď reagovat.</div>'; return; }
-  const note=safeAuxiliaryText("in",($("in_note")&&$("in_note").value.trim())||"",state,"Poznámka pro odpověď");
+  const noteRaw=($("in_note")&&$("in_note").value.trim())||"";
+  const note=safeAuxiliaryText("in",noteRaw,state,"Poznámka pro odpověď");
   if(note===null || !enforcePreflight("in",state,note?[note]:[])) return;
   const threadLine=ST.in.analysis&&ST.in.analysis.vlakno&&ST.in.analysis.vlakno.jeVlakno?"\nJde o e-mailové vlákno. Odpověz na poslední relevantní zprávu a neopakuj již uzavřené části.":"";
   const prompt="Přijatý e-mail nebo vlákno (se značkami):\n\"\"\"\n"+ST.in.clean+"\n\"\"\"\n\n"+

@@ -205,11 +205,11 @@ function initDesk(){
 
 /* Nástroje se registrují ještě před buildFooterTools() v 80-pwa-start.js. */
 if(typeof footBtn==="function"){
-  footBtn("Pracovní koncepty","⌑","Bezpečně uložené anonymizované koncepty",openDraftsManager);
-  footBtn("Textové bloky a podpisy","✍","Oblíbené formulace a více podpisů",()=>{if(activeDraft)openBlocksManager(activeDraft,activePaneName);else manageSignatures();});
-  footBtn("Školní situace","⚡","Knihovna každodenních školních scénářů",openScenarioLibrary);
-  footBtn("Připomínky","◷","Čekám na odpověď a navazující termíny",openFollowupsManager);
-  footBtn("Sdílená školní knihovna","⇄","Export a import šablon pro kolegy",openSchoolLibraryManager);
+  footBtn("Uložené koncepty","⌑","Rozpracované anonymizované e-maily uložené v tomto prohlížeči",openDraftsManager);
+  footBtn("Formulace a podpisy","✍","Opakované věty, závěry a podpisy pro rychlé vložení",()=>{if(activeDraft)openBlocksManager(activeDraft,activePaneName);else manageSignatures();});
+  footBtn("Šablony školních situací","⚡","Přednastavení pro běžné situace, například schůzku, omluvu nebo připomínku",openScenarioLibrary);
+  footBtn("Čekám na odpověď","◷","Lokální přehled e-mailů, u kterých chceš hlídat navazující termín",openFollowupsManager);
+  footBtn("Školní balíček šablon","⇄","Export nebo import společných formulací a šablon pro kolegy",openSchoolLibraryManager);
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initDesk);else initDesk();
 })();

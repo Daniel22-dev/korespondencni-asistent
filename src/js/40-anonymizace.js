@@ -131,6 +131,11 @@ function czechCaseForms(name){
     const s=lo.slice(0,-1); ["y","u","o","ou"].forEach(x=>out.add(s+x)); out.add(femaleDative(s)); out.add(s+"ovi");
     return out;
   }
+  // Pohyblivé „e“ v běžných mužských jménech: Karel → Karla/Karlovi/Karlem/Karle,
+  // Pavel → Pavla/Pavlovi/Pavlem/Pavle. Jde o konkrétní tvary, ne prefixovou shodu.
+  if(/el$/.test(lo) && lo.length>=4){
+    const s=lo.slice(0,-2)+"l"; ["a","ovi","em","e"].forEach(x=>out.add(s+x));
+  }
   if(/ý$/.test(lo)){
     const s=lo.slice(0,-1); ["ého","ému","ým","í"].forEach(x=>out.add(s+x));
     return out;
@@ -356,7 +361,7 @@ function doAnon(p){
   const st=ST[p]; st.raw=raw; st.emailN=0; st.phoneN=0; st.km=[]; st.sensitiveAck=false;
   buildKey(st, autoDetect(raw));
   afterKeyChange(p);
-  const kd=E(p,"keyDetails"); if(kd) kd.open=document.body.classList.contains("ui-advanced");
+  const kd=E(p,"keyDetails"); if(kd) kd.open=false;
   E(p,"step2").style.display="grid";
   E(p,"step2").scrollIntoView({behavior:"smooth",block:"start"});
   updateProgress(p);
@@ -563,7 +568,7 @@ function safetyAudit(text,p){
       action:sensitive?"Neodesílat konkrétní údaje. Zobečni situaci a odstraň identifikátory.":"Neodesílat, nejdřív uprav text."
     };
   }
-  if(iss.warn.length) return {level:"warn", title:"Oranžová – pouze ke kontrole", msg:"Heuristika upozorňuje na "+iss.warn.join("; ")+". Samotné oranžové upozornění generování neblokuje.", action:"Pokračuj po ruční kontrole: pokud nejde o osobní nebo citlivý údaj, potvrď checkbox."};
+  if(iss.warn.length) return {level:"warn", title:"Kontrolní upozornění", msg:"Aplikace upozorňuje na "+iss.warn.join("; ")+". Upozornění samo o sobě generování neblokuje.", action:"Posuď nález očima. Pokud nejde o osobní nebo citlivý údaj, potvrď kontrolu."};
   return {level:"ok", title:"Zelená", msg:"Nevidím zjevný e-mail, telefon, rodné číslo, adresu ani podezřelé jméno. Přesto ještě projdi náhled očima.", action:"Pokračuj až po ruční kontrole náhledu."};
 }
 function renderSafetyCounts(p){
@@ -610,7 +615,7 @@ function renderReadyBanner(p, audit){
   if(clean.trim() && audit && (audit.level==="ok" || audit.level==="warn")){
     const warn=audit.level==="warn";
     el.className="ready-banner show"+(warn?" warn":"");
-    el.innerHTML='<span class="rb-icon" aria-hidden="true">'+(warn?'!':'✓')+'</span><span><b>'+(warn?'Náhled má pouze kontrolní upozornění.':'Náhled je připraven ke kontrole.')+'</b><small>'+(warn?'Oranžová generování neblokuje. Posuď označené položky, potvrď checkbox a pokračuj, pokud nejde o citlivé údaje.':'Přečti ho očima a teprve potom potvrď checkbox pod náhledem.')+'</small></span>';
+    el.innerHTML='<span class="rb-icon" aria-hidden="true">'+(warn?'!':'✓')+'</span><span><b>'+(warn?'Náhled obsahuje kontrolní upozornění.':'Náhled je připraven ke kontrole.')+'</b><small>'+(warn?'Posuď označené položky, potvrď kontrolu a pokračuj jen tehdy, pokud nejde o citlivé údaje.':'Přečti ho očima a teprve potom potvrď checkbox pod náhledem.')+'</small></span>';
   } else {
     el.className="ready-banner";
     el.innerHTML="";

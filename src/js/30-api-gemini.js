@@ -191,7 +191,8 @@ function setApiError(container, err, retryFn){
   if(!container) return;
   const id="retry_"+Math.random().toString(36).slice(2);
   const devId="dev_"+Math.random().toString(36).slice(2);
-  container.innerHTML='<div class="error"><b>Nepovedlo se:</b> '+esc(friendlyApiMessage(err))+'<div class="retry-row"><button class="btn small" id="'+id+'">Zkusit znovu</button><button class="btn ghost small" id="'+devId+'">Vývojářské nástroje</button></div></div>';
+  const devMode=typeof DEV_MODE!=="undefined"&&DEV_MODE;
+  container.innerHTML='<div class="error"><b>Nepovedlo se:</b> '+esc(friendlyApiMessage(err))+'<div class="retry-row"><button class="btn small" id="'+id+'">Zkusit znovu</button>'+(devMode?'<button class="btn ghost small" id="'+devId+'">Vývojářské nástroje</button>':'')+'</div></div>';
   const b=$(id); if(b && retryFn) b.onclick=()=>retryFn();
   const dev=$(devId); if(dev) dev.onclick=openDeveloperTools;
 }

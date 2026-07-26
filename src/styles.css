@@ -851,3 +851,60 @@ body.dark .assistant-drawer .check-item.warn{color:#ffd48a}
   .variant-choice-grid .draft{display:flex}
   .variant-choice-grid .draft[hidden]{display:none!important}
 }
+
+
+/* ===================== KS 5.3.1 — KLIDNĚJŠÍ JEDNOTNÝ PRŮCHOD ===================== */
+/* Anonymizace a přesný náhled tvoří jeden souvislý pracovní blok. */
+.privacy-stage{display:block!important;padding:16px;background:var(--paper);border:1px solid color-mix(in srgb,var(--accent) 34%,var(--line));box-shadow:0 12px 32px rgba(20,30,40,.07)}
+.privacy-stage-head{padding:0 2px 13px;margin-bottom:0;border-bottom:0}
+.privacy-stage .privacy-local-panel{margin:0;padding:17px 17px 13px;border:1px solid var(--line);border-bottom:0;border-radius:14px 14px 0 0;background:var(--paper)}
+.privacy-stage .privacy-outgoing-panel{margin:0;padding:0;border:0;background:transparent}
+.privacy-stage .privacy-outgoing-panel .lock{width:auto;margin:0;padding:10px 16px;border-radius:0;background:var(--desk);border:1px solid var(--line);border-top:0;color:var(--ink);letter-spacing:0;font:850 12px/1.2 var(--sans)}
+.privacy-stage .privacy-outgoing-panel .lock svg{width:16px;height:16px;color:var(--accent-text)}
+.privacy-stage .outside-wrap{margin:0;padding:14px 16px 17px;border:1px solid var(--line);border-top:0;border-radius:0 0 14px 14px;background:var(--paper);box-shadow:none}
+.privacy-stage .outside-wrap::before{display:none}
+.privacy-stage .safe-local-label{margin:0 0 10px;padding:9px 11px;border:1px solid var(--line);background:var(--desk);color:var(--ink-soft);font-weight:650}
+.privacy-stage .safe-local-label strong{color:var(--ink);font-size:12.8px}
+.privacy-stage .out-zone{margin:8px 0;color:var(--ink-soft)}
+.privacy-stage .tapview{min-height:190px;max-height:390px;border-width:2px}
+.privacy-stage .preview{max-height:230px;background:color-mix(in srgb,var(--desk) 44%,var(--paper));border-color:var(--line)}
+.privacy-stage .ready-banner{display:none!important}
+.privacy-stage .safety-counts{display:none!important}
+.privacy-stage .preview-summary{padding:8px 10px;background:var(--desk)}
+.privacy-stage .privacy-triad{display:flex;flex-wrap:wrap;gap:6px}
+.privacy-stage .privacy-tile{padding:0;border:0;background:transparent;font-weight:650}
+.privacy-stage .privacy-tile+ .privacy-tile::before{content:"·";margin-right:6px;color:var(--ink-soft)}
+.privacy-stage .privacy-tile b{display:inline;margin-right:4px}
+.privacy-stage .preview-risk-list{margin-top:7px}
+.privacy-stage .safety.warn{border-color:color-mix(in srgb,var(--accent) 30%,var(--line));background:color-mix(in srgb,var(--accent) 8%,var(--paper));color:var(--ink-soft)}
+.privacy-stage .safety.warn .sicon,.privacy-stage .safety.warn .safety-action{color:var(--accent-text)}
+.privacy-stage #in_prevToggle,.privacy-stage #my_prevToggle{display:none}
+body.dark .privacy-stage{background:var(--paper);box-shadow:0 12px 32px rgba(0,0,0,.25)}
+body.dark .privacy-stage .safe-local-label{background:var(--desk);color:var(--ink-soft)}
+body.dark .privacy-stage .preview{background:var(--desk)}
+
+/* Autorovy display:flex nesmí přebít atribut hidden. */
+.variant-choice-grid .draft[hidden],.variant-choice-card[hidden]{display:none!important}
+
+/* Nabídka nástrojů má viditelné vysvětlení a jasné interakční stavy. */
+.tools-menu{min-width:300px;max-width:min(360px,calc(100vw - 24px))}
+.tools-menu button{align-items:flex-start;padding:10px 11px;border:1px solid transparent}
+.tools-menu button:hover,.tools-menu button:focus-visible{border-color:var(--line);background:var(--desk);outline:none}
+.tools-menu button>span:last-child{display:flex;flex-direction:column;gap:2px;min-width:0}
+.tools-menu button small{display:block;color:var(--ink-soft);font:600 11px/1.35 var(--sans)}
+.dev-tool-card{cursor:pointer;text-align:left;color:var(--ink);transition:border-color .15s,transform .15s,background .15s}
+.dev-tool-card span{display:block;color:var(--ink-soft);font:600 11.5px/1.4 var(--sans)}
+.dev-tool-card:hover,.dev-tool-card:focus-visible{border-color:var(--accent);background:var(--desk);transform:translateY(-1px);outline:none}
+body.dark .dev-tool-card{background:var(--desk);color:var(--ink)}
+body.dark .dev-tool-card b{color:var(--ink)}
+body.dark .dev-tool-card span{color:var(--ink-soft)}
+
+@media(max-width:640px){
+  .privacy-stage{padding:10px}
+  .privacy-stage .privacy-local-panel{padding:13px 12px 10px}
+  .privacy-stage .outside-wrap{padding:12px}
+  .privacy-stage .tapview{min-height:150px;max-height:300px}
+  .tools-menu{min-width:0}
+}
+
+.field-safety-note{margin:6px 0 0;color:var(--ink-soft);font:600 11.5px/1.42 var(--sans)}

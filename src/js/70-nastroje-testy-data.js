@@ -7,23 +7,21 @@ function buildFooterTools(){
 
   const panel=document.createElement("div"); panel.className="footer-tools-panel";
   const meta=document.createElement("span"); meta.className="app-meta";
-  const buildTag=(RELEASE.build&&RELEASE.build!=="__BUILD__")?(' · build '+esc(RELEASE.build)):'';
-  meta.innerHTML='Korespondenční asistent · v'+esc(RELEASE.version)+buildTag+' <span class="desktop-foot-extra">· dvojklik na slovo = synonyma</span>';
+  meta.textContent='Korespondenční asistent · v'+RELEASE.version;
 
   const row=document.createElement("div"); row.className="footer-tools-row";
-  const title=document.createElement("span"); title.className="footer-tools-title"; title.textContent="Nástroje a nápověda";
+  const title=document.createElement("span"); title.className="footer-tools-title"; title.textContent="Další možnosti";
   const wrap=document.createElement("span"); wrap.className="tools-wrap";
-  const btn=document.createElement("button"); btn.className="tools-btn"; btn.type="button"; btn.textContent="Otevřít nástroje ▴"; btn.title="Profil, historie, změny, bezpečný začátek a testy"; btn.setAttribute("aria-expanded","false");
+  const btn=document.createElement("button"); btn.className="tools-btn"; btn.type="button"; btn.textContent="Otevřít nabídku ▴"; btn.title="Profil, uložené výstupy, šablony a správa dat"; btn.setAttribute("aria-expanded","false");
   const menu=document.createElement("div"); menu.className="tools-menu"; menu.setAttribute("role","menu");
-  toolsActions.forEach(a=>{ const b=document.createElement("button"); b.type="button"; b.title=a.title||a.label; b.innerHTML='<span class="action-icon">'+esc(a.icon||"•")+'</span><span>'+esc(a.label)+'</span>'; b.onclick=()=>{ menu.classList.remove("open"); btn.setAttribute("aria-expanded","false"); a.fn&&a.fn(); }; menu.appendChild(b); });
+  toolsActions.forEach(a=>{ const b=document.createElement("button"); b.type="button"; b.title=a.title||a.label; b.innerHTML='<span class="action-icon">'+esc(a.icon||"•")+'</span><span><b>'+esc(a.label)+'</b><small>'+esc(a.title||"")+'</small></span>'; b.onclick=()=>{ menu.classList.remove("open"); btn.setAttribute("aria-expanded","false"); a.fn&&a.fn(); }; menu.appendChild(b); });
   btn.onclick=(e)=>{ e.stopPropagation(); const open=!menu.classList.contains("open"); menu.classList.toggle("open",open); btn.setAttribute("aria-expanded",open?"true":"false"); };
   document.addEventListener("click",(e)=>{ if(!wrap.contains(e.target)){ menu.classList.remove("open"); btn.setAttribute("aria-expanded","false"); } });
   document.addEventListener("keydown",(e)=>{ if(e.key==="Escape"){ menu.classList.remove("open"); btn.setAttribute("aria-expanded","false"); } });
   wrap.appendChild(btn); wrap.appendChild(menu);
   row.appendChild(title); row.appendChild(wrap);
 
-  const hint=document.createElement("span"); hint.className="tools-hint"; hint.textContent="Profil, historie, změny, správa dat a testy jsou dostupné v samostatném pracovním bloku.";
-  panel.appendChild(meta); panel.appendChild(row); panel.appendChild(hint);
+  panel.appendChild(meta); panel.appendChild(row);
   foot.appendChild(panel);
 
   const divider=document.createElement("div"); divider.className="legal-divider"; divider.setAttribute("aria-hidden","true"); foot.appendChild(divider);
@@ -307,9 +305,10 @@ async function runKorespTests(){
       assertTest(!$("in_analyzeBtn").disabled,"oranžové upozornění zablokovalo generování");
     });
     await test("Doplňující pokyny se anonymizují a hlídají", async()=>{
-      ST.in.km=[{real:"Anna",token:"osoba A",auto:false}]; ST.in.clean="Bezpečný text.";
+      ST.in.km=[{real:"Anna",token:"osoba A",auto:false},{real:"Karel",token:"osoba B",auto:false}]; ST.in.clean="Bezpečný text.";
       assertTest(safeAuxiliaryText("in","pracoval jsem s Annou",null,"Poznámka").includes("osoba A"),"známé jméno v poznámce nebylo anonymizováno");
-      assertTest(safeAuxiliaryText("in","pracoval jsem s Klárou",null,"Poznámka")!==null,"oranžová heuristika v poznámce nesmí blokovat odeslání");
+      assertTest(safeAuxiliaryText("in","Vyřiď Karlovi, aby odpověděl.",null,"Poznámka").includes("osoba B"),"skloňované jméno v poznámce nebylo anonymizováno");
+      assertTest(safeAuxiliaryText("in","pracoval jsem s Klárou",null,"Poznámka")!==null,"kontrolní heuristika v poznámce nesmí bez důvodu blokovat odeslání");
     });
     await test("Import EML: vnořené MIME a kódované hlavičky", async()=>{
       const eml='From: =?UTF-8?Q?Petr_Nov=C3=A1k?= <petr@example.cz>\nSubject: =?UTF-8?Q?P=C5=99edm=C4=9Bt_test?=\nContent-Type: multipart/mixed; boundary="outer"\n\n--outer\nContent-Type: multipart/alternative; boundary="inner"\n\n--inner\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: quoted-printable\n\nDobr=C3=BD den.\n--inner--\n--outer--';
@@ -320,7 +319,8 @@ async function runKorespTests(){
       window.__TEST_MOCK_GEMINI=async()=>({shrnuti:"Rodič žádá o konzultaci.",naladeni:{stupen:"neutral",popis:"věcné"},pozadavky:["Domluvit termín"],upozorneni:[],doporucenyZamer:"schuzka"});
       E("in","raw").value="Dobrý den, prosím o konzultaci. Tel. 777 123 456."; doAnon("in"); E("in","reviewOk").checked=true; updateSendGate("in");
       assertTest($("in_previewSummary").textContent.includes("Co je skryto") && $("in_previewSummary").textContent.includes("Co je rizikové") && $("in_previewSummary").textContent.includes("Co odejde modelu") && $("in_previewSummary").textContent.includes("telefon"),"kompaktní souhrn po anonymizaci se nezobrazil");
-      assertTest($("in_safety").textContent.includes("Pokračuj") || $("in_safety").textContent.includes("Zkontroluj") || $("in_safety").textContent.includes("Neodesílat"),"semafor nezobrazuje akční text");
+      const safetyAction=$("in_safety").querySelector(".safety-action");
+      assertTest(!!safetyAction && safetyAction.textContent.trim().length>0,"bezpečnostní kontrola nezobrazuje akční text");
       await $("in_analyzeBtn").onclick();
       await waitFor(()=>$("in_results").textContent.includes("Rodič žádá"));
     });
@@ -341,6 +341,7 @@ async function runKorespTests(){
       cards[1].querySelector('.act-pick-variant').click();
       assertTest(cards[1].classList.contains('selected-variant')&&!cards[1].hidden,"vybraná varianta není aktivní");
       assertTest(cards[0].hidden&&cards[2].hidden,"nevybrané varianty se neschovaly");
+      assertTest(getComputedStyle(cards[0]).display==="none"&&getComputedStyle(cards[2]).display==="none","nevybrané varianty zůstaly vizuálně zobrazené");
       const actions=cards[1].querySelector('.actions');
       assertTest(actions&&!actions.hidden,"finální akce se po výběru nezobrazily");
       document.querySelector('#backToVariants').click();
@@ -375,12 +376,13 @@ async function runKorespTests(){
       assertTest(!!document.querySelector(".tools-btn"),"chybí menu Nástroje");
       assertTest(!!document.querySelector(".footer-tools-panel") && !!document.querySelector(".legal-divider") && !!document.querySelector(".owner-lines"),"patička není rozdělena na funkční a právní část");
       setUiMode("simple");
-      const flow=document.querySelector("#safetyGuideInline");
-      assertTest(!!flow,"chybí jednotný bezpečný průvodce");
-      assertTest(flow.textContent.includes("Vlož text") && flow.textContent.includes("Anonymizuj") && flow.textContent.includes("Ověř náhled") && flow.textContent.includes("Vytvoř výstup"),"průvodce neobsahuje úplný čtyřkrokový tok");
+      assertTest(!document.querySelector("#safetyGuideInline"),"duplicitní bezpečný postup zůstal v záhlaví");
+      const flow=document.querySelector("#appProgress");
+      assertTest(!!flow,"chybí hlavní čtyřkrokový průběh");
+      assertTest(flow.textContent.includes("Vložit text") && flow.textContent.includes("Anonymizovat") && flow.textContent.includes("Ověřit náhled") && flow.textContent.includes("Vytvořit výstup"),"hlavní průběh neobsahuje úplný čtyřkrokový tok");
       const modeExplain=document.querySelector("#uiModeExplain");
       assertTest(!!modeExplain && modeExplain.textContent.includes("Jednoduchý") && modeExplain.textContent.includes("Pokročilý") && modeExplain.textContent.includes("tón"),"chybí vysvětlení jednoduchého a pokročilého režimu");
-      assertTest(getComputedStyle(flow).display!=="none","bezpečný průvodce se v jednoduchém režimu nesmí skrýt");
+      assertTest(getComputedStyle(flow).display!=="none","hlavní průběh se v jednoduchém režimu nesmí skrýt");
       const hidden=getComputedStyle(document.querySelector("#my_choiceSummary")).display==="none";
       assertTest(hidden,"souhrn pokročilých voleb se v jednoduchém režimu nezakryl");
     });
@@ -436,7 +438,8 @@ async function runKorespTests(){
       assertTest(!dump.includes("tajný text") && !dump.includes("hotový e-mail"),"technický log obsahuje text/prompt");
       assertTest(typeof openDeveloperTools==="function" && typeof openOpsLog==="function","chybí vývojářské nástroje nebo technický log");
       const labels=toolsActions.map(a=>a.label).join("|");
-      assertTest(!labels.includes("Debug prompt") && !labels.includes("Spustit testy") && labels.includes("Vývojářské nástroje"),"debug/testy nejsou oddělené do Vývojářských nástrojů");
+      assertTest(!labels.includes("Debug prompt") && !labels.includes("Spustit testy"),"debug nebo testy zůstaly jako samostatné položky");
+      assertTest(DEV_MODE?labels.includes("Vývojářské nástroje"):!labels.includes("Vývojářské nástroje"),"viditelnost vývojářských nástrojů neodpovídá režimu ?dev=1 / ?test");
     });
 
     await test("Historie ukládá jen anonymizovanou verzi", async()=>{
