@@ -929,6 +929,70 @@ body.dark .dev-tool-card span{color:var(--ink-soft)}
 }
 
 .field-safety-note{margin:6px 0 0;color:var(--ink-soft);font:600 11.5px/1.42 var(--sans)}
+
+/* ===================== KS 5.4.0 — sjednocená kontrola a čistší dialogy ===================== */
+.privacy-stage{
+  grid-template-columns:minmax(0,1fr)!important;
+  gap:0!important;
+  margin-top:18px;
+  padding:clamp(16px,2.4vw,28px);
+  border:1px solid color-mix(in srgb,var(--accent) 32%,var(--line));
+  border-radius:22px;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--paper) 96%,var(--accent) 4%),var(--paper));
+  box-shadow:0 18px 46px rgba(24,52,67,.10);
+}
+.privacy-stage-head{margin:0 0 16px;padding:0 2px 16px;border-bottom:1px solid var(--line)}
+.privacy-stage-head h2{margin:.15rem 0 .35rem;font-size:clamp(1.3rem,2.2vw,1.75rem)}
+.privacy-stage-head p:last-child{max-width:78ch;margin-bottom:0}
+.privacy-stage .privacy-local-panel,
+.privacy-stage .privacy-outgoing-panel{
+  margin:0!important;padding:0!important;border:0!important;border-radius:0!important;
+  background:transparent!important;box-shadow:none!important;
+}
+.privacy-stage .privacy-outgoing-panel{margin-top:18px!important;padding-top:18px!important;border-top:1px solid var(--line)!important}
+.privacy-stage .privacy-outgoing-panel>.lock{position:static;display:inline-flex;margin:0 0 10px}
+.privacy-stage .outside-wrap{margin:0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}
+.privacy-warning{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;align-items:start;margin:14px 0;padding:14px 16px;border:1px solid #d98535;border-left:6px solid #c84f28;border-radius:12px;background:#fff8ee;color:#5d2b18}
+.privacy-warning strong{font-size:1rem}.privacy-warning span{grid-column:2;line-height:1.45}
+.unified-review-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(250px,330px);gap:16px;align-items:start}
+.unified-text-column{min-width:0}
+.final-content-label{display:flex;justify-content:space-between;gap:12px;align-items:baseline;margin:0 0 7px;color:var(--ink)}
+.final-content-label span{font-size:12px;color:var(--muted);text-align:right}
+.tapview.final-outgoing-text{min-height:320px;max-height:58vh;overflow:auto;padding:18px 20px;border:2px solid color-mix(in srgb,var(--accent) 55%,var(--line));border-radius:14px;background:var(--paper);font-size:15px;line-height:1.7;white-space:pre-wrap;box-shadow:inset 0 1px 0 rgba(255,255,255,.65)}
+.tapview .w.suggestion-word{background:#fff1c7;border-bottom:2px dotted #c66d00;border-radius:4px;padding:1px 2px;color:inherit;cursor:pointer}
+.tapview .w.suggestion-word:hover,.tapview .w.suggestion-word:focus{background:#ffe19a;outline:2px solid rgba(198,109,0,.2)}
+.suggestion-panel{position:sticky;top:12px;max-height:58vh;overflow:auto;border:1px solid var(--line);border-radius:14px;background:color-mix(in srgb,var(--paper) 95%,#f4f7f2 5%);padding:12px}
+.suggestion-panel.resolved{border-color:#8ab79a;background:#f1faf4}
+.suggestion-panel-head{display:flex;gap:10px;align-items:center;padding:3px 2px 10px}
+.suggestion-panel-head>span:last-child{display:grid;gap:2px}.suggestion-panel-head small{color:var(--muted);font-size:12px;font-weight:400}
+.suggestion-count{display:grid;place-items:center;flex:0 0 32px;height:32px;border-radius:50%;background:#b44d22;color:white;font-weight:800}
+.suggestion-panel.resolved .suggestion-count{background:#2d7b50}
+.suggestion-list{display:grid;gap:9px}
+.suggestion-item{display:grid;gap:8px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--paper)}
+.suggestion-item strong{overflow-wrap:anywhere}
+.suggestion-actions{display:flex;flex-wrap:wrap;gap:5px}
+.suggestion-action{border:1px solid var(--line);border-radius:999px;background:var(--paper);color:var(--ink);padding:5px 8px;font:700 11px var(--sans);cursor:pointer}
+.suggestion-action:hover,.suggestion-action:focus{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 18%,transparent)}
+.suggestion-action.person{background:#fff7d7}.suggestion-action.institution{background:#eef5ff}.suggestion-action.place{background:#eff9f2}.suggestion-action.keep{background:#f4f4f4}
+#tapPop{z-index:10020;position:absolute;max-width:min(390px,calc(100vw - 16px));padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--paper);box-shadow:0 16px 42px rgba(0,0,0,.22)}
+.tap-pop-title{display:block;margin-bottom:9px;font-size:13px}
+.review-check.blocked{opacity:.66;border-color:#d6a878;background:#fff8ee}.review-check.blocked span:after{content:" Nejdřív vyřeš všechny oranžové návrhy výše.";font-weight:700;color:#93451e}
+.token.t-institution{background:#dceaff;border-color:#8bb2e8}.token.t-place{background:#dcf3e2;border-color:#8fc59c}
+.visible-signature{display:inline-block;white-space:pre-line;vertical-align:top;padding:6px 9px;border-style:dashed}
+.params .pgroup.note-field{padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}
+.params .pgroup.note-field input{width:100%;font:13px var(--sans);padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:var(--paper);color:var(--ink)}
+.name-hint-toggle{display:none!important}
+@media(max-width:820px){.unified-review-grid{grid-template-columns:1fr}.suggestion-panel{position:static;max-height:none}.tapview.final-outgoing-text{min-height:260px;max-height:52vh}.privacy-warning{grid-template-columns:1fr}.privacy-warning span{grid-column:1}.final-content-label{display:grid}.final-content-label span{text-align:left}}
+.modal-card.modal-wide{width:min(1040px,calc(100vw - 32px));max-width:1040px;max-height:min(88vh,900px)}
+.modal-card.modal-wide .modal-body{padding:20px 22px 24px}
+.blocks-layout{display:grid;gap:24px}.blocks-section{display:grid;gap:14px}.blocks-section+.blocks-section{padding-top:22px;border-top:1px solid var(--line)}
+.blocks-dialog .dialog-section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin:0}
+.blocks-dialog .dialog-section-head h3{margin:2px 0 4px;font-size:1.2rem}.blocks-dialog .dialog-section-head p{margin:0;max-width:64ch;color:var(--muted);line-height:1.45}.blocks-dialog .dialog-section-head .eyebrow{color:var(--accent);font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+.phrase-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.phrase-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:14px;border:1px solid var(--line);border-radius:13px;background:var(--paper);box-shadow:0 5px 14px rgba(24,52,67,.05)}
+.phrase-card-copy{min-width:0}.phrase-card-title{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:7px}.phrase-card-title b{font-size:14px}.phrase-category{display:inline-flex;padding:3px 7px;border-radius:999px;background:color-mix(in srgb,var(--accent) 10%,var(--paper));color:var(--accent);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}.phrase-card p{margin:0;color:var(--ink);font-size:13px;line-height:1.5}.phrase-card-actions{display:grid;gap:6px;justify-items:stretch}
+.signature-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.signature-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:14px;border:1px solid var(--line);border-radius:13px;background:var(--paper)}.signature-card.is-active{border-color:color-mix(in srgb,var(--accent) 62%,var(--line));box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 12%,transparent)}.signature-card>div{display:grid;gap:5px}.signature-state{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}.signature-card.is-active .signature-state{color:var(--accent)}.signature-card pre{margin:0;white-space:pre-wrap;font:12px/1.45 var(--sans);color:var(--muted)}
+@media(max-width:720px){.phrase-grid,.signature-grid{grid-template-columns:1fr}.phrase-card,.signature-card{grid-template-columns:1fr}.phrase-card-actions{display:flex}.blocks-dialog .dialog-section-head{display:grid}}
 </style>
 </head>
 <body>
@@ -1082,14 +1146,21 @@ body.dark .dev-tool-card span{color:var(--ink-soft)}
         <div class="privacy-stage-head">
           <p class="eyebrow">Bezpečnostní příprava · vše v jednom kroku</p>
           <h2>Zkontroluj anonymizovaný text před odesláním</h2>
-          <p>E-maily a telefony aplikace skryje automaticky. Jména a vlastní názvy označ ťuknutím v hlavním poli; pod ním pak jednou potvrď přesný kontrolní náhled pro Gemini.</p>
+          <p>E-maily a telefony aplikace skryje automaticky. V jednom velkém poli označíš jména a vlastní názvy a zároveň přesně vidíš text, který může odejít do Gemini.</p>
         </div>
         <div class="card privacy-local-panel">
-          <div class="step-head"><span class="step-no">2</span><span class="step-title">Anonymizace a kontrola v jednom pracovním bloku</span></div>
-          <p class="tap-hint">Ťukni na jméno nebo údaj, který chceš skrýt — zežloutne jako značka. U jména a příjmení stačí ťuknout na jednu část; aplikace spojí sousední celé jméno do jedné osoby. Ťuknutím na značku ho zase odkryješ. Chceš upravit samotný text? Uprav ho nahoře a dej <b>Anonymizovat znovu</b>.</p>
-          <div class="tap-cue"><span class="arrow action-icon" data-ic="down" aria-hidden="true"></span><span>Ťukni na jména a vlastní názvy v textu níže — skryjí se jako značka. E-maily a telefony jsou už skryté.</span></div>
-          <div class="tapview" id="in_view"></div>
-          <p class="post-anon-note">Hlavní úkol: projdi text a ťukni na jména nebo vlastní názvy. <small>Tabulka náhrad je sbalená níže, aby první kontrola nebyla zahlcená.</small></p>
+          <div class="step-head"><span class="step-no">2</span><span class="step-title">Anonymizace a přesný obsah pro Gemini</span></div>
+          <p class="tap-hint">Oranžově označené výrazy musíš posoudit: zvol osobu, instituci, místo, nebo je vědomě ponech. U celého jména stačí ťuknout na jednu část. Žlutá značka už je anonymizovaná; ťuknutím ji znovu odkryješ.</p>
+          <div class="privacy-warning" role="alert"><strong>Před odesláním pročti celý text.</strong><span>Ověř, že neobsahuje skutečná jména, kontakty ani jiné osobní nebo citlivé údaje. Zobrazený text je zároveň přesným obsahem připraveným pro Gemini.</span></div>
+          <div class="tap-cue"><span class="arrow action-icon" data-ic="down" aria-hidden="true"></span><span>Vyřeš oranžově označené výrazy a potom text ještě jednou celý přečti.</span></div>
+          <div class="unified-review-grid">
+            <div class="unified-text-column">
+              <div class="final-content-label"><strong>Přesný obsah pro Gemini</strong><span>Upravuje se pouze označováním náhrad; nic se neodešle bez potvrzení níže.</span></div>
+              <div class="tapview final-outgoing-text" id="in_view"></div>
+            </div>
+            <aside class="suggestion-panel" id="in_suggestionPanel" aria-live="polite"></aside>
+          </div>
+          <p class="post-anon-note">Hlavní úkol: vyřeš návrhy vpravo a pročti celý odesílaný text. <small>Tabulka náhrad zůstává sbalená níže pro případ ruční opravy.</small></p>
           <details class="key-details" id="in_keyDetails">
             <summary><span><span class="kd-title">Klíč náhrad — zůstává jen u tebe</span><span class="kd-sub" id="in_keySummaryLine">Zatím bez náhrad.</span></span></summary>
             <div class="key-details-body">
@@ -1108,15 +1179,15 @@ body.dark .dev-tool-card span{color:var(--ink-soft)}
         <div class="threshold privacy-outgoing-panel">
           <span class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Finální kontrola před odesláním</span>
           <div class="outside-wrap">
-            <p class="safe-local-label"><strong>Přesný obsah pro Gemini.</strong> Níže je jen kontrolní kopie anonymizovaného textu. Odešle se až po tvém potvrzení a stisknutí hlavního tlačítka.</p>
+            <p class="safe-local-label"><strong>Bezpečnostní výsledek.</strong> Semafor níže kontroluje stejné hlavní pole výše; nevytváří druhou kopii textu.</p>
             <p class="zone-label out-zone"><span class="dot"></span>Kontrolní náhled · jen ke čtení</p>
             <div class="safety" id="in_safety">Semafor anonymizace se zobrazí po vložení textu.</div>
             <div class="safe-fallback" id="in_safeFallback" aria-live="polite"></div>
-            <button class="btn ghost small" id="in_prevToggle" title="Náhled je povinně viditelný. Tlačítko k němu jen sjede a krátce ho zvýrazní." style="margin:0 0 8px"><span class="action-icon" data-ic="down" aria-hidden="true"></span>Zvýraznit kontrolní náhled</button>
+            <button hidden class="btn ghost small" id="in_prevToggle" title="Náhled je povinně viditelný. Tlačítko k němu jen sjede a krátce ho zvýrazní." style="margin:0 0 8px"><span class="action-icon" data-ic="down" aria-hidden="true"></span>Zvýraznit kontrolní náhled</button>
             <div class="ready-banner" id="in_readyBanner" aria-live="polite"></div>
             <div class="preview-summary" id="in_previewSummary" aria-live="polite"></div>
-            <div class="preview" id="in_preview"></div>
-            <label class="review-check"><input type="checkbox" id="in_reviewOk" aria-label="Potvrzuji kontrolu anonymizace přijatého e-mailu"><span><strong>Zkontrolováno.</strong> V náhledu nevidím skutečná jména, e-maily, telefony ani jiné citlivé údaje. Kontrolní upozornění jsem posoudil(a); pokud nejde o citlivý údaj, mohu pokračovat.</span></label>
+            <div hidden class="preview" id="in_preview"></div>
+            <label class="review-check"><input type="checkbox" id="in_reviewOk" aria-label="Potvrzuji kontrolu anonymizace přijatého e-mailu"><span><strong>Zkontrolováno.</strong> Pročetl(a) jsem celý přesný obsah pro Gemini, vyřešil(a) všechny označené návrhy a nevidím v něm skutečná jména, kontakty ani jiné citlivé údaje.</span></label>
             <div class="row actsticky">
               <button class="btn primary" id="in_analyzeBtn" title="Odešle očištěný text Gemini a vrátí rozbor." disabled><span class="action-icon">🔎</span>Rozebrat <span class="req">1 ⚡</span></button>
             </div>
@@ -1148,14 +1219,21 @@ body.dark .dev-tool-card span{color:var(--ink-soft)}
         <div class="privacy-stage-head">
           <p class="eyebrow">Bezpečnostní příprava · vše v jednom kroku</p>
           <h2>Zkontroluj anonymizovaný text před odesláním</h2>
-          <p>E-maily a telefony aplikace skryje automaticky. Jména a vlastní názvy označ ťuknutím v hlavním poli; pod ním pak jednou potvrď přesný kontrolní náhled pro Gemini.</p>
+          <p>E-maily a telefony aplikace skryje automaticky. V jednom velkém poli označíš jména a vlastní názvy a zároveň přesně vidíš text, který může odejít do Gemini.</p>
         </div>
         <div class="card privacy-local-panel">
-          <div class="step-head"><span class="step-no">2</span><span class="step-title">Anonymizace a kontrola v jednom pracovním bloku</span></div>
-          <p class="tap-hint">Ťukni na jméno nebo údaj, který chceš skrýt — zežloutne jako značka. U jména a příjmení stačí ťuknout na jednu část; aplikace spojí sousední celé jméno do jedné osoby. Ťuknutím na značku ho zase odkryješ. Chceš upravit samotný text? Uprav ho nahoře a dej <b>Anonymizovat znovu</b>.</p>
-          <div class="tap-cue"><span class="arrow action-icon" data-ic="down" aria-hidden="true"></span><span>Ťukni na jména a vlastní názvy v textu níže — skryjí se jako značka. E-maily a telefony jsou už skryté.</span></div>
-          <div class="tapview" id="my_view"></div>
-          <p class="post-anon-note">Hlavní úkol: projdi text a ťukni na jména nebo vlastní názvy. <small>Tabulka náhrad je sbalená níže, aby první kontrola nebyla zahlcená.</small></p>
+          <div class="step-head"><span class="step-no">2</span><span class="step-title">Anonymizace a přesný obsah pro Gemini</span></div>
+          <p class="tap-hint">Oranžově označené výrazy musíš posoudit: zvol osobu, instituci, místo, nebo je vědomě ponech. U celého jména stačí ťuknout na jednu část. Žlutá značka už je anonymizovaná; ťuknutím ji znovu odkryješ.</p>
+          <div class="privacy-warning" role="alert"><strong>Před odesláním pročti celý text.</strong><span>Ověř, že neobsahuje skutečná jména, kontakty ani jiné osobní nebo citlivé údaje. Zobrazený text je zároveň přesným obsahem připraveným pro Gemini.</span></div>
+          <div class="tap-cue"><span class="arrow action-icon" data-ic="down" aria-hidden="true"></span><span>Vyřeš oranžově označené výrazy a potom text ještě jednou celý přečti.</span></div>
+          <div class="unified-review-grid">
+            <div class="unified-text-column">
+              <div class="final-content-label"><strong>Přesný obsah pro Gemini</strong><span>Upravuje se pouze označováním náhrad; nic se neodešle bez potvrzení níže.</span></div>
+              <div class="tapview final-outgoing-text" id="my_view"></div>
+            </div>
+            <aside class="suggestion-panel" id="my_suggestionPanel" aria-live="polite"></aside>
+          </div>
+          <p class="post-anon-note">Hlavní úkol: vyřeš návrhy vpravo a pročti celý odesílaný text. <small>Tabulka náhrad zůstává sbalená níže pro případ ruční opravy.</small></p>
           <details class="key-details" id="my_keyDetails">
             <summary><span><span class="kd-title">Klíč náhrad — zůstává jen u tebe</span><span class="kd-sub" id="my_keySummaryLine">Zatím bez náhrad.</span></span></summary>
             <div class="key-details-body">
@@ -1174,15 +1252,15 @@ body.dark .dev-tool-card span{color:var(--ink-soft)}
         <div class="threshold privacy-outgoing-panel">
           <span class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Finální kontrola před odesláním</span>
           <div class="outside-wrap">
-            <p class="safe-local-label"><strong>Přesný obsah pro Gemini.</strong> Níže je jen kontrolní kopie anonymizovaného textu. Odešle se až po tvém potvrzení a stisknutí hlavního tlačítka.</p>
+            <p class="safe-local-label"><strong>Bezpečnostní výsledek.</strong> Semafor níže kontroluje stejné hlavní pole výše; nevytváří druhou kopii textu.</p>
             <p class="zone-label out-zone"><span class="dot"></span>Kontrolní náhled · jen ke čtení</p>
             <div class="safety" id="my_safety">Semafor anonymizace se zobrazí po vložení textu.</div>
             <div class="safe-fallback" id="my_safeFallback" aria-live="polite"></div>
-            <button class="btn ghost small" id="my_prevToggle" title="Náhled je povinně viditelný. Tlačítko k němu jen sjede a krátce ho zvýrazní." style="margin:0 0 8px"><span class="action-icon" data-ic="down" aria-hidden="true"></span>Zvýraznit kontrolní náhled</button>
+            <button hidden class="btn ghost small" id="my_prevToggle" title="Náhled je povinně viditelný. Tlačítko k němu jen sjede a krátce ho zvýrazní." style="margin:0 0 8px"><span class="action-icon" data-ic="down" aria-hidden="true"></span>Zvýraznit kontrolní náhled</button>
             <div class="ready-banner" id="my_readyBanner" aria-live="polite"></div>
             <div class="preview-summary" id="my_previewSummary" aria-live="polite"></div>
-            <div class="preview" id="my_preview"></div>
-            <label class="review-check"><input type="checkbox" id="my_reviewOk" aria-label="Potvrzuji kontrolu anonymizace vlastního e-mailu"><span><strong>Zkontrolováno.</strong> V náhledu nevidím skutečná jména, e-maily, telefony ani jiné citlivé údaje. Kontrolní upozornění jsem posoudil(a); pokud nejde o citlivý údaj, mohu pokračovat.</span></label>
+            <div hidden class="preview" id="my_preview"></div>
+            <label class="review-check"><input type="checkbox" id="my_reviewOk" aria-label="Potvrzuji kontrolu anonymizace vlastního e-mailu"><span><strong>Zkontrolováno.</strong> Pročetl(a) jsem celý přesný obsah pro Gemini, vyřešil(a) všechny označené návrhy a nevidím v něm skutečná jména, kontakty ani jiné citlivé údaje.</span></label>
 
             <div class="res-card params" style="margin-top:14px;background:var(--paper)">
               <div class="pgroup advanced-only" id="my_tplGroup">
@@ -1319,7 +1397,7 @@ body.dark .dev-tool-card span{color:var(--ink-soft)}
                   <button class="chip" data-v="ano">Navrhni předmět</button>
                 </div>
               </div>
-              <div class="pgroup advanced-only">
+              <div class="pgroup advanced-only note-field">
                 <div class="plabel" title="Cokoli navíc — volný pokyn k tomuto e-mailu.">Poznámka (nepovinné)</div>
                 <input id="my_note" type="text" title="Piš normálně, i se skutečnými jmény a ve skloňovaných tvarech. Appka je sama skryje — pozná většinu pádů (Nováka, Novákovi…). Nejsi-li si jistý, napiš raději přímo značku (osoba A)." placeholder="např. navrhni termín ve čtvrtek; ať to nezní podrážděně" style="width:100%;font:13px var(--sans);padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink)">
               </div>
@@ -1388,11 +1466,12 @@ body.dark .dev-tool-card span{color:var(--ink-soft)}
 "use strict";
 
 const RELEASE = {
-  version: "5.3.1",
+  version: "5.4.0",
   date: "2026-07-26",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.4.0: sjednocená bezpečnostní kontrola — anonymizace, našeptávač a přesný obsah pro Gemini jsou v jednom velkém pracovním poli; nevyřešené návrhy je nutné označit jako osobu, instituci, místo nebo vědomě ponechat. Opraveno spojování podpisu typu Petr H. bez pohlcení slova Mává, profilový podpis se lokálně zobrazuje přímo v návrhu a při chybějící značce se automaticky doplní. Přepracováno okno Formulace a podpisy, odstraněn zbytečný rámeček poznámky, Šablony školních situací přejmenovány na Scénáře školní komunikace a vývojářské nástroje jsou v produkci dostupné jen správci s rolí admin.",
     "5.3.1: testovací úpravy pracovního toku — odstraněn duplicitní bezpečný postup v záhlaví, anonymizace a kontrolní náhled sjednoceny do jednoho klidnějšího bloku, klíč náhrad zůstává sbalený, poznámka pro odpověď výslovně potvrzuje zapojení do promptu a opakovanou anonymizaci, po volbě návrhu se ostatní varianty skutečně skryjí, patička a nabídka nástrojů jsou zjednodušené, vývojářské nástroje jsou dostupné jen přes režim ?dev=1 nebo ?test a interaktivní manuál byl aktualizován.",
     "5.3.0: zjednodušené workflow — nová úvodní volba tří pracovních cest, spojený bezpečnostní blok anonymizace a přesného náhledu pro Gemini, zřetelně oddělený rozbor a nastavení odpovědi, čistý výběr jedné ze tří variant bez duplicitních ovladačů, sbalený pracovní přehled, výraznější finální akce a české oslovení při lokálním vrácení jmen.",
     "5.2.6: zásadní oprava anonymizace — skryjí se i české pádové tvary jmen včetně krátkých, doťukané tvary se spojí do jedné osoby a zbylý tvar už skrytého jména odeslání zastaví; interní testy nemažou lokální data a fungují i mimo testovací adresu; sjednoceno nastavení modelů Gemini, doplněn návrat z manuálu a ošetřen import cizího souboru nastavení.",
@@ -1533,8 +1612,8 @@ function openOnboardingTour(force){
   document.body.appendChild(overlay);
   render();
 }
-function tokenClass(tok){ if(/^\[e-mail/.test(tok)) return "t-email"; if(/^\[telefon/.test(tok)) return "t-phone"; return "t-osoba"; }
-function hasLeftoverToken(text){ return /osoba\s+[A-Z]|\[e-mail\s*\d|\[telefon\s*\d|\[rodné číslo|\[datum narození|\[číslo účtu|\[podpis\]|\[u[čc]itel\]/.test(text); }
+function tokenClass(tok){ if(/^\[e-mail/.test(tok)) return "t-email"; if(/^\[telefon/.test(tok)) return "t-phone"; if(/^\[instituce/.test(tok)) return "t-institution"; if(/^\[místo/.test(tok)) return "t-place"; return "t-osoba"; }
+function hasLeftoverToken(text){ return /osoba\s+[A-Z]|\[e-mail\s*\d|\[telefon\s*\d|\[rodné číslo|\[datum narození|\[číslo účtu|\[instituce\s*\d|\[místo\s*\d|\[podpis\]|\[u[čc]itel\]/.test(text); }
 const escRe = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 
@@ -1604,7 +1683,7 @@ function openModal(title, html, opts){
   opts=opts||{};
   const previousFocus=document.activeElement;
   const overlay=document.createElement("div"); overlay.className="modal-overlay open";
-  overlay.innerHTML='<div class="modal-card" role="dialog" aria-modal="true"'+(opts.label?(' aria-label="'+escAttr(opts.label)+'"'):'')+'>'+
+  overlay.innerHTML='<div class="modal-card'+(opts.className?(' '+escAttr(opts.className)):'')+'" role="dialog" aria-modal="true"'+(opts.label?(' aria-label="'+escAttr(opts.label)+'"'):'')+'>'+
     '<div class="modal-head"><b>'+esc(title)+'</b><button class="modal-close" title="Zavřít" aria-label="Zavřít">×</button></div>'+
     '<div class="modal-body">'+html+'</div></div>';
   let closed=false;
@@ -1731,7 +1810,7 @@ function updateProgress(p){
 
 
 ;
-/* AI Studio GHRAB — GHRAB Material v1 adapter (Korespondenční asistent 5.3.1, bridge 1.3) */
+/* AI Studio GHRAB — GHRAB Material v1 adapter (Korespondenční asistent 5.4.0, bridge 1.3) */
 (function(){
   'use strict';
   const KEY='ghrab.handoff.v1',EVENTS='ghrab.pilot.events.v2',MAX_SOURCE=180000;
@@ -2055,8 +2134,8 @@ function rememberNames(km){
 
 /* ===================== STAV PER ZÁLOŽKA ===================== */
 const ST = {
-  in: { km:[], emailN:0, phoneN:0, raw:"", clean:"", syn:{}, pozadavky:[], outputReady:false, sensitiveAck:false },
-  my: { km:[], emailN:0, phoneN:0, raw:"", clean:"", syn:{}, outputReady:false, sensitiveAck:false },
+  in: { km:[], emailN:0, phoneN:0, raw:"", clean:"", syn:{}, pozadavky:[], outputReady:false, sensitiveAck:false, reviewedSuggestions:{} },
+  my: { km:[], emailN:0, phoneN:0, raw:"", clean:"", syn:{}, outputReady:false, sensitiveAck:false, reviewedSuggestions:{} },
 };
 const E = (p,name)=>$(p+"_"+name);
 const ACTIVE_KEY_REALS={in:[],my:[]};
@@ -2069,7 +2148,7 @@ const PUNCT_RE=/^([<>\[\]{}(),.;:!?„“”"'…»«]*)([\s\S]*?)([<>\[\]{}(),.
 function splitPunc(w){ const m=w.match(PUNCT_RE); return m?{pre:m[1],core:m[2],post:m[3]}:{pre:"",core:w,post:""}; }
 
 const STOP=new Set(("Dobrý Dobré Dobrou Dobré Pěkný Pěkné Krásný Krásné Hezký Hezké Milý Milá Milé Vážený Vážená Vážené Vážení "+
-  "Děkuji Děkujeme Děkuji Zdravím Ahoj Nazdar Čau Nashledanou Sbohem Těším Přeji Přejeme Mějte Omlouvám Omlouváme Bohužel "+
+  "Děkuji Děkujeme Děkuji Zdravím Zdraví Mává Mávám Mávejte Ahoj Nazdar Čau Nashledanou Sbohem Těším Přeji Přejeme Mějte Omlouvám Omlouváme Bohužel "+
   "Rád Ráda Také Toto Tento Tato Tyto Pokud Když Protože Jelikož Chtěl Chtěla Chtěli Mám Máme Máte Je Jsou Byl Byla Byly Bylo "+
   "Jak Co Kdy Kde Kdo Proč Můj Moje Naše Náš Vaše Váš Vás Vám Vy My Já On Ona Ano Ne Prosím Prosíme Předem Zatím Mezitím "+
   "Pondělí Úterý Středa Čtvrtek Pátek Sobota Neděle Leden Únor Březen Duben Květen Červen Červenec Srpen Září Říjen Listopad Prosinec "+
@@ -2257,22 +2336,63 @@ function applyKeyToText(p, text){
 function cleanFromKey(p){ return applyKeyToText(p, ST[p].raw); }
 
 /* ---- pomocníci pro interaktivní náhled (#3, #4, #6) ---- */
-const NAME_CAND_STOP=new Set(["Od","Komu","Kopie","Skrytá","Předmět","Re","Fw","Fwd","Dobrý","Dobrá","Dobré","Milá","Milý","Vážená","Vážený","Vážení","Pane","Paní","Slečno","Prosím","Děkuji","Děkuju","Zdravím","Ahoj","Pozdravem","Srdečně","Tématem","Téma"]);
+const NAME_CAND_STOP=new Set(["Od","Komu","Kopie","Skrytá","Předmět","Re","Fw","Fwd","Dobrý","Dobrá","Dobré","Milá","Milý","Vážená","Vážený","Vážení","Pane","Paní","Slečno","Prosím","Děkuji","Děkuju","Dobry","Kontakt","Telefon","Tel","Zdravím","Zdraví","Mává","Mávám","Mávejte","Ahoj","Pozdravem","Srdečně","Tématem","Téma"]);
+const NAME_TITLES=new Set(["mgr","ing","bc","mudr","rndr","phdr","judr","doc","prof"]);
 function isNameCandidate(core){
   if(!/^\p{L}+$/u.test(core)) return false;
   if(!/^\p{Lu}\p{Ll}{2,}$/u.test(core)) return false;
   if((typeof STOP!=="undefined" && STOP.has && STOP.has(core)) || NAME_CAND_STOP.has(core)) return false;
   return true;
 }
+function isNameInitial(w){ return !!w && /^\p{Lu}$/u.test(w.core||"") && /\./.test(w.post||""); }
+function isNameTitle(w){ return !!w && NAME_TITLES.has(String(w.core||"").toLocaleLowerCase("cs-CZ")) && /\.?/.test(w.post||""); }
+function isNamePart(w){ return !!w && (isNameCandidate(w.core)||isNameInitial(w)||isNameTitle(w)); }
+function mayJoinNameWords(left,right){
+  if(!left||!right||!isNamePart(left)||!isNamePart(right)) return false;
+  if(/[!?;:]/.test(left.post||"")) return false;
+  if(/\./.test(left.post||"") && !isNameInitial(left) && !isNameTitle(left)) return false;
+  return true;
+}
 function selectionIsMulti(){ try{ const s=String(window.getSelection()||"").trim(); return s.length>0 && /\s/.test(s); }catch(_){ return false; } }
-function clickedNamePhrase(words,index){
+function clickedNameRange(words,index){
   const current=words[index];
-  if(!current || !isNameCandidate(current.core)) return current&&current.core||"";
-  const next=words[index+1], prev=words[index-1];
-  const canJoin=(left,right)=>!!left&&!!right&&isNameCandidate(left.core)&&isNameCandidate(right.core)&&!/[.!?;:]/.test(left.post||"");
-  if(canJoin(current,next)) return current.core+" "+next.core;
-  if(canJoin(prev,current)) return prev.core+" "+current.core;
-  return current.core;
+  if(!current||!isNamePart(current)) return {start:index,end:index,phrase:current&&current.core||""};
+  let start=index,end=index;
+  if(isNameInitial(current) && mayJoinNameWords(words[index-1],current)) start=index-1;
+  else if(isNameCandidate(current.core) && isNameTitle(words[index-1]) && mayJoinNameWords(words[index-1],current)) start=index-1;
+  else if(isNameCandidate(current.core) && isNameCandidate(words[index-1]&&words[index-1].core) && mayJoinNameWords(words[index-1],current)) start=index-1;
+  while(start>0 && isNameTitle(words[start-1]) && mayJoinNameWords(words[start-1],words[start])) start--;
+  while(end+1<words.length && end-start<2 && mayJoinNameWords(words[end],words[end+1])){
+    const next=words[end+1];
+    if(isNameTitle(next)) break;
+    end++;
+  }
+  const parts=words.slice(start,end+1).map(w=>w.core).filter(Boolean);
+  return {start,end,phrase:parts.join(" ")};
+}
+function clickedNamePhrase(words,index){ return clickedNameRange(words,index).phrase; }
+function suggestionKey(phrase){ return String(phrase||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim().toLocaleLowerCase("cs-CZ"); }
+function suggestionData(p){
+  const st=ST[p], parsed=wordObjs(st.raw||""), words=parsed.words;
+  const wtok=matchWordArray(buildMatchers((st.km||[]).filter(k=>k.real&&k.token)),words);
+  const suggestions=[], byWord=new Map(), seen=new Set();
+  words.forEach((w,i)=>{
+    if(wtok[i] || !isNamePart(w)) return;
+    const r=clickedNameRange(words,i), phrase=String(r.phrase||"").trim(), key=suggestionKey(phrase);
+    if(!phrase||phrase.length<2||seen.has(key)||(st.reviewedSuggestions&&st.reviewedSuggestions[key]==="keep")) return;
+    if(r.start<0||r.end>=words.length) return;
+    for(let x=r.start;x<=r.end;x++) if(wtok[x]) return;
+    seen.add(key);
+    const item={phrase,key,start:r.start,end:r.end}; suggestions.push(item);
+    for(let x=r.start;x<=r.end;x++) byWord.set(x,item);
+  });
+  return {suggestions,byWord,words,wtok,segs:parsed.segs};
+}
+function categoryToken(st,kind){
+  const base=kind==="institution"?"instituce":"místo";
+  let max=0;
+  (st.km||[]).forEach(k=>{const m=String(k.token||"").match(new RegExp("^\\["+base+"\\s+(\\d+)\\]$"));if(m)max=Math.max(max,+m[1]||0);});
+  return "["+base+" "+(max+1)+"]";
 }
 function removeByToken(p, token){ const st=ST[p]; st.km=st.km.filter(k=>k.token!==token); afterKeyChange(p); }
 let nameHintOn=(function(){ try{ return localStorage.getItem("rozbor_name_hints")==="1"; }catch(_){ return false; } })();
@@ -2296,24 +2416,59 @@ function tokenForRelatedPerson(st, cleaned){
   });
   return hit?hit.token:"";
 }
-function addPhrase(p, phrase){
+function addPhraseAs(p, phrase, kind){
   const st=ST[p]; const cleaned=String(phrase).replace(/\s+/g," ").trim().replace(/^[<>\[\]{}(),.;:!?„“”"'…»«\s]+|[<>\[\]{}(),.;:!?„“”"'…»«\s]+$/g,"");
   if(!cleaned || cleaned.length<2) return;
   if(st.km.some(k=>k.real.toLocaleLowerCase("cs-CZ")===cleaned.toLocaleLowerCase("cs-CZ"))) return;
-  const related=tokenForRelatedPerson(st,cleaned), token=related||nextPersonToken(st.km);
-  st.km.push({real:cleaned,token,auto:false}); afterKeyChange(p);
+  let token="", related="";
+  if(kind==="institution"||kind==="place") token=categoryToken(st,kind);
+  else { related=tokenForRelatedPerson(st,cleaned); token=related||nextPersonToken(st.km); }
+  st.km.push({real:cleaned,token,auto:false});
+  if(st.reviewedSuggestions) delete st.reviewedSuggestions[suggestionKey(cleaned)];
+  afterKeyChange(p);
   if(related) toast("Přidáno ke stejné osobě ("+token+").");
+}
+function addPhrase(p, phrase){ addPhraseAs(p,phrase,"person"); }
+function keepSuggestion(p,phrase){
+  const st=ST[p]; st.reviewedSuggestions=st.reviewedSuggestions||{}; st.reviewedSuggestions[suggestionKey(phrase)]="keep";
+  resetReview(p); renderView(p); renderPreview(p); toast("Výraz ponechán beze změny. Přesto ještě pročti celý text.");
+}
+function suggestionActionButtons(p,phrase){
+  return '<div class="suggestion-actions" data-phrase="'+escAttr(phrase)+'">'+
+    '<button type="button" class="suggestion-action person" data-suggest-kind="person">Osoba</button>'+
+    '<button type="button" class="suggestion-action institution" data-suggest-kind="institution">Instituce</button>'+
+    '<button type="button" class="suggestion-action place" data-suggest-kind="place">Místo</button>'+
+    '<button type="button" class="suggestion-action keep" data-suggest-kind="keep">Ponechat</button></div>';
+}
+function wireSuggestionActions(root,p,close){
+  if(!root)return;
+  root.querySelectorAll("[data-suggest-kind]").forEach(btn=>btn.onclick=()=>{
+    const wrap=btn.closest("[data-phrase]"),phrase=wrap&&wrap.dataset.phrase||"",kind=btn.dataset.suggestKind;
+    if(kind==="keep")keepSuggestion(p,phrase);else addPhraseAs(p,phrase,kind);
+    if(close)close();
+  });
+}
+function renderSuggestionPanel(p,suggestions){
+  const panel=E(p,"suggestionPanel"); if(!panel)return;
+  const rows=suggestions||suggestionData(p).suggestions;
+  if(!rows.length){
+    panel.className="suggestion-panel resolved";
+    panel.innerHTML='<div class="suggestion-panel-head"><span class="suggestion-count">✓</span><span><b>Všechny návrhy vyřešeny</b><small>Ještě pročti celý text očima.</small></span></div>';
+  }else{
+    panel.className="suggestion-panel has-items";
+    panel.innerHTML='<div class="suggestion-panel-head"><span class="suggestion-count">'+rows.length+'</span><span><b>Výrazy ke kontrole</b><small>U každého rozhodni, co s ním.</small></span></div><div class="suggestion-list">'+rows.map(x=>'<article class="suggestion-item"><strong>'+esc(x.phrase)+'</strong>'+suggestionActionButtons(p,x.phrase)+'</article>').join("")+'</div>';
+    wireSuggestionActions(panel,p);
+  }
 }
 function showTapHide(p, phrase, rect){
   if(!tapPopEl){ tapPopEl=document.createElement("div"); tapPopEl.id="tapPop"; document.body.appendChild(tapPopEl); }
-  tapPopEl.innerHTML='<button class="btn small primary" id="tapHideBtn"><span class="action-icon" data-ic="lock"></span>Skrýt vybrané jako 1 osobu</button>';
+  tapPopEl.innerHTML='<b class="tap-pop-title">Jak naložit s „'+esc(phrase)+'“?</b>'+suggestionActionButtons(p,phrase);
   tapPopEl.style.display="block";
-  const w=tapPopEl.offsetWidth||250;
+  const w=tapPopEl.offsetWidth||360;
   tapPopEl.style.left=Math.max(8, Math.min(window.scrollX+rect.left, window.scrollX+window.innerWidth-w-12))+"px";
   tapPopEl.style.top=(window.scrollY+rect.bottom+6)+"px";
-  paintIcons(tapPopEl);
-  tapPopEl.querySelector("#tapHideBtn").onmousedown=(e)=>e.preventDefault();
-  tapPopEl.querySelector("#tapHideBtn").onclick=()=>{ addPhrase(p, phrase); hideTapPop(); };
+  paintIcons(tapPopEl); wireSuggestionActions(tapPopEl,p,hideTapPop);
+  tapPopEl.querySelectorAll("button").forEach(b=>b.onmousedown=(e)=>e.preventDefault());
 }
 function wireTapSelection(p){
   const view=E(p,"view"); if(!view||view.dataset.selWired) return; view.dataset.selWired="1";
@@ -2330,15 +2485,14 @@ if(typeof document!=="undefined"){ document.addEventListener("click",(e)=>{ if(t
 
 function renderView(p){
   const el=E(p,"view"); if(!el) return; el.innerHTML="";
-  ensureNameHintToggle(p); wireTapSelection(p);
-  if(!ST[p].raw.trim()){ el.innerHTML=EMPTY_MARK; return; }
-  const {segs, words}=wordObjs(ST[p].raw);
-  const wtok=matchWordArray(buildMatchers(ST[p].km.filter(k=>k.real&&k.token)), words);
-  const mkSpan=(cls, label, title, aria, act)=>{
+  wireTapSelection(p);
+  if(!ST[p].raw.trim()){ el.innerHTML=EMPTY_MARK; renderSuggestionPanel(p,[]); return; }
+  const data=suggestionData(p), {segs,words,wtok,byWord,suggestions}=data;
+  const mkSpan=(cls,label,title,aria,act)=>{
     const span=document.createElement("span"); span.className=cls; span.textContent=label; span.title=title;
     span.tabIndex=0; span.setAttribute("role","button"); span.setAttribute("aria-label",aria);
-    span.onclick=()=>{ if(selectionIsMulti()) return; act(); };
-    span.addEventListener("keydown",ev=>{ if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); act(); } });
+    span.onclick=(ev)=>{ if(selectionIsMulti()) return; act(ev); };
+    span.addEventListener("keydown",ev=>{ if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); act(ev); } });
     return span;
   };
   let widx=-1;
@@ -2355,13 +2509,17 @@ function renderView(p){
       const last=words[widx+t.n-1]; if(last && last.post) el.appendChild(document.createTextNode(last.post));
     } else {
       if(w.pre) el.appendChild(document.createTextNode(w.pre));
-      const maybe=nameHintOn && isNameCandidate(w.core);
-      const phrase=clickedNamePhrase(words,widx);
-      const phraseTitle=phrase!==w.core?"Skrýt celé jméno "+phrase:(maybe?"Možná jméno — ťukni pro skrytí":"Ťukni a skryješ");
-      el.appendChild(mkSpan("w"+(maybe?" maybe":""), w.core, phraseTitle, "Skrýt "+phrase, ()=>phrase!==w.core?addPhrase(p,phrase):addWord(p,w.core)));
+      const suggestion=byWord.get(widx), phrase=suggestion?suggestion.phrase:w.core;
+      const cls="w"+(suggestion?" maybe suggestion-word":"");
+      const title=suggestion?("Výraz ke kontrole: "+phrase+" — zvol osobu, instituci, místo nebo ponechat"):("Ťukni a skryješ jako osobu");
+      el.appendChild(mkSpan(cls,w.core,title,"Zkontrolovat "+phrase,(ev)=>{
+        if(suggestion){ const r=ev.currentTarget.getBoundingClientRect(); showTapHide(p,phrase,r); }
+        else addWord(p,w.core);
+      }));
       if(w.post) el.appendChild(document.createTextNode(w.post));
     }
   }
+  renderSuggestionPanel(p,suggestions);
 }
 function resetReview(p){ const cb=E(p,"reviewOk"); if(cb) cb.checked=false; if(ST[p])ST[p].outputReady=false; updateSendGate(p); updateProgress(p); }
 function afterKeyChange(p){ publishActiveKeyReals(p); ST[p].sensitiveAck=false; ST[p].clean=cleanFromKey(p); resetReview(p); renderView(p); renderKeyTable(p); renderPreview(p); }
@@ -2378,7 +2536,7 @@ function activateSensitiveMode(reason){
 function doAnon(p){
   const raw=E(p,"raw").value; if(!raw.trim()) return;
   if(hasSensitiveSchoolTerms(raw)) activateSensitiveMode("obsahuje citlivá školní témata");
-  const st=ST[p]; st.raw=raw; st.emailN=0; st.phoneN=0; st.km=[]; st.sensitiveAck=false;
+  const st=ST[p]; st.raw=raw; st.emailN=0; st.phoneN=0; st.km=[]; st.sensitiveAck=false; st.reviewedSuggestions={};
   buildKey(st, autoDetect(raw));
   afterKeyChange(p);
   const kd=E(p,"keyDetails"); if(kd) kd.open=false;
@@ -2490,7 +2648,7 @@ function renderPreview(p){
   updateSendGate(p);
 }
 function stripSafeTokens(text){
-  return String(text||"").replace(/\[e-mail \d+\]|\[telefon \d+\]|\[rodné číslo \d+\]|\[datum narození \d+\]|\[číslo účtu \d+\]|osoba [A-Z]+|\[podpis\]|\[učitel\]/g," ");
+  return String(text||"").replace(/\[e-mail \d+\]|\[telefon \d+\]|\[rodné číslo \d+\]|\[datum narození \d+\]|\[číslo účtu \d+\]|\[instituce \d+\]|\[místo \d+\]|osoba [A-Z]+|\[podpis\]|\[učitel\]/g," ");
 }
 function preflightIssues(text,p){
   const stripped=stripSafeTokens(text);
@@ -2691,12 +2849,18 @@ function renderSafety(p){
   renderPreviewSummary(p);
 }
 function updateSendGate(p){
-  const cb=E(p,"reviewOk"); const btn=p==="in"?$("in_analyzeBtn"):$("my_goBtn");
-  if(btn && cb){ const a=safetyAudit(ST[p].clean||"",p); btn.disabled=!cb.checked || a.level==="danger" || (a.level==="nosend" && !(ST[p]&&ST[p].sensitiveAck)); }
+  const cb=E(p,"reviewOk"), btn=p==="in"?$("in_analyzeBtn"):$("my_goBtn"), unresolved=(ST[p].raw||"").trim()?suggestionData(p).suggestions.length:0;
+  if(cb){
+    cb.disabled=unresolved>0;
+    if(unresolved>0) cb.checked=false;
+    cb.title=unresolved>0?("Nejdřív vyřeš "+unresolved+" označených výrazů."):"Po přečtení celého textu potvrď kontrolu.";
+    const label=cb.closest(".review-check"); if(label) label.classList.toggle("blocked",unresolved>0);
+  }
+  if(btn && cb){ const a=safetyAudit(ST[p].clean||"",p); btn.disabled=unresolved>0 || !cb.checked || a.level==="danger" || (a.level==="nosend" && !(ST[p]&&ST[p].sensitiveAck)); }
   updateProgress(p);
 }
 function flashPreview(p){
-  const pv=E(p,"preview"); if(!pv) return;
+  const pv=E(p,"view"); if(!pv) return;
   pv.classList.add("preview-flash"); pv.scrollIntoView({behavior:"smooth",block:"center"});
   setTimeout(()=>pv.classList.remove("preview-flash"),900);
 }
@@ -2705,12 +2869,12 @@ function flashPreview(p){
   E(p,"reAnon").onclick=()=>doAnon(p);
   E(p,"addRow").onclick=()=>addRow(p);
   E(p,"remember").onclick=()=>rememberNames(ST[p].km);
-  E(p,"prevToggle").onclick=()=>flashPreview(p);
+  const prevToggle=E(p,"prevToggle"); if(prevToggle) prevToggle.onclick=()=>flashPreview(p);
   E(p,"reviewOk").addEventListener("change",()=>{if(!E(p,"reviewOk").checked)ST[p].outputReady=false;updateSendGate(p);});
   E(p,"raw").addEventListener("input",()=>{
     const value=E(p,"raw").value;
     if(ST[p].raw!==value){
-      ST[p].raw=value;ST[p].clean="";ST[p].km=[];ST[p].outputReady=false;ST[p].sensitiveAck=false;publishActiveKeyReals(p);
+      ST[p].raw=value;ST[p].clean="";ST[p].km=[];ST[p].outputReady=false;ST[p].sensitiveAck=false;ST[p].reviewedSuggestions={};publishActiveKeyReals(p);
       const cb=E(p,"reviewOk");if(cb)cb.checked=false;
       const step2=E(p,"step2");if(step2)step2.style.display="none";
       const results=$(p==="in"?"in_results":"my_results");if(results)results.innerHTML="";
@@ -2766,7 +2930,10 @@ function recompose(p, text){
 function tokenizeHTML(p, text){
   let html=esc(text);
   [...new Set(ST[p].km.map(k=>k.token).filter(Boolean))].sort((a,b)=>b.length-a.length).forEach(t=>{ html=html.replace(new RegExp(escRe(esc(t)),"g"),'<span class="token '+tokenClass(t)+'">'+esc(t)+'</span>'); });
-  html=html.replace(/\[podpis\]|\[učitel\]|\(\s*učitel\s*\)/gi, m=>'<span class="token t-sign" title="Nahradí se tvým podpisem z profilu.">'+m+'</span>');
+  html=html.replace(/\[podpis\]|\[učitel\]|\(\s*učitel\s*\)/gi, m=>{
+    const signature=typeof signatureText==="function"?signatureText():m;
+    return '<span class="token t-sign visible-signature" contenteditable="false" data-sign-token="[podpis]" title="Podpis se doplňuje lokálně z profilu a neposílá se Gemini.">'+esc(signature)+'</span>';
+  });
   return html;
 }
 
@@ -2836,6 +3003,7 @@ async function fetchSyn(){
 /* ===================== KARTA KONCEPTU (sdílená) ===================== */
 function draftCard(p, opts){
   // opts: {styl, text, cover, hint, variantType, sourceText}
+  const initialText=ensureSignaturePlaceholder(opts.text||"");
   const el=document.createElement("article");
   el.className="draft reveal"; el.dataset.tok="1"; el.dataset.variant=opts.variantType||"";
   let cover="";
@@ -2861,7 +3029,7 @@ function draftCard(p, opts){
       '<button class="editor-tool act-quick" data-ins="Zpřesni nejasné formulace, další krok a termíny. Nic si nevymýšlej a zachovej uzamčené formulace." type="button">Zpřesnit</button>'+
     '</div>'+
     '<div class="locked-list" aria-label="Uzamčené formulace"></div>'+
-    '<div class="body" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true" title="Text můžeš rovnou upravovat. Dvojklik na slovo nabídne synonyma.">'+tokenizeHTML(p,opts.text||"")+'</div>'+
+    '<div class="body" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true" title="Text můžeš rovnou upravovat. Dvojklik na slovo nabídne synonyma.">'+tokenizeHTML(p,initialText)+'</div>'+
     cover+
     (opts.hint?'<p class="hintline">'+esc(opts.hint)+'</p>':'')+
     '<div class="tweakrow"><input class="tweak-in" type="text" placeholder="Uprav: např. zkrať to a přidej termín ve čtvrtek" title="Napiš, co změnit. Upraví tento koncept, ne od nuly."><button class="btn small tweak-go" title="Upraví tento koncept podle pokynu."><span class="action-icon">🛠️</span>Uprav <span class="req">1 ⚡</span></button></div>'+
@@ -2878,12 +3046,14 @@ function draftCard(p, opts){
     '</div>';
   const body=el.querySelector(".body");
   try{ const lc=outLangCode(p); if(lc && lc!=="cs"){ body.setAttribute("lang", lc); body.setAttribute("spellcheck","false"); } }catch(_){}
-  el._src=opts.text||""; el._sourceText=opts.sourceText||(ST[p]&&ST[p].clean)||""; el._cover=opts.cover||{}; el._locked=[];
+  el._src=initialText; el._sourceText=opts.sourceText||(ST[p]&&ST[p].clean)||""; el._cover=opts.cover||{}; el._locked=[];
   el._revisions=[{text:el._src,at:Date.now(),label:"Vygenerováno"}]; el._revisionIndex=0;
   let revisionTimer=null;
   function readEditableText(){
-    const value=(body.innerText!==undefined?body.innerText:body.textContent)||"";
-    return value.replace(/\u00a0/g," ").replace(/\r\n?/g,"\n").replace(/\n{3,}/g,"\n\n").trimEnd();
+    const clone=body.cloneNode(true);
+    clone.querySelectorAll("[data-sign-token]").forEach(node=>node.replaceWith(document.createTextNode(node.dataset.signToken||"[podpis]")));
+    const value=(clone.innerText!==undefined?clone.innerText:clone.textContent)||"";
+    return ensureSignaturePlaceholder(value.replace(/\u00a0/g," ").replace(/\r\n?/g,"\n").replace(/\n{3,}/g,"\n\n").trimEnd());
   }
   function updateRevisionButtons(){
     const u=el.querySelector(".act-undo"),r=el.querySelector(".act-redo");
@@ -2906,6 +3076,7 @@ function draftCard(p, opts){
   }
   function getSrc(){ return el.dataset.tok==="1" ? readEditableText() : el._src; }
   function setSrc(t,label){
+    t=ensureSignaturePlaceholder(t);
     el._src=t; el.dataset.tok="1"; body.innerHTML=tokenizeHTML(p,t); body.contentEditable="true";
     const fb=el.querySelector(".act-fold"); if(fb) fb.lastChild.textContent="Ukázat se jmény";
     const current=el._revisions[el._revisionIndex]&&el._revisions[el._revisionIndex].text;
@@ -2991,11 +3162,18 @@ function signatureText(){
   if(style==="funkce"){ let s="S pozdravem\n"+name; if(role||school) s+="\n"+[role,school].filter(Boolean).join(", "); return s; }
   return "S pozdravem\n"+name;
 }
+function ensureSignaturePlaceholder(text){
+  let t=String(text||"").replace(/\r\n?/g,"\n").trimEnd();
+  if(/\[podpis\]|\[u[čc]itel\]|\(\s*učitel\s*\)/i.test(t)) return t;
+  const closing=/(?:^|\n)\s*(?:s pozdravem|s úctou|kind regards|best regards|saludos|atentamente)\s*[,!.]?\s*$/i;
+  if(closing.test(t)) return t.replace(closing,"\n[podpis]").replace(/^\n/,"");
+  return t+(t?"\n\n":"")+"[podpis]";
+}
 function profileLine(){ const p=loadProfile(); const role=(p.role||"").trim(); return role?("\nPisatel je "+role+"."):""; }
 async function refineDraft(p, card, srcText, instruction){
   if(!geminiApiKey && !testMockAvailable()){ $("apiPanel").classList.add("open"); toast("Chybí klíč k API."); return; }
   const safeInstruction=safeAuxiliaryText(p,instruction,null,"Pokyn k úpravě");
-  const safeDraft=safeAuxiliaryText(p,srcText,null,"Koncept");
+  const safeDraft=safeAuxiliaryText(p,ensureSignaturePlaceholder(srcText),null,"Koncept");
   if(safeInstruction===null || safeDraft===null) return;
   const lLine=p==="my"?myLangLine():langLine();
   const lSystem=p==="my"?myLangSystem():langSystem();
@@ -3205,7 +3383,7 @@ function renderAnalysis(d){
     '<div class="pgroup advanced-only"><div class="plabel">Orientační délka standardní varianty</div>'+chipGroup("in_delka",DELKA,"stredni")+'</div>'+
     '<div class="pgroup simple-hide"><div class="plabel" title="Vykání nebo tykání ve výsledné odpovědi.">Oslovení</div>'+chipGroup("in_oslov",OSLOV,"vykani")+'</div>'+
     '<div class="pgroup advanced-only"><div class="plabel" title="V jakém jazyce má být odpověď.">Jazyk odpovědi</div>'+chipGroup("in_lang",LANG,(readChip("outlang")||"cs"))+'</div>'+
-    '<div class="pgroup advanced-only"><div class="plabel" title="Cokoli navíc — třeba na co nereagovat nebo co zmínit.">Poznámka pro odpověď</div><input id="in_note" type="text" title="Poznámka je součástí promptu. Před odesláním se znovu anonymizuje a kontroluje." placeholder="např. napiš, že školy neznám; navrhni telefonickou domluvu"><p class="field-safety-note">Poznámka se skutečně promítne do návrhu. Před odesláním se znovu anonymizuje; známé jméno se nahradí značkou a neznámý citlivý údaj odeslání zastaví.</p></div>'+
+    '<div class="pgroup advanced-only note-field"><div class="plabel" title="Cokoli navíc — třeba na co nereagovat nebo co zmínit.">Poznámka pro odpověď</div><input id="in_note" type="text" title="Poznámka je součástí promptu. Před odesláním se znovu anonymizuje a kontroluje." placeholder="např. napiš, že školy neznám; navrhni telefonickou domluvu"><p class="field-safety-note">Poznámka se skutečně promítne do návrhu. Před odesláním se znovu anonymizuje; známé jméno se nahradí značkou a neznámý citlivý údaj odeslání zastaví.</p></div>'+
     '<div class="simple-action-note simple-only"><b>Jednoduchý režim:</b> použije doporučený záměr a bezpečné výchozí nastavení.</div>'+
     '<div class="choice-summary advanced-only" id="in_choiceSummary"></div>'+
     '<div class="row actsticky"><button class="btn primary" id="in_replyBtn" title="Vytvoří stručnou, standardní a diplomatickou variantu."><span class="action-icon">✉️</span>Vytvořit 3 varianty <span class="req">1 ⚡</span></button></div>'+
@@ -3871,6 +4049,32 @@ async function runKorespTests(){
       assertTest(clickedNamePhrase(parsed.words,0)==="Jan Novák","kliknutí na křestní jméno nespojilo celé jméno");
       assertTest(clickedNamePhrase(parsed.words,1)==="Jan Novák","kliknutí na příjmení nespojilo celé jméno");
     });
+    await test("Podpis Petr H. se skryje jako jedna osoba bez slova Mává", async()=>{
+      const parsed=wordObjs("Mává Petr H.");
+      assertTest(clickedNamePhrase(parsed.words,1)==="Petr H","kliknutí na Petr nespojilo iniciálu: "+clickedNamePhrase(parsed.words,1));
+      assertTest(clickedNamePhrase(parsed.words,2)==="Petr H","kliknutí na iniciálu nespojilo celé jméno");
+      ST.in.raw="Mává Petr H."; ST.in.km=[]; ST.in.reviewedSuggestions={}; addPhraseAs("in","Petr H","person");
+      assertTest(ST.in.clean==="Mává osoba A.","podpis se anonymizoval chybně: "+ST.in.clean);
+    });
+    await test("Našeptávač musí být vyřešen před potvrzením", async()=>{
+      E("in","raw").value="Petr píše zprávu."; doAnon("in");
+      const items=suggestionData("in").suggestions;
+      assertTest(items.some(x=>x.phrase==="Petr"),"našeptávač neoznačil jméno Petr");
+      assertTest(E("in","reviewOk").disabled,"potvrzení je dostupné i s nevyřešeným návrhem");
+      keepSuggestion("in","Petr");
+      assertTest(!E("in","reviewOk").disabled,"po vědomém ponechání se potvrzení neodemklo");
+    });
+    await test("Podpis z profilu se zobrazí lokálně, ale do zdroje se nepropíše", async()=>{
+      const old=localStorage.getItem("rozbor_profile");
+      try{
+        localStorage.setItem("rozbor_profile",JSON.stringify({name:"Daniel Baláž",sign:"pozdrav"}));
+        const card=draftCard("in",{text:"Dobrý den,\n\nděkuji za zprávu."}); document.body.appendChild(card);
+        assertTest(card.querySelector(".visible-signature").textContent.includes("Daniel Baláž"),"profilové jméno není v návrhu vidět");
+        const src=card.__getSrc();
+        assertTest(src.includes("[podpis]")&&!src.includes("Daniel Baláž"),"profilové jméno se propsalo do anonymního zdroje: "+src);
+        card.remove();
+      }finally{if(old===null)localStorage.removeItem("rozbor_profile");else localStorage.setItem("rozbor_profile",old);}
+    });
     await test("Dvě podobná jména zůstávají dvě osoby", async()=>{
       ST.in.raw="Jan Novák a Jana Nováková se dostavili.";
       ST.in.km=[{real:"Jan Novák",token:"osoba A",auto:false},{real:"Jana Nováková",token:"osoba B",auto:false}];
@@ -4090,7 +4294,7 @@ async function runKorespTests(){
       assertTest(typeof openDeveloperTools==="function" && typeof openOpsLog==="function","chybí vývojářské nástroje nebo technický log");
       const labels=toolsActions.map(a=>a.label).join("|");
       assertTest(!labels.includes("Debug prompt") && !labels.includes("Spustit testy"),"debug nebo testy zůstaly jako samostatné položky");
-      assertTest(DEV_MODE?labels.includes("Vývojářské nástroje"):!labels.includes("Vývojářské nástroje"),"viditelnost vývojářských nástrojů neodpovídá režimu ?dev=1 / ?test");
+      assertTest(DEV_MODE?labels.includes("Vývojářské nástroje"):!labels.includes("Vývojářské nástroje"),"viditelnost vývojářských nástrojů neodpovídá roli správce nebo testovacímu režimu");
     });
 
     await test("Historie ukládá jen anonymizovanou verzi", async()=>{
@@ -4415,10 +4619,26 @@ function manageSignatures(done){
   openModal("Podpisy",html,{onMount(body,close){body.querySelectorAll('input[name="sig"]').forEach(r=>r.onchange=()=>{localStorage.setItem(LS.selectedSignature,r.value);toast("Výchozí podpis změněn ✓");});body.querySelectorAll("[data-del-sig]").forEach(b=>b.onclick=()=>{const a=jget(LS.signatures,[]).filter(x=>x.id!==b.dataset.delSig);jset(LS.signatures,a);if(localStorage.getItem(LS.selectedSignature)===b.dataset.delSig)localStorage.removeItem(LS.selectedSignature);close();manageSignatures(done);});body.querySelector("#newSignature").onclick=()=>{close();const form='<label class="dialog-label">Název podpisu</label><input id="sigName" class="dialog-input" placeholder="např. Třídní učitel" autofocus><label class="dialog-label">Celý podpis</label><textarea id="sigText" class="dialog-input" style="min-height:120px" placeholder="S pozdravem&#10;Jméno&#10;role"></textarea><div class="dialog-actions"><button class="btn" id="sigSave">Uložit podpis</button></div>';openModal("Nový podpis",form,{onMount(bb,cc){bb.querySelector("#sigSave").onclick=()=>{const name=clean(bb.querySelector("#sigName").value),text=clean(bb.querySelector("#sigText").value);if(!name||!text)return toast("Doplň název i text podpisu.");const a=jget(LS.signatures,[]),id=uid("sig");a.unshift({id,name,text});jset(LS.signatures,a.slice(0,12));localStorage.setItem(LS.selectedSignature,id);cc();manageSignatures(done);toast("Podpis uložen ✓");};}});};body.querySelector("#sigDone").onclick=()=>{close();if(done)done();};}});
 }
 window.openBlocksManager=function(el,p){
-  const render=()=>{const blocks=getBlocks(),sigs=getSignatures();const selected=localStorage.getItem(LS.selectedSignature)||"profile";
-    const html='<div class="block-tabs"><div class="dialog-section-head"><h4>Oblíbené formulace</h4><button class="link-btn" id="newBlock">Přidat vlastní</button></div>'+blocks.map(x=>'<article class="insert-block"><button class="insert-main" data-block="'+escAttr(x.id)+'"><b>'+esc(x.name)+'</b><small>'+esc(x.category||"Formulace")+'</small><span>'+esc(x.text)+'</span></button>'+(String(x.id).startsWith("block-")?'<button class="mini-delete" data-del-block="'+escAttr(x.id)+'" title="Smazat">×</button>':'')+'</article>').join("")+'<div class="dialog-section-head"><h4>Podpisy</h4><button class="link-btn" id="manageSignatures">Spravovat</button></div>'+(sigs.length?sigs.map(x=>'<button class="insert-block insert-signature" data-signature="'+escAttr(x.id)+'"><b>'+esc(x.name)+(x.id===selected?' · aktivní':'')+'</b><span>'+esc(x.text)+'</span></button>').join(""):'<p class="empty">Podpis nastavíš v profilu nebo zde vytvoříš vlastní.</p>')+'</div>';
-    openModal("Textové bloky a podpisy",html,{onMount(body,close){body.querySelectorAll("[data-block]").forEach(b=>b.onclick=()=>{const x=getBlocks().find(y=>y.id===b.dataset.block);if(x){insertBlock(el,x.text);close();toast("Formulace vložena ✓");}});body.querySelectorAll("[data-signature]").forEach(b=>b.onclick=()=>{const x=getSignatures().find(y=>y.id===b.dataset.signature);if(x){localStorage.setItem(LS.selectedSignature,x.id);insertBlock(el,x.text);close();toast("Podpis vložen a nastaven jako výchozí ✓");}});body.querySelectorAll("[data-del-block]").forEach(b=>b.onclick=()=>{jset(LS.blocks,getCustomBlocks().filter(x=>x.id!==b.dataset.delBlock));close();render();});body.querySelector("#newBlock").onclick=()=>{close();addCustomBlock(render);};body.querySelector("#manageSignatures").onclick=()=>{close();manageSignatures(render);};}});
-  };render();
+  const render=()=>{
+    const blocks=getBlocks(),sigs=getSignatures(),selected=localStorage.getItem(LS.selectedSignature)||"profile";
+    const active=sigs.find(x=>x.id===selected)||sigs[0];
+    const phraseCards=blocks.map(x=>'<article class="phrase-card">'+
+      '<div class="phrase-card-copy"><div class="phrase-card-title"><b>'+esc(x.name)+'</b><span class="phrase-category">'+esc(x.category||"Formulace")+'</span></div><p>'+esc(x.text)+'</p></div>'+
+      '<div class="phrase-card-actions"><button type="button" class="btn small" data-block="'+escAttr(x.id)+'">Vložit</button>'+
+      (String(x.id).startsWith("block-")?'<button type="button" class="btn ghost small" data-del-block="'+escAttr(x.id)+'">Smazat</button>':'')+'</div></article>').join("");
+    const sigCards=sigs.length?sigs.map(x=>'<article class="signature-card'+(x.id===(active&&active.id)?' is-active':'')+'"><div><span class="signature-state">'+(x.id===(active&&active.id)?'Aktivní podpis':'Podpis')+'</span><b>'+esc(x.name)+'</b><pre>'+esc(x.text)+'</pre></div><button type="button" class="btn '+(x.id===(active&&active.id)?'ghost':'small')+'" data-signature="'+escAttr(x.id)+'">'+(x.id===(active&&active.id)?'Vložit':'Použít a vložit')+'</button></article>').join(""):'<p class="empty">Podpis nastavíš v profilu nebo si zde vytvoříš vlastní.</p>';
+    const html='<div class="blocks-layout">'+
+      '<section class="blocks-section"><div class="dialog-section-head"><div><p class="eyebrow">Rychlé vložení</p><h3>Oblíbené formulace</h3><p>Vyber hotovou větu. Každá karta jasně odděluje název, kategorii a skutečný text.</p></div><button type="button" class="btn ghost small" id="newBlock">＋ Přidat vlastní</button></div><div class="phrase-grid">'+phraseCards+'</div></section>'+
+      '<section class="blocks-section signatures-section"><div class="dialog-section-head"><div><p class="eyebrow">Zakončení zprávy</p><h3>Podpisy</h3><p>Aktivní podpis se z profilu doplňuje lokálně za značku <b>[podpis]</b>.</p></div><button type="button" class="btn ghost small" id="manageSignatures">Spravovat podpisy</button></div><div class="signature-grid">'+sigCards+'</div></section></div>';
+    openModal("Formulace a podpisy",html,{className:"modal-wide blocks-dialog",onMount(body,close){
+      body.querySelectorAll("[data-block]").forEach(b=>b.onclick=()=>{const x=getBlocks().find(y=>y.id===b.dataset.block);if(x){insertBlock(el,x.text);close();toast("Formulace vložena ✓");}});
+      body.querySelectorAll("[data-signature]").forEach(b=>b.onclick=()=>{const x=getSignatures().find(y=>y.id===b.dataset.signature);if(x){localStorage.setItem(LS.selectedSignature,x.id);insertBlock(el,"[podpis]");close();toast("Podpis nastaven a vložen ✓");}});
+      body.querySelectorAll("[data-del-block]").forEach(b=>b.onclick=()=>{jset(LS.blocks,getCustomBlocks().filter(x=>x.id!==b.dataset.delBlock));close();render();});
+      body.querySelector("#newBlock").onclick=()=>{close();addCustomBlock(render);};
+      body.querySelector("#manageSignatures").onclick=()=>{close();manageSignatures(render);};
+    }});
+  };
+  render();
 };
 
 window.saveWorkbenchDraft=function(el,p,opts){
@@ -4465,7 +4685,7 @@ function renderQuickScenarios(){
 function openScenarioLibrary(){
   const cats={};scenarioEntries().forEach(([key,x])=>{const c=x.category||"Další";(cats[c]||(cats[c]=[])).push([key,x]);});
   const html='<label class="dialog-label" for="scenarioSearch">Hledat situaci</label><input id="scenarioSearch" class="dialog-input" type="search" placeholder="např. rodič, termín, známka, porada" autofocus><div id="scenarioLibrary">'+Object.entries(cats).map(([cat,rows])=>'<section class="scenario-category"><h4>'+esc(cat)+'</h4>'+rows.map(([key,x])=>'<button class="scenario-card" data-scenario="'+key+'" data-search="'+escAttr((x.label+" "+x.hint+" "+cat).toLowerCase())+'"><b>'+esc(x.label)+'</b><span>'+esc(x.hint||"")+'</span>'+(x.strict?'<small>Přísný bezpečnostní režim</small>':'')+'</button>').join("")+'</section>').join("")+'</div>';
-  openModal("Knihovna školních situací",html,{onMount(body,close){const input=body.querySelector("#scenarioSearch");input.oninput=()=>{const q=input.value.toLowerCase().trim();body.querySelectorAll("[data-scenario]").forEach(b=>b.hidden=q&&!b.dataset.search.includes(q));body.querySelectorAll(".scenario-category").forEach(s=>s.hidden=![...s.querySelectorAll("[data-scenario]")].some(b=>!b.hidden));};body.querySelectorAll("[data-scenario]").forEach(b=>b.onclick=()=>{activateScenario(b.dataset.scenario);close();});}});
+  openModal("Scénáře školní komunikace",html,{onMount(body,close){const input=body.querySelector("#scenarioSearch");input.oninput=()=>{const q=input.value.toLowerCase().trim();body.querySelectorAll("[data-scenario]").forEach(b=>b.hidden=q&&!b.dataset.search.includes(q));body.querySelectorAll(".scenario-category").forEach(s=>s.hidden=![...s.querySelectorAll("[data-scenario]")].some(b=>!b.hidden));};body.querySelectorAll("[data-scenario]").forEach(b=>b.onclick=()=>{activateScenario(b.dataset.scenario);close();});}});
 }
 window.openScenarioLibrary=openScenarioLibrary;
 function refreshDeskStatus(){
@@ -4507,7 +4727,7 @@ function initDesk(){
 if(typeof footBtn==="function"){
   footBtn("Uložené koncepty","⌑","Rozpracované anonymizované e-maily uložené v tomto prohlížeči",openDraftsManager);
   footBtn("Formulace a podpisy","✍","Opakované věty, závěry a podpisy pro rychlé vložení",()=>{if(activeDraft)openBlocksManager(activeDraft,activePaneName);else manageSignatures();});
-  footBtn("Šablony školních situací","⚡","Přednastavení pro běžné situace, například schůzku, omluvu nebo připomínku",openScenarioLibrary);
+  footBtn("Scénáře školní komunikace","⚡","Přednastavené komunikační scénáře pro běžné školní situace",openScenarioLibrary);
   footBtn("Čekám na odpověď","◷","Lokální přehled e-mailů, u kterých chceš hlídat navazující termín",openFollowupsManager);
   footBtn("Školní balíček šablon","⇄","Export nebo import společných formulací a šablon pro kolegy",openSchoolLibraryManager);
 }
@@ -4550,7 +4770,9 @@ footBtn("Profil odesílatele", "👤", "Jméno, role a podpis doplňované do ho
 footBtn("Poslední výstupy", "🕘", "Anonymizované výstupy uložené v tomto prohlížeči", ()=>{ if(window.__openHistory) window.__openHistory(); });
 footBtn("Přehled změn", "✨", "Co se změnilo v aktuálních verzích aplikace", openChangelog);
 footBtn("Správa dat", "🧹", "Historie, export nastavení a smazání lokálních dat", openDataManager);
-const DEV_MODE=IS_TEST_MODE||new URLSearchParams(location.search).has("dev");
+const ADMIN_ACCESS=!!(window.__GHRAB_STUDIO_ACCESS__&&window.__GHRAB_STUDIO_ACCESS__.permit&&window.__GHRAB_STUDIO_ACCESS__.permit.role==="admin");
+const LOCAL_DEV=(location.hostname==="localhost"||location.hostname==="127.0.0.1")&&new URLSearchParams(location.search).has("dev");
+const DEV_MODE=IS_TEST_MODE||ADMIN_ACCESS||LOCAL_DEV;
 if(DEV_MODE) footBtn("Vývojářské nástroje", "🧪", "Automatické testy, debug prompt a technický log", openDeveloperTools);
 compactAdvancedParams();
 buildFooterTools();

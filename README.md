@@ -2,25 +2,26 @@
 
 Samostatný repozitář aplikace pro Gymnázium, Ostrava-Hrabůvka.
 
-- **Verze:** 5.3.1
+- **Verze:** 5.4.0
 - **Doporučený název repozitáře:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
 
-## Co přináší verze 5.3.1
+## Co přináší verze 5.4.0
 
-- odstraněný duplicitní bezpečnostní průvodce v horní části aplikace,
-- jeden souvislý a klidnější blok pro označení jmen, kontrolu náhrad a finální náhled,
-- poznámka pro odpověď je prokazatelně součástí promptu a před odesláním se znovu anonymizuje,
-- po výběru jedné varianty jsou zbývající dvě opravdu skryté,
-- zjednodušená patička a srozumitelně popsané pracovní nástroje,
-- vývojářské nástroje se běžnému učiteli nezobrazují; otevřou se pouze s `?dev=1` nebo `?test`,
-- aktualizovaný interaktivní manuál používaný aplikací i AI Studiem.
-
+- jedno velké pracovní pole současně slouží k anonymizaci i jako přesný obsah připravený pro Gemini,
+- našeptávač zvýrazní výrazy ke kontrole a vyžaduje rozhodnutí: osoba, instituce, místo, nebo vědomě ponechat,
+- pole **Zkontrolováno** se odemkne až po vyřešení všech návrhů,
+- opraveno spojování podpisů typu `Mává Petr H.` — skryje se pouze `Petr H.` jako jedna osoba,
+- podpis z profilu se automaticky doplní a zobrazí v návrhu lokálně; jméno odesílatele se neposílá Gemini,
+- přepracované, široké a přehledné okno **Formulace a podpisy**,
+- odstraněn zbytečný vnější rámeček poznámky pro odpověď,
+- **Šablony školních situací** jsou přejmenovány na **Scénáře školní komunikace**,
+- vývojářské nástroje a interní testy se v produkci zobrazí pouze správci s rolí `admin`; lokální vývoj a testovací režim zůstávají zachovány.
 
 ## Nahrání na GitHub
 
-Obsah tohoto balíčku nahraj přímo do kořene nového repozitáře. Složky `.github`, `src`, `scripts` a `dist` musí být přímo v kořeni, nikoli uvnitř další složky.
+Obsah tohoto balíčku nahraj přímo do kořene repozitáře. Složky `.github`, `src`, `scripts` a `dist` musí být přímo v kořeni, nikoli uvnitř další složky.
 
 V **Settings → Pages** nastav **Source: GitHub Actions**. Každý push do větve `main` provede build, interní testy a nasazení.
 
@@ -42,9 +43,5 @@ scripts/test.mjs        release testy nad dist/
 dist/                   hotový web pro GitHub Pages
 .github/workflows/      automatické nasazení
 ```
-
-## Přechod ze společného repozitáře
-
-Po nasazení změň v AI Studiu GHRAB adresu aplikace a manuálu na nové URL uvedené výše. Starý společný repozitář nemaž dříve, než ověříš otevření aplikace z AI Studia, předávku materiálu, PWA aktualizaci a nový manifest.
 
 API klíče ani skutečné údaje žáků nepatří do repozitáře.

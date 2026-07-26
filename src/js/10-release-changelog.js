@@ -3,11 +3,12 @@ const IS_TEST_MODE=new URLSearchParams(window.location.search).has("test")||Stri
 "use strict";
 
 const RELEASE = {
-  version: "5.3.1",
+  version: "5.4.0",
   date: "2026-07-26",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.4.0: sjednocená bezpečnostní kontrola — anonymizace, našeptávač a přesný obsah pro Gemini jsou v jednom velkém pracovním poli; nevyřešené návrhy je nutné označit jako osobu, instituci, místo nebo vědomě ponechat. Opraveno spojování podpisu typu Petr H. bez pohlcení slova Mává, profilový podpis se lokálně zobrazuje přímo v návrhu a při chybějící značce se automaticky doplní. Přepracováno okno Formulace a podpisy, odstraněn zbytečný rámeček poznámky, Šablony školních situací přejmenovány na Scénáře školní komunikace a vývojářské nástroje jsou v produkci dostupné jen správci s rolí admin.",
     "5.3.1: testovací úpravy pracovního toku — odstraněn duplicitní bezpečný postup v záhlaví, anonymizace a kontrolní náhled sjednoceny do jednoho klidnějšího bloku, klíč náhrad zůstává sbalený, poznámka pro odpověď výslovně potvrzuje zapojení do promptu a opakovanou anonymizaci, po volbě návrhu se ostatní varianty skutečně skryjí, patička a nabídka nástrojů jsou zjednodušené, vývojářské nástroje jsou dostupné jen přes režim ?dev=1 nebo ?test a interaktivní manuál byl aktualizován.",
     "5.3.0: zjednodušené workflow — nová úvodní volba tří pracovních cest, spojený bezpečnostní blok anonymizace a přesného náhledu pro Gemini, zřetelně oddělený rozbor a nastavení odpovědi, čistý výběr jedné ze tří variant bez duplicitních ovladačů, sbalený pracovní přehled, výraznější finální akce a české oslovení při lokálním vrácení jmen.",
     "5.2.6: zásadní oprava anonymizace — skryjí se i české pádové tvary jmen včetně krátkých, doťukané tvary se spojí do jedné osoby a zbylý tvar už skrytého jména odeslání zastaví; interní testy nemažou lokální data a fungují i mimo testovací adresu; sjednoceno nastavení modelů Gemini, doplněn návrat z manuálu a ošetřen import cizího souboru nastavení.",
@@ -148,7 +149,7 @@ function openOnboardingTour(force){
   document.body.appendChild(overlay);
   render();
 }
-function tokenClass(tok){ if(/^\[e-mail/.test(tok)) return "t-email"; if(/^\[telefon/.test(tok)) return "t-phone"; return "t-osoba"; }
-function hasLeftoverToken(text){ return /osoba\s+[A-Z]|\[e-mail\s*\d|\[telefon\s*\d|\[rodné číslo|\[datum narození|\[číslo účtu|\[podpis\]|\[u[čc]itel\]/.test(text); }
+function tokenClass(tok){ if(/^\[e-mail/.test(tok)) return "t-email"; if(/^\[telefon/.test(tok)) return "t-phone"; if(/^\[instituce/.test(tok)) return "t-institution"; if(/^\[místo/.test(tok)) return "t-place"; return "t-osoba"; }
+function hasLeftoverToken(text){ return /osoba\s+[A-Z]|\[e-mail\s*\d|\[telefon\s*\d|\[rodné číslo|\[datum narození|\[číslo účtu|\[instituce\s*\d|\[místo\s*\d|\[podpis\]|\[u[čc]itel\]/.test(text); }
 const escRe = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 

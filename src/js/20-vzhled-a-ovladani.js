@@ -63,7 +63,7 @@ function openModal(title, html, opts){
   opts=opts||{};
   const previousFocus=document.activeElement;
   const overlay=document.createElement("div"); overlay.className="modal-overlay open";
-  overlay.innerHTML='<div class="modal-card" role="dialog" aria-modal="true"'+(opts.label?(' aria-label="'+escAttr(opts.label)+'"'):'')+'>'+
+  overlay.innerHTML='<div class="modal-card'+(opts.className?(' '+escAttr(opts.className)):'')+'" role="dialog" aria-modal="true"'+(opts.label?(' aria-label="'+escAttr(opts.label)+'"'):'')+'>'+
     '<div class="modal-head"><b>'+esc(title)+'</b><button class="modal-close" title="Zavřít" aria-label="Zavřít">×</button></div>'+
     '<div class="modal-body">'+html+'</div></div>';
   let closed=false;

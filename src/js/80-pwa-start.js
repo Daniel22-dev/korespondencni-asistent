@@ -33,7 +33,9 @@ footBtn("Profil odesílatele", "👤", "Jméno, role a podpis doplňované do ho
 footBtn("Poslední výstupy", "🕘", "Anonymizované výstupy uložené v tomto prohlížeči", ()=>{ if(window.__openHistory) window.__openHistory(); });
 footBtn("Přehled změn", "✨", "Co se změnilo v aktuálních verzích aplikace", openChangelog);
 footBtn("Správa dat", "🧹", "Historie, export nastavení a smazání lokálních dat", openDataManager);
-const DEV_MODE=IS_TEST_MODE||new URLSearchParams(location.search).has("dev");
+const ADMIN_ACCESS=!!(window.__GHRAB_STUDIO_ACCESS__&&window.__GHRAB_STUDIO_ACCESS__.permit&&window.__GHRAB_STUDIO_ACCESS__.permit.role==="admin");
+const LOCAL_DEV=(location.hostname==="localhost"||location.hostname==="127.0.0.1")&&new URLSearchParams(location.search).has("dev");
+const DEV_MODE=IS_TEST_MODE||ADMIN_ACCESS||LOCAL_DEV;
 if(DEV_MODE) footBtn("Vývojářské nástroje", "🧪", "Automatické testy, debug prompt a technický log", openDeveloperTools);
 compactAdvancedParams();
 buildFooterTools();

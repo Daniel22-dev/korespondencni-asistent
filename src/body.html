@@ -149,14 +149,21 @@
         <div class="privacy-stage-head">
           <p class="eyebrow">Bezpečnostní příprava · vše v jednom kroku</p>
           <h2>Zkontroluj anonymizovaný text před odesláním</h2>
-          <p>E-maily a telefony aplikace skryje automaticky. Jména a vlastní názvy označ ťuknutím v hlavním poli; pod ním pak jednou potvrď přesný kontrolní náhled pro Gemini.</p>
+          <p>E-maily a telefony aplikace skryje automaticky. V jednom velkém poli označíš jména a vlastní názvy a zároveň přesně vidíš text, který může odejít do Gemini.</p>
         </div>
         <div class="card privacy-local-panel">
-          <div class="step-head"><span class="step-no">2</span><span class="step-title">Anonymizace a kontrola v jednom pracovním bloku</span></div>
-          <p class="tap-hint">Ťukni na jméno nebo údaj, který chceš skrýt — zežloutne jako značka. U jména a příjmení stačí ťuknout na jednu část; aplikace spojí sousední celé jméno do jedné osoby. Ťuknutím na značku ho zase odkryješ. Chceš upravit samotný text? Uprav ho nahoře a dej <b>Anonymizovat znovu</b>.</p>
-          <div class="tap-cue"><span class="arrow action-icon" data-ic="down" aria-hidden="true"></span><span>Ťukni na jména a vlastní názvy v textu níže — skryjí se jako značka. E-maily a telefony jsou už skryté.</span></div>
-          <div class="tapview" id="in_view"></div>
-          <p class="post-anon-note">Hlavní úkol: projdi text a ťukni na jména nebo vlastní názvy. <small>Tabulka náhrad je sbalená níže, aby první kontrola nebyla zahlcená.</small></p>
+          <div class="step-head"><span class="step-no">2</span><span class="step-title">Anonymizace a přesný obsah pro Gemini</span></div>
+          <p class="tap-hint">Oranžově označené výrazy musíš posoudit: zvol osobu, instituci, místo, nebo je vědomě ponech. U celého jména stačí ťuknout na jednu část. Žlutá značka už je anonymizovaná; ťuknutím ji znovu odkryješ.</p>
+          <div class="privacy-warning" role="alert"><strong>Před odesláním pročti celý text.</strong><span>Ověř, že neobsahuje skutečná jména, kontakty ani jiné osobní nebo citlivé údaje. Zobrazený text je zároveň přesným obsahem připraveným pro Gemini.</span></div>
+          <div class="tap-cue"><span class="arrow action-icon" data-ic="down" aria-hidden="true"></span><span>Vyřeš oranžově označené výrazy a potom text ještě jednou celý přečti.</span></div>
+          <div class="unified-review-grid">
+            <div class="unified-text-column">
+              <div class="final-content-label"><strong>Přesný obsah pro Gemini</strong><span>Upravuje se pouze označováním náhrad; nic se neodešle bez potvrzení níže.</span></div>
+              <div class="tapview final-outgoing-text" id="in_view"></div>
+            </div>
+            <aside class="suggestion-panel" id="in_suggestionPanel" aria-live="polite"></aside>
+          </div>
+          <p class="post-anon-note">Hlavní úkol: vyřeš návrhy vpravo a pročti celý odesílaný text. <small>Tabulka náhrad zůstává sbalená níže pro případ ruční opravy.</small></p>
           <details class="key-details" id="in_keyDetails">
             <summary><span><span class="kd-title">Klíč náhrad — zůstává jen u tebe</span><span class="kd-sub" id="in_keySummaryLine">Zatím bez náhrad.</span></span></summary>
             <div class="key-details-body">
@@ -175,15 +182,15 @@
         <div class="threshold privacy-outgoing-panel">
           <span class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Finální kontrola před odesláním</span>
           <div class="outside-wrap">
-            <p class="safe-local-label"><strong>Přesný obsah pro Gemini.</strong> Níže je jen kontrolní kopie anonymizovaného textu. Odešle se až po tvém potvrzení a stisknutí hlavního tlačítka.</p>
+            <p class="safe-local-label"><strong>Bezpečnostní výsledek.</strong> Semafor níže kontroluje stejné hlavní pole výše; nevytváří druhou kopii textu.</p>
             <p class="zone-label out-zone"><span class="dot"></span>Kontrolní náhled · jen ke čtení</p>
             <div class="safety" id="in_safety">Semafor anonymizace se zobrazí po vložení textu.</div>
             <div class="safe-fallback" id="in_safeFallback" aria-live="polite"></div>
-            <button class="btn ghost small" id="in_prevToggle" title="Náhled je povinně viditelný. Tlačítko k němu jen sjede a krátce ho zvýrazní." style="margin:0 0 8px"><span class="action-icon" data-ic="down" aria-hidden="true"></span>Zvýraznit kontrolní náhled</button>
+            <button hidden class="btn ghost small" id="in_prevToggle" title="Náhled je povinně viditelný. Tlačítko k němu jen sjede a krátce ho zvýrazní." style="margin:0 0 8px"><span class="action-icon" data-ic="down" aria-hidden="true"></span>Zvýraznit kontrolní náhled</button>
             <div class="ready-banner" id="in_readyBanner" aria-live="polite"></div>
             <div class="preview-summary" id="in_previewSummary" aria-live="polite"></div>
-            <div class="preview" id="in_preview"></div>
-            <label class="review-check"><input type="checkbox" id="in_reviewOk" aria-label="Potvrzuji kontrolu anonymizace přijatého e-mailu"><span><strong>Zkontrolováno.</strong> V náhledu nevidím skutečná jména, e-maily, telefony ani jiné citlivé údaje. Kontrolní upozornění jsem posoudil(a); pokud nejde o citlivý údaj, mohu pokračovat.</span></label>
+            <div hidden class="preview" id="in_preview"></div>
+            <label class="review-check"><input type="checkbox" id="in_reviewOk" aria-label="Potvrzuji kontrolu anonymizace přijatého e-mailu"><span><strong>Zkontrolováno.</strong> Pročetl(a) jsem celý přesný obsah pro Gemini, vyřešil(a) všechny označené návrhy a nevidím v něm skutečná jména, kontakty ani jiné citlivé údaje.</span></label>
             <div class="row actsticky">
               <button class="btn primary" id="in_analyzeBtn" title="Odešle očištěný text Gemini a vrátí rozbor." disabled><span class="action-icon">🔎</span>Rozebrat <span class="req">1 ⚡</span></button>
             </div>
@@ -215,14 +222,21 @@
         <div class="privacy-stage-head">
           <p class="eyebrow">Bezpečnostní příprava · vše v jednom kroku</p>
           <h2>Zkontroluj anonymizovaný text před odesláním</h2>
-          <p>E-maily a telefony aplikace skryje automaticky. Jména a vlastní názvy označ ťuknutím v hlavním poli; pod ním pak jednou potvrď přesný kontrolní náhled pro Gemini.</p>
+          <p>E-maily a telefony aplikace skryje automaticky. V jednom velkém poli označíš jména a vlastní názvy a zároveň přesně vidíš text, který může odejít do Gemini.</p>
         </div>
         <div class="card privacy-local-panel">
-          <div class="step-head"><span class="step-no">2</span><span class="step-title">Anonymizace a kontrola v jednom pracovním bloku</span></div>
-          <p class="tap-hint">Ťukni na jméno nebo údaj, který chceš skrýt — zežloutne jako značka. U jména a příjmení stačí ťuknout na jednu část; aplikace spojí sousední celé jméno do jedné osoby. Ťuknutím na značku ho zase odkryješ. Chceš upravit samotný text? Uprav ho nahoře a dej <b>Anonymizovat znovu</b>.</p>
-          <div class="tap-cue"><span class="arrow action-icon" data-ic="down" aria-hidden="true"></span><span>Ťukni na jména a vlastní názvy v textu níže — skryjí se jako značka. E-maily a telefony jsou už skryté.</span></div>
-          <div class="tapview" id="my_view"></div>
-          <p class="post-anon-note">Hlavní úkol: projdi text a ťukni na jména nebo vlastní názvy. <small>Tabulka náhrad je sbalená níže, aby první kontrola nebyla zahlcená.</small></p>
+          <div class="step-head"><span class="step-no">2</span><span class="step-title">Anonymizace a přesný obsah pro Gemini</span></div>
+          <p class="tap-hint">Oranžově označené výrazy musíš posoudit: zvol osobu, instituci, místo, nebo je vědomě ponech. U celého jména stačí ťuknout na jednu část. Žlutá značka už je anonymizovaná; ťuknutím ji znovu odkryješ.</p>
+          <div class="privacy-warning" role="alert"><strong>Před odesláním pročti celý text.</strong><span>Ověř, že neobsahuje skutečná jména, kontakty ani jiné osobní nebo citlivé údaje. Zobrazený text je zároveň přesným obsahem připraveným pro Gemini.</span></div>
+          <div class="tap-cue"><span class="arrow action-icon" data-ic="down" aria-hidden="true"></span><span>Vyřeš oranžově označené výrazy a potom text ještě jednou celý přečti.</span></div>
+          <div class="unified-review-grid">
+            <div class="unified-text-column">
+              <div class="final-content-label"><strong>Přesný obsah pro Gemini</strong><span>Upravuje se pouze označováním náhrad; nic se neodešle bez potvrzení níže.</span></div>
+              <div class="tapview final-outgoing-text" id="my_view"></div>
+            </div>
+            <aside class="suggestion-panel" id="my_suggestionPanel" aria-live="polite"></aside>
+          </div>
+          <p class="post-anon-note">Hlavní úkol: vyřeš návrhy vpravo a pročti celý odesílaný text. <small>Tabulka náhrad zůstává sbalená níže pro případ ruční opravy.</small></p>
           <details class="key-details" id="my_keyDetails">
             <summary><span><span class="kd-title">Klíč náhrad — zůstává jen u tebe</span><span class="kd-sub" id="my_keySummaryLine">Zatím bez náhrad.</span></span></summary>
             <div class="key-details-body">
@@ -241,15 +255,15 @@
         <div class="threshold privacy-outgoing-panel">
           <span class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Finální kontrola před odesláním</span>
           <div class="outside-wrap">
-            <p class="safe-local-label"><strong>Přesný obsah pro Gemini.</strong> Níže je jen kontrolní kopie anonymizovaného textu. Odešle se až po tvém potvrzení a stisknutí hlavního tlačítka.</p>
+            <p class="safe-local-label"><strong>Bezpečnostní výsledek.</strong> Semafor níže kontroluje stejné hlavní pole výše; nevytváří druhou kopii textu.</p>
             <p class="zone-label out-zone"><span class="dot"></span>Kontrolní náhled · jen ke čtení</p>
             <div class="safety" id="my_safety">Semafor anonymizace se zobrazí po vložení textu.</div>
             <div class="safe-fallback" id="my_safeFallback" aria-live="polite"></div>
-            <button class="btn ghost small" id="my_prevToggle" title="Náhled je povinně viditelný. Tlačítko k němu jen sjede a krátce ho zvýrazní." style="margin:0 0 8px"><span class="action-icon" data-ic="down" aria-hidden="true"></span>Zvýraznit kontrolní náhled</button>
+            <button hidden class="btn ghost small" id="my_prevToggle" title="Náhled je povinně viditelný. Tlačítko k němu jen sjede a krátce ho zvýrazní." style="margin:0 0 8px"><span class="action-icon" data-ic="down" aria-hidden="true"></span>Zvýraznit kontrolní náhled</button>
             <div class="ready-banner" id="my_readyBanner" aria-live="polite"></div>
             <div class="preview-summary" id="my_previewSummary" aria-live="polite"></div>
-            <div class="preview" id="my_preview"></div>
-            <label class="review-check"><input type="checkbox" id="my_reviewOk" aria-label="Potvrzuji kontrolu anonymizace vlastního e-mailu"><span><strong>Zkontrolováno.</strong> V náhledu nevidím skutečná jména, e-maily, telefony ani jiné citlivé údaje. Kontrolní upozornění jsem posoudil(a); pokud nejde o citlivý údaj, mohu pokračovat.</span></label>
+            <div hidden class="preview" id="my_preview"></div>
+            <label class="review-check"><input type="checkbox" id="my_reviewOk" aria-label="Potvrzuji kontrolu anonymizace vlastního e-mailu"><span><strong>Zkontrolováno.</strong> Pročetl(a) jsem celý přesný obsah pro Gemini, vyřešil(a) všechny označené návrhy a nevidím v něm skutečná jména, kontakty ani jiné citlivé údaje.</span></label>
 
             <div class="res-card params" style="margin-top:14px;background:var(--paper)">
               <div class="pgroup advanced-only" id="my_tplGroup">
@@ -386,7 +400,7 @@
                   <button class="chip" data-v="ano">Navrhni předmět</button>
                 </div>
               </div>
-              <div class="pgroup advanced-only">
+              <div class="pgroup advanced-only note-field">
                 <div class="plabel" title="Cokoli navíc — volný pokyn k tomuto e-mailu.">Poznámka (nepovinné)</div>
                 <input id="my_note" type="text" title="Piš normálně, i se skutečnými jmény a ve skloňovaných tvarech. Appka je sama skryje — pozná většinu pádů (Nováka, Novákovi…). Nejsi-li si jistý, napiš raději přímo značku (osoba A)." placeholder="např. navrhni termín ve čtvrtek; ať to nezní podrážděně" style="width:100%;font:13px var(--sans);padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink)">
               </div>

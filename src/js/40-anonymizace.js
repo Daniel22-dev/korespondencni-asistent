@@ -35,8 +35,8 @@ function rememberNames(km){
 
 /* ===================== STAV PER ZÁLOŽKA ===================== */
 const ST = {
-  in: { km:[], emailN:0, phoneN:0, raw:"", clean:"", syn:{}, pozadavky:[], outputReady:false, sensitiveAck:false },
-  my: { km:[], emailN:0, phoneN:0, raw:"", clean:"", syn:{}, outputReady:false, sensitiveAck:false },
+  in: { km:[], emailN:0, phoneN:0, raw:"", clean:"", syn:{}, pozadavky:[], outputReady:false, sensitiveAck:false, reviewedSuggestions:{} },
+  my: { km:[], emailN:0, phoneN:0, raw:"", clean:"", syn:{}, outputReady:false, sensitiveAck:false, reviewedSuggestions:{} },
 };
 const E = (p,name)=>$(p+"_"+name);
 const ACTIVE_KEY_REALS={in:[],my:[]};
@@ -49,7 +49,7 @@ const PUNCT_RE=/^([<>\[\]{}(),.;:!?„“”"'…»«]*)([\s\S]*?)([<>\[\]{}(),.
 function splitPunc(w){ const m=w.match(PUNCT_RE); return m?{pre:m[1],core:m[2],post:m[3]}:{pre:"",core:w,post:""}; }
 
 const STOP=new Set(("Dobrý Dobré Dobrou Dobré Pěkný Pěkné Krásný Krásné Hezký Hezké Milý Milá Milé Vážený Vážená Vážené Vážení "+
-  "Děkuji Děkujeme Děkuji Zdravím Ahoj Nazdar Čau Nashledanou Sbohem Těším Přeji Přejeme Mějte Omlouvám Omlouváme Bohužel "+
+  "Děkuji Děkujeme Děkuji Zdravím Zdraví Mává Mávám Mávejte Ahoj Nazdar Čau Nashledanou Sbohem Těším Přeji Přejeme Mějte Omlouvám Omlouváme Bohužel "+
   "Rád Ráda Také Toto Tento Tato Tyto Pokud Když Protože Jelikož Chtěl Chtěla Chtěli Mám Máme Máte Je Jsou Byl Byla Byly Bylo "+
   "Jak Co Kdy Kde Kdo Proč Můj Moje Naše Náš Vaše Váš Vás Vám Vy My Já On Ona Ano Ne Prosím Prosíme Předem Zatím Mezitím "+
   "Pondělí Úterý Středa Čtvrtek Pátek Sobota Neděle Leden Únor Březen Duben Květen Červen Červenec Srpen Září Říjen Listopad Prosinec "+
@@ -237,22 +237,63 @@ function applyKeyToText(p, text){
 function cleanFromKey(p){ return applyKeyToText(p, ST[p].raw); }
 
 /* ---- pomocníci pro interaktivní náhled (#3, #4, #6) ---- */
-const NAME_CAND_STOP=new Set(["Od","Komu","Kopie","Skrytá","Předmět","Re","Fw","Fwd","Dobrý","Dobrá","Dobré","Milá","Milý","Vážená","Vážený","Vážení","Pane","Paní","Slečno","Prosím","Děkuji","Děkuju","Zdravím","Ahoj","Pozdravem","Srdečně","Tématem","Téma"]);
+const NAME_CAND_STOP=new Set(["Od","Komu","Kopie","Skrytá","Předmět","Re","Fw","Fwd","Dobrý","Dobrá","Dobré","Milá","Milý","Vážená","Vážený","Vážení","Pane","Paní","Slečno","Prosím","Děkuji","Děkuju","Dobry","Kontakt","Telefon","Tel","Zdravím","Zdraví","Mává","Mávám","Mávejte","Ahoj","Pozdravem","Srdečně","Tématem","Téma"]);
+const NAME_TITLES=new Set(["mgr","ing","bc","mudr","rndr","phdr","judr","doc","prof"]);
 function isNameCandidate(core){
   if(!/^\p{L}+$/u.test(core)) return false;
   if(!/^\p{Lu}\p{Ll}{2,}$/u.test(core)) return false;
   if((typeof STOP!=="undefined" && STOP.has && STOP.has(core)) || NAME_CAND_STOP.has(core)) return false;
   return true;
 }
+function isNameInitial(w){ return !!w && /^\p{Lu}$/u.test(w.core||"") && /\./.test(w.post||""); }
+function isNameTitle(w){ return !!w && NAME_TITLES.has(String(w.core||"").toLocaleLowerCase("cs-CZ")) && /\.?/.test(w.post||""); }
+function isNamePart(w){ return !!w && (isNameCandidate(w.core)||isNameInitial(w)||isNameTitle(w)); }
+function mayJoinNameWords(left,right){
+  if(!left||!right||!isNamePart(left)||!isNamePart(right)) return false;
+  if(/[!?;:]/.test(left.post||"")) return false;
+  if(/\./.test(left.post||"") && !isNameInitial(left) && !isNameTitle(left)) return false;
+  return true;
+}
 function selectionIsMulti(){ try{ const s=String(window.getSelection()||"").trim(); return s.length>0 && /\s/.test(s); }catch(_){ return false; } }
-function clickedNamePhrase(words,index){
+function clickedNameRange(words,index){
   const current=words[index];
-  if(!current || !isNameCandidate(current.core)) return current&&current.core||"";
-  const next=words[index+1], prev=words[index-1];
-  const canJoin=(left,right)=>!!left&&!!right&&isNameCandidate(left.core)&&isNameCandidate(right.core)&&!/[.!?;:]/.test(left.post||"");
-  if(canJoin(current,next)) return current.core+" "+next.core;
-  if(canJoin(prev,current)) return prev.core+" "+current.core;
-  return current.core;
+  if(!current||!isNamePart(current)) return {start:index,end:index,phrase:current&&current.core||""};
+  let start=index,end=index;
+  if(isNameInitial(current) && mayJoinNameWords(words[index-1],current)) start=index-1;
+  else if(isNameCandidate(current.core) && isNameTitle(words[index-1]) && mayJoinNameWords(words[index-1],current)) start=index-1;
+  else if(isNameCandidate(current.core) && isNameCandidate(words[index-1]&&words[index-1].core) && mayJoinNameWords(words[index-1],current)) start=index-1;
+  while(start>0 && isNameTitle(words[start-1]) && mayJoinNameWords(words[start-1],words[start])) start--;
+  while(end+1<words.length && end-start<2 && mayJoinNameWords(words[end],words[end+1])){
+    const next=words[end+1];
+    if(isNameTitle(next)) break;
+    end++;
+  }
+  const parts=words.slice(start,end+1).map(w=>w.core).filter(Boolean);
+  return {start,end,phrase:parts.join(" ")};
+}
+function clickedNamePhrase(words,index){ return clickedNameRange(words,index).phrase; }
+function suggestionKey(phrase){ return String(phrase||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim().toLocaleLowerCase("cs-CZ"); }
+function suggestionData(p){
+  const st=ST[p], parsed=wordObjs(st.raw||""), words=parsed.words;
+  const wtok=matchWordArray(buildMatchers((st.km||[]).filter(k=>k.real&&k.token)),words);
+  const suggestions=[], byWord=new Map(), seen=new Set();
+  words.forEach((w,i)=>{
+    if(wtok[i] || !isNamePart(w)) return;
+    const r=clickedNameRange(words,i), phrase=String(r.phrase||"").trim(), key=suggestionKey(phrase);
+    if(!phrase||phrase.length<2||seen.has(key)||(st.reviewedSuggestions&&st.reviewedSuggestions[key]==="keep")) return;
+    if(r.start<0||r.end>=words.length) return;
+    for(let x=r.start;x<=r.end;x++) if(wtok[x]) return;
+    seen.add(key);
+    const item={phrase,key,start:r.start,end:r.end}; suggestions.push(item);
+    for(let x=r.start;x<=r.end;x++) byWord.set(x,item);
+  });
+  return {suggestions,byWord,words,wtok,segs:parsed.segs};
+}
+function categoryToken(st,kind){
+  const base=kind==="institution"?"instituce":"místo";
+  let max=0;
+  (st.km||[]).forEach(k=>{const m=String(k.token||"").match(new RegExp("^\\["+base+"\\s+(\\d+)\\]$"));if(m)max=Math.max(max,+m[1]||0);});
+  return "["+base+" "+(max+1)+"]";
 }
 function removeByToken(p, token){ const st=ST[p]; st.km=st.km.filter(k=>k.token!==token); afterKeyChange(p); }
 let nameHintOn=(function(){ try{ return localStorage.getItem("rozbor_name_hints")==="1"; }catch(_){ return false; } })();
@@ -276,24 +317,59 @@ function tokenForRelatedPerson(st, cleaned){
   });
   return hit?hit.token:"";
 }
-function addPhrase(p, phrase){
+function addPhraseAs(p, phrase, kind){
   const st=ST[p]; const cleaned=String(phrase).replace(/\s+/g," ").trim().replace(/^[<>\[\]{}(),.;:!?„“”"'…»«\s]+|[<>\[\]{}(),.;:!?„“”"'…»«\s]+$/g,"");
   if(!cleaned || cleaned.length<2) return;
   if(st.km.some(k=>k.real.toLocaleLowerCase("cs-CZ")===cleaned.toLocaleLowerCase("cs-CZ"))) return;
-  const related=tokenForRelatedPerson(st,cleaned), token=related||nextPersonToken(st.km);
-  st.km.push({real:cleaned,token,auto:false}); afterKeyChange(p);
+  let token="", related="";
+  if(kind==="institution"||kind==="place") token=categoryToken(st,kind);
+  else { related=tokenForRelatedPerson(st,cleaned); token=related||nextPersonToken(st.km); }
+  st.km.push({real:cleaned,token,auto:false});
+  if(st.reviewedSuggestions) delete st.reviewedSuggestions[suggestionKey(cleaned)];
+  afterKeyChange(p);
   if(related) toast("Přidáno ke stejné osobě ("+token+").");
+}
+function addPhrase(p, phrase){ addPhraseAs(p,phrase,"person"); }
+function keepSuggestion(p,phrase){
+  const st=ST[p]; st.reviewedSuggestions=st.reviewedSuggestions||{}; st.reviewedSuggestions[suggestionKey(phrase)]="keep";
+  resetReview(p); renderView(p); renderPreview(p); toast("Výraz ponechán beze změny. Přesto ještě pročti celý text.");
+}
+function suggestionActionButtons(p,phrase){
+  return '<div class="suggestion-actions" data-phrase="'+escAttr(phrase)+'">'+
+    '<button type="button" class="suggestion-action person" data-suggest-kind="person">Osoba</button>'+
+    '<button type="button" class="suggestion-action institution" data-suggest-kind="institution">Instituce</button>'+
+    '<button type="button" class="suggestion-action place" data-suggest-kind="place">Místo</button>'+
+    '<button type="button" class="suggestion-action keep" data-suggest-kind="keep">Ponechat</button></div>';
+}
+function wireSuggestionActions(root,p,close){
+  if(!root)return;
+  root.querySelectorAll("[data-suggest-kind]").forEach(btn=>btn.onclick=()=>{
+    const wrap=btn.closest("[data-phrase]"),phrase=wrap&&wrap.dataset.phrase||"",kind=btn.dataset.suggestKind;
+    if(kind==="keep")keepSuggestion(p,phrase);else addPhraseAs(p,phrase,kind);
+    if(close)close();
+  });
+}
+function renderSuggestionPanel(p,suggestions){
+  const panel=E(p,"suggestionPanel"); if(!panel)return;
+  const rows=suggestions||suggestionData(p).suggestions;
+  if(!rows.length){
+    panel.className="suggestion-panel resolved";
+    panel.innerHTML='<div class="suggestion-panel-head"><span class="suggestion-count">✓</span><span><b>Všechny návrhy vyřešeny</b><small>Ještě pročti celý text očima.</small></span></div>';
+  }else{
+    panel.className="suggestion-panel has-items";
+    panel.innerHTML='<div class="suggestion-panel-head"><span class="suggestion-count">'+rows.length+'</span><span><b>Výrazy ke kontrole</b><small>U každého rozhodni, co s ním.</small></span></div><div class="suggestion-list">'+rows.map(x=>'<article class="suggestion-item"><strong>'+esc(x.phrase)+'</strong>'+suggestionActionButtons(p,x.phrase)+'</article>').join("")+'</div>';
+    wireSuggestionActions(panel,p);
+  }
 }
 function showTapHide(p, phrase, rect){
   if(!tapPopEl){ tapPopEl=document.createElement("div"); tapPopEl.id="tapPop"; document.body.appendChild(tapPopEl); }
-  tapPopEl.innerHTML='<button class="btn small primary" id="tapHideBtn"><span class="action-icon" data-ic="lock"></span>Skrýt vybrané jako 1 osobu</button>';
+  tapPopEl.innerHTML='<b class="tap-pop-title">Jak naložit s „'+esc(phrase)+'“?</b>'+suggestionActionButtons(p,phrase);
   tapPopEl.style.display="block";
-  const w=tapPopEl.offsetWidth||250;
+  const w=tapPopEl.offsetWidth||360;
   tapPopEl.style.left=Math.max(8, Math.min(window.scrollX+rect.left, window.scrollX+window.innerWidth-w-12))+"px";
   tapPopEl.style.top=(window.scrollY+rect.bottom+6)+"px";
-  paintIcons(tapPopEl);
-  tapPopEl.querySelector("#tapHideBtn").onmousedown=(e)=>e.preventDefault();
-  tapPopEl.querySelector("#tapHideBtn").onclick=()=>{ addPhrase(p, phrase); hideTapPop(); };
+  paintIcons(tapPopEl); wireSuggestionActions(tapPopEl,p,hideTapPop);
+  tapPopEl.querySelectorAll("button").forEach(b=>b.onmousedown=(e)=>e.preventDefault());
 }
 function wireTapSelection(p){
   const view=E(p,"view"); if(!view||view.dataset.selWired) return; view.dataset.selWired="1";
@@ -310,15 +386,14 @@ if(typeof document!=="undefined"){ document.addEventListener("click",(e)=>{ if(t
 
 function renderView(p){
   const el=E(p,"view"); if(!el) return; el.innerHTML="";
-  ensureNameHintToggle(p); wireTapSelection(p);
-  if(!ST[p].raw.trim()){ el.innerHTML=EMPTY_MARK; return; }
-  const {segs, words}=wordObjs(ST[p].raw);
-  const wtok=matchWordArray(buildMatchers(ST[p].km.filter(k=>k.real&&k.token)), words);
-  const mkSpan=(cls, label, title, aria, act)=>{
+  wireTapSelection(p);
+  if(!ST[p].raw.trim()){ el.innerHTML=EMPTY_MARK; renderSuggestionPanel(p,[]); return; }
+  const data=suggestionData(p), {segs,words,wtok,byWord,suggestions}=data;
+  const mkSpan=(cls,label,title,aria,act)=>{
     const span=document.createElement("span"); span.className=cls; span.textContent=label; span.title=title;
     span.tabIndex=0; span.setAttribute("role","button"); span.setAttribute("aria-label",aria);
-    span.onclick=()=>{ if(selectionIsMulti()) return; act(); };
-    span.addEventListener("keydown",ev=>{ if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); act(); } });
+    span.onclick=(ev)=>{ if(selectionIsMulti()) return; act(ev); };
+    span.addEventListener("keydown",ev=>{ if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); act(ev); } });
     return span;
   };
   let widx=-1;
@@ -335,13 +410,17 @@ function renderView(p){
       const last=words[widx+t.n-1]; if(last && last.post) el.appendChild(document.createTextNode(last.post));
     } else {
       if(w.pre) el.appendChild(document.createTextNode(w.pre));
-      const maybe=nameHintOn && isNameCandidate(w.core);
-      const phrase=clickedNamePhrase(words,widx);
-      const phraseTitle=phrase!==w.core?"Skrýt celé jméno "+phrase:(maybe?"Možná jméno — ťukni pro skrytí":"Ťukni a skryješ");
-      el.appendChild(mkSpan("w"+(maybe?" maybe":""), w.core, phraseTitle, "Skrýt "+phrase, ()=>phrase!==w.core?addPhrase(p,phrase):addWord(p,w.core)));
+      const suggestion=byWord.get(widx), phrase=suggestion?suggestion.phrase:w.core;
+      const cls="w"+(suggestion?" maybe suggestion-word":"");
+      const title=suggestion?("Výraz ke kontrole: "+phrase+" — zvol osobu, instituci, místo nebo ponechat"):("Ťukni a skryješ jako osobu");
+      el.appendChild(mkSpan(cls,w.core,title,"Zkontrolovat "+phrase,(ev)=>{
+        if(suggestion){ const r=ev.currentTarget.getBoundingClientRect(); showTapHide(p,phrase,r); }
+        else addWord(p,w.core);
+      }));
       if(w.post) el.appendChild(document.createTextNode(w.post));
     }
   }
+  renderSuggestionPanel(p,suggestions);
 }
 function resetReview(p){ const cb=E(p,"reviewOk"); if(cb) cb.checked=false; if(ST[p])ST[p].outputReady=false; updateSendGate(p); updateProgress(p); }
 function afterKeyChange(p){ publishActiveKeyReals(p); ST[p].sensitiveAck=false; ST[p].clean=cleanFromKey(p); resetReview(p); renderView(p); renderKeyTable(p); renderPreview(p); }
@@ -358,7 +437,7 @@ function activateSensitiveMode(reason){
 function doAnon(p){
   const raw=E(p,"raw").value; if(!raw.trim()) return;
   if(hasSensitiveSchoolTerms(raw)) activateSensitiveMode("obsahuje citlivá školní témata");
-  const st=ST[p]; st.raw=raw; st.emailN=0; st.phoneN=0; st.km=[]; st.sensitiveAck=false;
+  const st=ST[p]; st.raw=raw; st.emailN=0; st.phoneN=0; st.km=[]; st.sensitiveAck=false; st.reviewedSuggestions={};
   buildKey(st, autoDetect(raw));
   afterKeyChange(p);
   const kd=E(p,"keyDetails"); if(kd) kd.open=false;
@@ -470,7 +549,7 @@ function renderPreview(p){
   updateSendGate(p);
 }
 function stripSafeTokens(text){
-  return String(text||"").replace(/\[e-mail \d+\]|\[telefon \d+\]|\[rodné číslo \d+\]|\[datum narození \d+\]|\[číslo účtu \d+\]|osoba [A-Z]+|\[podpis\]|\[učitel\]/g," ");
+  return String(text||"").replace(/\[e-mail \d+\]|\[telefon \d+\]|\[rodné číslo \d+\]|\[datum narození \d+\]|\[číslo účtu \d+\]|\[instituce \d+\]|\[místo \d+\]|osoba [A-Z]+|\[podpis\]|\[učitel\]/g," ");
 }
 function preflightIssues(text,p){
   const stripped=stripSafeTokens(text);
@@ -671,12 +750,18 @@ function renderSafety(p){
   renderPreviewSummary(p);
 }
 function updateSendGate(p){
-  const cb=E(p,"reviewOk"); const btn=p==="in"?$("in_analyzeBtn"):$("my_goBtn");
-  if(btn && cb){ const a=safetyAudit(ST[p].clean||"",p); btn.disabled=!cb.checked || a.level==="danger" || (a.level==="nosend" && !(ST[p]&&ST[p].sensitiveAck)); }
+  const cb=E(p,"reviewOk"), btn=p==="in"?$("in_analyzeBtn"):$("my_goBtn"), unresolved=(ST[p].raw||"").trim()?suggestionData(p).suggestions.length:0;
+  if(cb){
+    cb.disabled=unresolved>0;
+    if(unresolved>0) cb.checked=false;
+    cb.title=unresolved>0?("Nejdřív vyřeš "+unresolved+" označených výrazů."):"Po přečtení celého textu potvrď kontrolu.";
+    const label=cb.closest(".review-check"); if(label) label.classList.toggle("blocked",unresolved>0);
+  }
+  if(btn && cb){ const a=safetyAudit(ST[p].clean||"",p); btn.disabled=unresolved>0 || !cb.checked || a.level==="danger" || (a.level==="nosend" && !(ST[p]&&ST[p].sensitiveAck)); }
   updateProgress(p);
 }
 function flashPreview(p){
-  const pv=E(p,"preview"); if(!pv) return;
+  const pv=E(p,"view"); if(!pv) return;
   pv.classList.add("preview-flash"); pv.scrollIntoView({behavior:"smooth",block:"center"});
   setTimeout(()=>pv.classList.remove("preview-flash"),900);
 }
@@ -685,12 +770,12 @@ function flashPreview(p){
   E(p,"reAnon").onclick=()=>doAnon(p);
   E(p,"addRow").onclick=()=>addRow(p);
   E(p,"remember").onclick=()=>rememberNames(ST[p].km);
-  E(p,"prevToggle").onclick=()=>flashPreview(p);
+  const prevToggle=E(p,"prevToggle"); if(prevToggle) prevToggle.onclick=()=>flashPreview(p);
   E(p,"reviewOk").addEventListener("change",()=>{if(!E(p,"reviewOk").checked)ST[p].outputReady=false;updateSendGate(p);});
   E(p,"raw").addEventListener("input",()=>{
     const value=E(p,"raw").value;
     if(ST[p].raw!==value){
-      ST[p].raw=value;ST[p].clean="";ST[p].km=[];ST[p].outputReady=false;ST[p].sensitiveAck=false;publishActiveKeyReals(p);
+      ST[p].raw=value;ST[p].clean="";ST[p].km=[];ST[p].outputReady=false;ST[p].sensitiveAck=false;ST[p].reviewedSuggestions={};publishActiveKeyReals(p);
       const cb=E(p,"reviewOk");if(cb)cb.checked=false;
       const step2=E(p,"step2");if(step2)step2.style.display="none";
       const results=$(p==="in"?"in_results":"my_results");if(results)results.innerHTML="";
@@ -746,7 +831,10 @@ function recompose(p, text){
 function tokenizeHTML(p, text){
   let html=esc(text);
   [...new Set(ST[p].km.map(k=>k.token).filter(Boolean))].sort((a,b)=>b.length-a.length).forEach(t=>{ html=html.replace(new RegExp(escRe(esc(t)),"g"),'<span class="token '+tokenClass(t)+'">'+esc(t)+'</span>'); });
-  html=html.replace(/\[podpis\]|\[učitel\]|\(\s*učitel\s*\)/gi, m=>'<span class="token t-sign" title="Nahradí se tvým podpisem z profilu.">'+m+'</span>');
+  html=html.replace(/\[podpis\]|\[učitel\]|\(\s*učitel\s*\)/gi, m=>{
+    const signature=typeof signatureText==="function"?signatureText():m;
+    return '<span class="token t-sign visible-signature" contenteditable="false" data-sign-token="[podpis]" title="Podpis se doplňuje lokálně z profilu a neposílá se Gemini.">'+esc(signature)+'</span>';
+  });
   return html;
 }
 

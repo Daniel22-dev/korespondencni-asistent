@@ -220,6 +220,32 @@ async function runKorespTests(){
       assertTest(clickedNamePhrase(parsed.words,0)==="Jan Novák","kliknutí na křestní jméno nespojilo celé jméno");
       assertTest(clickedNamePhrase(parsed.words,1)==="Jan Novák","kliknutí na příjmení nespojilo celé jméno");
     });
+    await test("Podpis Petr H. se skryje jako jedna osoba bez slova Mává", async()=>{
+      const parsed=wordObjs("Mává Petr H.");
+      assertTest(clickedNamePhrase(parsed.words,1)==="Petr H","kliknutí na Petr nespojilo iniciálu: "+clickedNamePhrase(parsed.words,1));
+      assertTest(clickedNamePhrase(parsed.words,2)==="Petr H","kliknutí na iniciálu nespojilo celé jméno");
+      ST.in.raw="Mává Petr H."; ST.in.km=[]; ST.in.reviewedSuggestions={}; addPhraseAs("in","Petr H","person");
+      assertTest(ST.in.clean==="Mává osoba A.","podpis se anonymizoval chybně: "+ST.in.clean);
+    });
+    await test("Našeptávač musí být vyřešen před potvrzením", async()=>{
+      E("in","raw").value="Petr píše zprávu."; doAnon("in");
+      const items=suggestionData("in").suggestions;
+      assertTest(items.some(x=>x.phrase==="Petr"),"našeptávač neoznačil jméno Petr");
+      assertTest(E("in","reviewOk").disabled,"potvrzení je dostupné i s nevyřešeným návrhem");
+      keepSuggestion("in","Petr");
+      assertTest(!E("in","reviewOk").disabled,"po vědomém ponechání se potvrzení neodemklo");
+    });
+    await test("Podpis z profilu se zobrazí lokálně, ale do zdroje se nepropíše", async()=>{
+      const old=localStorage.getItem("rozbor_profile");
+      try{
+        localStorage.setItem("rozbor_profile",JSON.stringify({name:"Daniel Baláž",sign:"pozdrav"}));
+        const card=draftCard("in",{text:"Dobrý den,\n\nděkuji za zprávu."}); document.body.appendChild(card);
+        assertTest(card.querySelector(".visible-signature").textContent.includes("Daniel Baláž"),"profilové jméno není v návrhu vidět");
+        const src=card.__getSrc();
+        assertTest(src.includes("[podpis]")&&!src.includes("Daniel Baláž"),"profilové jméno se propsalo do anonymního zdroje: "+src);
+        card.remove();
+      }finally{if(old===null)localStorage.removeItem("rozbor_profile");else localStorage.setItem("rozbor_profile",old);}
+    });
     await test("Dvě podobná jména zůstávají dvě osoby", async()=>{
       ST.in.raw="Jan Novák a Jana Nováková se dostavili.";
       ST.in.km=[{real:"Jan Novák",token:"osoba A",auto:false},{real:"Jana Nováková",token:"osoba B",auto:false}];
@@ -439,7 +465,7 @@ async function runKorespTests(){
       assertTest(typeof openDeveloperTools==="function" && typeof openOpsLog==="function","chybí vývojářské nástroje nebo technický log");
       const labels=toolsActions.map(a=>a.label).join("|");
       assertTest(!labels.includes("Debug prompt") && !labels.includes("Spustit testy"),"debug nebo testy zůstaly jako samostatné položky");
-      assertTest(DEV_MODE?labels.includes("Vývojářské nástroje"):!labels.includes("Vývojářské nástroje"),"viditelnost vývojářských nástrojů neodpovídá režimu ?dev=1 / ?test");
+      assertTest(DEV_MODE?labels.includes("Vývojářské nástroje"):!labels.includes("Vývojářské nástroje"),"viditelnost vývojářských nástrojů neodpovídá roli správce nebo testovacímu režimu");
     });
 
     await test("Historie ukládá jen anonymizovanou verzi", async()=>{

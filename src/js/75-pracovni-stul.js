@@ -115,10 +115,26 @@ function manageSignatures(done){
   openModal("Podpisy",html,{onMount(body,close){body.querySelectorAll('input[name="sig"]').forEach(r=>r.onchange=()=>{localStorage.setItem(LS.selectedSignature,r.value);toast("Výchozí podpis změněn ✓");});body.querySelectorAll("[data-del-sig]").forEach(b=>b.onclick=()=>{const a=jget(LS.signatures,[]).filter(x=>x.id!==b.dataset.delSig);jset(LS.signatures,a);if(localStorage.getItem(LS.selectedSignature)===b.dataset.delSig)localStorage.removeItem(LS.selectedSignature);close();manageSignatures(done);});body.querySelector("#newSignature").onclick=()=>{close();const form='<label class="dialog-label">Název podpisu</label><input id="sigName" class="dialog-input" placeholder="např. Třídní učitel" autofocus><label class="dialog-label">Celý podpis</label><textarea id="sigText" class="dialog-input" style="min-height:120px" placeholder="S pozdravem&#10;Jméno&#10;role"></textarea><div class="dialog-actions"><button class="btn" id="sigSave">Uložit podpis</button></div>';openModal("Nový podpis",form,{onMount(bb,cc){bb.querySelector("#sigSave").onclick=()=>{const name=clean(bb.querySelector("#sigName").value),text=clean(bb.querySelector("#sigText").value);if(!name||!text)return toast("Doplň název i text podpisu.");const a=jget(LS.signatures,[]),id=uid("sig");a.unshift({id,name,text});jset(LS.signatures,a.slice(0,12));localStorage.setItem(LS.selectedSignature,id);cc();manageSignatures(done);toast("Podpis uložen ✓");};}});};body.querySelector("#sigDone").onclick=()=>{close();if(done)done();};}});
 }
 window.openBlocksManager=function(el,p){
-  const render=()=>{const blocks=getBlocks(),sigs=getSignatures();const selected=localStorage.getItem(LS.selectedSignature)||"profile";
-    const html='<div class="block-tabs"><div class="dialog-section-head"><h4>Oblíbené formulace</h4><button class="link-btn" id="newBlock">Přidat vlastní</button></div>'+blocks.map(x=>'<article class="insert-block"><button class="insert-main" data-block="'+escAttr(x.id)+'"><b>'+esc(x.name)+'</b><small>'+esc(x.category||"Formulace")+'</small><span>'+esc(x.text)+'</span></button>'+(String(x.id).startsWith("block-")?'<button class="mini-delete" data-del-block="'+escAttr(x.id)+'" title="Smazat">×</button>':'')+'</article>').join("")+'<div class="dialog-section-head"><h4>Podpisy</h4><button class="link-btn" id="manageSignatures">Spravovat</button></div>'+(sigs.length?sigs.map(x=>'<button class="insert-block insert-signature" data-signature="'+escAttr(x.id)+'"><b>'+esc(x.name)+(x.id===selected?' · aktivní':'')+'</b><span>'+esc(x.text)+'</span></button>').join(""):'<p class="empty">Podpis nastavíš v profilu nebo zde vytvoříš vlastní.</p>')+'</div>';
-    openModal("Textové bloky a podpisy",html,{onMount(body,close){body.querySelectorAll("[data-block]").forEach(b=>b.onclick=()=>{const x=getBlocks().find(y=>y.id===b.dataset.block);if(x){insertBlock(el,x.text);close();toast("Formulace vložena ✓");}});body.querySelectorAll("[data-signature]").forEach(b=>b.onclick=()=>{const x=getSignatures().find(y=>y.id===b.dataset.signature);if(x){localStorage.setItem(LS.selectedSignature,x.id);insertBlock(el,x.text);close();toast("Podpis vložen a nastaven jako výchozí ✓");}});body.querySelectorAll("[data-del-block]").forEach(b=>b.onclick=()=>{jset(LS.blocks,getCustomBlocks().filter(x=>x.id!==b.dataset.delBlock));close();render();});body.querySelector("#newBlock").onclick=()=>{close();addCustomBlock(render);};body.querySelector("#manageSignatures").onclick=()=>{close();manageSignatures(render);};}});
-  };render();
+  const render=()=>{
+    const blocks=getBlocks(),sigs=getSignatures(),selected=localStorage.getItem(LS.selectedSignature)||"profile";
+    const active=sigs.find(x=>x.id===selected)||sigs[0];
+    const phraseCards=blocks.map(x=>'<article class="phrase-card">'+
+      '<div class="phrase-card-copy"><div class="phrase-card-title"><b>'+esc(x.name)+'</b><span class="phrase-category">'+esc(x.category||"Formulace")+'</span></div><p>'+esc(x.text)+'</p></div>'+
+      '<div class="phrase-card-actions"><button type="button" class="btn small" data-block="'+escAttr(x.id)+'">Vložit</button>'+
+      (String(x.id).startsWith("block-")?'<button type="button" class="btn ghost small" data-del-block="'+escAttr(x.id)+'">Smazat</button>':'')+'</div></article>').join("");
+    const sigCards=sigs.length?sigs.map(x=>'<article class="signature-card'+(x.id===(active&&active.id)?' is-active':'')+'"><div><span class="signature-state">'+(x.id===(active&&active.id)?'Aktivní podpis':'Podpis')+'</span><b>'+esc(x.name)+'</b><pre>'+esc(x.text)+'</pre></div><button type="button" class="btn '+(x.id===(active&&active.id)?'ghost':'small')+'" data-signature="'+escAttr(x.id)+'">'+(x.id===(active&&active.id)?'Vložit':'Použít a vložit')+'</button></article>').join(""):'<p class="empty">Podpis nastavíš v profilu nebo si zde vytvoříš vlastní.</p>';
+    const html='<div class="blocks-layout">'+
+      '<section class="blocks-section"><div class="dialog-section-head"><div><p class="eyebrow">Rychlé vložení</p><h3>Oblíbené formulace</h3><p>Vyber hotovou větu. Každá karta jasně odděluje název, kategorii a skutečný text.</p></div><button type="button" class="btn ghost small" id="newBlock">＋ Přidat vlastní</button></div><div class="phrase-grid">'+phraseCards+'</div></section>'+
+      '<section class="blocks-section signatures-section"><div class="dialog-section-head"><div><p class="eyebrow">Zakončení zprávy</p><h3>Podpisy</h3><p>Aktivní podpis se z profilu doplňuje lokálně za značku <b>[podpis]</b>.</p></div><button type="button" class="btn ghost small" id="manageSignatures">Spravovat podpisy</button></div><div class="signature-grid">'+sigCards+'</div></section></div>';
+    openModal("Formulace a podpisy",html,{className:"modal-wide blocks-dialog",onMount(body,close){
+      body.querySelectorAll("[data-block]").forEach(b=>b.onclick=()=>{const x=getBlocks().find(y=>y.id===b.dataset.block);if(x){insertBlock(el,x.text);close();toast("Formulace vložena ✓");}});
+      body.querySelectorAll("[data-signature]").forEach(b=>b.onclick=()=>{const x=getSignatures().find(y=>y.id===b.dataset.signature);if(x){localStorage.setItem(LS.selectedSignature,x.id);insertBlock(el,"[podpis]");close();toast("Podpis nastaven a vložen ✓");}});
+      body.querySelectorAll("[data-del-block]").forEach(b=>b.onclick=()=>{jset(LS.blocks,getCustomBlocks().filter(x=>x.id!==b.dataset.delBlock));close();render();});
+      body.querySelector("#newBlock").onclick=()=>{close();addCustomBlock(render);};
+      body.querySelector("#manageSignatures").onclick=()=>{close();manageSignatures(render);};
+    }});
+  };
+  render();
 };
 
 window.saveWorkbenchDraft=function(el,p,opts){
@@ -165,7 +181,7 @@ function renderQuickScenarios(){
 function openScenarioLibrary(){
   const cats={};scenarioEntries().forEach(([key,x])=>{const c=x.category||"Další";(cats[c]||(cats[c]=[])).push([key,x]);});
   const html='<label class="dialog-label" for="scenarioSearch">Hledat situaci</label><input id="scenarioSearch" class="dialog-input" type="search" placeholder="např. rodič, termín, známka, porada" autofocus><div id="scenarioLibrary">'+Object.entries(cats).map(([cat,rows])=>'<section class="scenario-category"><h4>'+esc(cat)+'</h4>'+rows.map(([key,x])=>'<button class="scenario-card" data-scenario="'+key+'" data-search="'+escAttr((x.label+" "+x.hint+" "+cat).toLowerCase())+'"><b>'+esc(x.label)+'</b><span>'+esc(x.hint||"")+'</span>'+(x.strict?'<small>Přísný bezpečnostní režim</small>':'')+'</button>').join("")+'</section>').join("")+'</div>';
-  openModal("Knihovna školních situací",html,{onMount(body,close){const input=body.querySelector("#scenarioSearch");input.oninput=()=>{const q=input.value.toLowerCase().trim();body.querySelectorAll("[data-scenario]").forEach(b=>b.hidden=q&&!b.dataset.search.includes(q));body.querySelectorAll(".scenario-category").forEach(s=>s.hidden=![...s.querySelectorAll("[data-scenario]")].some(b=>!b.hidden));};body.querySelectorAll("[data-scenario]").forEach(b=>b.onclick=()=>{activateScenario(b.dataset.scenario);close();});}});
+  openModal("Scénáře školní komunikace",html,{onMount(body,close){const input=body.querySelector("#scenarioSearch");input.oninput=()=>{const q=input.value.toLowerCase().trim();body.querySelectorAll("[data-scenario]").forEach(b=>b.hidden=q&&!b.dataset.search.includes(q));body.querySelectorAll(".scenario-category").forEach(s=>s.hidden=![...s.querySelectorAll("[data-scenario]")].some(b=>!b.hidden));};body.querySelectorAll("[data-scenario]").forEach(b=>b.onclick=()=>{activateScenario(b.dataset.scenario);close();});}});
 }
 window.openScenarioLibrary=openScenarioLibrary;
 function refreshDeskStatus(){
@@ -207,7 +223,7 @@ function initDesk(){
 if(typeof footBtn==="function"){
   footBtn("Uložené koncepty","⌑","Rozpracované anonymizované e-maily uložené v tomto prohlížeči",openDraftsManager);
   footBtn("Formulace a podpisy","✍","Opakované věty, závěry a podpisy pro rychlé vložení",()=>{if(activeDraft)openBlocksManager(activeDraft,activePaneName);else manageSignatures();});
-  footBtn("Šablony školních situací","⚡","Přednastavení pro běžné situace, například schůzku, omluvu nebo připomínku",openScenarioLibrary);
+  footBtn("Scénáře školní komunikace","⚡","Přednastavené komunikační scénáře pro běžné školní situace",openScenarioLibrary);
   footBtn("Čekám na odpověď","◷","Lokální přehled e-mailů, u kterých chceš hlídat navazující termín",openFollowupsManager);
   footBtn("Školní balíček šablon","⇄","Export nebo import společných formulací a šablon pro kolegy",openSchoolLibraryManager);
 }

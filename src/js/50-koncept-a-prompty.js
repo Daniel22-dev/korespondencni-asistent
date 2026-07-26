@@ -62,6 +62,7 @@ async function fetchSyn(){
 /* ===================== KARTA KONCEPTU (sdílená) ===================== */
 function draftCard(p, opts){
   // opts: {styl, text, cover, hint, variantType, sourceText}
+  const initialText=ensureSignaturePlaceholder(opts.text||"");
   const el=document.createElement("article");
   el.className="draft reveal"; el.dataset.tok="1"; el.dataset.variant=opts.variantType||"";
   let cover="";
@@ -87,7 +88,7 @@ function draftCard(p, opts){
       '<button class="editor-tool act-quick" data-ins="Zpřesni nejasné formulace, další krok a termíny. Nic si nevymýšlej a zachovej uzamčené formulace." type="button">Zpřesnit</button>'+
     '</div>'+
     '<div class="locked-list" aria-label="Uzamčené formulace"></div>'+
-    '<div class="body" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true" title="Text můžeš rovnou upravovat. Dvojklik na slovo nabídne synonyma.">'+tokenizeHTML(p,opts.text||"")+'</div>'+
+    '<div class="body" contenteditable="true" spellcheck="true" role="textbox" aria-multiline="true" title="Text můžeš rovnou upravovat. Dvojklik na slovo nabídne synonyma.">'+tokenizeHTML(p,initialText)+'</div>'+
     cover+
     (opts.hint?'<p class="hintline">'+esc(opts.hint)+'</p>':'')+
     '<div class="tweakrow"><input class="tweak-in" type="text" placeholder="Uprav: např. zkrať to a přidej termín ve čtvrtek" title="Napiš, co změnit. Upraví tento koncept, ne od nuly."><button class="btn small tweak-go" title="Upraví tento koncept podle pokynu."><span class="action-icon">🛠️</span>Uprav <span class="req">1 ⚡</span></button></div>'+
@@ -104,12 +105,14 @@ function draftCard(p, opts){
     '</div>';
   const body=el.querySelector(".body");
   try{ const lc=outLangCode(p); if(lc && lc!=="cs"){ body.setAttribute("lang", lc); body.setAttribute("spellcheck","false"); } }catch(_){}
-  el._src=opts.text||""; el._sourceText=opts.sourceText||(ST[p]&&ST[p].clean)||""; el._cover=opts.cover||{}; el._locked=[];
+  el._src=initialText; el._sourceText=opts.sourceText||(ST[p]&&ST[p].clean)||""; el._cover=opts.cover||{}; el._locked=[];
   el._revisions=[{text:el._src,at:Date.now(),label:"Vygenerováno"}]; el._revisionIndex=0;
   let revisionTimer=null;
   function readEditableText(){
-    const value=(body.innerText!==undefined?body.innerText:body.textContent)||"";
-    return value.replace(/\u00a0/g," ").replace(/\r\n?/g,"\n").replace(/\n{3,}/g,"\n\n").trimEnd();
+    const clone=body.cloneNode(true);
+    clone.querySelectorAll("[data-sign-token]").forEach(node=>node.replaceWith(document.createTextNode(node.dataset.signToken||"[podpis]")));
+    const value=(clone.innerText!==undefined?clone.innerText:clone.textContent)||"";
+    return ensureSignaturePlaceholder(value.replace(/\u00a0/g," ").replace(/\r\n?/g,"\n").replace(/\n{3,}/g,"\n\n").trimEnd());
   }
   function updateRevisionButtons(){
     const u=el.querySelector(".act-undo"),r=el.querySelector(".act-redo");
@@ -132,6 +135,7 @@ function draftCard(p, opts){
   }
   function getSrc(){ return el.dataset.tok==="1" ? readEditableText() : el._src; }
   function setSrc(t,label){
+    t=ensureSignaturePlaceholder(t);
     el._src=t; el.dataset.tok="1"; body.innerHTML=tokenizeHTML(p,t); body.contentEditable="true";
     const fb=el.querySelector(".act-fold"); if(fb) fb.lastChild.textContent="Ukázat se jmény";
     const current=el._revisions[el._revisionIndex]&&el._revisions[el._revisionIndex].text;
@@ -217,11 +221,18 @@ function signatureText(){
   if(style==="funkce"){ let s="S pozdravem\n"+name; if(role||school) s+="\n"+[role,school].filter(Boolean).join(", "); return s; }
   return "S pozdravem\n"+name;
 }
+function ensureSignaturePlaceholder(text){
+  let t=String(text||"").replace(/\r\n?/g,"\n").trimEnd();
+  if(/\[podpis\]|\[u[čc]itel\]|\(\s*učitel\s*\)/i.test(t)) return t;
+  const closing=/(?:^|\n)\s*(?:s pozdravem|s úctou|kind regards|best regards|saludos|atentamente)\s*[,!.]?\s*$/i;
+  if(closing.test(t)) return t.replace(closing,"\n[podpis]").replace(/^\n/,"");
+  return t+(t?"\n\n":"")+"[podpis]";
+}
 function profileLine(){ const p=loadProfile(); const role=(p.role||"").trim(); return role?("\nPisatel je "+role+"."):""; }
 async function refineDraft(p, card, srcText, instruction){
   if(!geminiApiKey && !testMockAvailable()){ $("apiPanel").classList.add("open"); toast("Chybí klíč k API."); return; }
   const safeInstruction=safeAuxiliaryText(p,instruction,null,"Pokyn k úpravě");
-  const safeDraft=safeAuxiliaryText(p,srcText,null,"Koncept");
+  const safeDraft=safeAuxiliaryText(p,ensureSignaturePlaceholder(srcText),null,"Koncept");
   if(safeInstruction===null || safeDraft===null) return;
   const lLine=p==="my"?myLangLine():langLine();
   const lSystem=p==="my"?myLangSystem():langSystem();
