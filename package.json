@@ -1,6 +1,6 @@
 {
   "name": "ghrab-korespondencni-asistent",
-  "version": "5.2.5",
+  "version": "5.2.6",
   "private": true,
   "description": "Korespondenční asistent — samostatná PWA pro GitHub Pages",
   "type": "module",
@@ -13,8 +13,6 @@
     "node": ">=18"
   },
   "devDependencies": {
-    "jsdom": "^24.0.0",
-    "playwright": "^1.61.1",
-    "pngjs": "^7.0.0"
+    "jsdom": "^24.0.0"
   }
 }

@@ -167,7 +167,7 @@ function updateProgress(p){
   const cb=E(p,"reviewOk");
   const checked=!!(cb && cb.checked);
   let safe=false;
-  try{ const a=safetyAudit(ST[p].clean||""); safe=checked && (a.level==="ok" || a.level==="warn"); }catch(_){ safe=false; }
+  try{ const a=safetyAudit(ST[p].clean||"",p); safe=checked && (a.level==="ok" || a.level==="warn"); }catch(_){ safe=false; }
   const outputReady=!!(window.ST&&ST[p]&&ST[p].outputReady);
   const done={1:hasRaw,2:hasClean,3:safe,4:outputReady};
   const current=outputReady?4:(safe?4:(hasClean?3:(hasRaw?2:1)));

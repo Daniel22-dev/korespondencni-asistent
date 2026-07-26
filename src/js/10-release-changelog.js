@@ -3,11 +3,12 @@ const IS_TEST_MODE=new URLSearchParams(window.location.search).has("test")||Stri
 "use strict";
 
 const RELEASE = {
-  version: "5.2.5",
-  date: "2026-07-25",
+  version: "5.2.6",
+  date: "2026-07-26",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.2.6: zásadní oprava anonymizace — skryjí se i české pádové tvary jmen včetně krátkých, doťukané tvary se spojí do jedné osoby a zbylý tvar už skrytého jména odeslání zastaví; interní testy nemažou lokální data a fungují i mimo testovací adresu; sjednoceno nastavení modelů Gemini, doplněn návrat z manuálu a ošetřen import cizího souboru nastavení.",
     "5.2.5: opraven export při nevyplněném profilu, přesnější shoda tvarů jmen, tři školní scénáře, úplné mazání lokálních dat včetně pracovního stolu, méně blokujících falešných poplachů, bezpečné vědomé pokračování u samotné termínové heuristiky, sjednocené styly pracovního stolu a ikony, import EML ve středoevropských kódováních a zpřesněné informace o bezplatné úrovni Gemini API.",
     "5.2.4: opravena kontrola před odesláním u vygenerovaných variant — bezpečné pracovní značky jako osoba A se nyní posuzují až po lokálním doplnění skutečných údajů; červená stopka zůstává jen pro značku, kterou aplikace skutečně neumí doplnit.",
     "5.2.3: odstraněna zdvojená volba hlavního režimu na pracovním stole; aktualizovány bezplatné modely Gemini; kliknutí na část jména nyní spojí jméno a příjmení do jedné osoby; oranžová upozornění jsou výslovně neblokující a opravena byla i kontrola doplňujících pokynů.",

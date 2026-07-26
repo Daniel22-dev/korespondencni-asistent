@@ -45,7 +45,7 @@ function openLastPromptDebug(){
   const clr=m.body.querySelector("#dbgClear"); if(clr) clr.onclick=()=>{ try{sessionStorage.removeItem(LAST_PROMPT_SK);localStorage.removeItem(LAST_PROMPT_SK);}catch(_){} m.close(); toast("Debug prompt smazán"); };
 }
 function openTestRunner(auto){
-  const html='<p class="hint">Testy běží lokálně, používají mock Gemini odpovědí a nemají posílat nic do API. Během testu se dočasně změní pracovní vstupy.</p>'+
+  const html='<p class="hint">Testy běží lokálně a používají mock Gemini odpovědí; nic se neposílá do API. Během testu se dočasně mění pracovní vstupy i lokální data aplikace — původní stav se po dokončení obnoví.</p>'+
     '<div class="row"><button class="btn" id="runTestsNow">Spustit testy</button></div>'+
     '<div id="testOut" style="margin-top:12px"></div>';
   const m=openModal("Automatické testy", html, {label:"Automatické testy"});
@@ -55,14 +55,28 @@ function openTestRunner(auto){
 }
 function waitFor(cond, ms=1800){ return new Promise((resolve,reject)=>{ const start=Date.now(); const tick=()=>{ try{ if(cond()) return resolve(true); }catch(_){} if(Date.now()-start>ms) return reject(new Error("timeout")); setTimeout(tick,30); }; tick(); }); }
 function assertTest(cond, msg){ if(!cond) throw new Error(msg||"assert failed"); }
-function snapshotTestState(){ return { st:JSON.parse(JSON.stringify(ST)), inRaw:E("in","raw").value, myRaw:E("my","raw").value, key:geminiApiKey, scope:geminiKeyScope, mock:window.__TEST_MOCK_GEMINI }; }
+function snapshotAppStorage(){
+  const snap={local:{},session:{}};
+  const grab=(store,bucket)=>{ try{Object.keys(store).filter(k=>/^(rozbor_|ks5_)/.test(k)).forEach(k=>{bucket[k]=store.getItem(k);});}catch(_){} };
+  grab(localStorage,snap.local); grab(sessionStorage,snap.session); return snap;
+}
+function restoreAppStorage(snap){
+  const put=(store,bucket)=>{ try{Object.keys(store).filter(k=>/^(rozbor_|ks5_)/.test(k)).forEach(k=>{try{store.removeItem(k);}catch(_){}});}catch(_){} try{Object.keys(bucket||{}).forEach(k=>{try{store.setItem(k,bucket[k]);}catch(_){}});}catch(_){} };
+  put(localStorage,snap&&snap.local); put(sessionStorage,snap&&snap.session);
+}
+function snapshotTestState(){ return {storage:snapshotAppStorage(),st:JSON.parse(JSON.stringify(ST)),inRaw:E("in","raw").value,myRaw:E("my","raw").value,key:geminiApiKey,scope:geminiKeyScope,model:geminiModel,mock:window.__TEST_MOCK_GEMINI}; }
 function restoreTestState(snap){
-  ST.in=snap.st.in; ST.my=snap.st.my; E("in","raw").value=snap.inRaw; E("my","raw").value=snap.myRaw; geminiApiKey=snap.key; geminiKeyScope=snap.scope; window.__TEST_MOCK_GEMINI=snap.mock;
-  try{ renderView("in"); renderView("my"); renderKeyTable("in"); renderKeyTable("my"); renderPreview("in"); renderPreview("my"); updateKeyStatus(); }catch(_){}
+  restoreAppStorage(snap.storage);
+  ST.in=snap.st.in; ST.my=snap.st.my; E("in","raw").value=snap.inRaw; E("my","raw").value=snap.myRaw; geminiApiKey=snap.key; geminiKeyScope=snap.scope; geminiModel=snap.model; window.__TEST_MOCK_GEMINI=snap.mock;
+  publishActiveKeyReals("in"); publishActiveKeyReals("my");
+  try{renderView("in");renderView("my");renderKeyTable("in");renderKeyTable("my");renderPreview("in");renderPreview("my");renderTemplates();refreshDeskStatus();updateKeyStatus();updateModelUI();}catch(_){}
 }
 async function runKorespTests(){
   const out=$("testOut"); if(out) out.innerHTML='<div class="loading"><span class="spin"></span>Spouštím testy…</div>';
+  const markerKey="rozbor_test_marker",markerValue="test-"+Date.now();
+  let oldMarker=null; try{oldMarker=localStorage.getItem(markerKey);localStorage.setItem(markerKey,markerValue);}catch(_){}
   const snap=snapshotTestState(); const results=[];
+  window.__setTestRunActive(true);
   const test=async(name, fn)=>{ const t0=performance.now(); try{ await fn(); results.push({name,ok:true,ms:Math.round(performance.now()-t0)}); }catch(e){ results.push({name,ok:false,msg:e.message||String(e),ms:Math.round(performance.now()-t0)}); } };
   try{
     await test("Unit anonymizace telefonu/e-mailu", async()=>{
@@ -88,27 +102,54 @@ async function runKorespTests(){
       const badToken=bad.items.find(x=>x.label==="Nezůstala nevyplněná anonymizační značka");
       assertTest(badToken&&!badToken.ok&&badToken.level==="danger","neznámá značka se neměla považovat za vyplněnou");
     });
-    await test("České pády jmen", async()=>{
-      ST.in.raw="Anna Nováková psala. Anně Novákové odpovím. Annu Novákovou pozvu."; ST.in.km=[{real:"Anna Nováková",token:"osoba A",auto:false}];
+    await test("České pády krátkých jmen", async()=>{
+      const cases=[
+        ["Petr","Petrovi zavolám. Petra jsem viděl. S Petrem mluvím.",["Petrovi","Petra","Petrem"]],
+        ["Eva","Evě jsem psal. Evu jsem viděl. S Evou mluvím.",["Evě","Evu","Evou"]],
+        ["Hana","Haně jsem psal. Hanu jsem viděl.",["Haně","Hanu"]],
+        ["Adam","Adamovi jsem psal. Adama jsem viděl.",["Adamovi","Adama"]],
+        ["Olga","Olze jsem psal. Olgu jsem viděl.",["Olze","Olgu"]],
+        ["Tomáš","Tomášovi jsem psal. Tomáše jsem viděl.",["Tomášovi","Tomáše"]],
+        ["Novák","Novákovi jsem psal. Nováka jsem viděl.",["Novákovi","Nováka"]],
+        ["Anna","Anně jsem psal. Annu jsem viděl.",["Anně","Annu"]]
+      ];
+      cases.forEach(([name,text,forms])=>{
+        ST.in.raw=text; ST.in.km=[{real:name,token:"osoba A",auto:false}]; publishActiveKeyReals("in");
+        const c=cleanFromKey("in");
+        const left=forms.filter(f=>new RegExp("(^|[^\\p{L}])"+escRe(f)+"(?=$|[^\\p{L}])","u").test(c));
+        assertTest(!left.length,name+" — zůstaly tvary: "+left.join(", ")+" | "+c);
+      });
+    });
+    await test("České pády celého jména", async()=>{
+      ST.in.raw="Anna Nováková psala. Anně Novákové odpovím. Annu Novákovou pozvu."; ST.in.km=[{real:"Anna Nováková",token:"osoba A",auto:false}]; publishActiveKeyReals("in");
       const c=cleanFromKey("in");
       assertTest((c.match(/osoba A/g)||[]).length===3,"nebyly skryty všechny tvary: "+c);
       assertTest(!/Novákov/.test(c),"zůstal tvar příjmení: "+c);
     });
+    await test("Jedna osoba = jedna značka", async()=>{
+      ST.in.raw="Petr Malý chybí. Petrovi jsem psal. S Petrem mluvím."; ST.in.km=[];
+      addWord("in","Petr"); addWord("in","Petrovi"); addWord("in","Petrem");
+      assertTest(ST.in.km.length===3,"doťukané tvary nebyly přidány samostatně do klíče");
+      assertTest(new Set(ST.in.km.map(k=>k.token)).size===1&&ST.in.km[0].token==="osoba A","tvary jedné osoby dostaly různé značky");
+      assertTest(!/Petr(?:ovi|em)?/.test(ST.in.clean),"v anonymizovaném textu zůstal tvar Petra: "+ST.in.clean);
+    });
     await test("Prázdný profil není anonymizační chyba", async()=>{
-      let old=null; try{old=localStorage.getItem("rozbor_profile");localStorage.removeItem("rozbor_profile");}catch(_){}
-      ST.in.km=[{real:"Jan Novák",token:"osoba A",auto:false}];
-      const r=evaluateDraftReadiness("in","Dobrý den, osoba A,\n\npotvrzuji termín ve čtvrtek.\n\n[podpis]","",{});
-      const token=r.items.find(x=>x.label==="Nezůstala nevyplněná anonymizační značka");
-      const sign=r.items.find(x=>x.label==="Podpis je vyplněný v profilu odesílatele");
-      assertTest(token&&token.ok,"prázdný profil byl zaměněn za anonymizační chybu");
-      assertTest(sign&&!sign.ok&&sign.level==="warn"&&r.level!=="danger","prázdný podpis nemá být červená stopka");
-      try{if(old===null)localStorage.removeItem("rozbor_profile");else localStorage.setItem("rozbor_profile",old);}catch(_){}
+      const keys=["rozbor_profile","ks5_signatures","ks5_selected_signature"],old={};
+      try{keys.forEach(k=>{old[k]=localStorage.getItem(k);localStorage.removeItem(k);});}catch(_){}
+      try{
+        ST.in.km=[{real:"Jan Novák",token:"osoba A",auto:false}]; publishActiveKeyReals("in");
+        const r=evaluateDraftReadiness("in","Dobrý den, osoba A,\n\npotvrzuji termín ve čtvrtek.\n\n[podpis]","",{});
+        const token=r.items.find(x=>x.label==="Nezůstala nevyplněná anonymizační značka");
+        const sign=r.items.find(x=>x.label==="Podpis je vyplněný v profilu odesílatele");
+        assertTest(token&&token.ok,"prázdný profil byl zaměněn za anonymizační chybu");
+        assertTest(sign&&!sign.ok&&sign.level==="warn"&&r.level!=="danger","prázdný podpis nemá být červená stopka");
+      }finally{try{keys.forEach(k=>{if(old[k]===null)localStorage.removeItem(k);else localStorage.setItem(k,old[k]);});}catch(_){}}
     });
     await test("Krátké jméno nespolkne cizí jména", async()=>{
-      ST.in.raw="Jan Novák psal. Jana Nováková také. Janák přišel. Janu pozdravím.";
-      ST.in.km=[{real:"Jan",token:"osoba A",auto:false}];
+      ST.in.raw="Jan Novák psal. Jana Nováková také. Janák přišel. Janoušek odešel.";
+      ST.in.km=[{real:"Jan",token:"osoba A",auto:false}]; publishActiveKeyReals("in");
       const c=cleanFromKey("in");
-      assertTest(c.includes("Jana Nováková")&&c.includes("Janák")&&c.includes("Janu"),"prefixová shoda skryla cizí jméno: "+c);
+      assertTest(c.includes("Jana Nováková")&&c.includes("Janák")&&c.includes("Janoušek"),"shoda skryla cizí jméno: "+c);
       assertTest(c.startsWith("osoba A Novák"),"přesný tvar Jan se neskryl: "+c);
     });
     await test("Školní scénáře používají existující hodnoty", async()=>{
@@ -179,6 +220,37 @@ async function runKorespTests(){
       try{await callGemini("x","{}","object",{pane:"in",texts:["Ve třídě došlo k šikaně."]});}catch(e){blocked=e.code==="PREFLIGHT_BLOCKED";}
       window.__TEST_MOCK_GEMINI=oldMock;
       assertTest(required&&blocked,"callGemini nevyžaduje nebo nevynucuje centrální preflight");
+    });
+    await test("Zbylý tvar skrytého jména je stopka", async()=>{
+      const text="Dobrý den, osoba A. Petrovi jsem to předal.";
+      ST.in.km=[{real:"Petr",token:"osoba A",auto:false}]; ST.in.clean=text; publishActiveKeyReals("in"); E("in","reviewOk").checked=true; updateSendGate("in");
+      const iss=preflightIssues(text,"in");
+      assertTest(iss.danger.some(x=>/nezakrytý tvar/.test(x)),"zbylý pád jména není v danger: "+iss.danger.join(", "));
+      assertTest($("in_analyzeBtn").disabled,"zbylý pád jména nezablokoval rozbor");
+      ST.my.km=[{real:"Petr",token:"osoba A",auto:false}]; ST.my.clean=text; publishActiveKeyReals("my"); E("my","reviewOk").checked=true; updateSendGate("my");
+      assertTest($("my_goBtn").disabled,"zbylý pád jména nezablokoval vytvoření e-mailu");
+    });
+    await test("Mock funguje bez ?test=1", async()=>{
+      const old=window.__TEST_MOCK_GEMINI; window.__TEST_MOCK_GEMINI=async()=>({});
+      assertTest(TEST_RUN_ACTIVE&&testMockAvailable(),"mock není aktivní při ručním běhu testů");
+      window.__TEST_MOCK_GEMINI=old;
+    });
+    await test("Kontrola tónu přes mock", async()=>{
+      const old=window.__TEST_MOCK_GEMINI,oldKey=geminiApiKey; geminiApiKey="";
+      window.__TEST_MOCK_GEMINI=async({schema,thinking})=>{assertTest(schema==="tone"&&thinking==="minimal","kontrola tónu nepoužila levné uvažování");return {naladeni:{stupen:"neutral",popis:"věcné"},rizika:["Příliš stručné"],navrh:"Doplnit poděkování"};};
+      ST.in.km=[]; publishActiveKeyReals("in");
+      const wrap=document.createElement("div"),btn=document.createElement("button");
+      await toneCheck("in","Děkuji za zprávu.",wrap,btn);
+      assertTest(!!wrap.querySelector(".tonecard")&&wrap.textContent.includes("Příliš stručné"),"karta kontroly tónu se nevykreslila");
+      window.__TEST_MOCK_GEMINI=old; geminiApiKey=oldKey;
+    });
+    await test("Import cizího souboru je odmítnut", async()=>{
+      let rejected=false; try{applyImportedSettings({_app:"jina-aplikace",profil:{name:"Cizí"}});}catch(e){rejected=/není nastavení/.test(e.message);}
+      assertTest(rejected,"cizí aplikační formát nebyl odmítnut");
+    });
+    await test("Konfigurace Gemini používá doložené limity", async()=>{
+      assertTest(GEMINI_MAX_OUTPUT_TOKENS>=32768,"výstupní limit Gemini je příliš nízký");
+      assertTest(!String(callGemini).includes('thinkingLevel:'+JSON.stringify('low')),"zdroj stále používá nedoložené thinkingLevel low");
     });
     await test("Chybný JSON a validace schématu", async()=>{
       let bad=false; try{ parseModelJson("Jasně, tady je odpověď bez JSON."); }catch(e){ bad=e.code==="BAD_JSON"; }
@@ -347,7 +419,12 @@ async function runKorespTests(){
       const zbytek=Object.keys(localStorage).filter(k=>/^(rozbor_|ks5_)/.test(k));
       assertTest(!zbytek.length,"po smazání zůstaly klíče: "+zbytek.join(", "));
     });
-  } finally { restoreTestState(snap); }
+  } finally {
+    restoreTestState(snap); window.__setTestRunActive(false);
+    const markerOk=(()=>{try{return localStorage.getItem(markerKey)===markerValue;}catch(_){return false;}})();
+    results.push({name:"Testy neztratí lokální data",ok:markerOk,msg:markerOk?"":"značkovací hodnota se neobnovila",ms:0});
+    try{if(oldMarker===null)localStorage.removeItem(markerKey);else localStorage.setItem(markerKey,oldMarker);}catch(_){}
+  }
   const pass=results.filter(r=>r.ok).length, fail=results.length-pass;
   if(out){ out.innerHTML='<div class="res-card"><h3>Výsledek</h3><p class="summary">'+pass+'/'+results.length+' testů prošlo'+(fail?' · '+fail+' selhalo':'')+'</p></div>'+results.map(r=>'<div class="test-result '+(r.ok?'ok':'fail')+'"><b>'+(r.ok?'✓ ':'✗ ')+esc(r.name)+'</b><small>'+r.ms+' ms'+(r.msg?' · '+esc(r.msg):'')+'</small></div>').join(""); }
   console.table(results);
@@ -412,6 +489,7 @@ function exportSettings(){
 }
 function applyImportedSettings(obj){
   if(!obj || typeof obj!=="object") throw new Error("neplatný soubor");
+  if(obj._app && obj._app!=="korespondencni-asistent") throw new Error("soubor není nastavení Korespondenčního asistenta");
   if(obj.profil && typeof obj.profil==="object"){ try{ localStorage.setItem("rozbor_profile", JSON.stringify(obj.profil)); }catch(_){} }
   if(Array.isArray(obj.slovnikJmen)){ try{ localStorage.setItem("rozbor_dict", JSON.stringify(obj.slovnikJmen)); }catch(_){} }
   if(Array.isArray(obj.sablony)){ try{ localStorage.setItem("rozbor_templates", JSON.stringify(obj.sablony)); }catch(_){} }
@@ -423,7 +501,14 @@ function applyImportedSettings(obj){
 function importSettings(file){
   if(!file) return;
   const r=new FileReader();
-  r.onload=()=>{ try{ applyImportedSettings(JSON.parse(String(r.result||"{}"))); toast("Nastavení importováno ✓"); }catch(e){ toast("Import se nepovedl: "+(e.message||"neplatný soubor")); } };
+  r.onload=()=>{ try{
+    const obj=JSON.parse(String(r.result||"{}"));
+    const apply=()=>{try{applyImportedSettings(obj);toast("Nastavení importováno ✓");}catch(e){toast("Import se nepovedl: "+(e.message||"neplatný soubor"));}};
+    if(!obj._app && (obj.profil||obj.slovnikJmen)){
+      const parts=[]; if(obj.profil)parts.push("profil odesílatele"); if(obj.slovnikJmen)parts.push("slovník skutečných jmen");
+      confirmActionModal({title:"Starší soubor nastavení",message:"Soubor nemá identifikaci aplikace. Pokračováním se přepíše "+parts.join(" a ")+". Importovat?",confirmText:"Importovat",onConfirm:apply});
+    }else apply();
+  }catch(e){toast("Import se nepovedl: "+(e.message||"neplatný soubor"));} };
   r.onerror=()=>toast("Soubor se nepovedlo načíst.");
   r.readAsText(file,"utf-8");
 }

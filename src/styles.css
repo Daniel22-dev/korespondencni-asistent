@@ -600,7 +600,7 @@
   .outside-wrap::before{ content:"Toto by odešlo do Gemini"; position:absolute; top:-13px; left:14px; padding:3px 10px; border-radius:999px; background:var(--accent); color:#fff; font:800 10.5px var(--sans); letter-spacing:.04em; text-transform:uppercase; }
   .outside-wrap{ padding-top:20px; }
   .out-zone{ margin-top:2px; }
-  .api-toggle[id$="_prevToggle"]{ display:inline-flex; align-items:center; gap:6px; padding:6px 9px !important; border:1px solid var(--line); border-radius:999px; background:var(--paper); text-decoration:none; color:var(--accent-text); font-weight:800; }
+  #in_prevToggle,#my_prevToggle{ display:inline-flex; align-items:center; gap:6px; padding:6px 9px !important; border:1px solid var(--line); border-radius:999px; background:var(--paper); text-decoration:none; color:var(--accent-text); font-weight:800; }
 
   .safety.nosend{ border-width:2px; padding:13px 14px; }
   .safety.nosend .sicon{ width:28px; height:28px; font-size:15px; }

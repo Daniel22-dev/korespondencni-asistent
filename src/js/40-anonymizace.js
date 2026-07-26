@@ -39,6 +39,10 @@ const ST = {
   my: { km:[], emailN:0, phoneN:0, raw:"", clean:"", syn:{}, outputReady:false, sensitiveAck:false },
 };
 const E = (p,name)=>$(p+"_"+name);
+const ACTIVE_KEY_REALS={in:[],my:[]};
+function publishActiveKeyReals(p){
+  try{ ACTIVE_KEY_REALS[p]=(ST[p].km||[]).map(k=>k.real).filter(Boolean); window.__ACTIVE_KEY_REALS=ACTIVE_KEY_REALS[p].slice(); }catch(_){}
+}
 
 /* ===================== ANONYMIZACE (ťukání) ===================== */
 const PUNCT_RE=/^([<>\[\]{}(),.;:!?„“”"'…»«]*)([\s\S]*?)([<>\[\]{}(),.;:!?„“”"'…»«]*)$/;
@@ -106,34 +110,59 @@ function buildKey(st, detected){
     st.km.push({real:it.real, token:"["+base+" "+(cnt+1)+"]", auto:true});
   });
 }
-// České přípony pro skloňování jmen (mužská příjmení, ženská příjmení, křestní)
-const CZ_SUFFIXES=["ovi","ovi","ova","ové","ovou","ovi","ovi","ovi","em","ům","ům","ích","mi",
-  "y","i","e","a","u","ě","ou","ím","ích","ách",
-  "ek","ka","ce","ze","ny","né","nu","nou","ní",
-  "ová","ové","ovou","ovi","áka","ákovi","ákem","ákův","ákova","ákovi",
-  "čka","čce","čku","čkou","ičky","ičce","ičku","ičkou","ičce",
-  "ník","níka","níkovi","níkem",
-].sort((a,b)=>b.length-a.length);
-function nameVariants(real){
-  const lo=real.toLowerCase(); const variants=new Set([lo]);
-  CZ_SUFFIXES.forEach(suf=>{
-    if(lo.endsWith(suf) && lo.length-suf.length>=3) variants.add(lo.slice(0,lo.length-suf.length));
-  });
-  variants.add(lo.replace(/[aeiouyáéíóúůěý]+$/,""));
-  // U velmi krátkých jmen nepoužíváme libovolnou prefixovou shodu. Pro jasný vzor Anna/Emma
-  // ale přidáme konkrétní pádové tvary, aby bezpečnostní anonymizace neztratila běžné skloňování.
-  if(/^(.)(.)\2a$/u.test(lo)){
-    const stem=lo.slice(0,-1); ["y","ě","u","ou"].forEach(s=>variants.add(stem+s));
+// České pádové tvary jmen. Generujeme konkrétní tvary, nikoli obecné prefixy:
+// prefixová shoda spolykala cizí jména (Jan → Janák), explicitní sada je bezpečná i u krátkých jmen.
+const CZ_SUFFIXES=["níkovi","níkem","níka","ovou","ákovi","ákem","áka","ičkou","ičce","ičku","ičky","čkou","čce","čku","čka","ovi","ové","ova","em","ou","ě","e","i","y","a","u"].sort((a,b)=>b.length-a.length);
+const CZ_FEMALE_PALATAL={"k":"c","h":"z","g":"z"};
+function femaleDative(stem){
+  if(stem.endsWith("ch")) return stem.slice(0,-2)+"še";
+  const last=stem.slice(-1), rep=CZ_FEMALE_PALATAL[last];
+  return rep?stem.slice(0,-1)+rep+"e":stem+"ě";
+}
+function czechCaseForms(name){
+  const lo=String(name||"").toLocaleLowerCase("cs-CZ");
+  const out=new Set([lo]);
+  if(lo.length<2) return out;
+  if(/ová$/.test(lo)){
+    const s=lo.slice(0,-1); ["é","ou"].forEach(x=>out.add(s+x));
+    return out;
   }
-  return [...variants].filter(v=>v.length>=3);
+  if(/a$/.test(lo)){
+    const s=lo.slice(0,-1); ["y","u","o","ou"].forEach(x=>out.add(s+x)); out.add(femaleDative(s)); out.add(s+"ovi");
+    return out;
+  }
+  if(/ý$/.test(lo)){
+    const s=lo.slice(0,-1); ["ého","ému","ým","í"].forEach(x=>out.add(s+x));
+    return out;
+  }
+  if(/[eéií]$/.test(lo)){
+    const s=lo.replace(/[eéií]$/,""); ["e","i","í","ovi","em"].forEach(x=>out.add(s+x));
+    return out;
+  }
+  // U třípísmenných jmen neprodukujeme nejednoznačné Jana/Janu: mohlo by jít o jiné jméno.
+  if(lo.length>=4){
+    out.add(lo+(/[šžčřcj]$/.test(lo)?"e":"a"));
+    out.add(lo+"u");
+  }
+  out.add(lo+"ovi"); out.add(lo+"em");
+  if(lo.endsWith("r")) out.add(lo.slice(0,-1)+"ře");
+  else if(/(?:ch|[kgh])$/.test(lo)) out.add(lo+"u");
+  else if(/[šžčřcj]$/.test(lo)) out.add(lo+"i");
+  else out.add(lo+"e");
+  return out;
+}
+function nameVariants(real){
+  const lo=String(real||"").toLocaleLowerCase("cs-CZ"), variants=czechCaseForms(lo);
+  // Když uživatel označí skloňovaný tvar, odvoď bezpečný základ a z něj opět jen konkrétní tvary.
+  CZ_SUFFIXES.forEach(suf=>{
+    if(lo.endsWith(suf) && lo.length-suf.length>=3){
+      const base=lo.slice(0,lo.length-suf.length); czechCaseForms(base).forEach(v=>variants.add(v));
+    }
+  });
+  return [...variants].filter(v=>v.length>=2);
 }
 function nameMatchWord(variants, coreL, isCap, origLen){
-  if(variants.has(coreL)) return true;          // přesný tvar / kmen z CZ_SUFFIXES
-  if(!isCap) return false;                       // tvarová shoda jen u slov s velkým písmenem
-  // Krátká křestní jména se prefixem neshodují: Jan nesmí skrýt Janu, Janáka ani Januše.
-  if(origLen<5) return false;
-  for(const v of variants){ if(v.length>=4 && coreL.startsWith(v) && coreL.length<=origLen+2) return true; }
-  return false;
+  return variants.has(coreL);
 }
 const _isUpper=c=>!!c && c!==c.toLowerCase() && c===c.toUpperCase();
 function buildMatchers(km){
@@ -233,12 +262,22 @@ function ensureNameHintToggle(p){
 }
 let tapPopEl=null;
 function hideTapPop(){ if(tapPopEl) tapPopEl.style.display="none"; }
+function tokenForRelatedPerson(st, cleaned){
+  const norm=x=>String(x||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("cs-CZ");
+  const n=norm(cleaned); if(n.length<2) return "";
+  const hit=(st.km||[]).find(k=>{
+    if(!k.real||!/^osoba\b/.test(k.token||"")) return false;
+    return String(k.real).split(/\s+/).some(part=>new Set(nameVariants(part).map(norm)).has(n));
+  });
+  return hit?hit.token:"";
+}
 function addPhrase(p, phrase){
   const st=ST[p]; const cleaned=String(phrase).replace(/\s+/g," ").trim().replace(/^[<>\[\]{}(),.;:!?„“”"'…»«\s]+|[<>\[\]{}(),.;:!?„“”"'…»«\s]+$/g,"");
   if(!cleaned || cleaned.length<2) return;
-  if(st.km.some(k=>k.real.toLowerCase()===cleaned.toLowerCase())) return;
-  st.km.push({real:cleaned, token:nextPersonToken(st.km), auto:false});
-  afterKeyChange(p);
+  if(st.km.some(k=>k.real.toLocaleLowerCase("cs-CZ")===cleaned.toLocaleLowerCase("cs-CZ"))) return;
+  const related=tokenForRelatedPerson(st,cleaned), token=related||nextPersonToken(st.km);
+  st.km.push({real:cleaned,token,auto:false}); afterKeyChange(p);
+  if(related) toast("Přidáno ke stejné osobě ("+token+").");
 }
 function showTapHide(p, phrase, rect){
   if(!tapPopEl){ tapPopEl=document.createElement("div"); tapPopEl.id="tapPop"; document.body.appendChild(tapPopEl); }
@@ -300,8 +339,12 @@ function renderView(p){
   }
 }
 function resetReview(p){ const cb=E(p,"reviewOk"); if(cb) cb.checked=false; if(ST[p])ST[p].outputReady=false; updateSendGate(p); updateProgress(p); }
-function afterKeyChange(p){ ST[p].sensitiveAck=false; ST[p].clean=cleanFromKey(p); resetReview(p); renderView(p); renderKeyTable(p); renderPreview(p); }
-function addWord(p, core){ const st=ST[p]; if(!core) return; if(st.km.some(k=>k.real.toLowerCase()===core.toLowerCase())) return; st.km.push({real:core,token:tokenFor(st,core),auto:false}); afterKeyChange(p); }
+function afterKeyChange(p){ publishActiveKeyReals(p); ST[p].sensitiveAck=false; ST[p].clean=cleanFromKey(p); resetReview(p); renderView(p); renderKeyTable(p); renderPreview(p); }
+function addWord(p, core){
+  const st=ST[p]; if(!core) return; if(st.km.some(k=>k.real.toLocaleLowerCase("cs-CZ")===core.toLocaleLowerCase("cs-CZ"))) return;
+  const related=tokenForRelatedPerson(st,core), token=related||tokenFor(st,core); st.km.push({real:core,token,auto:false}); afterKeyChange(p);
+  if(related) toast("Přidáno ke stejné osobě ("+token+").");
+}
 function activateSensitiveMode(reason){
   setNoHistory(true);
   try{ sessionStorage.removeItem(LAST_PROMPT_SK); localStorage.removeItem(LAST_PROMPT_SK); }catch(_){}
@@ -328,7 +371,7 @@ function renderKeyTable(p){
   E(p,"keyEmpty").style.display=st.km.length?"none":"block";
   body.querySelectorAll("input").forEach(inp=>inp.addEventListener("input",(e)=>{
     st.km[+e.target.dataset.i][e.target.dataset.f]=e.target.value;
-    ST[p].clean=cleanFromKey(p);
+    publishActiveKeyReals(p); ST[p].clean=cleanFromKey(p);
     resetReview(p);
     renderView(p); renderPreview(p); renderKeySummary(p);
   }));
@@ -424,7 +467,7 @@ function renderPreview(p){
 function stripSafeTokens(text){
   return String(text||"").replace(/\[e-mail \d+\]|\[telefon \d+\]|\[rodné číslo \d+\]|\[datum narození \d+\]|\[číslo účtu \d+\]|osoba [A-Z]+|\[podpis\]|\[učitel\]/g," ");
 }
-function preflightIssues(text){
+function preflightIssues(text,p){
   const stripped=stripSafeTokens(text);
   const danger=[], warn=[], names=[];
   const addD=(x)=>{ if(!danger.includes(x)) danger.push(x); };
@@ -459,13 +502,32 @@ function preflightIssues(text){
     });
     if(dictHits.length) addW("uložené jméno zůstává v textu nezakryté: "+dictHits.slice(0,3).join(", ")+(dictHits.length>3?(" + "+(dictHits.length-3)+" dalších"):""));
   }catch(_){}
+  // Zbytek, který odpovídá jinému pádu již skrytého jména, je tvrdá stopka.
+  try{
+    const norm=x=>String(x||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("cs-CZ");
+    const active=(p&&ACTIVE_KEY_REALS[p]?ACTIVE_KEY_REALS[p]:(window.__ACTIVE_KEY_REALS||[]));
+    const exact=new Set(), roots=[];
+    active.forEach(real=>String(real||"").split(/\s+/).forEach(part=>{
+      nameVariants(part).forEach(v=>exact.add(norm(v)));
+      const root=norm(part); if(root.length>=4) roots.push(root);
+    }));
+    if(exact.size||roots.length){
+      const missed=[];
+      stripped.split(/[^\p{L}]+/u).forEach(word=>{
+        const n=norm(word); if(n.length<2) return;
+        const suffixMatch=roots.some(root=>n.startsWith(root)&&/^(?:a|u|e|i|y|ovi|ove|ova|ovou|em|ou|mu|ho)$/.test(n.slice(root.length)));
+        if((exact.has(n)||suffixMatch)&&!missed.includes(word)) missed.push(word);
+      });
+      if(missed.length) addD("nezakrytý tvar již skrytého jména: "+missed.slice(0,3).join(", "));
+    }
+  }catch(_){}
   return {danger,warn,names};
 }
 function safeAuxiliaryText(p, raw, state, label){
   const original=String(raw||"").trim();
   if(!original) return "";
   const clean=applyKeyToText(p, original);
-  const iss=preflightIssues(clean);
+  const iss=preflightIssues(clean,p);
   if(iss.danger.length){
     const findings=iss.danger;
     const msg=(label||"Doplňující pokyn")+" obsahuje možný osobní nebo citlivý údaj („"+findings.join(", ")+"“). Použij anonymizovanou značku, například osoba A, nebo pokyn zobecni.";
@@ -478,7 +540,7 @@ function safeAuxiliaryText(p, raw, state, label){
 }
 function enforcePreflight(p, state, extraTexts){
   const texts=[ST[p].clean||""].concat(extraTexts||[]).filter(Boolean).join("\n");
-  const iss=preflightIssues(texts);
+  const iss=preflightIssues(texts,p);
   const danger=(ST[p]&&ST[p].sensitiveAck) ? iss.danger.filter(x=>!/citlivé/.test(x)) : iss.danger;
   if(danger.length){
     try{ logOp("preflight","stop",{pane:p,issues:danger}); }catch(_){}
@@ -490,8 +552,8 @@ function enforcePreflight(p, state, extraTexts){
   }
   return true;
 }
-function safetyAudit(text){
-  const iss=preflightIssues(text);
+function safetyAudit(text,p){
+  const iss=preflightIssues(text,p);
   if(iss.danger.length){
     const sensitive=iss.danger.some(x=>/citlivé/.test(x));
     return {
@@ -527,7 +589,7 @@ function renderPreviewSummary(p){
   const cO=km.filter(k=>/^osoba/.test(k.token||"")).length;
   const cE=km.filter(k=>/^\[e-mail/.test(k.token||"")).length;
   const cT=km.filter(k=>/^\[telefon/.test(k.token||"")).length;
-  const iss=preflightIssues(clean);
+  const iss=preflightIssues(clean,p);
   const total=cO+cE+cT;
   const show=clean.length>260 || total>0 || iss.danger.length || iss.warn.length;
   if(!show){ el.className="preview-summary"; el.innerHTML=""; return; }
@@ -574,7 +636,7 @@ function renderSafeFallback(p, audit){
     el.innerHTML="";
     return;
   }
-  const danger=preflightIssues(ST[p].clean||"").danger;
+  const danger=preflightIssues(ST[p].clean||"",p).danger;
   const onlyTermHeuristic=danger.length>0 && danger.every(x=>/citlivé/.test(x));
   el.className="safe-fallback show";
   el.innerHTML='<div class="sf-head"><b>Další bezpečný krok bez AI:</b> můžeš si vytvořit obecnou odpověď, která neobsahuje konkrétní citlivé údaje.</div><div class="sf-note">Tlačítko níže pouze lokálně zobrazí šablonu. Nevolá Gemini, neodesílá text a nemění původní náhled.</div><div class="sf-actions"><button type="button" class="btn ghost small" data-safe-fallback="'+escAttr(p)+'"><span class="action-icon" data-ic="life"></span>Vytvořit bezpečnou obecnou verzi</button>'+(onlyTermHeuristic?'<button type="button" class="btn ghost small" data-ack-sensitive="'+escAttr(p)+'">Posoudil(a) jsem to — nejde o citlivý údaj, pokračovat</button>':'')+'</div><div class="sf-output" id="'+escAttr(p)+'_safeFallbackOutput"></div>';
@@ -589,7 +651,7 @@ function renderSafeFallback(p, audit){
 }
 function renderSafety(p){
   const el=E(p,"safety"); if(!el) return;
-  let a=safetyAudit(ST[p].clean||"");
+  let a=safetyAudit(ST[p].clean||"",p);
   if(a.level==="nosend" && ST[p]&&ST[p].sensitiveAck){
     a={level:"warn",title:"Ručně posouzeno",msg:"Termínové upozornění bylo výslovně posouzeno. Strukturální identifikátory zůstávají vždy blokované.",action:"Pokračuj jen s anonymizovaným textem a po kontrole náhledu."};
   }
@@ -605,7 +667,7 @@ function renderSafety(p){
 }
 function updateSendGate(p){
   const cb=E(p,"reviewOk"); const btn=p==="in"?$("in_analyzeBtn"):$("my_goBtn");
-  if(btn && cb){ const a=safetyAudit(ST[p].clean||""); btn.disabled=!cb.checked || a.level==="danger" || (a.level==="nosend" && !(ST[p]&&ST[p].sensitiveAck)); }
+  if(btn && cb){ const a=safetyAudit(ST[p].clean||"",p); btn.disabled=!cb.checked || a.level==="danger" || (a.level==="nosend" && !(ST[p]&&ST[p].sensitiveAck)); }
   updateProgress(p);
 }
 function flashPreview(p){
@@ -623,7 +685,7 @@ function flashPreview(p){
   E(p,"raw").addEventListener("input",()=>{
     const value=E(p,"raw").value;
     if(ST[p].raw!==value){
-      ST[p].raw=value;ST[p].clean="";ST[p].km=[];ST[p].outputReady=false;ST[p].sensitiveAck=false;
+      ST[p].raw=value;ST[p].clean="";ST[p].km=[];ST[p].outputReady=false;ST[p].sensitiveAck=false;publishActiveKeyReals(p);
       const cb=E(p,"reviewOk");if(cb)cb.checked=false;
       const step2=E(p,"step2");if(step2)step2.style.display="none";
       const results=$(p==="in"?"in_results":"my_results");if(results)results.innerHTML="";

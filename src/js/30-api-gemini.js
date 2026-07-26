@@ -2,6 +2,9 @@
 const KEY_SK="rozbor_gemini_key", KEY_SESSION_SK="rozbor_gemini_key_session", MODEL_SK="rozbor_gemini_model";
 const MODEL_DEFAULT="gemini-3.6-flash", FALLBACK_MODELS=["gemini-3.5-flash-lite"];
 let geminiApiKey="", geminiKeyScope="", geminiModel=MODEL_DEFAULT;
+let TEST_RUN_ACTIVE=false;
+window.__setTestRunActive=v=>{ TEST_RUN_ACTIVE=!!v; };
+function testMockAvailable(){ return (IS_TEST_MODE||TEST_RUN_ACTIVE) && !!window.__TEST_MOCK_GEMINI; }
 
 function cleanKey(s){ return String(s||"").replace(/[^\x21-\x7E]/g,""); }
 function inputKey(){ return cleanKey($("keyInput").value); }
@@ -195,7 +198,7 @@ function setApiError(container, err, retryFn){
 function assertGeminiSafety(context){
   if(!context || !Array.isArray(context.texts)) throw makeAppError("Chybí povinný anonymizační preflight této akce.","PREFLIGHT_REQUIRED");
   const text=context.texts.map(x=>String(x||"")).filter(Boolean).join("\n");
-  const iss=preflightIssues(text);
+  const iss=preflightIssues(text,context.pane);
   const danger=context.ackSensitive ? iss.danger.filter(x=>!/citlivé/.test(x)) : iss.danger;
   if(danger.length){
     const findings=danger;
@@ -203,38 +206,42 @@ function assertGeminiSafety(context){
   }
   return text;
 }
-async function callGemini(prompt, system, schema, safetyContext){
-  schema=schema||inferSchema(system);
-  if(!geminiApiKey && !(IS_TEST_MODE&&window.__TEST_MOCK_GEMINI)) throw makeAppError("Chybí klíč k API. Vlož ho v „Klíč k API“ nahoře a zvol „Použít jen pro relaci“.","MISSING_KEY");
+const GEMINI_MAX_OUTPUT_TOKENS=32768;
+async function callGemini(prompt, system, schema, safetyContext, opts){
+  schema=schema||inferSchema(system); opts=opts||{};
+  if(!geminiApiKey && !testMockAvailable()) throw makeAppError("Chybí klíč k API. Vlož ho v „Klíč k API“ nahoře a zvol „Použít jen pro relaci“.","MISSING_KEY");
   assertGeminiSafety(safetyContext);
-  if(IS_TEST_MODE&&window.__TEST_MOCK_GEMINI){
-    const mocked=await window.__TEST_MOCK_GEMINI({prompt,system,schema});
+  const thinking=opts.thinking||(schema==="synonyms"||schema==="tone"?"minimal":"medium");
+  if(testMockAvailable()){
+    const mocked=await window.__TEST_MOCK_GEMINI({prompt,system,schema,thinking});
     const obj=typeof mocked==="string"?parseModelJson(mocked):mocked;
     return validateModelJson(obj, schema);
   }
-  const tryModel=async(model)=>{
+  const requestModel=async(model,withThinking)=>{
     const started=Date.now();
-    try{ logOp("api","start",{model,schema}); }catch(_){}
+    try{ logOp("api",withThinking?"start":"thinking_retry",{model,schema}); }catch(_){}
     saveLastPromptDebug(prompt, system, model, schema);
     const url="https://generativelanguage.googleapis.com/v1beta/models/"+encodeURIComponent(model)+":generateContent";
-    const body={ contents:[{role:"user",parts:[{text:prompt}]}], systemInstruction:{parts:[{text:system}]}, generationConfig:{maxOutputTokens:16384,responseMimeType:"application/json",thinkingConfig:{thinkingLevel:"low"}} };
+    const generationConfig={maxOutputTokens:GEMINI_MAX_OUTPUT_TOKENS,responseMimeType:"application/json"};
+    if(withThinking&&thinking) generationConfig.thinkingConfig={thinkingLevel:thinking};
+    const body={contents:[{role:"user",parts:[{text:prompt}]}],systemInstruction:{parts:[{text:system}]},generationConfig};
     const ctrl=new AbortController();
     const timer=setTimeout(()=>ctrl.abort(), GEMINI_TIMEOUT_MS);
-    let res, data;
+    let res,data;
     try{
-      res=await fetch(url,{ method:"POST", headers:{"Content-Type":"application/json","x-goog-api-key":cleanKey(geminiApiKey)}, body:JSON.stringify(body), signal:ctrl.signal });
+      res=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":cleanKey(geminiApiKey)},body:JSON.stringify(body),signal:ctrl.signal});
       data=await res.json().catch(()=>({}));
     }catch(e){
-      if(e && e.name==="AbortError"){ try{ logOp("api","timeout",{model,schema,ms:Date.now()-started}); }catch(_){} throw makeAppError("Model neodpověděl včas.","TIMEOUT"); }
-      try{ logOp("api","network_error",{model,schema,ms:Date.now()-started}); }catch(_){}
+      if(e&&e.name==="AbortError"){ try{logOp("api","timeout",{model,schema,ms:Date.now()-started});}catch(_){} throw makeAppError("Model neodpověděl včas.","TIMEOUT"); }
+      try{logOp("api","network_error",{model,schema,ms:Date.now()-started});}catch(_){}
       throw makeAppError("Nepodařilo se připojit k Gemini API: "+(e&&e.message?e.message:"síťová chyba"),"NETWORK");
     }finally{ clearTimeout(timer); }
     if(!res.ok){
       const st=(data&&data.error&&data.error.status)?String(data.error.status):"";
       const quota=res.status===429||/RESOURCE_EXHAUSTED/i.test(st);
       const msg=(data&&data.error&&data.error.message)?data.error.message:("HTTP "+res.status);
-      try{ logOp("api",quota?"quota":"http_error",{model,schema,status:res.status,ms:Date.now()-started}); }catch(_){}
-      const e=new Error(msg); e.quota=quota; e.status=res.status; throw e;
+      try{logOp("api",quota?"quota":"http_error",{model,schema,status:res.status,ms:Date.now()-started});}catch(_){}
+      const e=new Error(msg); e.quota=quota; e.status=res.status; e.thinkingRejected=withThinking&&res.status===400&&/thinking/i.test(msg); throw e;
     }
     const cand=data.candidates&&data.candidates[0];
     const finish=cand&&cand.finishReason;
@@ -242,14 +249,15 @@ async function callGemini(prompt, system, schema, safetyContext){
     if(block) throw makeAppError("Požadavek byl zablokován: "+block,"SAFETY_STOP");
     const text=((cand&&cand.content&&cand.content.parts)||[]).map(p=>p.text||"").join("").trim();
     if(finish&&finish!=="STOP") throw makeAppError("Model nedokončil odpověď ("+finish+").",finish==="MAX_TOKENS"?"INCOMPLETE_RESPONSE":"SAFETY_STOP");
-    try{ const parsed=validateModelJson(parseModelJson(text), schema); logOp("api","success",{model,schema,ms:Date.now()-started}); return parsed; }
-    catch(e){ try{ logOp("api",e&&e.code?e.code:"parse_error",{model,schema,ms:Date.now()-started}); }catch(_){} throw e; }
+    try{const parsed=validateModelJson(parseModelJson(text),schema);logOp("api","success",{model,schema,ms:Date.now()-started});return parsed;}
+    catch(e){try{logOp("api",e&&e.code?e.code:"parse_error",{model,schema,ms:Date.now()-started});}catch(_){}throw e;}
   };
+  const tryModel=async(model)=>{ try{return await requestModel(model,true);}catch(e){if(e&&e.thinkingRejected)return await requestModel(model,false);throw e;} };
   bumpReq();
-  try { return await tryModel(geminiModel); }
+  try{return await tryModel(geminiModel);}
   catch(e){
     const fallbackAllowed=e&&(e.quota||e.status===404||e.status===429||e.status===500||e.status===503);
-    if(fallbackAllowed){ const fb=FALLBACK_MODELS.find(m=>m!==geminiModel); if(fb){ bumpReq(); return await tryModel(fb); } }
+    if(fallbackAllowed){const fb=FALLBACK_MODELS.find(m=>m!==geminiModel);if(fb){bumpReq();return await tryModel(fb);}}
     throw e;
   }
 }

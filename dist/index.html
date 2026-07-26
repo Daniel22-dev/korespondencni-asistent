@@ -621,7 +621,7 @@
   .outside-wrap::before{ content:"Toto by odešlo do Gemini"; position:absolute; top:-13px; left:14px; padding:3px 10px; border-radius:999px; background:var(--accent); color:#fff; font:800 10.5px var(--sans); letter-spacing:.04em; text-transform:uppercase; }
   .outside-wrap{ padding-top:20px; }
   .out-zone{ margin-top:2px; }
-  .api-toggle[id$="_prevToggle"]{ display:inline-flex; align-items:center; gap:6px; padding:6px 9px !important; border:1px solid var(--line); border-radius:999px; background:var(--paper); text-decoration:none; color:var(--accent-text); font-weight:800; }
+  #in_prevToggle,#my_prevToggle{ display:inline-flex; align-items:center; gap:6px; padding:6px 9px !important; border:1px solid var(--line); border-radius:999px; background:var(--paper); text-decoration:none; color:var(--accent-text); font-weight:800; }
 
   .safety.nosend{ border-width:2px; padding:13px 14px; }
   .safety.nosend .sicon{ width:28px; height:28px; font-size:15px; }
@@ -1227,11 +1227,12 @@ a.manual-launch-btn:hover::after,a.manual-launch-btn:focus-visible::after{opacit
 "use strict";
 
 const RELEASE = {
-  version: "5.2.5",
-  date: "2026-07-25",
+  version: "5.2.6",
+  date: "2026-07-26",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.2.6: zásadní oprava anonymizace — skryjí se i české pádové tvary jmen včetně krátkých, doťukané tvary se spojí do jedné osoby a zbylý tvar už skrytého jména odeslání zastaví; interní testy nemažou lokální data a fungují i mimo testovací adresu; sjednoceno nastavení modelů Gemini, doplněn návrat z manuálu a ošetřen import cizího souboru nastavení.",
     "5.2.5: opraven export při nevyplněném profilu, přesnější shoda tvarů jmen, tři školní scénáře, úplné mazání lokálních dat včetně pracovního stolu, méně blokujících falešných poplachů, bezpečné vědomé pokračování u samotné termínové heuristiky, sjednocené styly pracovního stolu a ikony, import EML ve středoevropských kódováních a zpřesněné informace o bezplatné úrovni Gemini API.",
     "5.2.4: opravena kontrola před odesláním u vygenerovaných variant — bezpečné pracovní značky jako osoba A se nyní posuzují až po lokálním doplnění skutečných údajů; červená stopka zůstává jen pro značku, kterou aplikace skutečně neumí doplnit.",
     "5.2.3: odstraněna zdvojená volba hlavního režimu na pracovním stole; aktualizovány bezplatné modely Gemini; kliknutí na část jména nyní spojí jméno a příjmení do jedné osoby; oranžová upozornění jsou výslovně neblokující a opravena byla i kontrola doplňujících pokynů.",
@@ -1544,7 +1545,7 @@ function updateProgress(p){
   const cb=E(p,"reviewOk");
   const checked=!!(cb && cb.checked);
   let safe=false;
-  try{ const a=safetyAudit(ST[p].clean||""); safe=checked && (a.level==="ok" || a.level==="warn"); }catch(_){ safe=false; }
+  try{ const a=safetyAudit(ST[p].clean||"",p); safe=checked && (a.level==="ok" || a.level==="warn"); }catch(_){ safe=false; }
   const outputReady=!!(window.ST&&ST[p]&&ST[p].outputReady);
   const done={1:hasRaw,2:hasClean,3:safe,4:outputReady};
   const current=outputReady?4:(safe?4:(hasClean?3:(hasRaw?2:1)));
@@ -1557,7 +1558,7 @@ function updateProgress(p){
 
 
 ;
-/* AI Studio GHRAB — GHRAB Material v1 adapter (Korespondenční asistent 5.2.0, bridge 1.3) */
+/* AI Studio GHRAB — GHRAB Material v1 adapter (Korespondenční asistent 5.2.6, bridge 1.3) */
 (function(){
   'use strict';
   const KEY='ghrab.handoff.v1',EVENTS='ghrab.pilot.events.v2',MAX_SOURCE=180000;
@@ -1580,6 +1581,9 @@ function updateProgress(p){
 const KEY_SK="rozbor_gemini_key", KEY_SESSION_SK="rozbor_gemini_key_session", MODEL_SK="rozbor_gemini_model";
 const MODEL_DEFAULT="gemini-3.6-flash", FALLBACK_MODELS=["gemini-3.5-flash-lite"];
 let geminiApiKey="", geminiKeyScope="", geminiModel=MODEL_DEFAULT;
+let TEST_RUN_ACTIVE=false;
+window.__setTestRunActive=v=>{ TEST_RUN_ACTIVE=!!v; };
+function testMockAvailable(){ return (IS_TEST_MODE||TEST_RUN_ACTIVE) && !!window.__TEST_MOCK_GEMINI; }
 
 function cleanKey(s){ return String(s||"").replace(/[^\x21-\x7E]/g,""); }
 function inputKey(){ return cleanKey($("keyInput").value); }
@@ -1773,7 +1777,7 @@ function setApiError(container, err, retryFn){
 function assertGeminiSafety(context){
   if(!context || !Array.isArray(context.texts)) throw makeAppError("Chybí povinný anonymizační preflight této akce.","PREFLIGHT_REQUIRED");
   const text=context.texts.map(x=>String(x||"")).filter(Boolean).join("\n");
-  const iss=preflightIssues(text);
+  const iss=preflightIssues(text,context.pane);
   const danger=context.ackSensitive ? iss.danger.filter(x=>!/citlivé/.test(x)) : iss.danger;
   if(danger.length){
     const findings=danger;
@@ -1781,38 +1785,42 @@ function assertGeminiSafety(context){
   }
   return text;
 }
-async function callGemini(prompt, system, schema, safetyContext){
-  schema=schema||inferSchema(system);
-  if(!geminiApiKey && !(IS_TEST_MODE&&window.__TEST_MOCK_GEMINI)) throw makeAppError("Chybí klíč k API. Vlož ho v „Klíč k API“ nahoře a zvol „Použít jen pro relaci“.","MISSING_KEY");
+const GEMINI_MAX_OUTPUT_TOKENS=32768;
+async function callGemini(prompt, system, schema, safetyContext, opts){
+  schema=schema||inferSchema(system); opts=opts||{};
+  if(!geminiApiKey && !testMockAvailable()) throw makeAppError("Chybí klíč k API. Vlož ho v „Klíč k API“ nahoře a zvol „Použít jen pro relaci“.","MISSING_KEY");
   assertGeminiSafety(safetyContext);
-  if(IS_TEST_MODE&&window.__TEST_MOCK_GEMINI){
-    const mocked=await window.__TEST_MOCK_GEMINI({prompt,system,schema});
+  const thinking=opts.thinking||(schema==="synonyms"||schema==="tone"?"minimal":"medium");
+  if(testMockAvailable()){
+    const mocked=await window.__TEST_MOCK_GEMINI({prompt,system,schema,thinking});
     const obj=typeof mocked==="string"?parseModelJson(mocked):mocked;
     return validateModelJson(obj, schema);
   }
-  const tryModel=async(model)=>{
+  const requestModel=async(model,withThinking)=>{
     const started=Date.now();
-    try{ logOp("api","start",{model,schema}); }catch(_){}
+    try{ logOp("api",withThinking?"start":"thinking_retry",{model,schema}); }catch(_){}
     saveLastPromptDebug(prompt, system, model, schema);
     const url="https://generativelanguage.googleapis.com/v1beta/models/"+encodeURIComponent(model)+":generateContent";
-    const body={ contents:[{role:"user",parts:[{text:prompt}]}], systemInstruction:{parts:[{text:system}]}, generationConfig:{maxOutputTokens:16384,responseMimeType:"application/json",thinkingConfig:{thinkingLevel:"low"}} };
+    const generationConfig={maxOutputTokens:GEMINI_MAX_OUTPUT_TOKENS,responseMimeType:"application/json"};
+    if(withThinking&&thinking) generationConfig.thinkingConfig={thinkingLevel:thinking};
+    const body={contents:[{role:"user",parts:[{text:prompt}]}],systemInstruction:{parts:[{text:system}]},generationConfig};
     const ctrl=new AbortController();
     const timer=setTimeout(()=>ctrl.abort(), GEMINI_TIMEOUT_MS);
-    let res, data;
+    let res,data;
     try{
-      res=await fetch(url,{ method:"POST", headers:{"Content-Type":"application/json","x-goog-api-key":cleanKey(geminiApiKey)}, body:JSON.stringify(body), signal:ctrl.signal });
+      res=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":cleanKey(geminiApiKey)},body:JSON.stringify(body),signal:ctrl.signal});
       data=await res.json().catch(()=>({}));
     }catch(e){
-      if(e && e.name==="AbortError"){ try{ logOp("api","timeout",{model,schema,ms:Date.now()-started}); }catch(_){} throw makeAppError("Model neodpověděl včas.","TIMEOUT"); }
-      try{ logOp("api","network_error",{model,schema,ms:Date.now()-started}); }catch(_){}
+      if(e&&e.name==="AbortError"){ try{logOp("api","timeout",{model,schema,ms:Date.now()-started});}catch(_){} throw makeAppError("Model neodpověděl včas.","TIMEOUT"); }
+      try{logOp("api","network_error",{model,schema,ms:Date.now()-started});}catch(_){}
       throw makeAppError("Nepodařilo se připojit k Gemini API: "+(e&&e.message?e.message:"síťová chyba"),"NETWORK");
     }finally{ clearTimeout(timer); }
     if(!res.ok){
       const st=(data&&data.error&&data.error.status)?String(data.error.status):"";
       const quota=res.status===429||/RESOURCE_EXHAUSTED/i.test(st);
       const msg=(data&&data.error&&data.error.message)?data.error.message:("HTTP "+res.status);
-      try{ logOp("api",quota?"quota":"http_error",{model,schema,status:res.status,ms:Date.now()-started}); }catch(_){}
-      const e=new Error(msg); e.quota=quota; e.status=res.status; throw e;
+      try{logOp("api",quota?"quota":"http_error",{model,schema,status:res.status,ms:Date.now()-started});}catch(_){}
+      const e=new Error(msg); e.quota=quota; e.status=res.status; e.thinkingRejected=withThinking&&res.status===400&&/thinking/i.test(msg); throw e;
     }
     const cand=data.candidates&&data.candidates[0];
     const finish=cand&&cand.finishReason;
@@ -1820,14 +1828,15 @@ async function callGemini(prompt, system, schema, safetyContext){
     if(block) throw makeAppError("Požadavek byl zablokován: "+block,"SAFETY_STOP");
     const text=((cand&&cand.content&&cand.content.parts)||[]).map(p=>p.text||"").join("").trim();
     if(finish&&finish!=="STOP") throw makeAppError("Model nedokončil odpověď ("+finish+").",finish==="MAX_TOKENS"?"INCOMPLETE_RESPONSE":"SAFETY_STOP");
-    try{ const parsed=validateModelJson(parseModelJson(text), schema); logOp("api","success",{model,schema,ms:Date.now()-started}); return parsed; }
-    catch(e){ try{ logOp("api",e&&e.code?e.code:"parse_error",{model,schema,ms:Date.now()-started}); }catch(_){} throw e; }
+    try{const parsed=validateModelJson(parseModelJson(text),schema);logOp("api","success",{model,schema,ms:Date.now()-started});return parsed;}
+    catch(e){try{logOp("api",e&&e.code?e.code:"parse_error",{model,schema,ms:Date.now()-started});}catch(_){}throw e;}
   };
+  const tryModel=async(model)=>{ try{return await requestModel(model,true);}catch(e){if(e&&e.thinkingRejected)return await requestModel(model,false);throw e;} };
   bumpReq();
-  try { return await tryModel(geminiModel); }
+  try{return await tryModel(geminiModel);}
   catch(e){
     const fallbackAllowed=e&&(e.quota||e.status===404||e.status===429||e.status===500||e.status===503);
-    if(fallbackAllowed){ const fb=FALLBACK_MODELS.find(m=>m!==geminiModel); if(fb){ bumpReq(); return await tryModel(fb); } }
+    if(fallbackAllowed){const fb=FALLBACK_MODELS.find(m=>m!==geminiModel);if(fb){bumpReq();return await tryModel(fb);}}
     throw e;
   }
 }
@@ -1876,6 +1885,10 @@ const ST = {
   my: { km:[], emailN:0, phoneN:0, raw:"", clean:"", syn:{}, outputReady:false, sensitiveAck:false },
 };
 const E = (p,name)=>$(p+"_"+name);
+const ACTIVE_KEY_REALS={in:[],my:[]};
+function publishActiveKeyReals(p){
+  try{ ACTIVE_KEY_REALS[p]=(ST[p].km||[]).map(k=>k.real).filter(Boolean); window.__ACTIVE_KEY_REALS=ACTIVE_KEY_REALS[p].slice(); }catch(_){}
+}
 
 /* ===================== ANONYMIZACE (ťukání) ===================== */
 const PUNCT_RE=/^([<>\[\]{}(),.;:!?„“”"'…»«]*)([\s\S]*?)([<>\[\]{}(),.;:!?„“”"'…»«]*)$/;
@@ -1943,34 +1956,59 @@ function buildKey(st, detected){
     st.km.push({real:it.real, token:"["+base+" "+(cnt+1)+"]", auto:true});
   });
 }
-// České přípony pro skloňování jmen (mužská příjmení, ženská příjmení, křestní)
-const CZ_SUFFIXES=["ovi","ovi","ova","ové","ovou","ovi","ovi","ovi","em","ům","ům","ích","mi",
-  "y","i","e","a","u","ě","ou","ím","ích","ách",
-  "ek","ka","ce","ze","ny","né","nu","nou","ní",
-  "ová","ové","ovou","ovi","áka","ákovi","ákem","ákův","ákova","ákovi",
-  "čka","čce","čku","čkou","ičky","ičce","ičku","ičkou","ičce",
-  "ník","níka","níkovi","níkem",
-].sort((a,b)=>b.length-a.length);
-function nameVariants(real){
-  const lo=real.toLowerCase(); const variants=new Set([lo]);
-  CZ_SUFFIXES.forEach(suf=>{
-    if(lo.endsWith(suf) && lo.length-suf.length>=3) variants.add(lo.slice(0,lo.length-suf.length));
-  });
-  variants.add(lo.replace(/[aeiouyáéíóúůěý]+$/,""));
-  // U velmi krátkých jmen nepoužíváme libovolnou prefixovou shodu. Pro jasný vzor Anna/Emma
-  // ale přidáme konkrétní pádové tvary, aby bezpečnostní anonymizace neztratila běžné skloňování.
-  if(/^(.)(.)\2a$/u.test(lo)){
-    const stem=lo.slice(0,-1); ["y","ě","u","ou"].forEach(s=>variants.add(stem+s));
+// České pádové tvary jmen. Generujeme konkrétní tvary, nikoli obecné prefixy:
+// prefixová shoda spolykala cizí jména (Jan → Janák), explicitní sada je bezpečná i u krátkých jmen.
+const CZ_SUFFIXES=["níkovi","níkem","níka","ovou","ákovi","ákem","áka","ičkou","ičce","ičku","ičky","čkou","čce","čku","čka","ovi","ové","ova","em","ou","ě","e","i","y","a","u"].sort((a,b)=>b.length-a.length);
+const CZ_FEMALE_PALATAL={"k":"c","h":"z","g":"z"};
+function femaleDative(stem){
+  if(stem.endsWith("ch")) return stem.slice(0,-2)+"še";
+  const last=stem.slice(-1), rep=CZ_FEMALE_PALATAL[last];
+  return rep?stem.slice(0,-1)+rep+"e":stem+"ě";
+}
+function czechCaseForms(name){
+  const lo=String(name||"").toLocaleLowerCase("cs-CZ");
+  const out=new Set([lo]);
+  if(lo.length<2) return out;
+  if(/ová$/.test(lo)){
+    const s=lo.slice(0,-1); ["é","ou"].forEach(x=>out.add(s+x));
+    return out;
   }
-  return [...variants].filter(v=>v.length>=3);
+  if(/a$/.test(lo)){
+    const s=lo.slice(0,-1); ["y","u","o","ou"].forEach(x=>out.add(s+x)); out.add(femaleDative(s)); out.add(s+"ovi");
+    return out;
+  }
+  if(/ý$/.test(lo)){
+    const s=lo.slice(0,-1); ["ého","ému","ým","í"].forEach(x=>out.add(s+x));
+    return out;
+  }
+  if(/[eéií]$/.test(lo)){
+    const s=lo.replace(/[eéií]$/,""); ["e","i","í","ovi","em"].forEach(x=>out.add(s+x));
+    return out;
+  }
+  // U třípísmenných jmen neprodukujeme nejednoznačné Jana/Janu: mohlo by jít o jiné jméno.
+  if(lo.length>=4){
+    out.add(lo+(/[šžčřcj]$/.test(lo)?"e":"a"));
+    out.add(lo+"u");
+  }
+  out.add(lo+"ovi"); out.add(lo+"em");
+  if(lo.endsWith("r")) out.add(lo.slice(0,-1)+"ře");
+  else if(/(?:ch|[kgh])$/.test(lo)) out.add(lo+"u");
+  else if(/[šžčřcj]$/.test(lo)) out.add(lo+"i");
+  else out.add(lo+"e");
+  return out;
+}
+function nameVariants(real){
+  const lo=String(real||"").toLocaleLowerCase("cs-CZ"), variants=czechCaseForms(lo);
+  // Když uživatel označí skloňovaný tvar, odvoď bezpečný základ a z něj opět jen konkrétní tvary.
+  CZ_SUFFIXES.forEach(suf=>{
+    if(lo.endsWith(suf) && lo.length-suf.length>=3){
+      const base=lo.slice(0,lo.length-suf.length); czechCaseForms(base).forEach(v=>variants.add(v));
+    }
+  });
+  return [...variants].filter(v=>v.length>=2);
 }
 function nameMatchWord(variants, coreL, isCap, origLen){
-  if(variants.has(coreL)) return true;          // přesný tvar / kmen z CZ_SUFFIXES
-  if(!isCap) return false;                       // tvarová shoda jen u slov s velkým písmenem
-  // Krátká křestní jména se prefixem neshodují: Jan nesmí skrýt Janu, Janáka ani Januše.
-  if(origLen<5) return false;
-  for(const v of variants){ if(v.length>=4 && coreL.startsWith(v) && coreL.length<=origLen+2) return true; }
-  return false;
+  return variants.has(coreL);
 }
 const _isUpper=c=>!!c && c!==c.toLowerCase() && c===c.toUpperCase();
 function buildMatchers(km){
@@ -2070,12 +2108,22 @@ function ensureNameHintToggle(p){
 }
 let tapPopEl=null;
 function hideTapPop(){ if(tapPopEl) tapPopEl.style.display="none"; }
+function tokenForRelatedPerson(st, cleaned){
+  const norm=x=>String(x||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("cs-CZ");
+  const n=norm(cleaned); if(n.length<2) return "";
+  const hit=(st.km||[]).find(k=>{
+    if(!k.real||!/^osoba\b/.test(k.token||"")) return false;
+    return String(k.real).split(/\s+/).some(part=>new Set(nameVariants(part).map(norm)).has(n));
+  });
+  return hit?hit.token:"";
+}
 function addPhrase(p, phrase){
   const st=ST[p]; const cleaned=String(phrase).replace(/\s+/g," ").trim().replace(/^[<>\[\]{}(),.;:!?„“”"'…»«\s]+|[<>\[\]{}(),.;:!?„“”"'…»«\s]+$/g,"");
   if(!cleaned || cleaned.length<2) return;
-  if(st.km.some(k=>k.real.toLowerCase()===cleaned.toLowerCase())) return;
-  st.km.push({real:cleaned, token:nextPersonToken(st.km), auto:false});
-  afterKeyChange(p);
+  if(st.km.some(k=>k.real.toLocaleLowerCase("cs-CZ")===cleaned.toLocaleLowerCase("cs-CZ"))) return;
+  const related=tokenForRelatedPerson(st,cleaned), token=related||nextPersonToken(st.km);
+  st.km.push({real:cleaned,token,auto:false}); afterKeyChange(p);
+  if(related) toast("Přidáno ke stejné osobě ("+token+").");
 }
 function showTapHide(p, phrase, rect){
   if(!tapPopEl){ tapPopEl=document.createElement("div"); tapPopEl.id="tapPop"; document.body.appendChild(tapPopEl); }
@@ -2137,8 +2185,12 @@ function renderView(p){
   }
 }
 function resetReview(p){ const cb=E(p,"reviewOk"); if(cb) cb.checked=false; if(ST[p])ST[p].outputReady=false; updateSendGate(p); updateProgress(p); }
-function afterKeyChange(p){ ST[p].sensitiveAck=false; ST[p].clean=cleanFromKey(p); resetReview(p); renderView(p); renderKeyTable(p); renderPreview(p); }
-function addWord(p, core){ const st=ST[p]; if(!core) return; if(st.km.some(k=>k.real.toLowerCase()===core.toLowerCase())) return; st.km.push({real:core,token:tokenFor(st,core),auto:false}); afterKeyChange(p); }
+function afterKeyChange(p){ publishActiveKeyReals(p); ST[p].sensitiveAck=false; ST[p].clean=cleanFromKey(p); resetReview(p); renderView(p); renderKeyTable(p); renderPreview(p); }
+function addWord(p, core){
+  const st=ST[p]; if(!core) return; if(st.km.some(k=>k.real.toLocaleLowerCase("cs-CZ")===core.toLocaleLowerCase("cs-CZ"))) return;
+  const related=tokenForRelatedPerson(st,core), token=related||tokenFor(st,core); st.km.push({real:core,token,auto:false}); afterKeyChange(p);
+  if(related) toast("Přidáno ke stejné osobě ("+token+").");
+}
 function activateSensitiveMode(reason){
   setNoHistory(true);
   try{ sessionStorage.removeItem(LAST_PROMPT_SK); localStorage.removeItem(LAST_PROMPT_SK); }catch(_){}
@@ -2165,7 +2217,7 @@ function renderKeyTable(p){
   E(p,"keyEmpty").style.display=st.km.length?"none":"block";
   body.querySelectorAll("input").forEach(inp=>inp.addEventListener("input",(e)=>{
     st.km[+e.target.dataset.i][e.target.dataset.f]=e.target.value;
-    ST[p].clean=cleanFromKey(p);
+    publishActiveKeyReals(p); ST[p].clean=cleanFromKey(p);
     resetReview(p);
     renderView(p); renderPreview(p); renderKeySummary(p);
   }));
@@ -2261,7 +2313,7 @@ function renderPreview(p){
 function stripSafeTokens(text){
   return String(text||"").replace(/\[e-mail \d+\]|\[telefon \d+\]|\[rodné číslo \d+\]|\[datum narození \d+\]|\[číslo účtu \d+\]|osoba [A-Z]+|\[podpis\]|\[učitel\]/g," ");
 }
-function preflightIssues(text){
+function preflightIssues(text,p){
   const stripped=stripSafeTokens(text);
   const danger=[], warn=[], names=[];
   const addD=(x)=>{ if(!danger.includes(x)) danger.push(x); };
@@ -2296,13 +2348,32 @@ function preflightIssues(text){
     });
     if(dictHits.length) addW("uložené jméno zůstává v textu nezakryté: "+dictHits.slice(0,3).join(", ")+(dictHits.length>3?(" + "+(dictHits.length-3)+" dalších"):""));
   }catch(_){}
+  // Zbytek, který odpovídá jinému pádu již skrytého jména, je tvrdá stopka.
+  try{
+    const norm=x=>String(x||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("cs-CZ");
+    const active=(p&&ACTIVE_KEY_REALS[p]?ACTIVE_KEY_REALS[p]:(window.__ACTIVE_KEY_REALS||[]));
+    const exact=new Set(), roots=[];
+    active.forEach(real=>String(real||"").split(/\s+/).forEach(part=>{
+      nameVariants(part).forEach(v=>exact.add(norm(v)));
+      const root=norm(part); if(root.length>=4) roots.push(root);
+    }));
+    if(exact.size||roots.length){
+      const missed=[];
+      stripped.split(/[^\p{L}]+/u).forEach(word=>{
+        const n=norm(word); if(n.length<2) return;
+        const suffixMatch=roots.some(root=>n.startsWith(root)&&/^(?:a|u|e|i|y|ovi|ove|ova|ovou|em|ou|mu|ho)$/.test(n.slice(root.length)));
+        if((exact.has(n)||suffixMatch)&&!missed.includes(word)) missed.push(word);
+      });
+      if(missed.length) addD("nezakrytý tvar již skrytého jména: "+missed.slice(0,3).join(", "));
+    }
+  }catch(_){}
   return {danger,warn,names};
 }
 function safeAuxiliaryText(p, raw, state, label){
   const original=String(raw||"").trim();
   if(!original) return "";
   const clean=applyKeyToText(p, original);
-  const iss=preflightIssues(clean);
+  const iss=preflightIssues(clean,p);
   if(iss.danger.length){
     const findings=iss.danger;
     const msg=(label||"Doplňující pokyn")+" obsahuje možný osobní nebo citlivý údaj („"+findings.join(", ")+"“). Použij anonymizovanou značku, například osoba A, nebo pokyn zobecni.";
@@ -2315,7 +2386,7 @@ function safeAuxiliaryText(p, raw, state, label){
 }
 function enforcePreflight(p, state, extraTexts){
   const texts=[ST[p].clean||""].concat(extraTexts||[]).filter(Boolean).join("\n");
-  const iss=preflightIssues(texts);
+  const iss=preflightIssues(texts,p);
   const danger=(ST[p]&&ST[p].sensitiveAck) ? iss.danger.filter(x=>!/citlivé/.test(x)) : iss.danger;
   if(danger.length){
     try{ logOp("preflight","stop",{pane:p,issues:danger}); }catch(_){}
@@ -2327,8 +2398,8 @@ function enforcePreflight(p, state, extraTexts){
   }
   return true;
 }
-function safetyAudit(text){
-  const iss=preflightIssues(text);
+function safetyAudit(text,p){
+  const iss=preflightIssues(text,p);
   if(iss.danger.length){
     const sensitive=iss.danger.some(x=>/citlivé/.test(x));
     return {
@@ -2364,7 +2435,7 @@ function renderPreviewSummary(p){
   const cO=km.filter(k=>/^osoba/.test(k.token||"")).length;
   const cE=km.filter(k=>/^\[e-mail/.test(k.token||"")).length;
   const cT=km.filter(k=>/^\[telefon/.test(k.token||"")).length;
-  const iss=preflightIssues(clean);
+  const iss=preflightIssues(clean,p);
   const total=cO+cE+cT;
   const show=clean.length>260 || total>0 || iss.danger.length || iss.warn.length;
   if(!show){ el.className="preview-summary"; el.innerHTML=""; return; }
@@ -2411,7 +2482,7 @@ function renderSafeFallback(p, audit){
     el.innerHTML="";
     return;
   }
-  const danger=preflightIssues(ST[p].clean||"").danger;
+  const danger=preflightIssues(ST[p].clean||"",p).danger;
   const onlyTermHeuristic=danger.length>0 && danger.every(x=>/citlivé/.test(x));
   el.className="safe-fallback show";
   el.innerHTML='<div class="sf-head"><b>Další bezpečný krok bez AI:</b> můžeš si vytvořit obecnou odpověď, která neobsahuje konkrétní citlivé údaje.</div><div class="sf-note">Tlačítko níže pouze lokálně zobrazí šablonu. Nevolá Gemini, neodesílá text a nemění původní náhled.</div><div class="sf-actions"><button type="button" class="btn ghost small" data-safe-fallback="'+escAttr(p)+'"><span class="action-icon" data-ic="life"></span>Vytvořit bezpečnou obecnou verzi</button>'+(onlyTermHeuristic?'<button type="button" class="btn ghost small" data-ack-sensitive="'+escAttr(p)+'">Posoudil(a) jsem to — nejde o citlivý údaj, pokračovat</button>':'')+'</div><div class="sf-output" id="'+escAttr(p)+'_safeFallbackOutput"></div>';
@@ -2426,7 +2497,7 @@ function renderSafeFallback(p, audit){
 }
 function renderSafety(p){
   const el=E(p,"safety"); if(!el) return;
-  let a=safetyAudit(ST[p].clean||"");
+  let a=safetyAudit(ST[p].clean||"",p);
   if(a.level==="nosend" && ST[p]&&ST[p].sensitiveAck){
     a={level:"warn",title:"Ručně posouzeno",msg:"Termínové upozornění bylo výslovně posouzeno. Strukturální identifikátory zůstávají vždy blokované.",action:"Pokračuj jen s anonymizovaným textem a po kontrole náhledu."};
   }
@@ -2442,7 +2513,7 @@ function renderSafety(p){
 }
 function updateSendGate(p){
   const cb=E(p,"reviewOk"); const btn=p==="in"?$("in_analyzeBtn"):$("my_goBtn");
-  if(btn && cb){ const a=safetyAudit(ST[p].clean||""); btn.disabled=!cb.checked || a.level==="danger" || (a.level==="nosend" && !(ST[p]&&ST[p].sensitiveAck)); }
+  if(btn && cb){ const a=safetyAudit(ST[p].clean||"",p); btn.disabled=!cb.checked || a.level==="danger" || (a.level==="nosend" && !(ST[p]&&ST[p].sensitiveAck)); }
   updateProgress(p);
 }
 function flashPreview(p){
@@ -2460,7 +2531,7 @@ function flashPreview(p){
   E(p,"raw").addEventListener("input",()=>{
     const value=E(p,"raw").value;
     if(ST[p].raw!==value){
-      ST[p].raw=value;ST[p].clean="";ST[p].km=[];ST[p].outputReady=false;ST[p].sensitiveAck=false;
+      ST[p].raw=value;ST[p].clean="";ST[p].km=[];ST[p].outputReady=false;ST[p].sensitiveAck=false;publishActiveKeyReals(p);
       const cb=E(p,"reviewOk");if(cb)cb.checked=false;
       const step2=E(p,"step2");if(step2)step2.style.display="none";
       const results=$(p==="in"?"in_results":"my_results");if(results)results.innerHTML="";
@@ -2536,7 +2607,7 @@ async function fetchSyn(){
     if(safeSentence===null)return;
     const d=await callGemini(
       "Slovo: \""+synCtx.word+"\"\nOkolí: \""+safeSentence+"\"\nVrať 4 vhodná "+lang+" synonyma ve STEJNÉM gramatickém tvaru jako slovo v okolí.",
-      "Jsi "+helper+" jazykový pomocník. Vracíš jen synonyma ve správném tvaru a stejném jazyce jako zadané slovo. Odpověz VÝHRADNĚ platným JSON: {\"synonyma\":[\"…\",\"…\"]}", "synonyms", {pane:synCtx.p,texts:[safeSentence],ackSensitive:!!(ST[synCtx.p]&&ST[synCtx.p].sensitiveAck)}
+      "Jsi "+helper+" jazykový pomocník. Vracíš jen synonyma ve správném tvaru a stejném jazyce jako zadané slovo. Odpověz VÝHRADNĚ platným JSON: {\"synonyma\":[\"…\",\"…\"]}", "synonyms", {pane:synCtx.p,texts:[safeSentence],ackSensitive:!!(ST[synCtx.p]&&ST[synCtx.p].sensitiveAck)}, {thinking:"minimal"}
     );
     const opts=(d&&d.synonyma)||[];
     if(synCtx) ST[synCtx.p].syn[synCtx.word.toLowerCase()]=opts;
@@ -2682,7 +2753,7 @@ function setNoHistory(on){ try{ localStorage.setItem(NO_HISTORY_SK,on?"1":"0"); 
 function saveHistory(p, label, text){
   if(!text||!String(text).trim()||isNoHistory()) return;
   const safe=applyKeyToText(p,String(text)).trim();
-  let audit={level:"danger"};try{audit=safetyAudit(safe);}catch(_){}
+  let audit={level:"danger"};try{audit=safetyAudit(safe,p);}catch(_){}
   if(!safe||audit.level!=="ok"||hasSensitiveSchoolTerms(safe)) return;
   let h=[]; try{ h=JSON.parse(localStorage.getItem("rozbor_history")||"[]"); }catch(_){}
   h=h.filter(it=>it&&it.safe===true&&it.format===2);
@@ -2705,7 +2776,7 @@ function signatureText(){
 }
 function profileLine(){ const p=loadProfile(); const role=(p.role||"").trim(); return role?("\nPisatel je "+role+"."):""; }
 async function refineDraft(p, card, srcText, instruction){
-  if(!geminiApiKey && !(IS_TEST_MODE&&window.__TEST_MOCK_GEMINI)){ $("apiPanel").classList.add("open"); toast("Chybí klíč k API."); return; }
+  if(!geminiApiKey && !testMockAvailable()){ $("apiPanel").classList.add("open"); toast("Chybí klíč k API."); return; }
   const safeInstruction=safeAuxiliaryText(p,instruction,null,"Pokyn k úpravě");
   const safeDraft=safeAuxiliaryText(p,srcText,null,"Koncept");
   if(safeInstruction===null || safeDraft===null) return;
@@ -2724,14 +2795,14 @@ async function refineDraft(p, card, srcText, instruction){
   finally{ card.style.opacity="1"; }
 }
 async function toneCheck(p, srcText, wrap, btn){
-  if(!geminiApiKey){ $("apiPanel").classList.add("open"); toast("Chybí klíč k API."); return; }
+  if(!geminiApiKey && !testMockAvailable()){ $("apiPanel").classList.add("open"); toast("Chybí klíč k API."); return; }
   if(!wrap) return;
   const text=(srcText||"").trim(); if(!text){ toast("Není co posoudit."); return; }
   const safeText=safeAuxiliaryText(p,text,null,"Koncept"); if(safeText===null)return;
   if(btn) btn.disabled=true;
   wrap.innerHTML='<div class="loading"><span class="spin"></span>Čtu, jak to vyzní…</div>';
   try{
-    const d=await callGemini("Koncept:\n\"\"\"\n"+safeText+"\n\"\"\"", SYS_TONECHECK, "tone", {pane:p,texts:[safeText],ackSensitive:!!(ST[p]&&ST[p].sensitiveAck)});
+    const d=await callGemini("Koncept:\n\"\"\"\n"+safeText+"\n\"\"\"", SYS_TONECHECK, "tone", {pane:p,texts:[safeText],ackSensitive:!!(ST[p]&&ST[p].sensitiveAck)}, {thinking:"minimal"});
     const st=(d.naladeni&&d.naladeni.stupen)||"neutral";
     const rizika=Array.isArray(d.rizika)?d.rizika.filter(Boolean):[];
     wrap.innerHTML='<div class="tonecard reveal"><span class="mood" data-s="'+esc(st)+'">'+(MOOD[st]||"Naladění")+'<span class="mtxt">'+esc((d.naladeni&&d.naladeni.popis)||"")+'</span></span>'+
@@ -2835,7 +2906,7 @@ function renderChoiceSummary(p){
 
 ;
 function recordCorrespondenceTelemetry(outputKind,attempted,successful,failed,cancelled=0){
-  if(IS_TEST_MODE)return;
+  if(IS_TEST_MODE||TEST_RUN_ACTIVE)return;
   if(!window.GHRABTelemetry){ try{ logOp("telemetry","unavailable",{outputKind}); }catch(_){} return; }
   try{
     window.GHRABTelemetry.recordOutput({
@@ -2856,7 +2927,7 @@ $("in_analyzeBtn").onclick=async()=>{
   if(!text){ state.innerHTML='<div class="error">Není co rozebrat — nejdřív vlož a anonymizuj e-mail.</div>'; return; }
   if(!$("in_reviewOk").checked){ state.innerHTML='<div class="error">Nejdřív potvrď finální kontrolu náhledu pod semaforem anonymizace.</div>'; flashPreview("in"); return; }
   if(!enforcePreflight("in", state)) return;
-  if(!geminiApiKey && !(IS_TEST_MODE&&window.__TEST_MOCK_GEMINI)){ $("apiPanel").classList.add("open"); state.innerHTML='<div class="error">Chybí klíč k API. Vlož ho nahoře a zvol „Použít jen pro relaci“.</div>'; return; }
+  if(!geminiApiKey && !testMockAvailable()){ $("apiPanel").classList.add("open"); state.innerHTML='<div class="error">Chybí klíč k API. Vlož ho nahoře a zvol „Použít jen pro relaci“.</div>'; return; }
   const done=setBusy($("in_analyzeBtn"),"Rozebírám…");
   try{ const d=await callGemini(text, SYS_ANALYZE, "analyze", {pane:"in",texts:[text],ackSensitive:!!(ST.in&&ST.in.sensitiveAck)}); ST.in.clean=text; ST.in.pozadavky=Array.isArray(d.pozadavky)?d.pozadavky:[]; ST.in.outputReady=true; state.innerHTML=""; renderAnalysis(d); recordCorrespondenceTelemetry('incoming-analysis',1,1,0); updateProgress("in"); $("in_results").scrollIntoView({behavior:"smooth",block:"start"}); }
   catch(err){ recordCorrespondenceTelemetry('incoming-analysis',1,0,1); setApiError(state, err, ()=>$("in_analyzeBtn").click()); }
@@ -2943,7 +3014,7 @@ async function genReplies(){
   if(isBusy($("in_replyBtn"))) return;
   const state=$("in_replyState"); state.innerHTML="";
   if(!$("in_reviewOk").checked){ state.innerHTML='<div class="error">Nejdřív potvrď finální kontrolu náhledu pod semaforem anonymizace.</div>'; flashPreview("in"); return; }
-  if(!geminiApiKey && !(IS_TEST_MODE&&window.__TEST_MOCK_GEMINI)){ $("apiPanel").classList.add("open"); state.innerHTML='<div class="error">Chybí klíč k API. Vlož ho nahoře.</div>'; return; }
+  if(!geminiApiKey && !testMockAvailable()){ $("apiPanel").classList.add("open"); state.innerHTML='<div class="error">Chybí klíč k API. Vlož ho nahoře.</div>'; return; }
   const zamer=readChip("in_zamer"),ton=readChip("in_ton"),delka=readChip("in_delka"),oslov=readChip("in_oslov"),adr=readChip("in_adresat");
   const allEls=[...document.querySelectorAll('#in_asks input[data-ask]')];
   const checked=allEls.filter(c=>c.checked).map(c=>ST.in.pozadavky[+c.dataset.ask]).filter(Boolean);
@@ -3184,7 +3255,7 @@ $("my_goBtn").onclick=async()=>{
   const text=(ST.my.clean||"").trim(); const state=$("my_apiState"); state.innerHTML="";
   if(!text){ state.innerHTML='<div class="error">Není co zpracovat — nejdřív vlož text a dej Pokračovat.</div>'; return; }
   if(!$("my_reviewOk").checked){ state.innerHTML='<div class="error">Nejdřív potvrď finální kontrolu náhledu pod semaforem anonymizace.</div>'; flashPreview("my"); return; }
-  if(!geminiApiKey && !(IS_TEST_MODE&&window.__TEST_MOCK_GEMINI)){ $("apiPanel").classList.add("open"); state.innerHTML='<div class="error">Chybí klíč k API. Vlož ho nahoře.</div>'; return; }
+  if(!geminiApiKey && !testMockAvailable()){ $("apiPanel").classList.add("open"); state.innerHTML='<div class="error">Chybí klíč k API. Vlož ho nahoře.</div>'; return; }
   const mode=readChip("my_mode"), flow=readChip("my_flow")||"quick";
   let inferred=null;
   if(mode==="sestavit" && flow==="quick") inferred=inferQuickComposeSettings(text,true);
@@ -3379,7 +3450,7 @@ function openLastPromptDebug(){
   const clr=m.body.querySelector("#dbgClear"); if(clr) clr.onclick=()=>{ try{sessionStorage.removeItem(LAST_PROMPT_SK);localStorage.removeItem(LAST_PROMPT_SK);}catch(_){} m.close(); toast("Debug prompt smazán"); };
 }
 function openTestRunner(auto){
-  const html='<p class="hint">Testy běží lokálně, používají mock Gemini odpovědí a nemají posílat nic do API. Během testu se dočasně změní pracovní vstupy.</p>'+
+  const html='<p class="hint">Testy běží lokálně a používají mock Gemini odpovědí; nic se neposílá do API. Během testu se dočasně mění pracovní vstupy i lokální data aplikace — původní stav se po dokončení obnoví.</p>'+
     '<div class="row"><button class="btn" id="runTestsNow">Spustit testy</button></div>'+
     '<div id="testOut" style="margin-top:12px"></div>';
   const m=openModal("Automatické testy", html, {label:"Automatické testy"});
@@ -3389,14 +3460,28 @@ function openTestRunner(auto){
 }
 function waitFor(cond, ms=1800){ return new Promise((resolve,reject)=>{ const start=Date.now(); const tick=()=>{ try{ if(cond()) return resolve(true); }catch(_){} if(Date.now()-start>ms) return reject(new Error("timeout")); setTimeout(tick,30); }; tick(); }); }
 function assertTest(cond, msg){ if(!cond) throw new Error(msg||"assert failed"); }
-function snapshotTestState(){ return { st:JSON.parse(JSON.stringify(ST)), inRaw:E("in","raw").value, myRaw:E("my","raw").value, key:geminiApiKey, scope:geminiKeyScope, mock:window.__TEST_MOCK_GEMINI }; }
+function snapshotAppStorage(){
+  const snap={local:{},session:{}};
+  const grab=(store,bucket)=>{ try{Object.keys(store).filter(k=>/^(rozbor_|ks5_)/.test(k)).forEach(k=>{bucket[k]=store.getItem(k);});}catch(_){} };
+  grab(localStorage,snap.local); grab(sessionStorage,snap.session); return snap;
+}
+function restoreAppStorage(snap){
+  const put=(store,bucket)=>{ try{Object.keys(store).filter(k=>/^(rozbor_|ks5_)/.test(k)).forEach(k=>{try{store.removeItem(k);}catch(_){}});}catch(_){} try{Object.keys(bucket||{}).forEach(k=>{try{store.setItem(k,bucket[k]);}catch(_){}});}catch(_){} };
+  put(localStorage,snap&&snap.local); put(sessionStorage,snap&&snap.session);
+}
+function snapshotTestState(){ return {storage:snapshotAppStorage(),st:JSON.parse(JSON.stringify(ST)),inRaw:E("in","raw").value,myRaw:E("my","raw").value,key:geminiApiKey,scope:geminiKeyScope,model:geminiModel,mock:window.__TEST_MOCK_GEMINI}; }
 function restoreTestState(snap){
-  ST.in=snap.st.in; ST.my=snap.st.my; E("in","raw").value=snap.inRaw; E("my","raw").value=snap.myRaw; geminiApiKey=snap.key; geminiKeyScope=snap.scope; window.__TEST_MOCK_GEMINI=snap.mock;
-  try{ renderView("in"); renderView("my"); renderKeyTable("in"); renderKeyTable("my"); renderPreview("in"); renderPreview("my"); updateKeyStatus(); }catch(_){}
+  restoreAppStorage(snap.storage);
+  ST.in=snap.st.in; ST.my=snap.st.my; E("in","raw").value=snap.inRaw; E("my","raw").value=snap.myRaw; geminiApiKey=snap.key; geminiKeyScope=snap.scope; geminiModel=snap.model; window.__TEST_MOCK_GEMINI=snap.mock;
+  publishActiveKeyReals("in"); publishActiveKeyReals("my");
+  try{renderView("in");renderView("my");renderKeyTable("in");renderKeyTable("my");renderPreview("in");renderPreview("my");renderTemplates();refreshDeskStatus();updateKeyStatus();updateModelUI();}catch(_){}
 }
 async function runKorespTests(){
   const out=$("testOut"); if(out) out.innerHTML='<div class="loading"><span class="spin"></span>Spouštím testy…</div>';
+  const markerKey="rozbor_test_marker",markerValue="test-"+Date.now();
+  let oldMarker=null; try{oldMarker=localStorage.getItem(markerKey);localStorage.setItem(markerKey,markerValue);}catch(_){}
   const snap=snapshotTestState(); const results=[];
+  window.__setTestRunActive(true);
   const test=async(name, fn)=>{ const t0=performance.now(); try{ await fn(); results.push({name,ok:true,ms:Math.round(performance.now()-t0)}); }catch(e){ results.push({name,ok:false,msg:e.message||String(e),ms:Math.round(performance.now()-t0)}); } };
   try{
     await test("Unit anonymizace telefonu/e-mailu", async()=>{
@@ -3422,27 +3507,54 @@ async function runKorespTests(){
       const badToken=bad.items.find(x=>x.label==="Nezůstala nevyplněná anonymizační značka");
       assertTest(badToken&&!badToken.ok&&badToken.level==="danger","neznámá značka se neměla považovat za vyplněnou");
     });
-    await test("České pády jmen", async()=>{
-      ST.in.raw="Anna Nováková psala. Anně Novákové odpovím. Annu Novákovou pozvu."; ST.in.km=[{real:"Anna Nováková",token:"osoba A",auto:false}];
+    await test("České pády krátkých jmen", async()=>{
+      const cases=[
+        ["Petr","Petrovi zavolám. Petra jsem viděl. S Petrem mluvím.",["Petrovi","Petra","Petrem"]],
+        ["Eva","Evě jsem psal. Evu jsem viděl. S Evou mluvím.",["Evě","Evu","Evou"]],
+        ["Hana","Haně jsem psal. Hanu jsem viděl.",["Haně","Hanu"]],
+        ["Adam","Adamovi jsem psal. Adama jsem viděl.",["Adamovi","Adama"]],
+        ["Olga","Olze jsem psal. Olgu jsem viděl.",["Olze","Olgu"]],
+        ["Tomáš","Tomášovi jsem psal. Tomáše jsem viděl.",["Tomášovi","Tomáše"]],
+        ["Novák","Novákovi jsem psal. Nováka jsem viděl.",["Novákovi","Nováka"]],
+        ["Anna","Anně jsem psal. Annu jsem viděl.",["Anně","Annu"]]
+      ];
+      cases.forEach(([name,text,forms])=>{
+        ST.in.raw=text; ST.in.km=[{real:name,token:"osoba A",auto:false}]; publishActiveKeyReals("in");
+        const c=cleanFromKey("in");
+        const left=forms.filter(f=>new RegExp("(^|[^\\p{L}])"+escRe(f)+"(?=$|[^\\p{L}])","u").test(c));
+        assertTest(!left.length,name+" — zůstaly tvary: "+left.join(", ")+" | "+c);
+      });
+    });
+    await test("České pády celého jména", async()=>{
+      ST.in.raw="Anna Nováková psala. Anně Novákové odpovím. Annu Novákovou pozvu."; ST.in.km=[{real:"Anna Nováková",token:"osoba A",auto:false}]; publishActiveKeyReals("in");
       const c=cleanFromKey("in");
       assertTest((c.match(/osoba A/g)||[]).length===3,"nebyly skryty všechny tvary: "+c);
       assertTest(!/Novákov/.test(c),"zůstal tvar příjmení: "+c);
     });
+    await test("Jedna osoba = jedna značka", async()=>{
+      ST.in.raw="Petr Malý chybí. Petrovi jsem psal. S Petrem mluvím."; ST.in.km=[];
+      addWord("in","Petr"); addWord("in","Petrovi"); addWord("in","Petrem");
+      assertTest(ST.in.km.length===3,"doťukané tvary nebyly přidány samostatně do klíče");
+      assertTest(new Set(ST.in.km.map(k=>k.token)).size===1&&ST.in.km[0].token==="osoba A","tvary jedné osoby dostaly různé značky");
+      assertTest(!/Petr(?:ovi|em)?/.test(ST.in.clean),"v anonymizovaném textu zůstal tvar Petra: "+ST.in.clean);
+    });
     await test("Prázdný profil není anonymizační chyba", async()=>{
-      let old=null; try{old=localStorage.getItem("rozbor_profile");localStorage.removeItem("rozbor_profile");}catch(_){}
-      ST.in.km=[{real:"Jan Novák",token:"osoba A",auto:false}];
-      const r=evaluateDraftReadiness("in","Dobrý den, osoba A,\n\npotvrzuji termín ve čtvrtek.\n\n[podpis]","",{});
-      const token=r.items.find(x=>x.label==="Nezůstala nevyplněná anonymizační značka");
-      const sign=r.items.find(x=>x.label==="Podpis je vyplněný v profilu odesílatele");
-      assertTest(token&&token.ok,"prázdný profil byl zaměněn za anonymizační chybu");
-      assertTest(sign&&!sign.ok&&sign.level==="warn"&&r.level!=="danger","prázdný podpis nemá být červená stopka");
-      try{if(old===null)localStorage.removeItem("rozbor_profile");else localStorage.setItem("rozbor_profile",old);}catch(_){}
+      const keys=["rozbor_profile","ks5_signatures","ks5_selected_signature"],old={};
+      try{keys.forEach(k=>{old[k]=localStorage.getItem(k);localStorage.removeItem(k);});}catch(_){}
+      try{
+        ST.in.km=[{real:"Jan Novák",token:"osoba A",auto:false}]; publishActiveKeyReals("in");
+        const r=evaluateDraftReadiness("in","Dobrý den, osoba A,\n\npotvrzuji termín ve čtvrtek.\n\n[podpis]","",{});
+        const token=r.items.find(x=>x.label==="Nezůstala nevyplněná anonymizační značka");
+        const sign=r.items.find(x=>x.label==="Podpis je vyplněný v profilu odesílatele");
+        assertTest(token&&token.ok,"prázdný profil byl zaměněn za anonymizační chybu");
+        assertTest(sign&&!sign.ok&&sign.level==="warn"&&r.level!=="danger","prázdný podpis nemá být červená stopka");
+      }finally{try{keys.forEach(k=>{if(old[k]===null)localStorage.removeItem(k);else localStorage.setItem(k,old[k]);});}catch(_){}}
     });
     await test("Krátké jméno nespolkne cizí jména", async()=>{
-      ST.in.raw="Jan Novák psal. Jana Nováková také. Janák přišel. Janu pozdravím.";
-      ST.in.km=[{real:"Jan",token:"osoba A",auto:false}];
+      ST.in.raw="Jan Novák psal. Jana Nováková také. Janák přišel. Janoušek odešel.";
+      ST.in.km=[{real:"Jan",token:"osoba A",auto:false}]; publishActiveKeyReals("in");
       const c=cleanFromKey("in");
-      assertTest(c.includes("Jana Nováková")&&c.includes("Janák")&&c.includes("Janu"),"prefixová shoda skryla cizí jméno: "+c);
+      assertTest(c.includes("Jana Nováková")&&c.includes("Janák")&&c.includes("Janoušek"),"shoda skryla cizí jméno: "+c);
       assertTest(c.startsWith("osoba A Novák"),"přesný tvar Jan se neskryl: "+c);
     });
     await test("Školní scénáře používají existující hodnoty", async()=>{
@@ -3513,6 +3625,37 @@ async function runKorespTests(){
       try{await callGemini("x","{}","object",{pane:"in",texts:["Ve třídě došlo k šikaně."]});}catch(e){blocked=e.code==="PREFLIGHT_BLOCKED";}
       window.__TEST_MOCK_GEMINI=oldMock;
       assertTest(required&&blocked,"callGemini nevyžaduje nebo nevynucuje centrální preflight");
+    });
+    await test("Zbylý tvar skrytého jména je stopka", async()=>{
+      const text="Dobrý den, osoba A. Petrovi jsem to předal.";
+      ST.in.km=[{real:"Petr",token:"osoba A",auto:false}]; ST.in.clean=text; publishActiveKeyReals("in"); E("in","reviewOk").checked=true; updateSendGate("in");
+      const iss=preflightIssues(text,"in");
+      assertTest(iss.danger.some(x=>/nezakrytý tvar/.test(x)),"zbylý pád jména není v danger: "+iss.danger.join(", "));
+      assertTest($("in_analyzeBtn").disabled,"zbylý pád jména nezablokoval rozbor");
+      ST.my.km=[{real:"Petr",token:"osoba A",auto:false}]; ST.my.clean=text; publishActiveKeyReals("my"); E("my","reviewOk").checked=true; updateSendGate("my");
+      assertTest($("my_goBtn").disabled,"zbylý pád jména nezablokoval vytvoření e-mailu");
+    });
+    await test("Mock funguje bez ?test=1", async()=>{
+      const old=window.__TEST_MOCK_GEMINI; window.__TEST_MOCK_GEMINI=async()=>({});
+      assertTest(TEST_RUN_ACTIVE&&testMockAvailable(),"mock není aktivní při ručním běhu testů");
+      window.__TEST_MOCK_GEMINI=old;
+    });
+    await test("Kontrola tónu přes mock", async()=>{
+      const old=window.__TEST_MOCK_GEMINI,oldKey=geminiApiKey; geminiApiKey="";
+      window.__TEST_MOCK_GEMINI=async({schema,thinking})=>{assertTest(schema==="tone"&&thinking==="minimal","kontrola tónu nepoužila levné uvažování");return {naladeni:{stupen:"neutral",popis:"věcné"},rizika:["Příliš stručné"],navrh:"Doplnit poděkování"};};
+      ST.in.km=[]; publishActiveKeyReals("in");
+      const wrap=document.createElement("div"),btn=document.createElement("button");
+      await toneCheck("in","Děkuji za zprávu.",wrap,btn);
+      assertTest(!!wrap.querySelector(".tonecard")&&wrap.textContent.includes("Příliš stručné"),"karta kontroly tónu se nevykreslila");
+      window.__TEST_MOCK_GEMINI=old; geminiApiKey=oldKey;
+    });
+    await test("Import cizího souboru je odmítnut", async()=>{
+      let rejected=false; try{applyImportedSettings({_app:"jina-aplikace",profil:{name:"Cizí"}});}catch(e){rejected=/není nastavení/.test(e.message);}
+      assertTest(rejected,"cizí aplikační formát nebyl odmítnut");
+    });
+    await test("Konfigurace Gemini používá doložené limity", async()=>{
+      assertTest(GEMINI_MAX_OUTPUT_TOKENS>=32768,"výstupní limit Gemini je příliš nízký");
+      assertTest(!String(callGemini).includes('thinkingLevel:'+JSON.stringify('low')),"zdroj stále používá nedoložené thinkingLevel low");
     });
     await test("Chybný JSON a validace schématu", async()=>{
       let bad=false; try{ parseModelJson("Jasně, tady je odpověď bez JSON."); }catch(e){ bad=e.code==="BAD_JSON"; }
@@ -3681,7 +3824,12 @@ async function runKorespTests(){
       const zbytek=Object.keys(localStorage).filter(k=>/^(rozbor_|ks5_)/.test(k));
       assertTest(!zbytek.length,"po smazání zůstaly klíče: "+zbytek.join(", "));
     });
-  } finally { restoreTestState(snap); }
+  } finally {
+    restoreTestState(snap); window.__setTestRunActive(false);
+    const markerOk=(()=>{try{return localStorage.getItem(markerKey)===markerValue;}catch(_){return false;}})();
+    results.push({name:"Testy neztratí lokální data",ok:markerOk,msg:markerOk?"":"značkovací hodnota se neobnovila",ms:0});
+    try{if(oldMarker===null)localStorage.removeItem(markerKey);else localStorage.setItem(markerKey,oldMarker);}catch(_){}
+  }
   const pass=results.filter(r=>r.ok).length, fail=results.length-pass;
   if(out){ out.innerHTML='<div class="res-card"><h3>Výsledek</h3><p class="summary">'+pass+'/'+results.length+' testů prošlo'+(fail?' · '+fail+' selhalo':'')+'</p></div>'+results.map(r=>'<div class="test-result '+(r.ok?'ok':'fail')+'"><b>'+(r.ok?'✓ ':'✗ ')+esc(r.name)+'</b><small>'+r.ms+' ms'+(r.msg?' · '+esc(r.msg):'')+'</small></div>').join(""); }
   console.table(results);
@@ -3746,6 +3894,7 @@ function exportSettings(){
 }
 function applyImportedSettings(obj){
   if(!obj || typeof obj!=="object") throw new Error("neplatný soubor");
+  if(obj._app && obj._app!=="korespondencni-asistent") throw new Error("soubor není nastavení Korespondenčního asistenta");
   if(obj.profil && typeof obj.profil==="object"){ try{ localStorage.setItem("rozbor_profile", JSON.stringify(obj.profil)); }catch(_){} }
   if(Array.isArray(obj.slovnikJmen)){ try{ localStorage.setItem("rozbor_dict", JSON.stringify(obj.slovnikJmen)); }catch(_){} }
   if(Array.isArray(obj.sablony)){ try{ localStorage.setItem("rozbor_templates", JSON.stringify(obj.sablony)); }catch(_){} }
@@ -3757,7 +3906,14 @@ function applyImportedSettings(obj){
 function importSettings(file){
   if(!file) return;
   const r=new FileReader();
-  r.onload=()=>{ try{ applyImportedSettings(JSON.parse(String(r.result||"{}"))); toast("Nastavení importováno ✓"); }catch(e){ toast("Import se nepovedl: "+(e.message||"neplatný soubor")); } };
+  r.onload=()=>{ try{
+    const obj=JSON.parse(String(r.result||"{}"));
+    const apply=()=>{try{applyImportedSettings(obj);toast("Nastavení importováno ✓");}catch(e){toast("Import se nepovedl: "+(e.message||"neplatný soubor"));}};
+    if(!obj._app && (obj.profil||obj.slovnikJmen)){
+      const parts=[]; if(obj.profil)parts.push("profil odesílatele"); if(obj.slovnikJmen)parts.push("slovník skutečných jmen");
+      confirmActionModal({title:"Starší soubor nastavení",message:"Soubor nemá identifikaci aplikace. Pokračováním se přepíše "+parts.join(" a ")+". Importovat?",confirmText:"Importovat",onConfirm:apply});
+    }else apply();
+  }catch(e){toast("Import se nepovedl: "+(e.message||"neplatný soubor"));} };
   r.onerror=()=>toast("Soubor se nepovedlo načíst.");
   r.readAsText(file,"utf-8");
 }
@@ -3978,7 +4134,7 @@ window.openBlocksManager=function(el,p){
 window.saveWorkbenchDraft=function(el,p,opts){
   let text=el.__getSrc?el.__getSrc():clean(el.querySelector(".body")&&el.querySelector(".body").innerText);if(!text)return toast("Není co uložit.");
   try{text=applyKeyToText(p,text);}catch(_){}
-  let audit={level:"danger"};try{audit=safetyAudit(text);}catch(_){}
+  let audit={level:"danger"};try{audit=safetyAudit(text,p);}catch(_){}
   if(!text||audit.level==="danger"||hasSensitiveSchoolTerms(text)){toast("Koncept se neuložil: obsahuje údaj, který není bezpečné ukládat. Uložení je dovoleno jen pro anonymizovanou verzi.");return;}
   const a=jget(LS.drafts,[]),item={id:uid("draft"),at:Date.now(),pane:p,label:(opts&&opts.styl)||"Rozpracovaný e-mail",text:safeText(text),variant:(opts&&opts.variantType)||"",safe:true,format:1};
   a.unshift(item);jset(LS.drafts,a.filter(x=>x&&x.safe===true).slice(0,20));el.classList.add("is-saved");refreshDeskStatus();toast("Anonymizovaný koncept uložen ✓");

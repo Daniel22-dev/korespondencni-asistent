@@ -50,7 +50,7 @@ async function fetchSyn(){
     if(safeSentence===null)return;
     const d=await callGemini(
       "Slovo: \""+synCtx.word+"\"\nOkolí: \""+safeSentence+"\"\nVrať 4 vhodná "+lang+" synonyma ve STEJNÉM gramatickém tvaru jako slovo v okolí.",
-      "Jsi "+helper+" jazykový pomocník. Vracíš jen synonyma ve správném tvaru a stejném jazyce jako zadané slovo. Odpověz VÝHRADNĚ platným JSON: {\"synonyma\":[\"…\",\"…\"]}", "synonyms", {pane:synCtx.p,texts:[safeSentence],ackSensitive:!!(ST[synCtx.p]&&ST[synCtx.p].sensitiveAck)}
+      "Jsi "+helper+" jazykový pomocník. Vracíš jen synonyma ve správném tvaru a stejném jazyce jako zadané slovo. Odpověz VÝHRADNĚ platným JSON: {\"synonyma\":[\"…\",\"…\"]}", "synonyms", {pane:synCtx.p,texts:[safeSentence],ackSensitive:!!(ST[synCtx.p]&&ST[synCtx.p].sensitiveAck)}, {thinking:"minimal"}
     );
     const opts=(d&&d.synonyma)||[];
     if(synCtx) ST[synCtx.p].syn[synCtx.word.toLowerCase()]=opts;
@@ -196,7 +196,7 @@ function setNoHistory(on){ try{ localStorage.setItem(NO_HISTORY_SK,on?"1":"0"); 
 function saveHistory(p, label, text){
   if(!text||!String(text).trim()||isNoHistory()) return;
   const safe=applyKeyToText(p,String(text)).trim();
-  let audit={level:"danger"};try{audit=safetyAudit(safe);}catch(_){}
+  let audit={level:"danger"};try{audit=safetyAudit(safe,p);}catch(_){}
   if(!safe||audit.level!=="ok"||hasSensitiveSchoolTerms(safe)) return;
   let h=[]; try{ h=JSON.parse(localStorage.getItem("rozbor_history")||"[]"); }catch(_){}
   h=h.filter(it=>it&&it.safe===true&&it.format===2);
@@ -219,7 +219,7 @@ function signatureText(){
 }
 function profileLine(){ const p=loadProfile(); const role=(p.role||"").trim(); return role?("\nPisatel je "+role+"."):""; }
 async function refineDraft(p, card, srcText, instruction){
-  if(!geminiApiKey && !(IS_TEST_MODE&&window.__TEST_MOCK_GEMINI)){ $("apiPanel").classList.add("open"); toast("Chybí klíč k API."); return; }
+  if(!geminiApiKey && !testMockAvailable()){ $("apiPanel").classList.add("open"); toast("Chybí klíč k API."); return; }
   const safeInstruction=safeAuxiliaryText(p,instruction,null,"Pokyn k úpravě");
   const safeDraft=safeAuxiliaryText(p,srcText,null,"Koncept");
   if(safeInstruction===null || safeDraft===null) return;
@@ -238,14 +238,14 @@ async function refineDraft(p, card, srcText, instruction){
   finally{ card.style.opacity="1"; }
 }
 async function toneCheck(p, srcText, wrap, btn){
-  if(!geminiApiKey){ $("apiPanel").classList.add("open"); toast("Chybí klíč k API."); return; }
+  if(!geminiApiKey && !testMockAvailable()){ $("apiPanel").classList.add("open"); toast("Chybí klíč k API."); return; }
   if(!wrap) return;
   const text=(srcText||"").trim(); if(!text){ toast("Není co posoudit."); return; }
   const safeText=safeAuxiliaryText(p,text,null,"Koncept"); if(safeText===null)return;
   if(btn) btn.disabled=true;
   wrap.innerHTML='<div class="loading"><span class="spin"></span>Čtu, jak to vyzní…</div>';
   try{
-    const d=await callGemini("Koncept:\n\"\"\"\n"+safeText+"\n\"\"\"", SYS_TONECHECK, "tone", {pane:p,texts:[safeText],ackSensitive:!!(ST[p]&&ST[p].sensitiveAck)});
+    const d=await callGemini("Koncept:\n\"\"\"\n"+safeText+"\n\"\"\"", SYS_TONECHECK, "tone", {pane:p,texts:[safeText],ackSensitive:!!(ST[p]&&ST[p].sensitiveAck)}, {thinking:"minimal"});
     const st=(d.naladeni&&d.naladeni.stupen)||"neutral";
     const rizika=Array.isArray(d.rizika)?d.rizika.filter(Boolean):[];
     wrap.innerHTML='<div class="tonecard reveal"><span class="mood" data-s="'+esc(st)+'">'+(MOOD[st]||"Naladění")+'<span class="mtxt">'+esc((d.naladeni&&d.naladeni.popis)||"")+'</span></span>'+

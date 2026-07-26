@@ -124,7 +124,7 @@ window.openBlocksManager=function(el,p){
 window.saveWorkbenchDraft=function(el,p,opts){
   let text=el.__getSrc?el.__getSrc():clean(el.querySelector(".body")&&el.querySelector(".body").innerText);if(!text)return toast("Není co uložit.");
   try{text=applyKeyToText(p,text);}catch(_){}
-  let audit={level:"danger"};try{audit=safetyAudit(text);}catch(_){}
+  let audit={level:"danger"};try{audit=safetyAudit(text,p);}catch(_){}
   if(!text||audit.level==="danger"||hasSensitiveSchoolTerms(text)){toast("Koncept se neuložil: obsahuje údaj, který není bezpečné ukládat. Uložení je dovoleno jen pro anonymizovanou verzi.");return;}
   const a=jget(LS.drafts,[]),item={id:uid("draft"),at:Date.now(),pane:p,label:(opts&&opts.styl)||"Rozpracovaný e-mail",text:safeText(text),variant:(opts&&opts.variantType)||"",safe:true,format:1};
   a.unshift(item);jset(LS.drafts,a.filter(x=>x&&x.safe===true).slice(0,20));el.classList.add("is-saved");refreshDeskStatus();toast("Anonymizovaný koncept uložen ✓");

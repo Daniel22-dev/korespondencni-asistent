@@ -23,4 +23,4 @@ Při změně aplikace zvyš verzi v `js/10-release-changelog.js` v objektu `RELE
 
 ## Staré odkazy
 
-V kořeni webu jsou přesměrovací soubory `Korespondencni-asistent.html` i `korespondencni-asistent.html` — starý odkaz se automaticky přesměruje do této složky.
+Přesměrování historických adres patří do původního společného repozitáře, nikoli do této samostatné aplikace. Postup a souvislosti jsou popsány v `docs/MIGRACE.md`.

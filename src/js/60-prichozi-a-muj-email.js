@@ -1,5 +1,5 @@
 function recordCorrespondenceTelemetry(outputKind,attempted,successful,failed,cancelled=0){
-  if(IS_TEST_MODE)return;
+  if(IS_TEST_MODE||TEST_RUN_ACTIVE)return;
   if(!window.GHRABTelemetry){ try{ logOp("telemetry","unavailable",{outputKind}); }catch(_){} return; }
   try{
     window.GHRABTelemetry.recordOutput({
@@ -20,7 +20,7 @@ $("in_analyzeBtn").onclick=async()=>{
   if(!text){ state.innerHTML='<div class="error">Není co rozebrat — nejdřív vlož a anonymizuj e-mail.</div>'; return; }
   if(!$("in_reviewOk").checked){ state.innerHTML='<div class="error">Nejdřív potvrď finální kontrolu náhledu pod semaforem anonymizace.</div>'; flashPreview("in"); return; }
   if(!enforcePreflight("in", state)) return;
-  if(!geminiApiKey && !(IS_TEST_MODE&&window.__TEST_MOCK_GEMINI)){ $("apiPanel").classList.add("open"); state.innerHTML='<div class="error">Chybí klíč k API. Vlož ho nahoře a zvol „Použít jen pro relaci“.</div>'; return; }
+  if(!geminiApiKey && !testMockAvailable()){ $("apiPanel").classList.add("open"); state.innerHTML='<div class="error">Chybí klíč k API. Vlož ho nahoře a zvol „Použít jen pro relaci“.</div>'; return; }
   const done=setBusy($("in_analyzeBtn"),"Rozebírám…");
   try{ const d=await callGemini(text, SYS_ANALYZE, "analyze", {pane:"in",texts:[text],ackSensitive:!!(ST.in&&ST.in.sensitiveAck)}); ST.in.clean=text; ST.in.pozadavky=Array.isArray(d.pozadavky)?d.pozadavky:[]; ST.in.outputReady=true; state.innerHTML=""; renderAnalysis(d); recordCorrespondenceTelemetry('incoming-analysis',1,1,0); updateProgress("in"); $("in_results").scrollIntoView({behavior:"smooth",block:"start"}); }
   catch(err){ recordCorrespondenceTelemetry('incoming-analysis',1,0,1); setApiError(state, err, ()=>$("in_analyzeBtn").click()); }
@@ -107,7 +107,7 @@ async function genReplies(){
   if(isBusy($("in_replyBtn"))) return;
   const state=$("in_replyState"); state.innerHTML="";
   if(!$("in_reviewOk").checked){ state.innerHTML='<div class="error">Nejdřív potvrď finální kontrolu náhledu pod semaforem anonymizace.</div>'; flashPreview("in"); return; }
-  if(!geminiApiKey && !(IS_TEST_MODE&&window.__TEST_MOCK_GEMINI)){ $("apiPanel").classList.add("open"); state.innerHTML='<div class="error">Chybí klíč k API. Vlož ho nahoře.</div>'; return; }
+  if(!geminiApiKey && !testMockAvailable()){ $("apiPanel").classList.add("open"); state.innerHTML='<div class="error">Chybí klíč k API. Vlož ho nahoře.</div>'; return; }
   const zamer=readChip("in_zamer"),ton=readChip("in_ton"),delka=readChip("in_delka"),oslov=readChip("in_oslov"),adr=readChip("in_adresat");
   const allEls=[...document.querySelectorAll('#in_asks input[data-ask]')];
   const checked=allEls.filter(c=>c.checked).map(c=>ST.in.pozadavky[+c.dataset.ask]).filter(Boolean);
@@ -348,7 +348,7 @@ $("my_goBtn").onclick=async()=>{
   const text=(ST.my.clean||"").trim(); const state=$("my_apiState"); state.innerHTML="";
   if(!text){ state.innerHTML='<div class="error">Není co zpracovat — nejdřív vlož text a dej Pokračovat.</div>'; return; }
   if(!$("my_reviewOk").checked){ state.innerHTML='<div class="error">Nejdřív potvrď finální kontrolu náhledu pod semaforem anonymizace.</div>'; flashPreview("my"); return; }
-  if(!geminiApiKey && !(IS_TEST_MODE&&window.__TEST_MOCK_GEMINI)){ $("apiPanel").classList.add("open"); state.innerHTML='<div class="error">Chybí klíč k API. Vlož ho nahoře.</div>'; return; }
+  if(!geminiApiKey && !testMockAvailable()){ $("apiPanel").classList.add("open"); state.innerHTML='<div class="error">Chybí klíč k API. Vlož ho nahoře.</div>'; return; }
   const mode=readChip("my_mode"), flow=readChip("my_flow")||"quick";
   let inferred=null;
   if(mode==="sestavit" && flow==="quick") inferred=inferQuickComposeSettings(text,true);
