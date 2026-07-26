@@ -79,6 +79,14 @@ async function runKorespTests(){
   window.__setTestRunActive(true);
   const test=async(name, fn)=>{ const t0=performance.now(); try{ await fn(); results.push({name,ok:true,ms:Math.round(performance.now()-t0)}); }catch(e){ results.push({name,ok:false,msg:e.message||String(e),ms:Math.round(performance.now()-t0)}); } };
   try{
+    await test("Úvodní obrazovka nabízí tři pracovní cesty", async()=>{
+      const choices=[...document.querySelectorAll('#teacherDesk [data-start]')];
+      assertTest(choices.length===3,"úvodní obrazovka nemá přesně tři volby");
+      const labels=choices.map(x=>x.textContent.replace(/\s+/g," ").trim()).join(" | ");
+      assertTest(labels.includes("Analýza příchozího e-mailu")&&labels.includes("Sestavení vlastního e-mailu")&&labels.includes("Rychlá školní situace"),"chybí některá vstupní cesta: "+labels);
+      assertTest($("workspaceShell").hidden===true,"pracovní plocha má být při startu skrytá");
+      assertTest(!document.querySelector('.tabs'),"zůstal duplicitní horní přepínač režimů");
+    });
     await test("Unit anonymizace telefonu/e-mailu", async()=>{
       E("in","raw").value="Kontakt: jana@example.cz, tel. +420 777-123-456 a také 777 123 456."; doAnon("in");
       assertTest(ST.in.clean.includes("[e-mail 1]"),"e-mail nebyl nahrazen");
@@ -86,12 +94,24 @@ async function runKorespTests(){
       assertTest(!/777[\s.-]*123[\s.-]*456/.test(stripSafeTokens(ST.in.clean)),"v textu zůstal telefon");
       assertTest(!/jana@example\.cz/.test(ST.in.clean),"v textu zůstal e-mail");
     });
+    await test("Automatika neschovává jména bez potvrzení", async()=>{
+      E("in","raw").value="Daniel Baláž píše Šárce. Kontakt daniel@example.cz, tel. 777 123 456."; doAnon("in");
+      assertTest(ST.in.clean.includes("Daniel Baláž")&&ST.in.clean.includes("Šárce"),"jméno bylo automaticky skryto bez potvrzení člověkem");
+      assertTest(ST.in.clean.includes("[e-mail 1]")&&ST.in.clean.includes("[telefon 1]"),"jednoznačné kontakty nebyly skryty automaticky");
+    });
     await test("Unit rekompozice značek", async()=>{
       ST.in.km=[{real:"Anna Nováková",token:"osoba A"},{real:"jana@example.cz",token:"[e-mail 1]"},{real:"777 123 456",token:"[telefon 1]"}];
       const r=recompose("in","Dobrý den, osoba A, kontakt [e-mail 1], [telefon 1].");
       assertTest(r.includes("Anna Nováková"),"osoba se nevrátila");
       assertTest(r.includes("jana@example.cz"),"e-mail se nevrátil");
       assertTest(r.includes("777 123 456"),"telefon se nevrátil");
+    });
+    await test("České oslovení při vrácení jména", async()=>{
+      ST.in.km=[{real:"Dan",token:"osoba A",auto:false},{real:"Šárka",token:"osoba B",auto:false}];
+      const r=recompose("in","Ahoj osoba A,\nMilá osoba B,\n[podpis]");
+      assertTest(r.includes("Ahoj Dane"),"jméno Dan se nevrátilo ve vokativu: "+r);
+      assertTest(r.includes("Milá Šárko"),"jméno Šárka se nevrátilo ve vokativu: "+r);
+      assertTest(!r.includes("(učitel)"),"zůstal nevyplněný zástupný podpis");
     });
     await test("Kontrola konceptu posuzuje finální text, ne bezpečné značky", async()=>{
       ST.in.km=[{real:"Jan Novák",token:"osoba A",auto:false}];
@@ -303,6 +323,27 @@ async function runKorespTests(){
       assertTest($("in_safety").textContent.includes("Pokračuj") || $("in_safety").textContent.includes("Zkontroluj") || $("in_safety").textContent.includes("Neodesílat"),"semafor nezobrazuje akční text");
       await $("in_analyzeBtn").onclick();
       await waitFor(()=>$("in_results").textContent.includes("Rodič žádá"));
+    });
+    await test("Výběr jedné ze tří variant vyčistí pracovní plochu", async()=>{
+      ST.in.clean="Bezpečný anonymizovaný text."; ST.in.pozadavky=["Potvrdit termín"];
+      renderAnalysis({shrnuti:"Test",naladeni:{stupen:"neutral",popis:""},pozadavky:ST.in.pozadavky,upozorneni:[],doporucenyZamer:"informovat"});
+      E("in","reviewOk").checked=true; geminiApiKey="test";
+      window.__TEST_MOCK_GEMINI=async()=>({navrhy:[
+        {typ:"strucna",styl:"Stručná",text:"Stručná odpověď. [podpis]"},
+        {typ:"standardni",styl:"Standardní",text:"Standardní odpověď. [podpis]"},
+        {typ:"diplomaticka",styl:"Diplomatická",text:"Diplomatická odpověď. [podpis]"}
+      ]});
+      await genReplies();
+      const cards=[...document.querySelectorAll('#in_replies .variant-choice-card')];
+      assertTest(cards.length===3,"nevznikly tři varianty");
+      assertTest(document.querySelectorAll('#in_replies .act-pick-variant').length===3,"každá varianta nemá jasnou volbu");
+      assertTest(!document.querySelector('#in_replies #compareVariants')&&!document.querySelector('#in_replies .variant-tabs'),"zůstalo duplicitní přepínání nebo porovnání");
+      cards[1].querySelector('.act-pick-variant').click();
+      assertTest(cards[1].classList.contains('selected-variant')&&!cards[1].hidden,"vybraná varianta není aktivní");
+      assertTest(cards[0].hidden&&cards[2].hidden,"nevybrané varianty se neschovaly");
+      const actions=cards[1].querySelector('.actions');
+      assertTest(actions&&!actions.hidden,"finální akce se po výběru nezobrazily");
+      document.querySelector('#backToVariants').click();
     });
     await test("Odškrtnutí všech požadavků se nevrátí k původním", async()=>{
       ST.in.clean="Bezpečný anonymizovaný text."; ST.in.pozadavky=["První bod","Druhý bod"];

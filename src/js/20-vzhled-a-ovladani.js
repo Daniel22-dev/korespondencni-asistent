@@ -133,30 +133,40 @@ document.addEventListener("fullscreenchange",applyFsIcon);
 document.addEventListener("webkitfullscreenchange",applyFsIcon);
 
 function bindShellControls(){
-  const tabIn=$("tabIn"), tabMy=$("tabMy"), mode=$("btnMode"), fs=$("btnFs");
+  const tabIn=$("tabIn"), tabMy=$("tabMy"), mode=$("btnMode"), fs=$("btnFs"), back=$("backToStart");
   if(tabIn) tabIn.addEventListener("click",()=>switchTab("in"));
   if(tabMy) tabMy.addEventListener("click",()=>switchTab("my"));
+  if(back) back.addEventListener("click",showStartScreen);
   if(mode) mode.addEventListener("click",toggleMode);
   if(fs) fs.addEventListener("click",toggleFullscreen);
-  [tabIn,tabMy].filter(Boolean).forEach(tab=>tab.addEventListener("keydown",e=>{
-    if(!["ArrowLeft","ArrowRight","Home","End"].includes(e.key)) return;
-    e.preventDefault();
-    const target=(e.key==="ArrowLeft"||e.key==="Home")?tabIn:tabMy;
-    if(target){ target.focus(); switchTab(target===tabIn?"in":"my"); }
-  }));
 }
 
-/* ===================== ZÁLOŽKY ===================== */
+/* ===================== VOLBA PRACOVNÍHO POSTUPU ===================== */
+function showWorkspace(p){
+  const shell=$("workspaceShell"),desk=$("teacherDesk"),ctx=$("workspaceContext"),bar=$("globalActionBar");
+  if(shell) shell.hidden=false;
+  if(desk) desk.hidden=true;
+  if(bar) bar.hidden=false;
+  if(ctx) ctx.textContent=p==="my"?"Sestavení vlastního e-mailu":"Analýza příchozího e-mailu";
+}
+function showStartScreen(){
+  const shell=$("workspaceShell"),desk=$("teacherDesk"),bar=$("globalActionBar");
+  if(shell) shell.hidden=true;
+  if(bar) bar.hidden=true;
+  if(desk){desk.hidden=false;desk.scrollIntoView({behavior:"smooth",block:"start"});}
+  [$("tabIn"),$("tabMy")].filter(Boolean).forEach(x=>{x.classList.remove("active");x.setAttribute("aria-pressed","false");});
+  hideSyn();
+}
 function switchTab(p){
-  $("tabIn").classList.toggle("active", p === "in");
-  $("tabMy").classList.toggle("active", p === "my");
-  $("tabIn").setAttribute("aria-selected",p==="in"?"true":"false");
-  $("tabMy").setAttribute("aria-selected",p==="my"?"true":"false");
-  $("tabIn").tabIndex=p==="in"?0:-1; $("tabMy").tabIndex=p==="my"?0:-1;
-  $("pane-in").classList.toggle("active", p === "in");
-  $("pane-my").classList.toggle("active", p === "my");
+  const tabIn=$("tabIn"),tabMy=$("tabMy"),paneIn=$("pane-in"),paneMy=$("pane-my");
+  if(tabIn){tabIn.classList.toggle("active",p==="in");tabIn.setAttribute("aria-pressed",p==="in"?"true":"false");}
+  if(tabMy){tabMy.classList.toggle("active",p==="my");tabMy.setAttribute("aria-pressed",p==="my"?"true":"false");}
+  if(paneIn)paneIn.classList.toggle("active",p==="in");
+  if(paneMy)paneMy.classList.toggle("active",p==="my");
+  showWorkspace(p);
   hideSyn();
   updateProgress(p);
+  const source=E(p,"raw"); if(source) setTimeout(()=>source.focus({preventScroll:true}),0);
 }
 function activePane(){ return $("pane-my") && $("pane-my").classList.contains("active") ? "my" : "in"; }
 function updateProgress(p){

@@ -357,7 +357,7 @@ function doAnon(p){
   buildKey(st, autoDetect(raw));
   afterKeyChange(p);
   const kd=E(p,"keyDetails"); if(kd) kd.open=document.body.classList.contains("ui-advanced");
-  E(p,"step2").style.display="block";
+  E(p,"step2").style.display="grid";
   E(p,"step2").scrollIntoView({behavior:"smooth",block:"start"});
   updateProgress(p);
 }
@@ -695,15 +695,53 @@ function flashPreview(p){
 });
 
 /* ===================== SKLÁDÁNÍ / ZNAČKY ===================== */
+const VOCATIVE_EXACT={
+  "dan":"Dane","daniel":"Danieli","jan":"Jane","petr":"Petře","pavel":"Pavle","karel":"Karle","marek":"Marku","jiří":"Jiří","jiri":"Jiří","ondřej":"Ondřeji","ondrej":"Ondřeji","matěj":"Matěji","matej":"Matěji","tadeáš":"Tadeáši","tadeas":"Tadeáši","lukáš":"Lukáši","lukas":"Lukáši","tomáš":"Tomáši","tomas":"Tomáši","michal":"Michale","martin":"Martine","jakub":"Jakube","filip":"Filipe","radek":"Radku","vojtěch":"Vojtěchu","vojtech":"Vojtěchu","aleš":"Aleši","ales":"Aleši","miloš":"Miloši","milos":"Miloši"
+};
+function preserveInitialCase(source,value){
+  if(!source)return value;
+  return source[0]===source[0].toLocaleUpperCase("cs-CZ")?value[0].toLocaleUpperCase("cs-CZ")+value.slice(1):value.toLocaleLowerCase("cs-CZ");
+}
+function czechVocativeWord(word){
+  const src=String(word||"").trim(),lo=src.toLocaleLowerCase("cs-CZ"); if(!lo)return src;
+  if(VOCATIVE_EXACT[lo])return preserveInitialCase(src,VOCATIVE_EXACT[lo]);
+  let out=lo;
+  if(/a$/.test(lo))out=lo.slice(0,-1)+"o";
+  else if(/(?:š|ž|č|ř|c|j)$/.test(lo))out=lo+"i";
+  else if(/(?:k|g|ch)$/.test(lo))out=lo+"u";
+  else if(/(?:n|m|b|p|v|f|s|z|t|d|l|r)$/.test(lo))out=lo+"e";
+  return preserveInitialCase(src,out);
+}
+function nameParts(real){
+  const titles=/^(?:mgr|ing|bc|mudr|rndr|phdr|judr|doc|prof)\.?$/i;
+  return String(real||"").replace(/[<>]/g," ").split(/\s+/).map(x=>x.replace(/^[,.;:]+|[,.;:]+$/g,"")).filter(x=>x&&!titles.test(x));
+}
+function salutationName(reals,lead){
+  const one=(reals||[]).map(String).filter(x=>nameParts(x).length===1).sort((a,b)=>a.length-b.length)[0];
+  const canonical=(reals||[]).map(String).sort((a,b)=>b.length-a.length)[0]||"";
+  const parts=nameParts(one||canonical); if(!parts.length)return canonical;
+  const useLast=/\b(?:pane|paní)\s*$/i.test(String(lead||""));
+  return czechVocativeWord(useLast?parts[parts.length-1]:parts[0]);
+}
 function recompose(p, text){
-  let t=text; [...ST[p].km].sort((a,b)=>b.token.length-a.token.length).forEach(k=>{ if(k.token&&k.real) t=t.replace(new RegExp(escRe(k.token),"g"),k.real); });
-  t=t.replace(/\[podpis\]|\[učitel\]/g, signatureText());
+  let t=String(text||"");
+  const groups=new Map();
+  (ST[p].km||[]).forEach(k=>{if(!k||!k.token||!k.real)return;const a=groups.get(k.token)||[];if(!a.includes(k.real))a.push(k.real);groups.set(k.token,a);});
+  [...groups.entries()].sort((a,b)=>b[0].length-a[0].length).forEach(([token,reals])=>{
+    const canonical=[...reals].sort((a,b)=>String(b).length-String(a).length)[0];
+    if(/^osoba\b/.test(token)){
+      const salRe=new RegExp("((?:Ahoj|Milý|Milá|Vážený|Vážená|Pane|Paní)\\s+)"+escRe(token)+"(?=\\s*[,!?.]|\\s|$)","gi");
+      t=t.replace(salRe,(m,lead)=>lead+salutationName(reals,lead));
+    }
+    t=t.replace(new RegExp(escRe(token),"g"),canonical);
+  });
+  t=t.replace(/\[podpis\]|\[učitel\]|\(\s*učitel\s*\)/gi, signatureText());
   return t;
 }
 function tokenizeHTML(p, text){
   let html=esc(text);
   [...new Set(ST[p].km.map(k=>k.token).filter(Boolean))].sort((a,b)=>b.length-a.length).forEach(t=>{ html=html.replace(new RegExp(escRe(esc(t)),"g"),'<span class="token '+tokenClass(t)+'">'+esc(t)+'</span>'); });
-  html=html.replace(/\[podpis\]|\[učitel\]/g, m=>'<span class="token t-sign" title="Nahradí se tvým podpisem z profilu.">'+m+'</span>');
+  html=html.replace(/\[podpis\]|\[učitel\]|\(\s*učitel\s*\)/gi, m=>'<span class="token t-sign" title="Nahradí se tvým podpisem z profilu.">'+m+'</span>');
   return html;
 }
 

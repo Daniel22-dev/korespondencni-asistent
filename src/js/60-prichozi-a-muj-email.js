@@ -28,7 +28,10 @@ $("in_analyzeBtn").onclick=async()=>{
 };
 const MOOD={klid:"Klid",neutral:"Neutrální",napeti:"Napětí"};
 function renderAnalysis(d){
-  const wrap=$("in_results"); wrap.innerHTML=""; ST.in.analysis=d||{};
+  const wrap=$("in_results"); wrap.innerHTML=""; wrap.className="ai-results-stage"; ST.in.analysis=d||{};
+  const stageHead=document.createElement("div"); stageHead.className="ai-stage-divider reveal";
+  stageHead.innerHTML='<span class="ai-stage-kicker">1 request dokončen</span><div><p class="eyebrow">Nový pracovní blok</p><h2>Výsledek z Gemini: rozbor e-mailu</h2><p>Anonymizovaný text už byl odeslán a níže vidíš pouze jeho analýzu. Teď vyber, co má budoucí odpověď skutečně vyřídit.</p></div>';
+  wrap.appendChild(stageHead);
   const st=(d.naladeni&&d.naladeni.stupen)||"neutral";
   const priority=(d.priorita||"tyden").toLowerCase();
   const priorityMeta={
@@ -67,7 +70,10 @@ function renderAnalysis(d){
   if(Array.isArray(d.upozorneni)&&d.upozorneni.length){ const c=document.createElement("div"); c.className="res-card reveal"; c.innerHTML='<h3>Na co si dát pozor</h3>'+d.upozorneni.map(x=>'<div class="warn">'+esc(x)+'</div>').join(""); wrap.appendChild(c); }
 
   const sug=ZAMER[d.doporucenyZamer]?d.doporucenyZamer:"vysvetlit";
-  const pc=document.createElement("div"); pc.className="res-card reveal params"; pc.dataset.workspaceStage="draft";
+  const replyHead=document.createElement("div"); replyHead.className="reply-setup-divider reveal";
+  replyHead.innerHTML='<p class="eyebrow">Další pracovní blok</p><h2>Nastavení odpovědi</h2><p>Zvol adresáta, záměr a další parametry. Poznámka pro odpověď se skutečně přidá do promptu a aplikace v ní před odesláním nahradí známá jména značkami.</p>';
+  wrap.appendChild(replyHead);
+  const pc=document.createElement("div"); pc.className="res-card reveal params reply-setup-card"; pc.dataset.workspaceStage="draft";
   pc.innerHTML='<h3>Vytvořit tři varianty odpovědi</h3><p class="hintline">Dostaneš stručnou, standardní a diplomatickou variantu. Všechny reagují na stejné zaškrtnuté body.</p>'+
     '<div class="pgroup simple-hide"><div class="plabel" title="Komu odpovídáš. Předvolí oslovení i tón.">Adresát</div>'+chipGroup("in_adresat",ADRESAT,"rodic")+'</div>'+
     '<div class="pgroup simple-hide"><div class="plabel">Záměr</div>'+chipGroup("in_zamer",ZAMER,sug)+'</div>'+
@@ -137,23 +143,45 @@ async function genReplies(){
       if(idx<0) return null;
       pouzite.add(idx); return navrhy[idx];
     }).filter(Boolean);
-    const toolbar=document.createElement("div"); toolbar.className="reply-toolbar";
-    toolbar.innerHTML='<div><p class="eyebrow">Hotové návrhy</p><h3>Vyber variantu, která nejlépe sedí situaci</h3></div><div class="variant-tabs" role="tablist">'+types.slice(0,navrhy.length).map((t,i)=>'<button class="variant-tab '+(i===0?'on':'')+'" type="button" data-variant-tab="'+i+'">'+({strucna:"Stručná",standardni:"Standardní",diplomaticka:"Diplomatická"}[t])+'</button>').join("")+'<button class="variant-tab" type="button" id="compareVariants">Porovnat rozdíly</button></div>';
-    const grid=document.createElement("div"); grid.className="reply-grid";
+    const toolbar=document.createElement("div"); toolbar.className="reply-toolbar reply-choice-head";
+    toolbar.innerHTML='<div><p class="eyebrow">Hotové návrhy</p><h3>Nejdřív pouze vyber jednu variantu</h3><p>Přečti si tři návrhy vedle sebe. Úpravy, kontrola a finální akce se zobrazí až u zvolené varianty.</p></div>';
+    const grid=document.createElement("div"); grid.className="reply-grid variant-choice-grid";
+    const cards=[];
+    const selectVariant=(card)=>{
+      cards.forEach(c=>{
+        const selected=c===card;
+        c.hidden=!selected;
+        c.classList.toggle("selected-variant",selected);
+        c.querySelectorAll(".selection-hidden").forEach(x=>x.hidden=!selected);
+        const body=c.querySelector(".body"); if(body) body.contentEditable=selected?"true":"false";
+      });
+      grid.classList.add("has-selection");
+      toolbar.innerHTML='<div><p class="eyebrow">Vybraná varianta</p><h3>'+esc(({strucna:"Stručná",standardni:"Standardní",diplomaticka:"Diplomatická"}[card.dataset.variant]||"Vybraná"))+'</h3><p>Teď ji můžeš ručně upravit, zadat jeden vlastní pokyn, zkontrolovat a použít.</p></div><button class="btn ghost small" type="button" id="backToVariants">← Zpět ke třem variantám</button>';
+      toolbar.querySelector("#backToVariants").onclick=()=>{
+        cards.forEach(c=>{c.hidden=false;c.classList.remove("selected-variant");c.querySelectorAll(".selection-hidden").forEach(x=>x.hidden=true);const b=c.querySelector(".body");if(b)b.contentEditable="false";});
+        grid.classList.remove("has-selection");
+        toolbar.innerHTML='<div><p class="eyebrow">Hotové návrhy</p><h3>Nejdřív pouze vyber jednu variantu</h3><p>Přečti si tři návrhy vedle sebe. Úpravy, kontrola a finální akce se zobrazí až u zvolené varianty.</p></div>';
+      };
+      if(typeof setActiveDraftCard==="function") setActiveDraftCard(card,"in");
+      card.scrollIntoView({behavior:"smooth",block:"start"});
+    };
     navrhy.forEach((n,i)=>{
       const type=n.typ||types[i]||"standardni";
-      const card=draftCard("in",{styl:n.styl||({strucna:"Rychlá věcná odpověď",standardni:"Vyvážená profesionální odpověď",diplomaticka:"Citlivější diplomatická odpověď"}[type]),variantType:type,text:n.text||"",cover:{pokryva:n.pokryva,vynechava:n.vynechava},sourceText:ST.in.clean,hint:"Text můžeš přímo upravovat. Uzamkni formulace, které se při další AI úpravě nesmějí změnit."});
-      if(i===0) card.classList.add("is-active"); grid.appendChild(card);
+      const card=draftCard("in",{styl:n.styl||({strucna:"Rychlá věcná odpověď",standardni:"Vyvážená profesionální odpověď",diplomaticka:"Citlivější diplomatická odpověď"}[type]),variantType:type,text:n.text||"",cover:{pokryva:n.pokryva,vynechava:n.vynechava},sourceText:ST.in.clean,hint:"Text můžeš po výběru přímo upravit nebo zadat jeden vlastní pokyn k úpravě.",deferActive:true});
+      card.classList.add("variant-choice-card");
+      const editor=card.querySelector(".editor-toolbar"); if(editor) editor.remove();
+      const locked=card.querySelector(".locked-list"); if(locked) locked.remove();
+      const chooser=document.createElement("div"); chooser.className="variant-pick"; chooser.innerHTML='<button class="btn primary act-pick-variant" type="button">Vybrat tuto variantu</button>';
+      const body=card.querySelector(".body"); if(body) body.contentEditable="false";
+      const firstFinal=card.querySelector(".tweakrow"); if(firstFinal) card.insertBefore(chooser,firstFinal); else card.appendChild(chooser);
+      const finalActions=card.querySelector(".actions"); if(finalActions&&firstFinal) card.insertBefore(finalActions,firstFinal);
+      card.querySelectorAll(".tweakrow,.draft-check,.tone-wrap,.actions,.hintline").forEach(x=>{x.classList.add("selection-hidden");x.hidden=true;});
+      const tweak=card.querySelector(".tweak-in"); if(tweak) tweak.placeholder="Napiš jednu konkrétní úpravu, např. doplň termín nebo změkči závěr";
+      chooser.querySelector(".act-pick-variant").onclick=()=>selectVariant(card);
+      cards.push(card); grid.appendChild(card);
     });
     box.appendChild(toolbar); box.appendChild(grid);
-    toolbar.querySelectorAll("[data-variant-tab]").forEach(btn=>btn.onclick=()=>{
-      toolbar.querySelectorAll("[data-variant-tab]").forEach(x=>x.classList.toggle("on",x===btn));
-      [...grid.querySelectorAll(".draft")].forEach((c,i)=>c.classList.toggle("is-active",i===+btn.dataset.variantTab));
-      const active=[...grid.querySelectorAll(".draft")][+btn.dataset.variantTab]; if(active&&typeof setActiveDraftCard==="function") setActiveDraftCard(active,"in");
-    });
-    const compare=toolbar.querySelector("#compareVariants"); if(compare) compare.onclick=()=>{ if(typeof openDraftComparison==="function") openDraftComparison([...grid.querySelectorAll(".draft")]); };
     ST.in.outputReady=true; updateProgress("in"); if(typeof markWorkspaceStage==="function") markWorkspaceStage("draft");
-    const first=grid.querySelector(".draft"); if(first&&typeof setActiveDraftCard==="function") setActiveDraftCard(first,"in");
     recordCorrespondenceTelemetry('reply-draft',3,navrhy.length,Math.max(0,3-navrhy.length));
   }catch(err){ recordCorrespondenceTelemetry('reply-draft',3,0,3); setApiError(state,err,()=>$("in_replyBtn").click()); }
   finally{ done(); }

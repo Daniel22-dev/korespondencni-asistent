@@ -187,7 +187,7 @@ function draftCard(p, opts){
   if(tw) tw.addEventListener("keydown",(e)=>{ if(e.key==="Enter"){ e.preventDefault(); el.querySelector(".tweak-go").click(); } });
   el.querySelector(".act-tone").onclick=(e)=>toneCheck(p,getSrc(),el.querySelector(".tone-wrap"),e.currentTarget);
   updateRevisionButtons();
-  setTimeout(()=>{ if(typeof refreshDraftReadiness==="function") refreshDraftReadiness(el,p); if(typeof setActiveDraftCard==="function") setActiveDraftCard(el,p); },0);
+  setTimeout(()=>{ if(typeof refreshDraftReadiness==="function") refreshDraftReadiness(el,p); if(!opts.deferActive && typeof setActiveDraftCard==="function") setActiveDraftCard(el,p); },0);
   return el;
 }
 function splitSubject(text){ const m=text.match(/^\s*Předmět:\s*(.+?)\s*\n([\s\S]*)$/); return m?{subject:m[1].trim(), body:m[2].replace(/^\s+/,"")}:{subject:"", body:text}; }

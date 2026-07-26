@@ -5,7 +5,7 @@
     "cs": "Korespondenční asistent",
     "en": "Correspondence Assistant"
   },
-  "version": "5.2.6",
+  "version": "5.3.0",
   "status": {
     "cs": "Pracovní pilotní verze",
     "en": "Working pilot release"
@@ -40,5 +40,5 @@
     "materialSchema": "ghrab-material-v1",
     "studioBridge": "1.3"
   },
-  "publishedAt": "2026-07-26T06:16:50.304Z"
+  "publishedAt": "2026-07-26T13:48:56.144Z"
 }

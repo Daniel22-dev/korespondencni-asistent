@@ -10,10 +10,6 @@
           </div>
           <div class="school-name">GYMNÁZIUM, OSTRAVA-HRABŮVKA</div>
         </div>
-        <div class="tabs" role="tablist" aria-label="Režim práce">
-          <button class="tab active" id="tabIn" role="tab" aria-selected="true" aria-controls="pane-in" title="Rozebrat přijatý e-mail a navrhnout odpověď">Příchozí</button>
-          <button class="tab" id="tabMy" role="tab" aria-selected="false" aria-controls="pane-my" tabindex="-1" title="Opravit, přepsat nebo sestavit e-mail z bodů">Můj e-mail</button>
-        </div>
       </div>
       <div style="display:flex;gap:8px;flex:0 0 auto">
         <button class="icon-btn" id="btnMode" aria-label="Přepnout denní a noční režim" title="Denní / noční režim">🌙</button>
@@ -95,33 +91,41 @@
     </div>
   </header>
 
-  <section class="teacher-desk" id="teacherDesk" aria-labelledby="teacherDeskTitle">
+  <section class="teacher-desk start-screen" id="teacherDesk" aria-labelledby="teacherDeskTitle">
     <div class="teacher-desk-head">
       <div>
-        <p class="eyebrow">Rychlá práce a rozpracované úkoly</p>
-        <h2 id="teacherDeskTitle">Co chceš otevřít nebo dokončit?</h2>
-        <p>Hlavní režim zvolíš nahoře přepínačem <strong>Příchozí / Můj e-mail</strong>. Tady najdeš už jen rychlé školní situace, koncepty a navazující úkoly.</p>
+        <p class="eyebrow">Začni výběrem úkolu</p>
+        <h2 id="teacherDeskTitle">Co chceš dnes vyřídit?</h2>
+        <p>Vyber jednu ze tří cest. Pracovní prostředí se otevře až podle toho, zda reaguješ na přijatou zprávu, píšeš vlastní e-mail, nebo řešíš typickou školní situaci.</p>
       </div>
-      <button class="btn ghost small" id="deskCollapse" type="button" aria-expanded="true">Skrýt úvod</button>
     </div>
-    <div class="desk-actions single-action" id="deskActions">
-      <button class="desk-action primary-card" type="button" data-start="scenario">
-        <span class="desk-action-icon">⚡</span><span><b>Rychlá školní situace</b><small>Absence, známka, konzultace, stížnost, vedení a další.</small></span>
+    <div class="desk-actions start-actions" id="deskActions" aria-label="Volba pracovního postupu">
+      <button class="desk-action start-card" id="tabIn" type="button" data-start="in" aria-controls="pane-in" aria-pressed="false" title="Rozebrat přijatý e-mail a připravit odpověď">
+        <span class="desk-action-icon">🔎</span><span><b>Analýza příchozího e-mailu</b><small>Vlož přijatou zprávu, bezpečně ji anonymizuj, nech ji rozebrat a vytvoř odpověď.</small></span>
+      </button>
+      <button class="desk-action start-card" id="tabMy" type="button" data-start="my" aria-controls="pane-my" aria-pressed="false" title="Opravit, přepsat nebo sestavit vlastní e-mail">
+        <span class="desk-action-icon">✍️</span><span><b>Sestavení vlastního e-mailu</b><small>Oprav koncept, přepiš jej do vhodného tónu nebo sestav nový e-mail z bodů.</small></span>
+      </button>
+      <button class="desk-action start-card primary-card" type="button" data-start="scenario" title="Vybrat připravenou školní situaci">
+        <span class="desk-action-icon">⚡</span><span><b>Rychlá školní situace</b><small>Začni přednastaveným scénářem: absence, známka, konzultace, stížnost, vedení a další.</small></span>
       </button>
     </div>
-    <div class="desk-lower" id="deskLower">
-      <div class="desk-section">
-        <div class="desk-section-head"><b>Nejčastější situace</b><button class="link-btn" id="openScenarioLibrary" type="button">Všechny scénáře</button></div>
-        <div class="quick-scenarios" id="quickScenarios" aria-label="Rychlé školní situace"></div>
+    <details class="desk-secondary" id="deskSecondary">
+      <summary>Rozpracované a často používané úkoly</summary>
+      <div class="desk-lower" id="deskLower">
+        <div class="desk-section">
+          <div class="desk-section-head"><b>Nejčastější situace</b><button class="link-btn" id="openScenarioLibrary" type="button">Všechny scénáře</button></div>
+          <div class="quick-scenarios" id="quickScenarios" aria-label="Rychlé školní situace"></div>
+        </div>
+        <div class="desk-section compact">
+          <div class="desk-section-head"><b>Rozpracované a navazující úkoly</b><button class="link-btn" id="openFollowups" type="button">Spravovat</button></div>
+          <div class="desk-status" id="deskStatus">Zatím žádný uložený koncept ani připomínka.</div>
+        </div>
       </div>
-      <div class="desk-section compact">
-        <div class="desk-section-head"><b>Rozpracované a navazující úkoly</b><button class="link-btn" id="openFollowups" type="button">Spravovat</button></div>
-        <div class="desk-status" id="deskStatus">Zatím žádný uložený koncept ani připomínka.</div>
-      </div>
-    </div>
+    </details>
   </section>
 
-  <div class="workspace-shell">
+  <div class="workspace-shell" id="workspaceShell" hidden>
     <nav class="workspace-nav" id="workspaceNav" aria-label="Pracovní postup">
       <button type="button" data-jump="source" class="is-current"><span>1</span>Zdroj</button>
       <button type="button" data-jump="privacy"><span>2</span>Anonymizace</button>
@@ -130,6 +134,10 @@
       <button type="button" data-jump="check"><span>5</span>Kontrola</button>
     </nav>
     <main class="workspace-main">
+      <div class="workspace-context-bar">
+        <button class="btn ghost small" id="backToStart" type="button"><span class="action-icon">←</span>Změnit typ úkolu</button>
+        <span id="workspaceContext">Pracovní prostředí</span>
+      </div>
 
   <!-- ================= PŘÍCHOZÍ ================= -->
   <div class="tabpane active" id="pane-in" role="tabpanel" aria-labelledby="tabIn">
@@ -147,9 +155,14 @@
         </div>
       </div>
 
-      <div id="in_step2" style="display:none">
-        <div class="card" style="margin-top:16px">
-          <div class="step-head"><span class="step-no">2</span><span class="step-title">Skryj jména — ťukni do textu</span></div>
+      <div id="in_step2" class="privacy-stage" style="display:none">
+        <div class="privacy-stage-head">
+          <p class="eyebrow">Bezpečnostní příprava · bez odeslání</p>
+          <h2>Označ údaje a hned vedle zkontroluj přesný obsah pro Gemini</h2>
+          <p>Levá část zůstává pouze v tomto prohlížeči. Pravá část je jediný text, který může po tvém potvrzení odejít do AI.</p>
+        </div>
+        <div class="card privacy-local-panel">
+          <div class="step-head"><span class="step-no">2A</span><span class="step-title">A. Označ citlivé údaje — zůstávají jen v prohlížeči</span></div>
           <p class="tap-hint">Ťukni na jméno nebo údaj, který chceš skrýt — zežloutne jako značka. U jména a příjmení stačí ťuknout na jednu část; aplikace spojí sousední celé jméno do jedné osoby. Ťuknutím na značku ho zase odkryješ. Chceš upravit samotný text? Uprav ho nahoře a dej <b>Anonymizovat znovu</b>.</p>
           <div class="tap-cue"><span class="arrow action-icon" data-ic="down" aria-hidden="true"></span><span>Ťukni na jména a vlastní názvy v textu níže — skryjí se jako značka. E-maily a telefony jsou už skryté.</span></div>
           <div class="tapview" id="in_view"></div>
@@ -169,10 +182,10 @@
           </details>
         </div>
 
-        <div class="threshold">
-          <span class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Hranice bezpečnosti</span>
+        <div class="threshold privacy-outgoing-panel">
+          <span class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>B. Hranice bezpečnosti</span>
           <div class="outside-wrap">
-            <p class="safe-local-label">Tady už nejsi jen v bezpečné části. Níže je přesný náhled, který by se po potvrzení odeslal do Gemini.</p>
+            <p class="safe-local-label"><strong>Od této hranice začíná obsah pro Gemini.</strong> Níže vidíš přesně to, co se odešle až po zaškrtnutí kontroly a stisknutí hlavního tlačítka.</p>
             <p class="zone-label out-zone"><span class="dot"></span>Toto by odešlo do Gemini</p>
             <div class="safety" id="in_safety">Semafor anonymizace se zobrazí po vložení textu.</div>
             <div class="safe-fallback" id="in_safeFallback" aria-live="polite"></div>
@@ -208,9 +221,14 @@
         </div>
       </div>
 
-      <div id="my_step2" style="display:none">
-        <div class="card" style="margin-top:16px">
-          <div class="step-head"><span class="step-no">2</span><span class="step-title">Skryj jména — ťukni do textu</span></div>
+      <div id="my_step2" class="privacy-stage" style="display:none">
+        <div class="privacy-stage-head">
+          <p class="eyebrow">Bezpečnostní příprava · bez odeslání</p>
+          <h2>Označ údaje a hned vedle zkontroluj přesný obsah pro Gemini</h2>
+          <p>Levá část zůstává pouze v tomto prohlížeči. Pravá část je jediný text, který může po tvém potvrzení odejít do AI.</p>
+        </div>
+        <div class="card privacy-local-panel">
+          <div class="step-head"><span class="step-no">2A</span><span class="step-title">A. Označ citlivé údaje — zůstávají jen v prohlížeči</span></div>
           <p class="tap-hint">Ťukni na jméno nebo údaj, který chceš skrýt — zežloutne jako značka. U jména a příjmení stačí ťuknout na jednu část; aplikace spojí sousední celé jméno do jedné osoby. Ťuknutím na značku ho zase odkryješ. Chceš upravit samotný text? Uprav ho nahoře a dej <b>Anonymizovat znovu</b>.</p>
           <div class="tap-cue"><span class="arrow action-icon" data-ic="down" aria-hidden="true"></span><span>Ťukni na jména a vlastní názvy v textu níže — skryjí se jako značka. E-maily a telefony jsou už skryté.</span></div>
           <div class="tapview" id="my_view"></div>
@@ -230,10 +248,10 @@
           </details>
         </div>
 
-        <div class="threshold">
-          <span class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Hranice bezpečnosti</span>
+        <div class="threshold privacy-outgoing-panel">
+          <span class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>B. Hranice bezpečnosti</span>
           <div class="outside-wrap">
-            <p class="safe-local-label">Tady už nejsi jen v bezpečné části. Níže je přesný náhled, který by se po potvrzení odeslal do Gemini.</p>
+            <p class="safe-local-label"><strong>Od této hranice začíná obsah pro Gemini.</strong> Níže vidíš přesně to, co se odešle až po zaškrtnutí kontroly a stisknutí hlavního tlačítka.</p>
             <p class="zone-label out-zone"><span class="dot"></span>Toto by odešlo do Gemini</p>
             <div class="safety" id="my_safety">Semafor anonymizace se zobrazí po vložení textu.</div>
             <div class="safe-fallback" id="my_safeFallback" aria-live="polite"></div>
@@ -398,28 +416,27 @@
   </div>
     </main>
 
-    <aside class="assistant-rail" id="assistantRail" aria-label="Pracovní asistent">
-      <div class="rail-card rail-overview">
-        <p class="eyebrow">Pracovní přehled</p>
-        <h2>Co je nyní důležité</h2>
-        <div id="railOverview" class="rail-empty">Po vložení zprávy zde uvidíš požadavky, termíny, prioritu a doporučený další krok.</div>
-      </div>
-      <div class="rail-card">
-        <div class="rail-card-head"><h3>Kontrola před odesláním</h3><span id="railCheckBadge" class="status-badge neutral">Čeká</span></div>
-        <div id="railChecklist" class="rail-empty">Kontrola se aktivuje po vytvoření konceptu.</div>
-      </div>
-      <div class="rail-card">
-        <div class="rail-card-head"><h3>Čekám na odpověď</h3><button class="link-btn" id="railFollowupsOpen" type="button">Otevřít</button></div>
-        <div id="railFollowups" class="rail-empty">Žádné aktivní připomínky.</div>
-      </div>
-      <div class="rail-card rail-help">
-        <h3>Rychlé úpravy</h3>
-        <p>Po vytvoření textu můžeš označit přesnou formulaci jako neměnnou, vracet verze nebo jedním kliknutím text zkrátit, zmírnit či zpřesnit.</p>
-      </div>
-    </aside>
+    <details class="assistant-drawer" id="assistantDrawer">
+      <summary><span>Volitelný pracovní přehled</span><small>Požadavky, termíny a kontrola konceptu</small></summary>
+      <aside class="assistant-rail" id="assistantRail" aria-label="Volitelný pracovní přehled">
+        <div class="rail-card rail-overview">
+          <p class="eyebrow">Pracovní přehled</p>
+          <h2>Co je nyní důležité</h2>
+          <div id="railOverview" class="rail-empty">Po rozboru zde najdeš požadavky, termíny, prioritu a doporučený další krok.</div>
+        </div>
+        <div class="rail-card">
+          <div class="rail-card-head"><h3>Kontrola před odesláním</h3><span id="railCheckBadge" class="status-badge neutral">Čeká</span></div>
+          <div id="railChecklist" class="rail-empty">Kontrola se aktivuje po výběru finálního konceptu.</div>
+        </div>
+        <div class="rail-card">
+          <div class="rail-card-head"><h3>Čekám na odpověď</h3><button class="link-btn" id="railFollowupsOpen" type="button">Otevřít</button></div>
+          <div id="railFollowups" class="rail-empty">Žádné aktivní připomínky.</div>
+        </div>
+      </aside>
+    </details>
   </div>
 
-  <div class="global-action-bar" id="globalActionBar" aria-label="Hlavní akce">
+  <div class="global-action-bar" id="globalActionBar" aria-label="Hlavní akce" hidden>
     <button class="bar-btn" id="barNew" type="button"><span>＋</span>Nová zpráva</button>
     <button class="bar-btn" id="barSave" type="button" disabled><span>⌑</span>Uložit koncept</button>
     <button class="bar-btn" id="barCheck" type="button" disabled><span>✓</span>Zkontrolovat</button>
