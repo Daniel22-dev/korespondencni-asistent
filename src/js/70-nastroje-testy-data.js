@@ -204,6 +204,19 @@ async function runKorespTests(){
       assertTest(c.includes("Jana Nováková")&&c.includes("Janák")&&c.includes("Janoušek"),"shoda skryla cizí jméno: "+c);
       assertTest(c.startsWith("osoba A Novák"),"přesný tvar Jan se neskryl: "+c);
     });
+    await test("Rychlé rozpoznání odliší hromadný e-mail kolegům", async()=>{
+      const r=inferQuickComposeSettings("Rád bych všechny kolegy pozval na školení k AI.",false);
+      assertTest(r.adresat==="kolega"&&r.scope==="group"&&r.ucel==="pozvanka","rychlý režim nerozpoznal kolegy jako skupinu: "+JSON.stringify(r));
+    });
+    await test("Profil posílá pracovní kontext bez jména", async()=>{
+      const old=localStorage.getItem("rozbor_profile");
+      try{
+        localStorage.setItem("rozbor_profile",JSON.stringify({name:"Daniel Baláž",role:"středoškolský učitel",subjects:"angličtina a španělština",school:"Gymnázium Test"}));
+        const line=profileLine();
+        assertTest(line.includes("středoškolský učitel")&&line.includes("angličtina a španělština")&&line.includes("Gymnázium Test"),"pracovní kontext není úplný: "+line);
+        assertTest(!line.includes("Daniel Baláž"),"jméno se propsalo do promptu: "+line);
+      }finally{if(old===null)localStorage.removeItem("rozbor_profile");else localStorage.setItem("rozbor_profile",old);}
+    });
     await test("Školní scénáře používají existující hodnoty", async()=>{
       Object.entries(SCHOOL_SCENARIOS).forEach(([key,sc])=>{
         if(!sc.vals)return;
@@ -752,14 +765,19 @@ function compactAdvancedParams(){
   const byId=(id)=>$(id);
   const tpl=byId("my_tplGroup");
   const before=card.querySelector(".simple-action-note") || card.querySelector(".choice-summary") || card.querySelector(".row.actsticky");
-  const folds=[
-    makeParamFold("Komu píšu", [grp("my_adresat"), grp("my_oslov"), grp("my_scenario")], true),
-    makeParamFold("Co má aplikace udělat", [byId("my_fixGroup"), byId("my_styleGroup"), byId("my_ucelGroup"), grp("my_lang")], false),
-    makeParamFold("Jakým tónem a jak dlouze", [byId("my_toneGroup"), byId("my_lenGroup"), byId("my_subjGroup"), card.querySelector("#my_note") ? card.querySelector("#my_note").closest(".pgroup") : null], false)
-  ].filter(Boolean);
+  const audienceFold=makeParamFold("Komu píšu", [grp("my_adresat"), byId("my_scopeGroup"), grp("my_oslov")], true);
+  const scenarioFold=makeParamFold("Volitelný školní scénář", [grp("my_scenario")], false);
+  const actionFold=makeParamFold("Podrobnosti zvolené práce", [byId("my_fixGroup"), byId("my_styleGroup"), byId("my_ucelGroup"), grp("my_lang")], false);
+  const resultFold=makeParamFold("Podoba výsledku", [byId("my_toneGroup"), byId("my_lenGroup"), byId("my_subjGroup")], false);
+  if(audienceFold) audienceFold.id="my_audienceFold";
+  if(scenarioFold) scenarioFold.id="my_scenarioFold";
+  if(actionFold) actionFold.id="my_actionFold";
+  if(resultFold) resultFold.id="my_resultFold";
+  const folds=[audienceFold,scenarioFold,actionFold,resultFold].filter(Boolean);
   folds.forEach(f=>card.insertBefore(f,before));
   if(tpl) card.insertBefore(tpl, folds[0] || before);
   card.dataset.compactParams="1";
+  if(typeof updateMyMode==="function") updateMyMode();
 }
 
 

@@ -242,7 +242,30 @@ function ensureSignaturePlaceholder(text){
   if(closing.test(t)) return normalizeReplySignature(t.replace(closing,"\n[podpis]").replace(/^\n/,""));
   return normalizeReplySignature(t+(t?"\n\n":"")+"[podpis]");
 }
-function profileLine(){ const p=loadProfile(); const role=(p.role||"").trim(); return role?("\nPisatel je "+role+"."):""; }
+function profileContextParts(){
+  const p=loadProfile(), parts=[];
+  const role=String(p.role||"").trim(), subjects=String(p.subjects||"").trim(), school=String(p.school||"").trim();
+  if(role) parts.push("role: "+role);
+  if(subjects) parts.push("vyučované předměty: "+subjects);
+  if(school) parts.push("pracoviště: "+school);
+  return parts;
+}
+function profileLine(){
+  const parts=profileContextParts();
+  return parts.length ? ("\nPracovní kontext pisatele: "+parts.join("; ")+". Tento kontext použij jen pro správné pochopení role a situace. Nevkládej jej automaticky do e-mailu a pisatele znovu nepředstavuj, pokud to není pro adresáta skutečně potřebné.") : "";
+}
+function renderMyProfileContext(){
+  const box=$("my_profileContext"), title=$("my_profileContextTitle"), text=$("my_profileContextText");
+  if(!box||!title||!text) return;
+  const p=loadProfile(), parts=[];
+  if(String(p.role||"").trim()) parts.push(String(p.role).trim());
+  if(String(p.subjects||"").trim()) parts.push("předměty: "+String(p.subjects).trim());
+  if(String(p.school||"").trim()) parts.push(String(p.school).trim());
+  const ready=parts.length>0;
+  box.classList.toggle("is-ready",ready);
+  title.textContent=ready?"Profil je připravený":"Pracovní kontext není vyplněný";
+  text.textContent=ready?(parts.join(" · ")+". Jméno zůstává pouze v prohlížeči; pracovní kontext se používá jen tam, kde je pro e-mail relevantní."):"Doplň roli, vyučované předměty a školu. Při sestavování pak nemusíš pokaždé vysvětlovat, kdo jsi.";
+}
 function senderPerspectivePrompt(mode){
   if(mode==="tym") return "Píšu za tým nebo předmětovou komisi. Používej 1. osobu množného čísla jen tam, kde tým skutečně jedná společně.";
   if(mode==="instituce") return "Píšu za školu nebo instituci. Používej institucionální 1. osobu množného čísla a nepředstírej osobní rozhodnutí jednotlivce.";
@@ -329,6 +352,7 @@ const TON={vstricny:"Vstřícný",vecny:"Věcný",durazny:"Důraznější (ale s
 const DELKA={strucna:"Stručná",stredni:"Střední",podrobna:"Podrobná"};
 const OSLOV={vykani:"Vykání",tykani:"Tykání"};
 const ADRESAT={rodic:"Rodič",kolega:"Kolega",vedeni:"Vedení",zak:"Žák",jiny:"Jiný"};
+const AUDIENCE_SCOPE={single:"Jeden člověk",group:"Skupina / hromadný e-mail"};
 const PISU_JAKO={jednotlivec:"Jednotlivec",tym:"Za tým / komisi",instituce:"Za školu / instituci"};
 const PREPIS={diplomaticky:"Diplomatický",strucnejsi:"Stručnější",formalnejsi:"Formálnější",vstricnejsi:"Vstřícnější",duraznejsi:"Důraznější",srozumitelnejsi:"Srozumitelnější"};
 const UCEL={oznameni:"Oznámení",zadost:"Žádost",pozvanka:"Pozvánka",omluva:"Omluva",pripominka:"Připomenutí",podekovani:"Poděkování",odmitnuti:"Odmítnutí",vysvetleni:"Vysvětlení",potvrzeni:"Potvrzení"};
@@ -344,7 +368,7 @@ const SCHOOL_SCENARIOS={
   health_ppp:{category:"Citlivé",label:"Zdraví / PPP",vals:{my_mode:"sestavit",my_adresat:"rodic",my_oslov:"vykani",my_ucel:"oznameni",my_cton:"vecny",my_cdelka:"strucna"},hint:"Citlivý režim: nepopisuj diagnózu, PPP, podpůrná opatření ani zdravotní detaily; použij obecný popis a bezpečný další krok.",sensitive:true,strict:true,strictPrompt:"Nepřepisuj ani nerozvíjej diagnózy, PPP, IVP, podpůrná opatření nebo zdravotní informace. Piš pouze obecně, stručně a bez identifikace žáka či okolností."},
   ospod_family:{category:"Citlivé",label:"OSPOD / rodina",vals:{my_mode:"sestavit",my_adresat:"vedeni",my_oslov:"vykani",my_ucel:"oznameni",my_cton:"vecny",my_cdelka:"strucna"},hint:"Citlivý režim: neuváděj konkrétní rodinné poměry, sociální situaci, OSPOD ani soudní detaily; zůstaň u obecného postupu.",sensitive:true,strict:true,strictPrompt:"Nepřidávej a nerozvíjej rodinné, sociální, soudní ani OSPOD detaily. Formuluj jen obecný administrativní postup a bezpečný další krok."},
   colleague:{category:"Kolegové a vedení",label:"Odpověď kolegovi",vals:{my_mode:"sestavit",my_adresat:"kolega",my_oslov:"vykani",my_ucel:"oznameni",my_cton:"vecny",my_cdelka:"strucna"},hint:"Věcná a kolegiální odpověď, jasný další krok."},
-  class_info:{category:"Žáci",label:"Informace třídě",vals:{my_mode:"sestavit",my_adresat:"zak",my_oslov:"vykani",my_ucel:"oznameni",my_cton:"vecny",my_cdelka:"stredni"},hint:"Srozumitelně pro žáky, jasné termíny a instrukce, bez osobních údajů jednotlivců."},
+  class_info:{category:"Žáci",label:"Informace třídě",vals:{my_mode:"sestavit",my_adresat:"zak",my_scope:"group",my_oslov:"vykani",my_ucel:"oznameni",my_cton:"vecny",my_cdelka:"stredni"},hint:"Srozumitelně pro žáky, jasné termíny a instrukce, bez osobních údajů jednotlivců."},
   management:{category:"Kolegové a vedení",label:"Žádost vedení",vals:{my_mode:"sestavit",my_adresat:"vedeni",my_oslov:"vykani",my_ucel:"zadost",my_cton:"vecny",my_cdelka:"stredni"},hint:"Formální žádost pro vedení: důvod, konkrétní požadavek a termín."},
   reminder:{category:"Rodiče",label:"Připomenutí termínu",vals:{my_mode:"sestavit",my_adresat:"rodic",my_oslov:"vykani",my_ucel:"pripominka",my_cton:"vstricny",my_cdelka:"strucna"},hint:"Krátké, neútočné připomenutí s konkrétním termínem nebo akcí."},
   refusal:{label:"Odmítnutí požadavku",category:"Rodiče",vals:{my_mode:"sestavit",my_adresat:"rodic",my_oslov:"vykani",my_ucel:"odmitnuti",my_cton:"vecny",my_cdelka:"stredni"},hint:"Zdvořile odmítni, stručně vysvětli důvod a nabídni bezpečnou alternativu, pokud existuje."},
@@ -391,7 +415,7 @@ function renderChoiceSummary(p){
     const parts=["Adresát: "+recipientLabel("in"),"Píšu jako: "+(PISU_JAKO[readChip("in_pisujako")]||"Jednotlivec"),"Záměr: "+(ZAMER[readChip("in_zamer")]||"—"),"Tón: "+(TON[readChip("in_ton")]||"—"),"Délka: "+(DELKA[readChip("in_delka")]||"—"),"Jazyk: "+(LANG[readChip("in_lang")]||LANG[readChip("outlang")]||"Čeština")];
     el.textContent=parts.join(" · "); return;
   }
-  const parts=["Režim: "+({opravit:"Opravit",prepsat:"Přepsat",sestavit:"Sestavit"}[readChip("my_mode")]||"—"),"Adresát: "+recipientLabel("my"),"Jazyk: "+(LANG_MY[readChip("my_lang")]||"Čeština")];
+  const parts=["Režim: "+({opravit:"Opravit",prepsat:"Přepsat",sestavit:"Sestavit"}[readChip("my_mode")]||"—"),"Adresát: "+recipientLabel("my"),"Počet: "+(AUDIENCE_SCOPE[readChip("my_scope")||"single"]||"Jeden člověk"),"Jazyk: "+(LANG_MY[readChip("my_lang")]||"Čeština")];
   const sc=SCHOOL_SCENARIOS[readChip("my_scenario")||"none"]; if(sc&&sc.label&&readChip("my_scenario")!=="none") parts.push("Scénář: "+sc.label);
   el.textContent=parts.join(" · ");
 }

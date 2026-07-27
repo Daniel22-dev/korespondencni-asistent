@@ -2,20 +2,20 @@
 
 Samostatný repozitář aplikace pro Gymnázium, Ostrava-Hrabůvka.
 
-- **Verze:** 5.4.4
+- **Verze:** 5.5.1
 - **Doporučený název repozitáře:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
 
-## Co přináší verze 5.4.4
+## Co přináší verze 5.5.1
 
-- v pokročilém nastavení odpovědi je nová volba **Píšu jako**: **Jednotlivec**, **Za tým / komisi** nebo **Za školu / instituci**,
-- výchozí režim **Jednotlivec** drží 1. osobu jednotného čísla i tehdy, když se v původním e-mailu mluví o kolezích, škole nebo předmětové komisi,
-- prompt používá jednotné tvary jako „děkuji“, „vážím si“, „projednám s kolegy“ a „budu Vás kontaktovat“,
-- kontrola před exportem zachytí nechtěné množné tvary typu „vážíme“, „budeme“, „zvážíme“ nebo „projednáme“ a nepustí je bez opravy,
-- Gemini má vytvořit tělo e-mailu zakončené pouze značkou `[podpis]`; vlastní „S pozdravem“ ani jméno už generovat nemá,
-- aplikace před zobrazením automaticky odstraní případné rozloučení modelu před značkou `[podpis]` a profilový podpis doplní lokálně právě jednou,
-- zachovány jsou změny 5.4.3: přímý výběr anonymizační kategorie v textu, jasná finální kontrola a adresát **Jiný**.
+- režim **Můj e-mail** zobrazuje pracovní profil přímo v pracovním toku; role, předměty a škola se ukládají lokálně a používají jako kontext,
+- volba **Rychle** transparentně používá místní pravidla a rozlišuje jednoho člověka od skupiny,
+- hlavní druh práce je oddělen od podrobností zvolené akce, školního scénáře a výsledného tónu a délky,
+- školní scénář je nepovinný a po výběru vypíše, které parametry změnil,
+- u pouhé jazykové opravy se nezobrazují nerelevantní volby tónu a délky,
+- hromadný e-mail používá množné oslovení a kontroluje nechtěné tvary určené jednotlivci,
+- interaktivní manuál 1.1.0 obsahuje samostatnou část k celému režimu Můj e-mail a sjednocené označení verze.
 
 ## Nahrání na GitHub
 

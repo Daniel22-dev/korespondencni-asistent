@@ -525,6 +525,7 @@ function doAnon(p){
   E(p,"step2").style.display="grid";
   E(p,"step2").scrollIntoView({behavior:"smooth",block:"start"});
   updateProgress(p);
+  if(p==="my" && typeof updateMyMode==="function") updateMyMode();
 }
 function renderKeyTable(p){
   const st=ST[p], body=E(p,"keyBody"); body.innerHTML="";
