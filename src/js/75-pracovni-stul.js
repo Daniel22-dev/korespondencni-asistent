@@ -214,6 +214,8 @@ function initDesk(){
   document.querySelectorAll('[data-start="scenario"]').forEach(b=>b.onclick=openScenarioLibrary);
   document.querySelectorAll('[data-start="in"]').forEach(b=>b.onclick=()=>switchTab("in"));
   document.querySelectorAll('[data-start="my"]').forEach(b=>b.onclick=()=>switchTab("my"));
+  $("my_startOwn")&&$("my_startOwn").addEventListener("click",()=>{$("my_raw")?.focus();});
+  $("my_startScenario")&&$("my_startScenario").addEventListener("click",openScenarioLibrary);
   $("openScenarioLibrary")&&$("openScenarioLibrary").addEventListener("click",openScenarioLibrary);$("openFollowups")&&$("openFollowups").addEventListener("click",openFollowupsManager);$("railFollowupsOpen")&&$("railFollowupsOpen").addEventListener("click",openFollowupsManager);
   $("workspaceNav")&&$("workspaceNav").addEventListener("click",e=>{const b=e.target.closest("[data-jump]");if(!b)return;const map={source:".tabpane.active textarea",privacy:'.tabpane.active [id$="_step2"]',analysis:"#in_results .action-overview",draft:".tabpane.active .draft",check:".tabpane.active .draft-check"};const target=document.querySelector(map[b.dataset.jump]);if(target)target.scrollIntoView({behavior:"smooth",block:"center"});else toast("Tento krok ještě není připraven.");markWorkspaceStage(b.dataset.jump);});
   $("barNew")&&$("barNew").addEventListener("click",()=>confirmActionModal({title:"Nová zpráva",message:"Vyčistit aktuální pracovní plochu? Uložené koncepty a připomínky zůstanou zachovány.",confirmText:"Vyčistit",onConfirm(){const p=activePane(),raw=E(p,"raw");if(raw){raw.value="";raw.dispatchEvent(new Event("input",{bubbles:true}));raw.focus();}activeDraft=null;syncBar();markWorkspaceStage("source");}}));

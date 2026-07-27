@@ -77,13 +77,19 @@ async function runKorespTests(){
   window.__setTestRunActive(true);
   const test=async(name, fn)=>{ const t0=performance.now(); try{ await fn(); results.push({name,ok:true,ms:Math.round(performance.now()-t0)}); }catch(e){ results.push({name,ok:false,msg:e.message||String(e),ms:Math.round(performance.now()-t0)}); } };
   try{
-    await test("Úvodní obrazovka nabízí tři pracovní cesty", async()=>{
+    await test("Úvodní obrazovka nabízí dvě hlavní pracovní cesty", async()=>{
       const choices=[...document.querySelectorAll('#teacherDesk [data-start]')];
-      assertTest(choices.length===3,"úvodní obrazovka nemá přesně tři volby");
+      assertTest(choices.length===2,"úvodní obrazovka nemá přesně dvě hlavní volby");
       const labels=choices.map(x=>x.textContent.replace(/\s+/g," ").trim()).join(" | ");
-      assertTest(labels.includes("Analýza příchozího e-mailu")&&labels.includes("Sestavení vlastního e-mailu")&&labels.includes("Rychlá školní situace"),"chybí některá vstupní cesta: "+labels);
+      assertTest(labels.includes("Analýza příchozího e-mailu")&&labels.includes("Sestavení vlastního e-mailu")&&!labels.includes("Rychlá školní situace"),"hlavní cesty nejsou správně: "+labels);
+      assertTest($("my_startScenario")&&$("my_startOwn"),"školní situace není vložená uvnitř sestavení vlastního e-mailu");
       assertTest($("workspaceShell").hidden===true,"pracovní plocha má být při startu skrytá");
       assertTest(!document.querySelector('.tabs'),"zůstal duplicitní horní přepínač režimů");
+    });
+    await test("Profil a nápovědy jsou vidět už u konceptu", async()=>{
+      const profile=$("my_profileContext"),step=profile&&profile.closest(".card");
+      assertTest(profile&&step&&step.querySelector("#my_raw"),"pracovní profil není v prvním kroku u konceptu");
+      assertTest(document.querySelectorAll(".help-tip[data-tip]").length>=7,"chybí kontextové tooltipy u nejasných voleb");
     });
     await test("Unit anonymizace telefonu/e-mailu", async()=>{
       E("in","raw").value="Kontakt: jana@example.cz, tel. +420 777-123-456 a také 777 123 456."; doAnon("in");

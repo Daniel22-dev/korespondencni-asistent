@@ -3,11 +3,12 @@ const IS_TEST_MODE=new URLSearchParams(window.location.search).has("test")||Stri
 "use strict";
 
 const RELEASE = {
-  version: "5.5.1",
+  version: "5.5.2",
   date: "2026-07-27",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.5.2: úvodní obrazovka má nově dvě skutečné hlavní cesty; rychlá školní situace byla přesunuta dovnitř sestavení vlastního e-mailu jako přednastavení. Pracovní profil je vidět už nad polem Tvůj koncept a ne až po anonymizaci. U nejasných voleb přibyly přístupné tooltipy pro způsob práce, typ zásahu, počet adresátů, školní scénář, předmět a doplňující pokyn.",
     "5.5.1: opraven a rozšířen interaktivní manuál pro režim Můj e-mail. Nově samostatně vysvětluje pracovní profil, rychlé pravidlové rozpoznání, rozdíl mezi hlavním druhem práce a jeho podrobnostmi, školní scénáře, podmíněné zobrazení tónu a délky a volbu jednoho člověka nebo skupiny. Sjednocena byla také čísla verzí v manuálu a README.",
     "5.5.0: zpřehledněn režim Můj e-mail — přímo v pracovním toku je vidět a upravitelný profil s rolí, vyučovanými předměty a školou; jméno zůstává pouze lokální. Rychlé rozpoznání nově transparentně popisuje svůj pravidlový algoritmus, rozlišuje jednotlivce od skupiny a správně připraví hromadný e-mail kolegům bez tvaru ‚tě‘. Hlavní typ práce, podrobnosti úpravy, školní scénář a podoba výsledku jsou oddělené; prázdná sekce tónu se už u korektury nezobrazuje a scénář ukazuje, které volby automaticky změnil.",
     "5.4.4: v nastavení odpovědi přibyla volba Píšu jako — Jednotlivec, Za tým / komisi nebo Za školu / instituci. Výchozí jednotlivec drží 1. osobu jednotného čísla i při zmínce o kolezích či předmětové komisi a kontrola před exportem zachytí tvary typu vážíme, budeme nebo projednáme. Gemini nově vrací jen značku [podpis]; aplikace odstraní případné vlastní rozloučení modelu a lokálně doplní profilový podpis právě jednou.",

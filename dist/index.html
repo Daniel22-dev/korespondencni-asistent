@@ -779,7 +779,7 @@ a.manual-launch-btn:hover::after,a.manual-launch-btn:focus-visible::after{opacit
 .start-screen{padding:24px;margin-top:18px}
 .start-screen .teacher-desk-head{display:block}
 .start-screen .teacher-desk-head p:not(.eyebrow){max-width:82ch}
-.start-actions{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:20px}
+.start-actions{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:20px}
 .start-actions .start-card{min-height:126px;padding:18px;align-items:flex-start}
 .start-actions .start-card b{font-size:16px;line-height:1.25}
 .start-actions .start-card small{font-size:12.5px;line-height:1.48}
@@ -1033,6 +1033,26 @@ body.dark .dev-tool-card span{color:var(--ink-soft)}
   .scenario-effects{ margin-top:7px; padding:7px 9px; border-radius:8px; background:var(--desk); color:var(--ink-soft); font-size:11.5px; }
   .param-fold[hidden]{ display:none !important; }
   @media (max-width:620px){ .profile-context-card{ align-items:flex-start; flex-direction:column; } }
+
+
+/* 5.5.2 — srozumitelný vstup do sestavení a přístupné nápovědy */
+.compose-entry{margin:4px 0 14px;padding:13px;border:1px solid var(--line);border-radius:13px;background:var(--desk)}
+.compose-entry-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}
+.compose-entry-head b{display:block;font:800 13px var(--sans);color:var(--ink)}
+.compose-entry-head small{display:block;margin-top:3px;font:500 11.5px/1.4 var(--sans);color:var(--ink-soft)}
+.compose-entry-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.compose-entry-card{display:grid;grid-template-columns:auto 1fr;column-gap:9px;row-gap:2px;align-items:center;text-align:left;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);cursor:pointer;font-family:var(--sans)}
+.compose-entry-card>span{grid-row:1/3;font-size:19px}.compose-entry-card>b{font-size:12.5px}.compose-entry-card>small{font-size:11px;line-height:1.35;color:var(--ink-soft)}
+.compose-entry-card:hover,.compose-entry-card:focus-visible{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 15%,transparent);outline:0}
+.compose-entry-card.is-default{border-color:color-mix(in srgb,var(--accent) 34%,var(--line))}
+.profile-context-early{margin:0 0 14px}.profile-context-actions{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.help-tip{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:19px;height:19px;padding:0;border:1px solid color-mix(in srgb,var(--accent) 45%,var(--line));border-radius:50%;background:var(--paper);color:var(--accent-text);font:800 11px/1 var(--sans);cursor:help;vertical-align:middle}
+.help-tip:hover,.help-tip:focus-visible{outline:0;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
+.help-tip::after{content:attr(data-tip);position:absolute;z-index:150;left:50%;bottom:calc(100% + 9px);width:min(310px,78vw);padding:10px 11px;border:1px solid var(--line);border-radius:9px;background:var(--ink);color:var(--paper);font:500 11.5px/1.45 var(--sans);letter-spacing:0;text-transform:none;text-align:left;white-space:normal;box-shadow:0 12px 30px rgba(0,0,0,.22);opacity:0;visibility:hidden;pointer-events:none;transform:translate(-50%,4px);transition:.14s ease}
+.help-tip::before{content:"";position:absolute;z-index:151;left:50%;bottom:calc(100% + 4px);width:9px;height:9px;background:var(--ink);transform:translateX(-50%) rotate(45deg);opacity:0;visibility:hidden;transition:.14s ease}
+.help-tip:hover::after,.help-tip:focus::after,.help-tip:hover::before,.help-tip:focus::before{opacity:1;visibility:visible;transform:translate(-50%,0)}
+.help-tip:hover::before,.help-tip:focus::before{transform:translateX(-50%) rotate(45deg)}
+@media (max-width:620px){.compose-entry-actions{grid-template-columns:1fr}.profile-context-actions{width:100%;justify-content:space-between}.help-tip::after{left:auto;right:-8px;transform:translateY(4px)}.help-tip:hover::after,.help-tip:focus::after{transform:translateY(0)}}
 </style>
 </head>
 <body>
@@ -1123,7 +1143,7 @@ body.dark .dev-tool-card span{color:var(--ink-soft)}
       <div>
         <p class="eyebrow">Začni výběrem úkolu</p>
         <h2 id="teacherDeskTitle">Co chceš dnes vyřídit?</h2>
-        <p>Vyber jednu ze tří cest. Pracovní prostředí se otevře až podle toho, zda reaguješ na přijatou zprávu, píšeš vlastní e-mail, nebo řešíš typickou školní situaci.</p>
+        <p>Vyber jednu ze dvou hlavních cest. Školní situace je zkratka uvnitř sestavení vlastního e-mailu, nikoli samostatný režim.</p>
       </div>
     </div>
     <div class="desk-actions start-actions" id="deskActions" aria-label="Volba pracovního postupu">
@@ -1132,9 +1152,6 @@ body.dark .dev-tool-card span{color:var(--ink-soft)}
       </button>
       <button class="desk-action start-card" id="tabMy" type="button" data-start="my" aria-controls="pane-my" aria-pressed="false" title="Opravit, přepsat nebo sestavit vlastní e-mail">
         <span class="desk-action-icon">✍️</span><span><b>Sestavení vlastního e-mailu</b><small>Oprav koncept, přepiš jej do vhodného tónu nebo sestav nový e-mail z bodů.</small></span>
-      </button>
-      <button class="desk-action start-card primary-card" type="button" data-start="scenario" title="Vybrat připravenou školní situaci">
-        <span class="desk-action-icon">⚡</span><span><b>Rychlá školní situace</b><small>Začni přednastaveným scénářem: absence, známka, konzultace, stížnost, vedení a další.</small></span>
       </button>
     </div>
     <details class="desk-secondary" id="deskSecondary">
@@ -1247,6 +1264,24 @@ body.dark .dev-tool-card span{color:var(--ink-soft)}
     <section class="step">
       <div class="card">
         <div class="step-head"><span class="step-no">1</span><span class="step-title">Tvůj koncept</span></div>
+        <div class="compose-entry" aria-labelledby="composeEntryTitle">
+          <div class="compose-entry-head">
+            <div><b id="composeEntryTitle">Jak chceš začít?</b><small>Obě možnosti vedou do stejného sestavení e-mailu.</small></div>
+            <button class="help-tip" type="button" aria-label="Nápověda k výběru začátku" data-tip="Vlastní zadání nechá všechny volby na tobě. Školní situace pouze přednastaví adresáta, účel, tón a další parametry; výsledek můžeš dál upravit.">i</button>
+          </div>
+          <div class="compose-entry-actions">
+            <button class="compose-entry-card is-default" id="my_startOwn" type="button"><span>✍️</span><b>Vlastní zadání</b><small>Napíšu koncept, hotový text nebo několik bodů.</small></button>
+            <button class="compose-entry-card" id="my_startScenario" type="button"><span>⚡</span><b>Vybrat školní situaci</b><small>Aplikace přednastaví vhodné volby a ukáže, co změnila.</small></button>
+          </div>
+        </div>
+        <div class="profile-context-card profile-context-early" id="my_profileContext" aria-live="polite">
+          <div class="profile-context-copy">
+            <span class="profile-context-kicker">Pracovní profil</span>
+            <strong id="my_profileContextTitle">Zatím není vyplněný</strong>
+            <p id="my_profileContextText">Doplň roli, vyučované předměty a školu. Při sestavování pak nemusíš pokaždé vysvětlovat, kdo jsi.</p>
+          </div>
+          <div class="profile-context-actions"><button class="help-tip" type="button" aria-label="Nápověda k pracovnímu profilu" data-tip="Role, předměty a škola se uloží jen v tomto prohlížeči a použijí se jako kontext. Jméno se neposílá modelu; slouží pouze pro místní podpis.">i</button><button class="btn ghost small" id="my_profileOpen" type="button">Upravit profil</button></div>
+        </div>
         <textarea id="my_raw" placeholder="Vlož svůj koncept k opravě či přepisu — nebo jen body (odrážky), ze kterých mám e-mail sestavit. Můžeš i nahrát soubor (.eml/.txt/.html)…"></textarea>
         <div class="row">
           <button class="btn primary" id="my_anonBtn" title="Skryje e-maily a telefony a pustí tě dál. Jména skryješ ťuknutím, pokud je potřeba."><span class="action-icon">🧭</span>Pokračovat →</button>
@@ -1309,16 +1344,8 @@ body.dark .dev-tool-card span{color:var(--ink-soft)}
                 <div class="plabel" title="Ulož si oblíbené nastavení a použij ho na jeden ťuk. (Dlouhý stisk šablony = smazat.)">Šablony</div>
                 <div class="chips" id="my_tpls"></div>
               </div>
-              <div class="profile-context-card" id="my_profileContext" aria-live="polite">
-                <div class="profile-context-copy">
-                  <span class="profile-context-kicker">Pracovní kontext odesílatele</span>
-                  <strong id="my_profileContextTitle">Zatím není vyplněný</strong>
-                  <p id="my_profileContextText">Doplň roli, vyučované předměty a školu. Při sestavování pak nemusíš pokaždé vysvětlovat, kdo jsi.</p>
-                </div>
-                <button class="btn ghost small" id="my_profileOpen" type="button">Upravit profil</button>
-              </div>
               <div class="pgroup simple-hide">
-                <div class="plabel" title="Rychlý režim používá místní slovní pravidla: z textu odhadne adresáta, zda jde o jednotlivce nebo skupinu, účel, tón a délku. Řízený režim ponechá všechny volby na tobě.">Způsob práce</div>
+                <div class="plabel">Způsob práce <button class="help-tip" type="button" aria-label="Nápověda ke způsobu práce" data-tip="Rychlé rozpoznání podle slov v zadání odhadne adresáta, jednotlivce nebo skupinu, účel, tón a délku. Řízený režim nechá všechny volby na tobě. Rozpoznané hodnoty můžeš změnit.">i</button></div>
                 <div class="chips" data-group="my_flow">
                   <button class="chip on" data-v="quick">Rychle — aplikace rozpozná nastavení</button>
                   <button class="chip" data-v="guided">Řízeně — nastavím vše sám</button>
@@ -1326,7 +1353,7 @@ body.dark .dev-tool-card span{color:var(--ink-soft)}
                 <div class="choice-summary" id="my_flowHint">Stačí vložit body. Před odesláním uvidíš, co aplikace rozpoznala.</div>
               </div>
               <div class="pgroup">
-                <div class="plabel" title="Tady vybíráš hlavní typ práce. Podrobnější volby se zobrazí níže podle vybrané akce.">Co mám s textem udělat?</div>
+                <div class="plabel">Co mám s textem udělat? <button class="help-tip" type="button" aria-label="Nápověda k typu práce" data-tip="Oprava zachová obsah a opraví jazyk. Přeformulování zachová význam, ale může změnit věty a strukturu. Sestavení z bodů vytvoří celý nový e-mail.">i</button></div>
                 <div class="chips" data-group="my_mode">
                   <button class="chip on" data-v="opravit">Jen opravit hotový text</button>
                   <button class="chip" data-v="prepsat">Přeformulovat hotový text</button>
@@ -1350,7 +1377,7 @@ body.dark .dev-tool-card span{color:var(--ink-soft)}
                 </div>
               </div>
               <div class="pgroup simple-hide" id="my_scopeGroup">
-                <div class="plabel" title="Rozlišuje e-mail jednomu člověku od hromadné zprávy. U skupiny model použije množné číslo a skupinové oslovení.">Počet adresátů</div>
+                <div class="plabel">Počet adresátů <button class="help-tip" type="button" aria-label="Nápověda k počtu adresátů" data-tip="Jeden člověk dovolí jednotné tvary. Skupina vynutí množné číslo a skupinové oslovení, například vás, vám a vaše.">i</button></div>
                 <div class="chips" data-group="my_scope">
                   <button class="chip on" data-v="single">Jeden člověk</button>
                   <button class="chip" data-v="group">Skupina / hromadný e-mail</button>
@@ -1408,7 +1435,7 @@ body.dark .dev-tool-card span{color:var(--ink-soft)}
                 </div>
               </div>
               <div class="pgroup simple-hide">
-                <div class="plabel" title="Volitelná zkratka pro typické školní situace. Po výběru se automaticky přenastaví související volby.">Volitelný školní scénář</div>
+                <div class="plabel">Volitelný školní scénář <button class="help-tip" type="button" aria-label="Nápověda ke školnímu scénáři" data-tip="Scénář není nový režim ani pevná šablona. Pouze přednastaví typ práce, adresáta, počet adresátů, oslovení, účel, tón, délku a někdy bezpečnostní režim. Aplikace změny vypíše.">i</button></div>
                 <p class="scenario-help">Scénář není povinný. Je to přednastavení: jedním kliknutím změní typ práce, adresáta, počet adresátů (kde je to zřejmé), oslovení, účel, tón a délku. Citlivé scénáře navíc zapnou přísnější ochranu.</p>
                 <div class="chips" data-group="my_scenario">
                   <button class="chip on" data-v="none">Nepoužívat scénář</button>
@@ -1457,14 +1484,14 @@ body.dark .dev-tool-card span{color:var(--ink-soft)}
                 </div>
               </div>
               <div class="pgroup advanced-only" id="my_subjGroup" style="display:none">
-                <div class="plabel" title="Má model navrhnout i řádek předmětu?">Předmět</div>
+                <div class="plabel">Předmět výsledného e-mailu <button class="help-tip" type="button" aria-label="Nápověda k předmětu e-mailu" data-tip="Volba určuje, zda aplikace kromě těla zprávy vytvoří také text do pole Předmět v Gmailu nebo Outlooku.">i</button></div>
                 <div class="chips" data-group="my_subj">
                   <button class="chip on" data-v="ne">Bez předmětu</button>
                   <button class="chip" data-v="ano">Navrhni předmět</button>
                 </div>
               </div>
               <div class="pgroup advanced-only note-field" id="my_noteGroup">
-                <div class="plabel" title="Cokoli navíc — volný pokyn k tomuto e-mailu. Nejde o volbu tónu ani délky.">Doplňující pokyn k výsledku (nepovinné)</div>
+                <div class="plabel">Doplňující pokyn k výsledku (nepovinné) <button class="help-tip" type="button" aria-label="Nápověda k doplňujícímu pokynu" data-tip="Sem napiš jen zvláštní požadavek, který není pokrytý ostatními volbami, například doplnit termín nebo zmírnit závěr.">i</button></div>
                 <input id="my_note" type="text" title="Piš normálně, i se skutečnými jmény a ve skloňovaných tvarech. Appka je sama skryje — pozná většinu pádů (Nováka, Novákovi…). Nejsi-li si jistý, napiš raději přímo značku (osoba A)." placeholder="např. navrhni termín ve čtvrtek; ať to nezní podrážděně" style="width:100%;font:13px var(--sans);padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink)">
               </div>
               <div class="simple-action-note simple-only"><b>Jednoduchý režim:</b> aplikace použije bezpečné výchozí volby a nechá vidět jen hlavní akci. Tón, délku, jazyk, školní scénáře a další parametry upravíš v pokročilém režimu.</div>
@@ -1532,11 +1559,12 @@ body.dark .dev-tool-card span{color:var(--ink-soft)}
 "use strict";
 
 const RELEASE = {
-  version: "5.5.1",
+  version: "5.5.2",
   date: "2026-07-27",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.5.2: úvodní obrazovka má nově dvě skutečné hlavní cesty; rychlá školní situace byla přesunuta dovnitř sestavení vlastního e-mailu jako přednastavení. Pracovní profil je vidět už nad polem Tvůj koncept a ne až po anonymizaci. U nejasných voleb přibyly přístupné tooltipy pro způsob práce, typ zásahu, počet adresátů, školní scénář, předmět a doplňující pokyn.",
     "5.5.1: opraven a rozšířen interaktivní manuál pro režim Můj e-mail. Nově samostatně vysvětluje pracovní profil, rychlé pravidlové rozpoznání, rozdíl mezi hlavním druhem práce a jeho podrobnostmi, školní scénáře, podmíněné zobrazení tónu a délky a volbu jednoho člověka nebo skupiny. Sjednocena byla také čísla verzí v manuálu a README.",
     "5.5.0: zpřehledněn režim Můj e-mail — přímo v pracovním toku je vidět a upravitelný profil s rolí, vyučovanými předměty a školou; jméno zůstává pouze lokální. Rychlé rozpoznání nově transparentně popisuje svůj pravidlový algoritmus, rozlišuje jednotlivce od skupiny a správně připraví hromadný e-mail kolegům bez tvaru ‚tě‘. Hlavní typ práce, podrobnosti úpravy, školní scénář a podoba výsledku jsou oddělené; prázdná sekce tónu se už u korektury nezobrazuje a scénář ukazuje, které volby automaticky změnil.",
     "5.4.4: v nastavení odpovědi přibyla volba Píšu jako — Jednotlivec, Za tým / komisi nebo Za školu / instituci. Výchozí jednotlivec drží 1. osobu jednotného čísla i při zmínce o kolezích či předmětové komisi a kontrola před exportem zachytí tvary typu vážíme, budeme nebo projednáme. Gemini nově vrací jen značku [podpis]; aplikace odstraní případné vlastní rozloučení modelu a lokálně doplní profilový podpis právě jednou.",
@@ -1891,7 +1919,7 @@ function updateProgress(p){
 
 
 ;
-/* AI Studio GHRAB — GHRAB Material v1 adapter (Korespondenční asistent 5.5.1, bridge 1.3) */
+/* AI Studio GHRAB — GHRAB Material v1 adapter (Korespondenční asistent 5.5.2, bridge 1.3) */
 (function(){
   'use strict';
   const KEY='ghrab.handoff.v1',EVENTS='ghrab.pilot.events.v2',MAX_SOURCE=180000;
@@ -4209,13 +4237,19 @@ async function runKorespTests(){
   window.__setTestRunActive(true);
   const test=async(name, fn)=>{ const t0=performance.now(); try{ await fn(); results.push({name,ok:true,ms:Math.round(performance.now()-t0)}); }catch(e){ results.push({name,ok:false,msg:e.message||String(e),ms:Math.round(performance.now()-t0)}); } };
   try{
-    await test("Úvodní obrazovka nabízí tři pracovní cesty", async()=>{
+    await test("Úvodní obrazovka nabízí dvě hlavní pracovní cesty", async()=>{
       const choices=[...document.querySelectorAll('#teacherDesk [data-start]')];
-      assertTest(choices.length===3,"úvodní obrazovka nemá přesně tři volby");
+      assertTest(choices.length===2,"úvodní obrazovka nemá přesně dvě hlavní volby");
       const labels=choices.map(x=>x.textContent.replace(/\s+/g," ").trim()).join(" | ");
-      assertTest(labels.includes("Analýza příchozího e-mailu")&&labels.includes("Sestavení vlastního e-mailu")&&labels.includes("Rychlá školní situace"),"chybí některá vstupní cesta: "+labels);
+      assertTest(labels.includes("Analýza příchozího e-mailu")&&labels.includes("Sestavení vlastního e-mailu")&&!labels.includes("Rychlá školní situace"),"hlavní cesty nejsou správně: "+labels);
+      assertTest($("my_startScenario")&&$("my_startOwn"),"školní situace není vložená uvnitř sestavení vlastního e-mailu");
       assertTest($("workspaceShell").hidden===true,"pracovní plocha má být při startu skrytá");
       assertTest(!document.querySelector('.tabs'),"zůstal duplicitní horní přepínač režimů");
+    });
+    await test("Profil a nápovědy jsou vidět už u konceptu", async()=>{
+      const profile=$("my_profileContext"),step=profile&&profile.closest(".card");
+      assertTest(profile&&step&&step.querySelector("#my_raw"),"pracovní profil není v prvním kroku u konceptu");
+      assertTest(document.querySelectorAll(".help-tip[data-tip]").length>=7,"chybí kontextové tooltipy u nejasných voleb");
     });
     await test("Unit anonymizace telefonu/e-mailu", async()=>{
       E("in","raw").value="Kontakt: jana@example.cz, tel. +420 777-123-456 a také 777 123 456."; doAnon("in");
@@ -5131,6 +5165,8 @@ function initDesk(){
   document.querySelectorAll('[data-start="scenario"]').forEach(b=>b.onclick=openScenarioLibrary);
   document.querySelectorAll('[data-start="in"]').forEach(b=>b.onclick=()=>switchTab("in"));
   document.querySelectorAll('[data-start="my"]').forEach(b=>b.onclick=()=>switchTab("my"));
+  $("my_startOwn")&&$("my_startOwn").addEventListener("click",()=>{$("my_raw")?.focus();});
+  $("my_startScenario")&&$("my_startScenario").addEventListener("click",openScenarioLibrary);
   $("openScenarioLibrary")&&$("openScenarioLibrary").addEventListener("click",openScenarioLibrary);$("openFollowups")&&$("openFollowups").addEventListener("click",openFollowupsManager);$("railFollowupsOpen")&&$("railFollowupsOpen").addEventListener("click",openFollowupsManager);
   $("workspaceNav")&&$("workspaceNav").addEventListener("click",e=>{const b=e.target.closest("[data-jump]");if(!b)return;const map={source:".tabpane.active textarea",privacy:'.tabpane.active [id$="_step2"]',analysis:"#in_results .action-overview",draft:".tabpane.active .draft",check:".tabpane.active .draft-check"};const target=document.querySelector(map[b.dataset.jump]);if(target)target.scrollIntoView({behavior:"smooth",block:"center"});else toast("Tento krok ještě není připraven.");markWorkspaceStage(b.dataset.jump);});
   $("barNew")&&$("barNew").addEventListener("click",()=>confirmActionModal({title:"Nová zpráva",message:"Vyčistit aktuální pracovní plochu? Uložené koncepty a připomínky zůstanou zachovány.",confirmText:"Vyčistit",onConfirm(){const p=activePane(),raw=E(p,"raw");if(raw){raw.value="";raw.dispatchEvent(new Event("input",{bubbles:true}));raw.focus();}activeDraft=null;syncBar();markWorkspaceStage("source");}}));

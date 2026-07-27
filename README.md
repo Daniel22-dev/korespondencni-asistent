@@ -2,12 +2,16 @@
 
 Samostatný repozitář aplikace pro Gymnázium, Ostrava-Hrabůvka.
 
-- **Verze:** 5.5.1
+- **Verze:** 5.5.2
 - **Doporučený název repozitáře:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
 
-## Co přináší verze 5.5.1
+## Co přináší verze 5.5.2
+
+- Dvě skutečné hlavní cesty na úvodu; školní situace je uvnitř sestavení vlastního e-mailu.
+- Pracovní profil je vidět hned v prvním kroku nad konceptem.
+- Kontextové tooltipy vysvětlují nejasné volby bez zahlcení rozhraní.
 
 - režim **Můj e-mail** zobrazuje pracovní profil přímo v pracovním toku; role, předměty a škola se ukládají lokálně a používají jako kontext,
 - volba **Rychle** transparentně používá místní pravidla a rozlišuje jednoho člověka od skupiny,
