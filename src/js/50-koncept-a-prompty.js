@@ -309,7 +309,7 @@ const ZAMER={vyhovet:"Vyhovět / souhlasit",vysvetlit:"Vysvětlit a uklidnit",do
 const TON={vstricny:"Vstřícný",vecny:"Věcný",durazny:"Důraznější (ale slušný)"};
 const DELKA={strucna:"Stručná",stredni:"Střední",podrobna:"Podrobná"};
 const OSLOV={vykani:"Vykání",tykani:"Tykání"};
-const ADRESAT={rodic:"Rodič",kolega:"Kolega",vedeni:"Vedení",zak:"Žák"};
+const ADRESAT={rodic:"Rodič",kolega:"Kolega",vedeni:"Vedení",zak:"Žák",jiny:"Jiný"};
 const PREPIS={diplomaticky:"Diplomatický",strucnejsi:"Stručnější",formalnejsi:"Formálnější",vstricnejsi:"Vstřícnější",duraznejsi:"Důraznější",srozumitelnejsi:"Srozumitelnější"};
 const UCEL={oznameni:"Oznámení",zadost:"Žádost",pozvanka:"Pozvánka",omluva:"Omluva",pripominka:"Připomenutí",podekovani:"Poděkování",odmitnuti:"Odmítnutí",vysvetleni:"Vysvětlení",potvrzeni:"Potvrzení"};
 const LANG={cs:"Čeština",en:"Angličtina",es:"Španělština"};
@@ -343,16 +343,35 @@ const SCHOOL_SCENARIOS={
   agreement_summary:{label:"Shrnutí domluvy",category:"Kolegové a vedení",vals:{my_mode:"sestavit",my_adresat:"kolega",my_oslov:"vykani",my_ucel:"potvrzeni",my_cton:"vecny",my_cdelka:"stredni"},hint:"Přehledně potvrď body dohody, odpovědnosti a termíny."}
 };
 
+
+function customRecipientValue(p){
+  const input=$(p+"_adresatJiny");
+  return input?String(input.value||"").trim():"";
+}
+function recipientLabel(p){
+  const key=readChip(p+"_adresat");
+  if(key!=="jiny") return ADRESAT[key]||key||"—";
+  const own=customRecipientValue(p);
+  return own?("Jiný – "+own):"Jiný adresát";
+}
+function syncCustomRecipient(p){
+  const wrap=$(p+"_adresatJinyWrap"), input=$(p+"_adresatJiny");
+  const show=readChip(p+"_adresat")==="jiny";
+  if(wrap) wrap.hidden=!show;
+  if(input){ input.disabled=!show; if(show) input.setAttribute("aria-required","true"); else input.removeAttribute("aria-required"); }
+  renderChoiceSummary(p);
+}
+
 function chipGroup(name,map,sel){ return '<div class="chips" data-group="'+name+'">'+Object.keys(map).map(k=>'<button class="chip'+(k===sel?" on":"")+'" data-v="'+k+'">'+esc(map[k])+'</button>').join("")+'</div>'; }
 function readChip(g){ const el=document.querySelector('.chips[data-group="'+g+'"] .chip.on'); return el?el.dataset.v:""; }
 function wireChips(root){ root.querySelectorAll(".chips").forEach(group=>{ group.addEventListener("click",(e)=>{ const c=e.target.closest(".chip"); if(!c) return; group.querySelectorAll(".chip").forEach(x=>x.classList.remove("on")); c.classList.add("on"); renderChoiceSummary("in"); renderChoiceSummary("my"); }); }); }
 function renderChoiceSummary(p){
   const el=$(p+"_choiceSummary"); if(!el) return;
   if(p==="in"){
-    const parts=["Adresát: "+(ADRESAT[readChip("in_adresat")]||"—"),"Záměr: "+(ZAMER[readChip("in_zamer")]||"—"),"Tón: "+(TON[readChip("in_ton")]||"—"),"Délka: "+(DELKA[readChip("in_delka")]||"—"),"Jazyk: "+(LANG[readChip("in_lang")]||LANG[readChip("outlang")]||"Čeština")];
+    const parts=["Adresát: "+recipientLabel("in"),"Záměr: "+(ZAMER[readChip("in_zamer")]||"—"),"Tón: "+(TON[readChip("in_ton")]||"—"),"Délka: "+(DELKA[readChip("in_delka")]||"—"),"Jazyk: "+(LANG[readChip("in_lang")]||LANG[readChip("outlang")]||"Čeština")];
     el.textContent=parts.join(" · "); return;
   }
-  const parts=["Režim: "+({opravit:"Opravit",prepsat:"Přepsat",sestavit:"Sestavit"}[readChip("my_mode")]||"—"),"Adresát: "+(ADRESAT[readChip("my_adresat")]||"—"),"Jazyk: "+(LANG_MY[readChip("my_lang")]||"Čeština")];
+  const parts=["Režim: "+({opravit:"Opravit",prepsat:"Přepsat",sestavit:"Sestavit"}[readChip("my_mode")]||"—"),"Adresát: "+recipientLabel("my"),"Jazyk: "+(LANG_MY[readChip("my_lang")]||"Čeština")];
   const sc=SCHOOL_SCENARIOS[readChip("my_scenario")||"none"]; if(sc&&sc.label&&readChip("my_scenario")!=="none") parts.push("Scénář: "+sc.label);
   el.textContent=parts.join(" · ");
 }

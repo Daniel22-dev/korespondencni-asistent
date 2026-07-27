@@ -2,23 +2,21 @@
 
 Samostatný repozitář aplikace pro Gymnázium, Ostrava-Hrabůvka.
 
-- **Verze:** 5.4.2
+- **Verze:** 5.4.3
 - **Doporučený název repozitáře:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
 
-## Co přináší verze 5.4.2
+## Co přináší verze 5.4.3
 
-- jedno velké pracovní pole současně slouží k anonymizaci i jako přesný obsah připravený pro Gemini,
-- našeptávač dovoluje bezpečné zbývající výrazy po přečtení ponechat hromadně, takže není nutné mechanicky odklikávat desítky návrhů,
-- skutečná jména, instituce a místa lze dál řešit jednotlivě; pole **Zkontrolováno** se odemkne až po jejich vyřešení nebo vědomém hromadném ponechání,
-- postupné označení `Petr` a `H.` se sloučí do jedné značky `osoba A`; podporována je i iniciála bez tečky a slovo `Mává` se nepřipojí,
-- kontrola před odesláním má opravenou šířku textu a varianty odpovědi automaticky nepřebírají emoji,
-- podpis z profilu se automaticky doplní a zobrazí v návrhu lokálně; jméno odesílatele se neposílá Gemini,
-- přepracované, široké a přehledné okno **Formulace a podpisy**,
-- odstraněn zbytečný vnější rámeček poznámky pro odpověď,
-- **Šablony školních situací** jsou přejmenovány na **Scénáře školní komunikace**,
-- vývojářské nástroje a interní testy se v produkci zobrazí pouze správci s rolí `admin`; lokální vývoj a testovací režim zůstávají zachovány.
+- kliknutí na libovolné slovo nebo označení víceslovného úseku přímo v e-mailu otevře pevný panel napravo; u dlouhých zpráv není nutné rolovat k oddělenému seznamu,
+- panel nabízí kategorie **Osoba**, **Instituce / organizace**, **Místo**, **Název / dílo**, **Kontakt**, **Jiný citlivý údaj** a **Ponechat**,
+- nové bezpečné značky `[název 1]`, `[kontakt 1]` a `[citlivý údaj 1]` se zpracovávají stejně jako dosavadní náhrady a zůstávají v lokálním klíči,
+- finální kontrola má tři jasné kroky: skryté údaje, návrhy k posouzení a potvrzení uživatele; vždy uvádí konkrétní důvod, proč ještě nelze pokračovat,
+- hromadná volba **Ponechat všech N** je dostupná přímo ve finální kontrole,
+- opakované a matoucí varovné bloky byly zjednodušeny; oranžová označuje skutečně potřebnou akci a zelená dokončený krok,
+- v pokročilém režimu přibyl adresát **Jiný** s polem pro vlastní popis, například nakladatelství, knihovna nebo externí partner,
+- zachovány jsou opravy 5.4.2: hromadné ponechání návrhů, slučování `Petr` + `H.` do jedné osoby, opravená kontrola a potlačení nevyžádaných emoji.
 
 ## Nahrání na GitHub
 

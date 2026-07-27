@@ -3,11 +3,12 @@ const IS_TEST_MODE=new URLSearchParams(window.location.search).has("test")||Stri
 "use strict";
 
 const RELEASE = {
-  version: "5.4.2",
-  date: "2026-07-26",
+  version: "5.4.3",
+  date: "2026-07-27",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.4.3: kliknutí nebo výběr slov přímo v anonymizovaném e-mailu otevře pevný pravý panel s kategoriemi Osoba, Instituce / organizace, Místo, Název / dílo, Kontakt, Jiný citlivý údaj a Ponechat. Finální kontrola nově ukazuje tři jasné kroky, přesný důvod blokace a hromadné ponechání přímo u brány. V pokročilém režimu přibyl adresát Jiný s vlastním popisem, například nakladatelství nebo externí partner.",
     "5.4.2: našeptávač už nenutí odklikávat desítky bezpečných výrazů jednotlivě — po přečtení seznamu je lze potvrzenou akcí ponechat všechny zbývající. Postupné označení sousedních částí jména nebo iniciály se sloučí do stejné osoby; funguje i podpis Petr H bez tečky a nevzniká osoba B.",
     "5.4.1: opravena rozbitá kontrola před odesláním — varovné položky už nekolidují s obecným stylem upozornění, text se zobrazuje v normální šířce a bez zdvojených ikon. Tři varianty odpovědi ve výchozím stavu nepřebírají emoji ani smajlíky z původního e-mailu; zachovají se pouze při výslovném požadavku v poznámce pro odpověď.",
     "5.4.0: sjednocená bezpečnostní kontrola — anonymizace, našeptávač a přesný obsah pro Gemini jsou v jednom velkém pracovním poli; nevyřešené návrhy je nutné označit jako osobu, instituci, místo nebo vědomě ponechat. Opraveno spojování podpisu typu Petr H. bez pohlcení slova Mává, profilový podpis se lokálně zobrazuje přímo v návrhu a při chybějící značce se automaticky doplní. Přepracováno okno Formulace a podpisy, odstraněn zbytečný rámeček poznámky, Šablony školních situací přejmenovány na Scénáře školní komunikace a vývojářské nástroje jsou v produkci dostupné jen správci s rolí admin.",
@@ -151,7 +152,16 @@ function openOnboardingTour(force){
   document.body.appendChild(overlay);
   render();
 }
-function tokenClass(tok){ if(/^\[e-mail/.test(tok)) return "t-email"; if(/^\[telefon/.test(tok)) return "t-phone"; if(/^\[instituce/.test(tok)) return "t-institution"; if(/^\[místo/.test(tok)) return "t-place"; return "t-osoba"; }
-function hasLeftoverToken(text){ return /osoba\s+[A-Z]|\[e-mail\s*\d|\[telefon\s*\d|\[rodné číslo|\[datum narození|\[číslo účtu|\[instituce\s*\d|\[místo\s*\d|\[podpis\]|\[u[čc]itel\]/.test(text); }
+function tokenClass(tok){
+  if(/^\[e-mail/.test(tok)) return "t-email";
+  if(/^\[telefon/.test(tok)) return "t-phone";
+  if(/^\[instituce/.test(tok)) return "t-institution";
+  if(/^\[místo/.test(tok)) return "t-place";
+  if(/^\[název/.test(tok)) return "t-title";
+  if(/^\[kontakt/.test(tok)) return "t-contact";
+  if(/^\[citlivý údaj/.test(tok)) return "t-sensitive";
+  return "t-osoba";
+}
+function hasLeftoverToken(text){ return /osoba\s+[A-Z]|\[e-mail\s*\d|\[telefon\s*\d|\[rodné číslo|\[datum narození|\[číslo účtu|\[instituce\s*\d|\[místo\s*\d|\[název\s*\d|\[kontakt\s*\d|\[citlivý údaj\s*\d|\[podpis\]|\[u[čc]itel\]/.test(text); }
 const escRe = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 

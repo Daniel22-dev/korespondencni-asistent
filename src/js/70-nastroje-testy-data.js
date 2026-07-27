@@ -274,6 +274,42 @@ async function runKorespTests(){
       assertTest(suggestionData("in").suggestions.length===0,"po hromadném ponechání zůstaly nevyřešené návrhy");
       assertTest(!E("in","reviewOk").disabled,"hromadné ponechání neodemklo závěrečnou kontrolu");
     });
+    await test("Kliknutí v textu otevře kategorie v pravém panelu", async()=>{
+      E("in","raw").value="Petr doporučil knihu Saturnin."; doAnon("in");
+      const word=[...E("in","view").querySelectorAll(".w")].find(x=>x.textContent==="Saturnin");
+      assertTest(!!word,"slovo Saturnin se v hlavním textu nezobrazilo");
+      word.click();
+      const panel=E("in","suggestionPanel");
+      assertTest(ST.in.selectedPhrase==="Saturnin","kliknutí v textu nevybralo výraz");
+      assertTest(!ST.in.km.some(x=>x.real==="Saturnin"),"kliknutí slovo rovnou chybně anonymizovalo jako osobu");
+      assertTest(panel.textContent.includes("Saturnin")&&panel.textContent.includes("Název / dílo")&&panel.textContent.includes("Jiný citlivý údaj"),"pravý panel neobsahuje úplný výběr kategorií");
+      clearSelectedPhrase("in");
+    });
+    await test("Nové anonymizační kategorie vytvářejí bezpečné značky", async()=>{
+      ST.in.raw="Saturnin, Teams a interní kód X9."; ST.in.km=[]; ST.in.reviewedSuggestions={}; ST.in.selectedPhrase="";
+      addPhraseAs("in","Saturnin","title");
+      addPhraseAs("in","Teams","contact");
+      addPhraseAs("in","X9","sensitive");
+      assertTest(ST.in.km.some(x=>x.token==="[název 1]"),"chybí značka názvu / díla");
+      assertTest(ST.in.km.some(x=>x.token==="[kontakt 1]"),"chybí značka kontaktu");
+      assertTest(ST.in.km.some(x=>x.token==="[citlivý údaj 1]"),"chybí značka jiného citlivého údaje");
+      assertTest(preflightIssues(ST.in.clean,"in").danger.length===0,"nové bezpečné značky vyvolaly blokující preflight");
+    });
+    await test("Finální kontrola jasně ukazuje blokující krok", async()=>{
+      E("in","raw").value="Petr píše zprávu."; doAnon("in");
+      assertTest(E("in","previewSummary").textContent.includes("Návrhy k posouzení")&&E("in","previewSummary").textContent.includes("Zbývá rozhodnout"),"finální kontrola neukazuje chybějící krok");
+      assertTest(!!E("in","previewSummary").querySelector("[data-review-keep-all]"),"u finální kontroly chybí hromadná akce");
+      keepSuggestionRows("in",suggestionData("in").suggestions);
+      assertTest(!E("in","reviewOk").disabled,"po vyřešení návrhů zůstal checkbox zamčený");
+      assertTest(E("in","gateReason").textContent.includes("zaškrtni"),"brána neříká jasně poslední chybějící krok");
+    });
+    await test("Adresát Jiný zobrazí vlastní popis", async()=>{
+      setChip("my_adresat","jiny");
+      const input=$("my_adresatJiny"); input.value="nakladatelství"; input.dispatchEvent(new Event("input",{bubbles:true})); syncCustomRecipient("my");
+      assertTest(!$("my_adresatJinyWrap").hidden,"pole pro jiného adresáta se nezobrazilo");
+      assertTest(recipientLabel("my")==="Jiný – nakladatelství","vlastní adresát se nepropsal do popisu");
+      setChip("my_adresat","rodic"); syncCustomRecipient("my");
+    });
     await test("Podpis z profilu se zobrazí lokálně, ale do zdroje se nepropíše", async()=>{
       const old=localStorage.getItem("rozbor_profile");
       try{

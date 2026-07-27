@@ -35,8 +35,8 @@ function rememberNames(km){
 
 /* ===================== STAV PER ZÁLOŽKA ===================== */
 const ST = {
-  in: { km:[], emailN:0, phoneN:0, raw:"", clean:"", syn:{}, pozadavky:[], outputReady:false, sensitiveAck:false, reviewedSuggestions:{} },
-  my: { km:[], emailN:0, phoneN:0, raw:"", clean:"", syn:{}, outputReady:false, sensitiveAck:false, reviewedSuggestions:{} },
+  in: { km:[], emailN:0, phoneN:0, raw:"", clean:"", syn:{}, pozadavky:[], outputReady:false, sensitiveAck:false, reviewedSuggestions:{}, selectedPhrase:"" },
+  my: { km:[], emailN:0, phoneN:0, raw:"", clean:"", syn:{}, outputReady:false, sensitiveAck:false, reviewedSuggestions:{}, selectedPhrase:"" },
 };
 const E = (p,name)=>$(p+"_"+name);
 const ACTIVE_KEY_REALS={in:[],my:[]};
@@ -296,7 +296,8 @@ function suggestionData(p){
   return {suggestions,byWord,words,wtok,segs:parsed.segs};
 }
 function categoryToken(st,kind){
-  const base=kind==="institution"?"instituce":"místo";
+  const bases={institution:"instituce",place:"místo",title:"název",contact:"kontakt",sensitive:"citlivý údaj"};
+  const base=bases[kind]||"citlivý údaj";
   let max=0;
   (st.km||[]).forEach(k=>{const m=String(k.token||"").match(new RegExp("^\\["+base+"\\s+(\\d+)\\]$"));if(m)max=Math.max(max,+m[1]||0);});
   return "["+base+" "+(max+1)+"]";
@@ -360,7 +361,7 @@ function addPhraseAs(p, phrase, kind){
   if(!cleaned || cleaned.length<1) return;
   if(st.km.some(k=>k.real.toLocaleLowerCase("cs-CZ")===cleaned.toLocaleLowerCase("cs-CZ"))) return;
   let token="", related="";
-  if(kind==="institution"||kind==="place") token=categoryToken(st,kind);
+  if(["institution","place","title","contact","sensitive"].includes(kind)) token=categoryToken(st,kind);
   else {
     const merged=adjacentPersonMerge(st,cleaned);
     if(merged){
@@ -385,6 +386,7 @@ function keepSuggestionRows(p,rows){
   if(!list.length) return 0;
   st.reviewedSuggestions=st.reviewedSuggestions||{};
   list.forEach(x=>{ st.reviewedSuggestions[suggestionKey(x.phrase)]="keep"; });
+  st.selectedPhrase="";
   resetReview(p); renderView(p); renderPreview(p);
   return list.length;
 }
@@ -402,32 +404,49 @@ function keepAllSuggestions(p,rows){
 function suggestionActionButtons(p,phrase){
   return '<div class="suggestion-actions" data-phrase="'+escAttr(phrase)+'">'+
     '<button type="button" class="suggestion-action person" data-suggest-kind="person">Osoba</button>'+
-    '<button type="button" class="suggestion-action institution" data-suggest-kind="institution">Instituce</button>'+
+    '<button type="button" class="suggestion-action institution" data-suggest-kind="institution">Instituce / organizace</button>'+
     '<button type="button" class="suggestion-action place" data-suggest-kind="place">Místo</button>'+
+    '<button type="button" class="suggestion-action title" data-suggest-kind="title">Název / dílo</button>'+
+    '<button type="button" class="suggestion-action contact" data-suggest-kind="contact">Kontakt</button>'+
+    '<button type="button" class="suggestion-action sensitive" data-suggest-kind="sensitive">Jiný citlivý údaj</button>'+
     '<button type="button" class="suggestion-action keep" data-suggest-kind="keep">Ponechat</button></div>';
+}
+function clearSelectedPhrase(p){ if(ST[p]) ST[p].selectedPhrase=""; }
+function selectPhraseForReview(p,phrase,scrollOnMobile){
+  const clean=String(phrase||"").replace(/\s+/g," ").trim(); if(!clean)return;
+  ST[p].selectedPhrase=clean;
+  renderView(p);
+  const panel=E(p,"suggestionPanel");
+  if(panel && scrollOnMobile && window.matchMedia && window.matchMedia("(max-width: 820px)").matches) panel.scrollIntoView({behavior:"smooth",block:"end"});
 }
 function wireSuggestionActions(root,p,close){
   if(!root)return;
   root.querySelectorAll("[data-suggest-kind]").forEach(btn=>btn.onclick=()=>{
     const wrap=btn.closest("[data-phrase]"),phrase=wrap&&wrap.dataset.phrase||"",kind=btn.dataset.suggestKind;
+    clearSelectedPhrase(p);
     if(kind==="keep")keepSuggestion(p,phrase);else addPhraseAs(p,phrase,kind);
     if(close)close();
   });
+  root.querySelectorAll("[data-select-phrase]").forEach(btn=>btn.onclick=()=>selectPhraseForReview(p,btn.dataset.selectPhrase||"",true));
+  const closeBtn=root.querySelector("[data-close-selection]"); if(closeBtn) closeBtn.onclick=()=>{clearSelectedPhrase(p);renderSuggestionPanel(p);};
 }
+
 function renderSuggestionPanel(p,suggestions){
   const panel=E(p,"suggestionPanel"); if(!panel)return;
   const rows=suggestions||suggestionData(p).suggestions;
+  const selected=String(ST[p].selectedPhrase||"").trim();
+  const selectedCard=selected?('<section class="selected-suggestion" aria-label="Zvolený výraz"><div class="selected-suggestion-head"><span><small>Vybraný výraz</small><b>„'+esc(selected)+'“</b></span><button type="button" class="selection-close" data-close-selection aria-label="Zavřít výběr">×</button></div><p>Jak se má výraz anonymizovat?</p>'+suggestionActionButtons(p,selected)+'</section>'):'';
   if(!rows.length){
-    panel.className="suggestion-panel resolved";
-    panel.innerHTML='<div class="suggestion-panel-head"><span class="suggestion-count">✓</span><span><b>Všechny návrhy vyřešeny</b><small>Ještě pročti celý text očima.</small></span></div>';
+    panel.className="suggestion-panel resolved"+(selected?" has-selection":"");
+    panel.innerHTML=selectedCard+'<div class="suggestion-panel-head"><span class="suggestion-count">✓</span><span><b>Všechny návrhy vyřešeny</b><small>Ještě pročti celý text očima. Kliknutím na libovolné slovo můžeš přidat další náhradu.</small></span></div>';
   }else{
-    panel.className="suggestion-panel has-items";
-    panel.innerHTML='<div class="suggestion-panel-head"><span class="suggestion-count">'+rows.length+'</span><span><b>Výrazy ke kontrole</b><small>Jména vyřeš jednotlivě. Ostatní můžeš po přečtení ponechat hromadně.</small></span></div>'+
+    panel.className="suggestion-panel has-items"+(selected?" has-selection":"");
+    panel.innerHTML=selectedCard+'<div class="suggestion-panel-head"><span class="suggestion-count">'+rows.length+'</span><span><b>Výrazy ke kontrole</b><small>Klikni na výraz v e-mailu nebo v seznamu. Kategorie se vždy zobrazí nahoře v tomto panelu.</small></span></div>'+
       '<div class="suggestion-bulk"><button type="button" class="btn ghost small" data-keep-all-suggestions>Ponechat všechny zbývající</button><small>Potvrdíš, že v seznamu není nic citlivého.</small></div>'+
-      '<div class="suggestion-list">'+rows.map(x=>'<article class="suggestion-item"><strong>'+esc(x.phrase)+'</strong>'+suggestionActionButtons(p,x.phrase)+'</article>').join("")+'</div>';
-    wireSuggestionActions(panel,p);
+      '<div class="suggestion-list">'+rows.map(x=>'<article class="suggestion-item'+(suggestionKey(selected)===x.key?' active':'')+'"><strong>'+esc(x.phrase)+'</strong><button type="button" class="btn ghost small" data-select-phrase="'+escAttr(x.phrase)+'">Vybrat</button></article>').join("")+'</div>';
     const keepAll=panel.querySelector("[data-keep-all-suggestions]"); if(keepAll) keepAll.onclick=()=>keepAllSuggestions(p,rows);
   }
+  wireSuggestionActions(panel,p);
 }
 function showTapHide(p, phrase, rect){
   if(!tapPopEl){ tapPopEl=document.createElement("div"); tapPopEl.id="tapPop"; document.body.appendChild(tapPopEl); }
@@ -446,7 +465,7 @@ function wireTapSelection(p){
     const txt=sel.toString().trim();
     if(!txt || !/\s/.test(txt)){ hideTapPop(); return; }
     if(!view.contains(sel.anchorNode) || !view.contains(sel.focusNode)){ hideTapPop(); return; }
-    showTapHide(p, txt, sel.getRangeAt(0).getBoundingClientRect());
+    selectPhraseForReview(p, txt, true);
   },10);
   view.addEventListener("mouseup",handler); view.addEventListener("touchend",handler);
 }
@@ -479,12 +498,10 @@ function renderView(p){
     } else {
       if(w.pre) el.appendChild(document.createTextNode(w.pre));
       const suggestion=byWord.get(widx), phrase=suggestion?suggestion.phrase:w.core;
-      const cls="w"+(suggestion?" maybe suggestion-word":"");
-      const title=suggestion?("Výraz ke kontrole: "+phrase+" — zvol osobu, instituci, místo nebo ponechat"):("Ťukni a skryješ jako osobu");
-      el.appendChild(mkSpan(cls,w.core,title,"Zkontrolovat "+phrase,(ev)=>{
-        if(suggestion){ const r=ev.currentTarget.getBoundingClientRect(); showTapHide(p,phrase,r); }
-        else addWord(p,w.core);
-      }));
+      const selected=suggestionKey(ST[p].selectedPhrase||"")===suggestionKey(phrase);
+      const cls="w"+(suggestion?" maybe suggestion-word":"")+(selected?" selected-word":"");
+      const title="Vybrat „"+phrase+"“ a určit kategorii v pravém panelu";
+      el.appendChild(mkSpan(cls,w.core,title,"Zkontrolovat "+phrase,()=>selectPhraseForReview(p,phrase,false)));
       if(w.post) el.appendChild(document.createTextNode(w.post));
     }
   }
@@ -501,7 +518,7 @@ function activateSensitiveMode(reason){
 function doAnon(p){
   const raw=E(p,"raw").value; if(!raw.trim()) return;
   if(hasSensitiveSchoolTerms(raw)) activateSensitiveMode("obsahuje citlivá školní témata");
-  const st=ST[p]; st.raw=raw; st.emailN=0; st.phoneN=0; st.km=[]; st.sensitiveAck=false; st.reviewedSuggestions={};
+  const st=ST[p]; st.raw=raw; st.emailN=0; st.phoneN=0; st.km=[]; st.sensitiveAck=false; st.reviewedSuggestions={}; st.selectedPhrase="";
   buildKey(st, autoDetect(raw));
   afterKeyChange(p);
   const kd=E(p,"keyDetails"); if(kd) kd.open=false;
@@ -613,7 +630,7 @@ function renderPreview(p){
   updateSendGate(p);
 }
 function stripSafeTokens(text){
-  return String(text||"").replace(/\[e-mail \d+\]|\[telefon \d+\]|\[rodné číslo \d+\]|\[datum narození \d+\]|\[číslo účtu \d+\]|\[instituce \d+\]|\[místo \d+\]|osoba [A-Z]+|\[podpis\]|\[učitel\]/g," ");
+  return String(text||"").replace(/\[e-mail \d+\]|\[telefon \d+\]|\[rodné číslo \d+\]|\[datum narození \d+\]|\[číslo účtu \d+\]|\[instituce \d+\]|\[místo \d+\]|\[název \d+\]|\[kontakt \d+\]|\[citlivý údaj \d+\]|osoba [A-Z]+|\[podpis\]|\[učitel\]/g," ");
 }
 function preflightIssues(text,p){
   const stripped=stripSafeTokens(text);
@@ -711,7 +728,7 @@ function safetyAudit(text,p){
       action:sensitive?"Neodesílat konkrétní údaje. Zobečni situaci a odstraň identifikátory.":"Neodesílat, nejdřív uprav text."
     };
   }
-  if(iss.warn.length) return {level:"warn", title:"Kontrolní upozornění", msg:"Aplikace upozorňuje na "+iss.warn.join("; ")+". Upozornění samo o sobě generování neblokuje.", action:"Posuď nález očima. Pokud nejde o osobní nebo citlivý údaj, potvrď kontrolu."};
+  if(iss.warn.length) return {level:"warn", title:"Heuristická kontrola", msg:"Aplikace našla možné názvy nebo jiné nejednoznačné výrazy. Samy o sobě pokračování neblokují; rozhodující je seznam návrhů v kroku 2 a tvoje ruční kontrola.", action:"Pokud nejde o citlivé údaje, vyřeš návrhy a potvrď kontrolu."};
   return {level:"ok", title:"Zelená", msg:"Nevidím zjevný e-mail, telefon, rodné číslo, adresu ani podezřelé jméno. Přesto ještě projdi náhled očima.", action:"Pokračuj až po ruční kontrole náhledu."};
 }
 function renderSafetyCounts(p){
@@ -733,36 +750,29 @@ function renderPreviewSummary(p){
   const el=E(p,"previewSummary"); if(!el) return;
   const clean=ST[p].clean||"";
   if(!clean.trim()){ el.className="preview-summary"; el.innerHTML=""; return; }
-  const km=ST[p].km||[];
+  const km=ST[p].km||[], unresolved=suggestionData(p).suggestions;
   const cO=km.filter(k=>/^osoba/.test(k.token||"")).length;
   const cE=km.filter(k=>/^\[e-mail/.test(k.token||"")).length;
   const cT=km.filter(k=>/^\[telefon/.test(k.token||"")).length;
-  const iss=preflightIssues(clean,p);
-  const total=cO+cE+cT;
-  const show=clean.length>260 || total>0 || iss.danger.length || iss.warn.length;
-  if(!show){ el.className="preview-summary"; el.innerHTML=""; return; }
-  const counts=czCount(cO,"osoba","osoby","osob")+", "+czCount(cE,"e-mail","e-maily","e-mailů")+", "+czCount(cT,"telefon","telefony","telefonů");
-  const riskClass=iss.danger.length?"danger":(iss.warn.length?"warn":"ok");
-  const riskText=iss.danger.length?iss.danger.join(", "):(iss.warn.length?iss.warn.join("; "):"bez zjevného nálezu");
-  const riskItems=iss.danger.concat(iss.warn).slice(0,8).map(x=>'<li class="'+(iss.danger.includes(x)?'danger':'warn')+'">'+esc(x)+'</li>').join("");
-  el.className="preview-summary show";
-  el.innerHTML='<div class="privacy-triad">'+
-    '<div class="privacy-tile"><b>Co je skryto</b>'+esc(counts)+'</div>'+ 
-    '<div class="privacy-tile '+riskClass+'"><b>Co je rizikové</b>'+esc(riskText)+'</div>'+ 
-    '<div class="privacy-tile"><b>Co odejde modelu</b>Pouze náhled níže po ručním potvrzení.</div>'+ 
-    '</div>'+(riskItems?'<ul class="preview-risk-list" aria-label="Rizika v náhledu">'+riskItems+'</ul>':'');
+  const cOther=km.filter(k=>/^\[(instituce|místo|název|kontakt|citlivý údaj)/.test(k.token||"")).length;
+  const iss=preflightIssues(clean,p), cb=E(p,"reviewOk");
+  const counts=czCount(cO,"osoba","osoby","osob")+", "+czCount(cE,"e-mail","e-maily","e-mailů")+", "+czCount(cT,"telefon","telefony","telefonů")+(cOther?", "+czCount(cOther,"další údaj","další údaje","dalších údajů"):"");
+  const step2ok=unresolved.length===0;
+  const step3ok=!!(cb&&cb.checked);
+  const danger=iss.danger.length>0;
+  el.className="preview-summary show review-steps";
+  el.innerHTML='<div class="review-step done"><span class="review-step-no">1</span><span><b>Citlivé údaje skryty</b><small><span class="review-meta-label">Co je skryto:</span> '+esc(counts)+'.</small></span><span class="review-state">Hotovo</span></div>'+
+    '<div class="review-step '+(step2ok?'done':'action')+'"><span class="review-step-no">2</span><span><b>Návrhy k posouzení</b><small>'+(step2ok?'Všechny návrhy jsou vyřešené.':'Zbývá rozhodnout o '+czCount(unresolved.length,'výrazu','výrazech','výrazech')+'.')+'</small></span>'+
+      (step2ok?'<span class="review-state">Hotovo</span>':'<span class="review-step-actions"><button type="button" class="btn ghost small" data-review-first>Projít jednotlivě</button><button type="button" class="btn primary small" data-review-keep-all>Ponechat všech '+unresolved.length+'</button></span>')+'</div>'+
+    '<div class="review-step '+(step2ok?(step3ok?'done':'ready'):'locked')+'"><span class="review-step-no">3</span><span><b>Potvrzení uživatele</b><small>'+(step2ok?(step3ok?'Ruční kontrola byla potvrzena.':'Teď můžeš zaškrtnout pole Zkontrolováno.'):"Nejprve dokonči krok 2.")+'</small></span><span class="review-state">'+(step3ok?'Hotovo':(step2ok?'Čeká na potvrzení':'Zamčeno'))+'</span></div>'+
+    '<div class="review-model-note"><b>Co odejde modelu:</b> pouze přesný anonymizovaný text v hlavním poli po potvrzení. <b>Co je rizikové:</b> '+(danger?esc(iss.danger.join('; ')):'žádný blokující nález')+'.</div>';
+  const first=el.querySelector("[data-review-first]"); if(first) first.onclick=()=>{const row=suggestionData(p).suggestions[0];if(row)selectPhraseForReview(p,row.phrase,true);};
+  const keep=el.querySelector("[data-review-keep-all]"); if(keep) keep.onclick=()=>keepAllSuggestions(p,unresolved);
 }
 function renderReadyBanner(p, audit){
   const el=E(p,"readyBanner"); if(!el) return;
-  const clean=ST[p].clean||"";
-  if(clean.trim() && audit && (audit.level==="ok" || audit.level==="warn")){
-    const warn=audit.level==="warn";
-    el.className="ready-banner show"+(warn?" warn":"");
-    el.innerHTML='<span class="rb-icon" aria-hidden="true">'+(warn?'!':'✓')+'</span><span><b>'+(warn?'Náhled obsahuje kontrolní upozornění.':'Náhled je připraven ke kontrole.')+'</b><small>'+(warn?'Posuď označené položky, potvrď kontrolu a pokračuj jen tehdy, pokud nejde o citlivé údaje.':'Přečti ho očima a teprve potom potvrď checkbox pod náhledem.')+'</small></span>';
-  } else {
-    el.className="ready-banner";
-    el.innerHTML="";
-  }
+  el.className="ready-banner";
+  el.innerHTML="";
 }
 function localSafeFallbackText(p){
   if(p==="in"){
@@ -815,13 +825,20 @@ function renderSafety(p){
 }
 function updateSendGate(p){
   const cb=E(p,"reviewOk"), btn=p==="in"?$("in_analyzeBtn"):$("my_goBtn"), unresolved=(ST[p].raw||"").trim()?suggestionData(p).suggestions.length:0;
+  const a=safetyAudit(ST[p].clean||"",p), hardStop=a.level==="danger" || (a.level==="nosend" && !(ST[p]&&ST[p].sensitiveAck));
   if(cb){
-    cb.disabled=unresolved>0;
-    if(unresolved>0) cb.checked=false;
-    cb.title=unresolved>0?("Nejdřív vyřeš "+unresolved+" označených výrazů."):"Po přečtení celého textu potvrď kontrolu.";
-    const label=cb.closest(".review-check"); if(label) label.classList.toggle("blocked",unresolved>0);
+    cb.disabled=unresolved>0 || hardStop;
+    if(cb.disabled) cb.checked=false;
+    cb.title=hardStop?"Nejdřív odstraň blokující citlivý údaj.":(unresolved>0?("Nejdřív rozhodni o "+unresolved+" označených výrazech."):"Po přečtení celého textu potvrď kontrolu.");
+    const label=cb.closest(".review-check"); if(label){label.classList.toggle("blocked",cb.disabled);label.classList.toggle("ready",!cb.disabled&&!cb.checked);label.classList.toggle("done",!!cb.checked);}
   }
-  if(btn && cb){ const a=safetyAudit(ST[p].clean||"",p); btn.disabled=unresolved>0 || !cb.checked || a.level==="danger" || (a.level==="nosend" && !(ST[p]&&ST[p].sensitiveAck)); }
+  if(btn && cb){ btn.disabled=cb.disabled || !cb.checked; btn.title=hardStop?"Pokračování blokuje bezpečnostní nález.":(unresolved>0?("Nejprve rozhodni o "+unresolved+" návrzích."):(!cb.checked?"Zaškrtni Zkontrolováno.":"Odeslat anonymizovaný text k rozboru.")); }
+  const reason=E(p,"gateReason");
+  if(reason){
+    reason.className="gate-reason "+(hardStop?"danger":unresolved>0?"action":cb&&cb.checked?"ok":"ready");
+    reason.innerHTML=hardStop?'<b>Nelze pokračovat:</b> bezpečnostní kontrola našla blokující údaj.':unresolved>0?('<b>Ještě chybí:</b> rozhodnout o '+czCount(unresolved,'výrazu','výrazech','výrazech')+'. Použij krok 2 výše.'):cb&&cb.checked?'<b>Připraveno.</b> Můžeš pokračovat.':'<b>Poslední krok:</b> zaškrtni pole Zkontrolováno.';
+  }
+  renderPreviewSummary(p);
   updateProgress(p);
 }
 function flashPreview(p){
@@ -839,7 +856,7 @@ function flashPreview(p){
   E(p,"raw").addEventListener("input",()=>{
     const value=E(p,"raw").value;
     if(ST[p].raw!==value){
-      ST[p].raw=value;ST[p].clean="";ST[p].km=[];ST[p].outputReady=false;ST[p].sensitiveAck=false;ST[p].reviewedSuggestions={};publishActiveKeyReals(p);
+      ST[p].raw=value;ST[p].clean="";ST[p].km=[];ST[p].outputReady=false;ST[p].sensitiveAck=false;ST[p].reviewedSuggestions={};ST[p].selectedPhrase="";publishActiveKeyReals(p);
       const cb=E(p,"reviewOk");if(cb)cb.checked=false;
       const step2=E(p,"step2");if(step2)step2.style.display="none";
       const results=$(p==="in"?"in_results":"my_results");if(results)results.innerHTML="";

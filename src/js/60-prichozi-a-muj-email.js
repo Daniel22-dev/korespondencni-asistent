@@ -90,7 +90,7 @@ function renderAnalysis(d){
   wrap.appendChild(replyHead);
   const pc=document.createElement("div"); pc.className="res-card reveal params reply-setup-card"; pc.dataset.workspaceStage="draft";
   pc.innerHTML='<h3>Vytvořit tři varianty odpovědi</h3><p class="hintline">Dostaneš stručnou, standardní a diplomatickou variantu. Všechny reagují na stejné zaškrtnuté body.</p>'+
-    '<div class="pgroup simple-hide"><div class="plabel" title="Komu odpovídáš. Předvolí oslovení i tón.">Adresát</div>'+chipGroup("in_adresat",ADRESAT,"rodic")+'</div>'+
+    '<div class="pgroup simple-hide"><div class="plabel" title="Komu odpovídáš. Předvolí oslovení i tón.">Adresát</div>'+chipGroup("in_adresat",ADRESAT,"rodic")+'<div class="custom-recipient" id="in_adresatJinyWrap" hidden><label for="in_adresatJiny">Komu odpovídáte?</label><input id="in_adresatJiny" type="text" maxlength="80" placeholder="např. nakladatelství, knihovna, externí partner"><small>Popis se použije pro tón a formálnost odpovědi.</small></div></div>'+
     '<div class="pgroup simple-hide"><div class="plabel">Záměr</div>'+chipGroup("in_zamer",ZAMER,sug)+'</div>'+
     '<div class="pgroup advanced-only"><div class="plabel">Výchozí tón</div>'+chipGroup("in_ton",TON,(d.konflikt||st==="napeti")?"vstricny":"vecny")+'</div>'+
     '<div class="pgroup advanced-only"><div class="plabel">Orientační délka standardní varianty</div>'+chipGroup("in_delka",DELKA,"stredni")+'</div>'+
@@ -104,7 +104,9 @@ function renderAnalysis(d){
   wrap.appendChild(pc);
   const sc=pc.querySelector('.chips[data-group="in_zamer"] .chip[data-v="'+sug+'"]'); if(sc) sc.classList.add("suggested");
   wireChips(pc); renderChoiceSummary("in");
-  pc.querySelector('.chips[data-group="in_adresat"]').addEventListener("click",(e)=>{ const c=e.target.closest(".chip"); if(c) applyAdresat(c.dataset.v); });
+  pc.querySelector('.chips[data-group="in_adresat"]').addEventListener("click",(e)=>{ const c=e.target.closest(".chip"); if(c){ applyAdresat(c.dataset.v); syncCustomRecipient("in"); } });
+  const inOther=$("in_adresatJiny"); if(inOther) inOther.addEventListener("input",()=>renderChoiceSummary("in"));
+  syncCustomRecipient("in");
   pc.querySelector('.chips[data-group="in_lang"]').addEventListener("click",(e)=>{ const c=e.target.closest(".chip"); if(c) setChip("outlang",c.dataset.v); });
   $("in_replyBtn").onclick=genReplies;
   if(typeof updateAssistantRail==="function") updateAssistantRail({analysis:d,priorityMeta});
@@ -116,6 +118,8 @@ function setChip(group,val){
   const safeVal=String(val).replace(/"/g,"");
   if(!g.querySelector('.chip[data-v="'+safeVal+'"]')){ console.warn("setChip: skupina "+group+" nezná hodnotu "+val); return; }
   g.querySelectorAll(".chip").forEach(x=>x.classList.toggle("on",x.dataset.v===val));
+  if(group==="in_adresat") syncCustomRecipient("in");
+  if(group==="my_adresat") syncCustomRecipient("my");
   renderChoiceSummary("in"); renderChoiceSummary("my");
 }
 function applyAdresat(a){
@@ -123,6 +127,7 @@ function applyAdresat(a){
   else if(a==="kolega"){ setChip("in_oslov","tykani"); setChip("in_ton","vecny"); }
   else if(a==="vedeni"){ setChip("in_oslov","vykani"); setChip("in_ton","vecny"); }
   else if(a==="zak"){ setChip("in_oslov","tykani"); setChip("in_ton","vstricny"); }
+  else if(a==="jiny"){ setChip("in_oslov","vykani"); setChip("in_ton","vecny"); }
 }
 async function genReplies(){
   if(isBusy($("in_replyBtn"))) return;
@@ -130,6 +135,7 @@ async function genReplies(){
   if(!$("in_reviewOk").checked){ state.innerHTML='<div class="error">Nejdřív potvrď finální kontrolu náhledu pod semaforem anonymizace.</div>'; flashPreview("in"); return; }
   if(!geminiApiKey && !testMockAvailable()){ $("apiPanel").classList.add("open"); state.innerHTML='<div class="error">Chybí klíč k API. Vlož ho nahoře.</div>'; return; }
   const zamer=readChip("in_zamer"),ton=readChip("in_ton"),delka=readChip("in_delka"),oslov=readChip("in_oslov"),adr=readChip("in_adresat");
+  if(adr==="jiny"&&!customRecipientValue("in")){ state.innerHTML='<div class="error"><b>Upřesni adresáta.</b> Do pole „Komu odpovídáte?“ napiš například nakladatelství nebo externí partner.</div>'; $("in_adresatJiny")?.focus(); return; }
   const allEls=[...document.querySelectorAll('#in_asks input[data-ask]')];
   const checked=allEls.filter(c=>c.checked).map(c=>ST.in.pozadavky[+c.dataset.ask]).filter(Boolean);
   const unchecked=allEls.filter(c=>!c.checked).map(c=>ST.in.pozadavky[+c.dataset.ask]).filter(Boolean);
@@ -140,7 +146,7 @@ async function genReplies(){
   const threadLine=ST.in.analysis&&ST.in.analysis.vlakno&&ST.in.analysis.vlakno.jeVlakno?"\nJde o e-mailové vlákno. Odpověz na poslední relevantní zprávu a neopakuj již uzavřené části.":"";
   const prompt="Přijatý e-mail nebo vlákno (se značkami):\n\"\"\"\n"+ST.in.clean+"\n\"\"\"\n\n"+
     "Napiš přesně 3 varianty: STRUČNOU, STANDARDNÍ a DIPLOMATICKOU. Všechny musí reagovat na stejné vybrané body.\n"+
-    "Adresát: "+(ADRESAT[adr]||adr)+"\nZáměr: "+(ZAMER[zamer]||zamer)+"\nVýchozí tón: "+(TON[ton]||ton)+"\nOrientační délka standardní varianty: "+(DELKA[delka]||delka)+"\nOslovení: "+(OSLOV[oslov]||oslov)+"\n"+
+    "Adresát: "+recipientLabel("in")+"\nZáměr: "+(ZAMER[zamer]||zamer)+"\nVýchozí tón: "+(TON[ton]||ton)+"\nOrientační délka standardní varianty: "+(DELKA[delka]||delka)+"\nOslovení: "+(OSLOV[oslov]||oslov)+"\n"+
     (note?"Další pokyn: "+note+"\n":"")+
     "Reaguj POUZE na tyto požadavky: "+JSON.stringify(checked.length?checked:ST.in.pozadavky)+
     (unchecked.length?"\nTyto body ani osoby, kterých se týkají, v odpovědi VŮBEC nezmiňuj: "+JSON.stringify(unchecked):"")+
@@ -366,7 +372,7 @@ function updateMyMode(){
     : flow==="quick" ? "Z bodů složí e-mail a předem rozpozná praktické parametry." : "Z textu výše (jako odrážky) složí hotový e-mail.";
   renderChoiceSummary("my");
 }
-function applyMyAdresat(a){ setChip("my_oslov", (a==="rodic"||a==="vedeni")?"vykani":"tykani"); }
+function applyMyAdresat(a){ setChip("my_oslov", (a==="rodic"||a==="vedeni"||a==="jiny")?"vykani":"tykani"); syncCustomRecipient("my"); }
 function syncSchoolScenario(v, applyDefaults){
   const sc=SCHOOL_SCENARIOS[v]||SCHOOL_SCENARIOS.none;
   if(document.querySelector('.chips[data-group="my_scenario"]')) setChip("my_scenario", SCHOOL_SCENARIOS[v]?v:"none");
@@ -384,9 +390,11 @@ function applySchoolScenario(v){ syncSchoolScenario(v, true); }
   const gf=document.querySelector('.chips[data-group="my_flow"]'); if(gf) gf.addEventListener("click",(e)=>{ if(e.target.closest(".chip")) updateMyMode(); });
   const gm=document.querySelector('.chips[data-group="my_mode"]'); if(gm) gm.addEventListener("click",(e)=>{ if(e.target.closest(".chip")) updateMyMode(); });
   const ga=document.querySelector('.chips[data-group="my_adresat"]'); if(ga) ga.addEventListener("click",(e)=>{ const c=e.target.closest(".chip"); if(c) applyMyAdresat(c.dataset.v); });
+  const myOther=$("my_adresatJiny"); if(myOther) myOther.addEventListener("input",()=>renderChoiceSummary("my"));
   const gs=document.querySelector('.chips[data-group="my_scenario"]'); if(gs) gs.addEventListener("click",(e)=>{ const c=e.target.closest(".chip"); if(c) applySchoolScenario(c.dataset.v); });
   updateMyMode();
   applySchoolScenario(readChip("my_scenario")||"none");
+  syncCustomRecipient("my");
   renderChoiceSummary("my");
 })();
 $("my_goBtn").onclick=async()=>{
@@ -399,6 +407,7 @@ $("my_goBtn").onclick=async()=>{
   let inferred=null;
   if(mode==="sestavit" && flow==="quick") inferred=inferQuickComposeSettings(text,true);
   const oslov=readChip("my_oslov"), adr=readChip("my_adresat");
+  if(adr==="jiny"&&!customRecipientValue("my")){ state.innerHTML='<div class="error"><b>Upřesni adresáta.</b> Do pole „Komu píšete?“ napiš například nakladatelství nebo externí partner.</div>'; $("my_adresatJiny")?.focus(); return; }
   const oslovTxt = oslov==="beze"?"ponech oslovení beze změny":(oslov==="tykani"?"používej tykání":"používej vykání");
   if(inferred) state.innerHTML='<div class="info"><b>Rozpoznáno:</b> '+esc(inferred.label)+'. Hodnoty můžeš kdykoli upravit v řízeném režimu.</div>';
   const scenarioKey=readChip("my_scenario")||"none";
@@ -407,7 +416,7 @@ $("my_goBtn").onclick=async()=>{
   const note=safeAuxiliaryText("my", ($("my_note")&&$("my_note").value.trim())||"", state, "Doplňující pokyn");
   if(note===null || !enforcePreflight("my", state, note?[note]:[])) return;
   const subj=readChip("my_subj")==="ano";
-  const common="\nAdresát: "+(ADRESAT[adr]||adr)+"\nOslovení: "+oslovTxt+(note?"\nDalší pokyn: "+note:"")+(subj?"\nNa první řádek napiš „Předmět: …“ a pod něj samotný e-mail.":"")+scenarioLine+profileLine()+myLangLine();
+  const common="\nAdresát: "+recipientLabel("my")+"\nOslovení: "+oslovTxt+(note?"\nDalší pokyn: "+note:"")+(subj?"\nNa první řádek napiš „Předmět: …“ a pod něj samotný e-mail.":"")+scenarioLine+profileLine()+myLangLine();
   let sys, prompt, styl;
   if(mode==="prepsat"){
     const s=readChip("my_prepis"), u=readChip("my_ucel"); styl="Přepsáno: "+(PREPIS[s]||s); sys=SYS_PREPIS;
