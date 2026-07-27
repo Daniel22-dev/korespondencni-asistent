@@ -1,3 +1,18 @@
+function replyAllowsEmoji(note){
+  const s=String(note||"").toLowerCase();
+  if(!/(?:emoji|emotikon|smajl)/i.test(s)) return false;
+  return !/(?:bez|žádn|zadn|nepouž|nepouz|vynech|odstraň|odstran)/i.test(s);
+}
+function stripReplyEmoji(text){
+  return String(text||"")
+    .replace(/[\p{Extended_Pictographic}\p{Regional_Indicator}\uFE0E\uFE0F\u200D]/gu,"")
+    .replace(/[ \t]+([,.;:!?])/g,"$1")
+    .replace(/[ \t]{2,}/g," ")
+    .replace(/^[ \t]+|[ \t]+$/gm,"")
+    .replace(/\n{3,}/g,"\n\n")
+    .trim();
+}
+
 function recordCorrespondenceTelemetry(outputKind,attempted,successful,failed,cancelled=0){
   if(IS_TEST_MODE||TEST_RUN_ACTIVE)return;
   if(!window.GHRABTelemetry){ try{ logOp("telemetry","unavailable",{outputKind}); }catch(_){} return; }
@@ -144,6 +159,8 @@ async function genReplies(){
       if(idx<0) return null;
       pouzite.add(idx); return navrhy[idx];
     }).filter(Boolean);
+    const allowEmoji=replyAllowsEmoji(noteRaw);
+    if(!allowEmoji) navrhy=navrhy.map(n=>({...n,text:stripReplyEmoji(n&&n.text)}));
     const toolbar=document.createElement("div"); toolbar.className="reply-toolbar reply-choice-head";
     toolbar.innerHTML='<div><p class="eyebrow">Hotové návrhy</p><h3>Nejdřív pouze vyber jednu variantu</h3><p>Přečti si tři návrhy vedle sebe. Úpravy, kontrola a finální akce se zobrazí až u zvolené varianty.</p></div>';
     const grid=document.createElement("div"); grid.className="reply-grid variant-choice-grid";

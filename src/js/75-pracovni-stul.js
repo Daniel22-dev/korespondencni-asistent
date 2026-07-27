@@ -83,7 +83,7 @@ window.refreshDraftReadiness=function(el,p){
   const r=evaluateDraftReadiness(p,text,el._sourceText||"",el._cover||{}),label=readinessLabel(r.level);
   const badge=el.querySelector(".draft-check-badge"),box=el.querySelector(".check-list");
   if(badge){badge.textContent=label;badge.className="status-badge draft-check-badge "+r.level;}
-  if(box)box.innerHTML=r.items.map(x=>'<div class="check-item '+(x.ok?'ok':x.level)+'"><span>'+(x.ok?'✓':x.level==='danger'?'!':'○')+'</span><span>'+esc(x.label)+(x.detail?'<small>'+esc(x.detail)+'</small>':'')+'</span></div>').join("");
+  if(box)box.innerHTML=r.items.map(x=>'<div class="check-item '+(x.ok?'ok':'check-'+x.level)+'"><span>'+(x.ok?'✓':x.level==='danger'?'!':'○')+'</span><span>'+esc(x.label)+(x.detail?'<small>'+esc(x.detail)+'</small>':'')+'</span></div>').join("");
   const rb=$("railCheckBadge"),rl=$("railChecklist");if(activeDraft===el&&rb&&rl){rb.textContent=label;rb.className="status-badge "+r.level;rl.innerHTML=box?box.innerHTML:"";}
   return r;
 };

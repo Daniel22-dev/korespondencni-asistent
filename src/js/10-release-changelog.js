@@ -3,11 +3,13 @@ const IS_TEST_MODE=new URLSearchParams(window.location.search).has("test")||Stri
 "use strict";
 
 const RELEASE = {
-  version: "5.4.0",
+  version: "5.4.2",
   date: "2026-07-26",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.4.2: našeptávač už nenutí odklikávat desítky bezpečných výrazů jednotlivě — po přečtení seznamu je lze potvrzenou akcí ponechat všechny zbývající. Postupné označení sousedních částí jména nebo iniciály se sloučí do stejné osoby; funguje i podpis Petr H bez tečky a nevzniká osoba B.",
+    "5.4.1: opravena rozbitá kontrola před odesláním — varovné položky už nekolidují s obecným stylem upozornění, text se zobrazuje v normální šířce a bez zdvojených ikon. Tři varianty odpovědi ve výchozím stavu nepřebírají emoji ani smajlíky z původního e-mailu; zachovají se pouze při výslovném požadavku v poznámce pro odpověď.",
     "5.4.0: sjednocená bezpečnostní kontrola — anonymizace, našeptávač a přesný obsah pro Gemini jsou v jednom velkém pracovním poli; nevyřešené návrhy je nutné označit jako osobu, instituci, místo nebo vědomě ponechat. Opraveno spojování podpisu typu Petr H. bez pohlcení slova Mává, profilový podpis se lokálně zobrazuje přímo v návrhu a při chybějící značce se automaticky doplní. Přepracováno okno Formulace a podpisy, odstraněn zbytečný rámeček poznámky, Šablony školních situací přejmenovány na Scénáře školní komunikace a vývojářské nástroje jsou v produkci dostupné jen správci s rolí admin.",
     "5.3.1: testovací úpravy pracovního toku — odstraněn duplicitní bezpečný postup v záhlaví, anonymizace a kontrolní náhled sjednoceny do jednoho klidnějšího bloku, klíč náhrad zůstává sbalený, poznámka pro odpověď výslovně potvrzuje zapojení do promptu a opakovanou anonymizaci, po volbě návrhu se ostatní varianty skutečně skryjí, patička a nabídka nástrojů jsou zjednodušené, vývojářské nástroje jsou dostupné jen přes režim ?dev=1 nebo ?test a interaktivní manuál byl aktualizován.",
     "5.3.0: zjednodušené workflow — nová úvodní volba tří pracovních cest, spojený bezpečnostní blok anonymizace a přesného náhledu pro Gemini, zřetelně oddělený rozbor a nastavení odpovědi, čistý výběr jedné ze tří variant bez duplicitních ovladačů, sbalený pracovní přehled, výraznější finální akce a české oslovení při lokálním vrácení jmen.",

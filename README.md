@@ -2,17 +2,18 @@
 
 Samostatný repozitář aplikace pro Gymnázium, Ostrava-Hrabůvka.
 
-- **Verze:** 5.4.0
+- **Verze:** 5.4.2
 - **Doporučený název repozitáře:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
 
-## Co přináší verze 5.4.0
+## Co přináší verze 5.4.2
 
 - jedno velké pracovní pole současně slouží k anonymizaci i jako přesný obsah připravený pro Gemini,
-- našeptávač zvýrazní výrazy ke kontrole a vyžaduje rozhodnutí: osoba, instituce, místo, nebo vědomě ponechat,
-- pole **Zkontrolováno** se odemkne až po vyřešení všech návrhů,
-- opraveno spojování podpisů typu `Mává Petr H.` — skryje se pouze `Petr H.` jako jedna osoba,
+- našeptávač dovoluje bezpečné zbývající výrazy po přečtení ponechat hromadně, takže není nutné mechanicky odklikávat desítky návrhů,
+- skutečná jména, instituce a místa lze dál řešit jednotlivě; pole **Zkontrolováno** se odemkne až po jejich vyřešení nebo vědomém hromadném ponechání,
+- postupné označení `Petr` a `H.` se sloučí do jedné značky `osoba A`; podporována je i iniciála bez tečky a slovo `Mává` se nepřipojí,
+- kontrola před odesláním má opravenou šířku textu a varianty odpovědi automaticky nepřebírají emoji,
 - podpis z profilu se automaticky doplní a zobrazí v návrhu lokálně; jméno odesílatele se neposílá Gemini,
 - přepracované, široké a přehledné okno **Formulace a podpisy**,
 - odstraněn zbytečný vnější rámeček poznámky pro odpověď,

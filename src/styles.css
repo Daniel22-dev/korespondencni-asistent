@@ -728,7 +728,7 @@ body.dark .status-badge.danger{background:#3a201d;border-color:#7a3a32;color:#f0
 .editor-toolbar{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin:8px 0;padding:7px;border:1px solid var(--line);border-radius:10px;background:color-mix(in srgb,var(--paper) 82%,transparent)}
 .editor-tool{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:8px;padding:5px 7px;font:750 10.5px var(--sans);cursor:pointer}.editor-tool:hover{border-color:var(--accent);color:var(--accent-text)}.editor-tool:disabled{opacity:.4;cursor:not-allowed}.editor-sep{width:1px;height:22px;background:var(--line);margin:0 2px}
 .locked-list{display:none;gap:5px;flex-wrap:wrap;margin:6px 0}.locked-list.show{display:flex}.locked-chip{display:inline-flex;align-items:center;gap:5px;border-radius:999px;background:var(--warn-bg);border:1px solid var(--warn-edge);color:var(--warn-ink);padding:4px 7px;font:750 10px var(--sans)}.locked-chip button{border:0;background:none;color:inherit;cursor:pointer;font-size:13px;padding:0}
-.draft-check{margin:10px 0 0;border:1px solid var(--line);border-radius:11px;background:var(--paper);overflow:hidden}.draft-check summary{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 10px;cursor:pointer;font:800 11.5px var(--sans)}.draft-check-body{border-top:1px solid var(--line);padding:9px 10px}.check-list{display:grid;gap:6px}.check-item{display:grid;grid-template-columns:16px 1fr;gap:7px;font-size:11.5px;line-height:1.4}.check-item.ok{color:var(--calm)}.check-item.warn{color:var(--warn-ink)}.check-item.danger{color:#84251b}
+.draft-check{margin:10px 0 0;border:1px solid var(--line);border-radius:11px;background:var(--paper);overflow:hidden}.draft-check summary{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 10px;cursor:pointer;font:800 11.5px var(--sans)}.draft-check-body{border-top:1px solid var(--line);padding:9px 10px}.check-list{display:grid;gap:6px}.check-item{display:grid;grid-template-columns:16px minmax(0,1fr);gap:7px;align-items:start;font-size:11.5px;line-height:1.4}.check-item>span:last-child{min-width:0}.check-item small{display:block;margin-top:2px;overflow-wrap:anywhere}.check-item.ok{color:var(--calm)}.check-item.check-warn{color:var(--warn-ink)}.check-item.check-danger{color:#84251b}
 .draft .body{min-height:170px}.draft.is-saved{outline:2px solid color-mix(in srgb,var(--calm) 55%,transparent)}
 
 .global-action-bar{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:90;display:flex;gap:5px;padding:6px;border:1px solid color-mix(in srgb,var(--line) 88%,transparent);border-radius:14px;background:color-mix(in srgb,var(--paper) 94%,transparent);backdrop-filter:blur(16px);box-shadow:0 14px 38px rgba(20,30,40,.22)}
@@ -822,7 +822,7 @@ body.dark .privacy-stage .safe-local-label{color:var(--ink)}
 .assistant-drawer .assistant-rail{position:static;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));max-height:none;overflow:visible;padding:12px}
 .assistant-drawer .rail-card{min-width:0}
 body.dark .assistant-drawer .check-item.ok{color:#a8e6c6}
-body.dark .assistant-drawer .check-item.warn{color:#ffd48a}
+body.dark .assistant-drawer .check-item.check-warn{color:#ffd48a}
 
 @media(min-width:981px){
   .workspace-shell{grid-template-columns:132px minmax(0,1fr);gap:16px}
@@ -909,7 +909,7 @@ body.dark .dev-tool-card span{color:var(--ink-soft)}
 
 .field-safety-note{margin:6px 0 0;color:var(--ink-soft);font:600 11.5px/1.42 var(--sans)}
 
-/* ===================== KS 5.4.0 — sjednocená kontrola a čistší dialogy ===================== */
+/* ===================== KS 5.4.2 — sjednocená kontrola, hromadné posouzení a slučování jmen ===================== */
 .privacy-stage{
   grid-template-columns:minmax(0,1fr)!important;
   gap:0!important;
@@ -946,6 +946,9 @@ body.dark .dev-tool-card span{color:var(--ink-soft)}
 .suggestion-panel-head>span:last-child{display:grid;gap:2px}.suggestion-panel-head small{color:var(--muted);font-size:12px;font-weight:400}
 .suggestion-count{display:grid;place-items:center;flex:0 0 32px;height:32px;border-radius:50%;background:#b44d22;color:white;font-weight:800}
 .suggestion-panel.resolved .suggestion-count{background:#2d7b50}
+.suggestion-bulk{display:grid;gap:5px;margin:0 0 10px;padding:9px;border:1px dashed #d6a878;border-radius:10px;background:#fff8ee}
+.suggestion-bulk .btn{width:100%;justify-content:center}
+.suggestion-bulk small{color:#755039;font-size:11px;line-height:1.35}
 .suggestion-list{display:grid;gap:9px}
 .suggestion-item{display:grid;gap:8px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--paper)}
 .suggestion-item strong{overflow-wrap:anywhere}
@@ -955,7 +958,7 @@ body.dark .dev-tool-card span{color:var(--ink-soft)}
 .suggestion-action.person{background:#fff7d7}.suggestion-action.institution{background:#eef5ff}.suggestion-action.place{background:#eff9f2}.suggestion-action.keep{background:#f4f4f4}
 #tapPop{z-index:10020;position:absolute;max-width:min(390px,calc(100vw - 16px));padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--paper);box-shadow:0 16px 42px rgba(0,0,0,.22)}
 .tap-pop-title{display:block;margin-bottom:9px;font-size:13px}
-.review-check.blocked{opacity:.66;border-color:#d6a878;background:#fff8ee}.review-check.blocked span:after{content:" Nejdřív vyřeš všechny oranžové návrhy výše.";font-weight:700;color:#93451e}
+.review-check.blocked{opacity:.66;border-color:#d6a878;background:#fff8ee}.review-check.blocked span:after{content:" Nejdřív vyřeš oranžové návrhy jednotlivě nebo je po přečtení vědomě ponech hromadně.";font-weight:700;color:#93451e}
 .token.t-institution{background:#dceaff;border-color:#8bb2e8}.token.t-place{background:#dcf3e2;border-color:#8fc59c}
 .visible-signature{display:inline-block;white-space:pre-line;vertical-align:top;padding:6px 9px;border-style:dashed}
 .params .pgroup.note-field{padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}

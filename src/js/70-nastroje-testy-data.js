@@ -120,6 +120,23 @@ async function runKorespTests(){
       const badToken=bad.items.find(x=>x.label==="Nezůstala nevyplněná anonymizační značka");
       assertTest(badToken&&!badToken.ok&&badToken.level==="danger","neznámá značka se neměla považovat za vyplněnou");
     });
+    await test("Varovné položky kontroly nemají kolizi se stylem upozornění", async()=>{
+      const card=draftCard("in",{text:"Dobrý den,\n\nděkuji za zprávu.\n\n[podpis]",cover:{pokryva:[],vynechava:["Doplnit termín"]},sourceText:"Prosím doplňte termín.",deferActive:true});
+      document.body.appendChild(card);
+      const item=card.querySelector(".check-item.check-warn");
+      assertTest(!!item,"varovná položka nemá oddělenou třídu check-warn");
+      assertTest(!item.classList.contains("warn"),"varovná položka znovu používá obecnou třídu warn");
+      assertTest(item.children.length===2,"varovná položka má neočekávanou strukturu");
+      card.remove();
+    });
+    await test("Emoji se do odpovědi nepřenášejí bez výslovného požadavku", async()=>{
+      const cleaned=stripReplyEmoji("Děkuji 😊👍.\nHezký den 🙂");
+      assertTest(cleaned==="Děkuji.\nHezký den","emoji nebyla bezpečně odstraněna: "+cleaned);
+      assertTest(!replyAllowsEmoji("Napiš běžnou odpověď"),"emoji se povolila bez požadavku");
+      assertTest(replyAllowsEmoji("Použij jeden decentní smajlík"),"výslovný požadavek na emoji nebyl rozpoznán");
+      assertTest(!replyAllowsEmoji("Prosím bez smajlíků"),"zákaz smajlíků byl chybně vyhodnocen jako povolení");
+      assertTest(SYS_REPLY.includes("Emoji, emotikony"),"systémový prompt neobsahuje zákaz automatického přebírání emoji");
+    });
     await test("České pády krátkých jmen", async()=>{
       const cases=[
         ["Petr","Petrovi zavolám. Petra jsem viděl. S Petrem mluvím.",["Petrovi","Petra","Petrem"]],
@@ -224,8 +241,20 @@ async function runKorespTests(){
       const parsed=wordObjs("Mává Petr H.");
       assertTest(clickedNamePhrase(parsed.words,1)==="Petr H","kliknutí na Petr nespojilo iniciálu: "+clickedNamePhrase(parsed.words,1));
       assertTest(clickedNamePhrase(parsed.words,2)==="Petr H","kliknutí na iniciálu nespojilo celé jméno");
+      const parsedNoDot=wordObjs("Mává Petr H");
+      assertTest(clickedNamePhrase(parsedNoDot.words,1)==="Petr H","iniciála bez tečky se nepřipojila ke jménu");
+      assertTest(clickedNamePhrase(parsedNoDot.words,2)==="Petr H","kliknutí na iniciálu bez tečky nespojilo celé jméno");
       ST.in.raw="Mává Petr H."; ST.in.km=[]; ST.in.reviewedSuggestions={}; addPhraseAs("in","Petr H","person");
       assertTest(ST.in.clean==="Mává osoba A.","podpis se anonymizoval chybně: "+ST.in.clean);
+    });
+    await test("Postupné označení Petr a H. se sloučí do stejné osoby", async()=>{
+      ST.in.raw="Mává Petr H."; ST.in.km=[]; ST.in.reviewedSuggestions={};
+      addWord("in","Petr");
+      assertTest(ST.in.km.length===1&&ST.in.km[0].token==="osoba A","první část jména nedostala osobu A");
+      addWord("in","H");
+      assertTest(ST.in.km.length===1,"sousední iniciála vytvořila další osobu");
+      assertTest(ST.in.km[0].real==="Petr H"&&ST.in.km[0].token==="osoba A","části jména se nesloučily: "+JSON.stringify(ST.in.km));
+      assertTest(ST.in.clean==="Mává osoba A.","po postupném označení zůstal rozbitý výsledek: "+ST.in.clean);
     });
     await test("Našeptávač musí být vyřešen před potvrzením", async()=>{
       E("in","raw").value="Petr píše zprávu."; doAnon("in");
@@ -234,6 +263,16 @@ async function runKorespTests(){
       assertTest(E("in","reviewOk").disabled,"potvrzení je dostupné i s nevyřešeným návrhem");
       keepSuggestion("in","Petr");
       assertTest(!E("in","reviewOk").disabled,"po vědomém ponechání se potvrzení neodemklo");
+    });
+    await test("Zbývající návrhy lze po přečtení ponechat hromadně", async()=>{
+      E("in","raw").value="Petr poslal zprávu. Ostrava je uvedena v záhlaví."; doAnon("in");
+      const items=suggestionData("in").suggestions;
+      assertTest(items.length>=2,"testovací text nevytvořil více návrhů");
+      assertTest(!!E("in","suggestionPanel").querySelector("[data-keep-all-suggestions]"),"v panelu chybí hromadná volba");
+      const kept=keepSuggestionRows("in",items);
+      assertTest(kept===items.length,"hromadná volba nevyřešila všechny návrhy");
+      assertTest(suggestionData("in").suggestions.length===0,"po hromadném ponechání zůstaly nevyřešené návrhy");
+      assertTest(!E("in","reviewOk").disabled,"hromadné ponechání neodemklo závěrečnou kontrolu");
     });
     await test("Podpis z profilu se zobrazí lokálně, ale do zdroje se nepropíše", async()=>{
       const old=localStorage.getItem("rozbor_profile");
