@@ -127,7 +127,7 @@
       </div>
 
   <!-- ================= PŘÍCHOZÍ ================= -->
-  <div class="tabpane active" id="pane-in" role="tabpanel" aria-labelledby="tabIn">
+  <section class="tabpane active" id="pane-in" aria-label="Analýza příchozího e-mailu">
     <p class="zone-label desk-zone"><span class="dot"></span>Tvůj stůl · vše zůstává tady <span class="free">zdarma, lokálně</span></p>
 
     <section class="step">
@@ -135,14 +135,14 @@
         <div class="step-head"><span class="step-no">1</span><span class="step-title">Přijatý e-mail</span></div>
         <textarea id="in_raw" placeholder="Sem vlož celou přijatou zprávu — nebo nahraj stažený e-mail (.eml z Gmailu, .txt, .html)…"></textarea>
         <div class="row">
-          <button class="btn primary" id="in_anonBtn" title="Lokálně nahradí jména, e-maily a telefony značkami. Neodesílá nikam."><span class="action-icon">🔒</span>Anonymizovat<span class="free" style="color:#fff;opacity:.8">zdarma</span></button>
+          <button class="btn primary" id="in_anonBtn" title="Lokálně nahradí jména, e-maily a telefony značkami. Neodesílá nikam."><span class="action-icon">🔒</span>Anonymizovat a zkontrolovat<span class="free" style="color:#fff;opacity:.8">zdarma</span></button>
           <button class="btn ghost small" id="in_fileBtn" title="Načte tělo zprávy ze staženého souboru (.eml/.txt/.html). Vše zůstává v prohlížeči."><span class="action-icon">📎</span>Nahrát soubor</button>
           <input type="file" id="in_file" aria-label="Nahrát přijatý e-mail ze souboru" accept=".eml,.txt,.html,.htm,message/rfc822,text/plain,text/html" style="display:none">
           <span class="empty">Sama skryje e-maily a telefony. Jména a další citlivé údaje zkontroluj ťuknutím a podle semaforu níže.</span>
         </div>
       </div>
 
-      <div id="in_step2" class="privacy-stage" style="display:none">
+      <div id="in_step2" class="privacy-stage" hidden>
         <div class="privacy-stage-head">
           <p class="eyebrow">Bezpečnostní příprava · vše v jednom kroku</p>
           <h2>Zkontroluj anonymizovaný text před odesláním</h2>
@@ -180,14 +180,11 @@
           <span class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Finální kontrola před odesláním</span>
           <div class="outside-wrap">
             <p class="safe-local-label"><strong>Bezpečnostní výsledek.</strong> Semafor níže kontroluje stejné hlavní pole výše; nevytváří druhou kopii textu.</p>
-            <p class="zone-label out-zone"><span class="dot"></span>Kontrolní náhled · jen ke čtení</p>
             <div class="safety" id="in_safety">Semafor anonymizace se zobrazí po vložení textu.</div>
             <div class="safe-fallback" id="in_safeFallback" aria-live="polite"></div>
-            <button hidden class="btn ghost small" id="in_prevToggle" title="Náhled je povinně viditelný. Tlačítko k němu jen sjede a krátce ho zvýrazní." style="margin:0 0 8px"><span class="action-icon" data-ic="down" aria-hidden="true"></span>Zvýraznit kontrolní náhled</button>
-            <div class="ready-banner" id="in_readyBanner" aria-live="polite"></div>
             <div class="preview-summary" id="in_previewSummary" aria-live="polite"></div>
-            <div hidden class="preview" id="in_preview"></div>
             <label class="review-check"><input type="checkbox" id="in_reviewOk" aria-label="Potvrzuji kontrolu anonymizace přijatého e-mailu"><span><strong>Zkontrolováno.</strong> Pročetl(a) jsem celý přesný obsah pro Gemini, vyřešil(a) návrhy jednotlivě nebo vědomě hromadně a nevidím v něm skutečná jména, kontakty ani jiné citlivé údaje.</span></label>
+            <a class="manual-context-link" href="./manual/#bezpecnost" target="_self" aria-label="Otevřít kapitolu Bezpečná práce s údaji v interaktivním manuálu">📖 Nejste si jistí? Otevřít pravidla bezpečné práce s údaji</a>
             <p class="gate-reason" id="in_gateReason" aria-live="polite"></p>
             <div class="row actsticky">
               <button class="btn primary" id="in_analyzeBtn" title="Odešle očištěný text Gemini a vrátí rozbor." disabled><span class="action-icon">🔎</span>Rozebrat <span class="req">1 ⚡</span></button>
@@ -198,10 +195,10 @@
       </div>
     </section>
     <div id="in_results"></div>
-  </div>
+  </section>
 
   <!-- ================= MŮJ E-MAIL ================= -->
-  <div class="tabpane" id="pane-my" role="tabpanel" aria-labelledby="tabMy">
+  <section class="tabpane" id="pane-my" aria-label="Sestavení vlastního e-mailu">
     <p class="zone-label desk-zone"><span class="dot"></span>Tvůj stůl · vše zůstává tady <span class="free">zdarma, lokálně</span></p>
 
     <section class="step">
@@ -217,6 +214,7 @@
             <button class="compose-entry-card" id="my_startScenario" type="button"><span>⚡</span><b>Vybrat školní situaci</b><small>Aplikace přednastaví vhodné volby a ukáže, co změnila.</small></button>
           </div>
         </div>
+        <div class="scenario-applied" id="my_scenarioApplied" hidden aria-live="polite"></div>
         <div class="profile-context-card profile-context-early" id="my_profileContext" aria-live="polite">
           <div class="profile-context-copy">
             <span class="profile-context-kicker">Pracovní profil</span>
@@ -227,14 +225,14 @@
         </div>
         <textarea id="my_raw" placeholder="Vlož svůj koncept k opravě či přepisu — nebo jen body (odrážky), ze kterých mám e-mail sestavit. Můžeš i nahrát soubor (.eml/.txt/.html)…"></textarea>
         <div class="row">
-          <button class="btn primary" id="my_anonBtn" title="Skryje e-maily a telefony a pustí tě dál. Jména skryješ ťuknutím, pokud je potřeba."><span class="action-icon">🧭</span>Pokračovat →</button>
+          <button class="btn primary" id="my_anonBtn" title="Skryje e-maily a telefony a pustí tě dál. Jména skryješ ťuknutím, pokud je potřeba."><span class="action-icon">🔒</span>Anonymizovat a zkontrolovat</button>
           <button class="btn ghost small" id="my_fileBtn" title="Načte text ze staženého souboru (.eml/.txt/.html)."><span class="action-icon">📎</span>Nahrát soubor</button>
           <input type="file" id="my_file" aria-label="Nahrát vlastní rozepsaný e-mail ze souboru" accept=".eml,.txt,.html,.htm,message/rfc822,text/plain,text/html" style="display:none">
           <span class="empty">Stejná pojistka jako u příchozí — e-maily a telefony skryje sama, jména a citlivé údaje zkontroluj před odesláním.</span>
         </div>
       </div>
 
-      <div id="my_step2" class="privacy-stage" style="display:none">
+      <div id="my_step2" class="privacy-stage" hidden>
         <div class="privacy-stage-head">
           <p class="eyebrow">Bezpečnostní příprava · vše v jednom kroku</p>
           <h2>Zkontroluj anonymizovaný text před odesláním</h2>
@@ -272,14 +270,11 @@
           <span class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Finální kontrola před odesláním</span>
           <div class="outside-wrap">
             <p class="safe-local-label"><strong>Bezpečnostní výsledek.</strong> Semafor níže kontroluje stejné hlavní pole výše; nevytváří druhou kopii textu.</p>
-            <p class="zone-label out-zone"><span class="dot"></span>Kontrolní náhled · jen ke čtení</p>
             <div class="safety" id="my_safety">Semafor anonymizace se zobrazí po vložení textu.</div>
             <div class="safe-fallback" id="my_safeFallback" aria-live="polite"></div>
-            <button hidden class="btn ghost small" id="my_prevToggle" title="Náhled je povinně viditelný. Tlačítko k němu jen sjede a krátce ho zvýrazní." style="margin:0 0 8px"><span class="action-icon" data-ic="down" aria-hidden="true"></span>Zvýraznit kontrolní náhled</button>
-            <div class="ready-banner" id="my_readyBanner" aria-live="polite"></div>
             <div class="preview-summary" id="my_previewSummary" aria-live="polite"></div>
-            <div hidden class="preview" id="my_preview"></div>
             <label class="review-check"><input type="checkbox" id="my_reviewOk" aria-label="Potvrzuji kontrolu anonymizace vlastního e-mailu"><span><strong>Zkontrolováno.</strong> Pročetl(a) jsem celý přesný obsah pro Gemini, vyřešil(a) návrhy jednotlivě nebo vědomě hromadně a nevidím v něm skutečná jména, kontakty ani jiné citlivé údaje.</span></label>
+            <a class="manual-context-link" href="./manual/#bezpecnost" target="_self" aria-label="Otevřít kapitolu Bezpečná práce s údaji v interaktivním manuálu">📖 Nejste si jistí? Otevřít pravidla bezpečné práce s údaji</a>
             <p class="gate-reason" id="my_gateReason" aria-live="polite"></p>
 
             <div class="res-card params" style="margin-top:14px;background:var(--paper)">
@@ -326,6 +321,14 @@
                   <button class="chip" data-v="group">Skupina / hromadný e-mail</button>
                 </div>
                 <div class="choice-summary" id="my_scopeHint">Jednotlivý adresát: model může použít tvary „tě“ nebo „Vás“ podle zvoleného oslovení.</div>
+              </div>
+              <div class="pgroup simple-hide" id="my_senderGroup">
+                <div class="plabel">Píšu jako <button class="help-tip" type="button" aria-label="Nápověda k perspektivě odesílatele" data-tip="Určuje, zda má e-mail mluvit za tebe, za tým nebo za školu. Kontrola pak hlídá správné jednotné či množné číslo.">i</button></div>
+                <div class="chips" data-group="my_pisujako">
+                  <button class="chip on" data-v="jednotlivec">Jednotlivec</button>
+                  <button class="chip" data-v="tym">Za tým / komisi</button>
+                  <button class="chip" data-v="skola">Za školu / instituci</button>
+                </div>
               </div>
               <div class="pgroup simple-hide">
                 <div class="plabel" title="Vykání, tykání, nebo beze změny.">Oslovení</div>
@@ -377,8 +380,7 @@
                   <button class="chip" data-v="translate_style">Přeložit do češtiny + upravit styl</button>
                 </div>
               </div>
-              <div class="pgroup simple-hide">
-                <div class="plabel">Volitelný školní scénář <button class="help-tip" type="button" aria-label="Nápověda ke školnímu scénáři" data-tip="Scénář není nový režim ani pevná šablona. Pouze přednastaví typ práce, adresáta, počet adresátů, oslovení, účel, tón, délku a někdy bezpečnostní režim. Aplikace změny vypíše.">i</button></div>
+              <div class="pgroup simple-hide" id="my_scenarioGroup">
                 <p class="scenario-help">Scénář není povinný. Je to přednastavení: jedním kliknutím změní typ práce, adresáta, počet adresátů (kde je to zřejmé), oslovení, účel, tón a délku. Citlivé scénáře navíc zapnou přísnější ochranu.</p>
                 <div class="chips" data-group="my_scenario">
                   <button class="chip on" data-v="none">Nepoužívat scénář</button>
@@ -450,7 +452,7 @@
       </div>
     </section>
     <div id="my_results"></div>
-  </div>
+  </section>
     </main>
 
     <details class="assistant-drawer" id="assistantDrawer">

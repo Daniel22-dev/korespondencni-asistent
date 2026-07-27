@@ -35,11 +35,13 @@ footBtn("Přehled změn", "✨", "Co se změnilo v aktuálních verzích aplikac
 footBtn("Správa dat", "🧹", "Historie, export nastavení a smazání lokálních dat", openDataManager);
 const ADMIN_ACCESS=!!(window.__GHRAB_STUDIO_ACCESS__&&window.__GHRAB_STUDIO_ACCESS__.permit&&window.__GHRAB_STUDIO_ACCESS__.permit.role==="admin");
 const LOCAL_DEV=(location.hostname==="localhost"||location.hostname==="127.0.0.1")&&new URLSearchParams(location.search).has("dev");
-const DEV_MODE=IS_TEST_MODE||ADMIN_ACCESS||LOCAL_DEV;
+const DEV_MODE=ADMIN_ACCESS||LOCAL_DEV;
 if(DEV_MODE) footBtn("Vývojářské nástroje", "🧪", "Automatické testy, debug prompt a technický log", openDeveloperTools);
 compactAdvancedParams();
 buildFooterTools();
 paintIcons(); applyFsIcon();
 updateProgress("in");
 openOnboardingTour(false);
-if(new URLSearchParams(location.search).has("test")) openTestRunner(true);
+if(new URLSearchParams(location.search).get("test")==="1") openTestRunner(true);
+
+if(typeof initAccessibleTooltips==="function") initAccessibleTooltips();

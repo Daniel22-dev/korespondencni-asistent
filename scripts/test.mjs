@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-import {readFileSync,existsSync,writeFileSync,rmSync} from "node:fs";
+import {readFileSync,existsSync,rmSync} from "node:fs";
 import {join,dirname} from "node:path";
 import {fileURLToPath} from "node:url";
-import {spawn} from "node:child_process";
+import {spawn,execSync} from "node:child_process";
 import {setTimeout as sleep} from "node:timers/promises";
 const ROOT=join(dirname(fileURLToPath(import.meta.url)),".."),BASE=join(ROOT,"dist");
 const REPO="korespondencni-asistent",APP_ID="correspondence",SUITE="openTestRunner(false); runKorespTests()",ITEM="#testOut .test-result",FAIL="#testOut .test-result.fail",CACHE_PREFIX="korespondencni-asistent-";
@@ -41,6 +41,9 @@ async function runWithChromium(raw){
   }finally{chrome.kill("SIGKILL");try{rmSync(profile,{recursive:true,force:true})}catch(_){}}
 }
 const raw=readFileSync(join(BASE,"index.html"),"utf-8");
+const manualPath=join(BASE,"manual","index.html");
+const manualHtml=existsSync(manualPath)?readFileSync(manualPath,"utf-8"):"";
+const readme=readFileSync(join(ROOT,"README.md"),"utf-8");
 let runtime;try{runtime=await runWithJsdom(raw)}catch(e){if(e&&e.code!=="ERR_MODULE_NOT_FOUND")throw e;console.log("  ℹ jsdom není lokálně dostupný, používám hermetický Chromium fallback");runtime=await runWithChromium(raw)}
 if(!raw.includes('data-ghrab-access-bootstrap')||!raw.includes('application/ghrab-protected')||!raw.includes('/AI-Studio-GHRAB/access/app-guard.js'))bad("chybí přístupová brána AI Studia");else ok("přístupová brána AI Studia");
 if(/\b(?:prompt|confirm)\s*\(/.test(raw))bad("obsahuje nativní prompt/confirm");else ok("bez nativních blokujících dialogů");
@@ -51,5 +54,25 @@ if(raw.includes('thinkingLevel:"low"'))bad("Gemini stále používá thinkingLev
 if(!raw.includes("GEMINI_MAX_OUTPUT_TOKENS=32768"))bad("Gemini nemá výstupní limit 32768");else ok("Gemini má výstupní limit 32768");
 const manifest=JSON.parse(readFileSync(join(BASE,"manifest.webmanifest"),"utf-8")),resolved=new URL(manifest.id,"https://daniel22-dev.github.io/").href,expected=`https://daniel22-dev.github.io/${REPO}/`;if(resolved!==expected)bad(`PWA id ${resolved}, očekáváno ${expected}`);else ok("jednoznačná PWA identita");
 const sw=readFileSync(join(BASE,"sw.js"),"utf-8");if(!sw.includes(`key.startsWith("${CACHE_PREFIX}")`))bad("service worker nemá vlastní cache prefix");else ok("service worker spravuje jen vlastní cache");
-const manual=join(BASE,"manual","index.html");if(!existsSync(manual))bad("chybí manuál");else{const m=readFileSync(manual,"utf-8");if(!m.includes(`const APP_ID="${APP_ID}"`)||!m.includes('data-ghrab-access-bootstrap'))bad("manuál nedědí oprávnění AI Studia");else ok("manuál dědí oprávnění AI Studia");if(!m.includes('class="chipbtn manual-back"'))bad("manuál nemá návrat do aplikace");else ok("manuál má návrat do aplikace")}
-if(failures){console.error(`CELKEM: ${failures} problémů — release stopka.`);process.exit(1)}console.log("CELKEM: vše zelené — release gate OK.");
+if(!manualHtml)bad("chybí manuál");else{if(!manualHtml.includes(`const APP_ID="${APP_ID}"`)||!manualHtml.includes('data-ghrab-access-bootstrap'))bad("manuál nedědí oprávnění AI Studia");else ok("manuál dědí oprávnění AI Studia");if(!manualHtml.includes('class="chipbtn manual-back"'))bad("manuál nemá návrat do aplikace");else ok("manuál má návrat do aplikace")}
+
+// Statické regresní pojistky nad skutečně nasazovanými artefakty.
+if(/\.privacy-stage\{[^}]*display\s*:\s*block\s*!important/.test(raw))bad("privacy-stage přebíjí skrývání kroku 2");else ok("privacy-stage neruší skrývání kroku 2");
+if(/\bopenSchoolGuide\b/.test(raw))bad("v sestavené aplikaci zůstal nepřístupný školní návod");else ok("starý nepřístupný školní návod není v sestavené aplikaci");
+const deadCss=(raw.match(/\.(?:school-guide-[\w-]+|safety-guide|guide-bigline|guide-quick(?:-card)?)(?=[\s>{:.,])/g)||[]);if(deadCss.length)bad("v sestavené aplikaci zůstaly osiřelé styly: "+[...new Set(deadCss)].join(", "));else ok("bez osiřelých stylů po odstraněných průvodcích");
+const deepLinks=(raw.match(/href="\.\/manual\/#bezpecnost"/g)||[]).length;if(deepLinks<2)bad("obě pracovní cesty nemají odkaz na bezpečnostní kapitolu");else ok("obě pracovní cesty odkazují na bezpečnostní kapitolu");
+if(manualHtml){
+  const manualVersion=(manualHtml.match(/data-manual-version="([\d.]+)"/)||[])[1];
+  const manualAppVersion=(manualHtml.match(/data-app-version="([\d.]+)"/)||[])[1];
+  const appVersion=(raw.match(/version:\s*["']([\d.]+)["']/)||[])[1];
+  if(!manualVersion||!manualAppVersion||!appVersion||manualAppVersion!==appVersion||!readme.includes(`manuál ${manualVersion}`))bad("verze manuálu, aplikace a README nejsou sjednocené");else ok("verze manuálu, aplikace a README jsou sjednocené");
+  const safetySection=(manualHtml.match(/<section id="bezpecnost">[\s\S]*?<\/section>/)||[])[0]||"";
+  const safetyNavCount=(manualHtml.match(/href="#bezpecnost"/g)||[]).length;
+  const safetyItems=(safetySection.match(/class="safety-item\b/g)||[]).length;
+  if(!safetySection||safetyNavCount<2||!safetySection.includes('class="safety-list"')||safetyItems<3)bad("bezpečnostní kapitola nemá požadované ID, navigaci nebo strukturu");else ok("bezpečnostní kapitola má stabilní ID, navigaci a strukturu");
+}
+const gitignore=readFileSync(join(ROOT,".gitignore"),"utf-8");if(!/^dist\/$/m.test(gitignore))bad("generované dist není v .gitignore");else ok("generované dist je v .gitignore");
+if(existsSync(join(ROOT,".git"))){let tracked="";try{tracked=execSync("git ls-files dist",{cwd:ROOT,stdio:["ignore","pipe","ignore"]}).toString().trim()}catch{}if(tracked)bad("dist je stále verzované v Git repozitáři; před vydáním ho odstraň");else ok("dist není verzované v Git repozitáři")}
+
+if(failures){console.error(`CELKEM: ${failures} problémů — release stopka.`);process.exit(1)}
+console.log("CELKEM: vše zelené — release gate OK.");

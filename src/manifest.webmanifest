@@ -1,13 +1,13 @@
 {
   "name": "Korespondenční asistent",
-  "short_name": "Koresp. AI",
+  "short_name": "Koresp. asistent",
   "description": "Bezpečný pomocník pro přípravu školní e-mailové korespondence.",
   "id": "/korespondencni-asistent/",
   "lang": "cs-CZ",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "orientation": "portrait-primary",
+  "orientation": "any",
   "background_color": "#edefe9",
   "theme_color": "#2c6e6b",
   "categories": [

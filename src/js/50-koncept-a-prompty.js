@@ -194,14 +194,14 @@ function draftCard(p, opts){
   setTimeout(()=>{ if(typeof refreshDraftReadiness==="function") refreshDraftReadiness(el,p); if(!opts.deferActive && typeof setActiveDraftCard==="function") setActiveDraftCard(el,p); },0);
   return el;
 }
-function splitSubject(text){ const m=text.match(/^\s*Předmět:\s*(.+?)\s*\n([\s\S]*)$/); return m?{subject:m[1].trim(), body:m[2].replace(/^\s+/,"")}:{subject:"", body:text}; }
+function splitSubject(text){ const m=String(text||"").match(/^\s*(?:Předmět|Subject|Asunto)\s*:\s*(.+?)\s*\n([\s\S]*)$/i); return m?{subject:m[1].trim(), body:m[2].replace(/^\s+/,"")}:{subject:"", body:String(text||"")}; }
 function isNoHistory(){ try{ const v=localStorage.getItem(NO_HISTORY_SK); return v===null ? true : v!=="0"; }catch(_){ return true; } }
 function setNoHistory(on){ try{ localStorage.setItem(NO_HISTORY_SK,on?"1":"0"); }catch(_){} }
 function saveHistory(p, label, text){
   if(!text||!String(text).trim()||isNoHistory()) return;
   const safe=applyKeyToText(p,String(text)).trim();
   let audit={level:"danger"};try{audit=safetyAudit(safe,p);}catch(_){}
-  if(!safe||audit.level!=="ok"||hasSensitiveSchoolTerms(safe)) return;
+  if(!safe||audit.level==="danger"||audit.level==="nosend"||hasSensitiveSchoolTerms(safe)) return;
   let h=[]; try{ h=JSON.parse(localStorage.getItem("rozbor_history")||"[]"); }catch(_){}
   h=h.filter(it=>it&&it.safe===true&&it.format===2);
   h.unshift({ d:Date.now(), label:label||"E-mail", text:safe, safe:true, format:2 }); h=h.slice(0,10);

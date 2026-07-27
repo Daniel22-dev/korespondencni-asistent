@@ -48,12 +48,13 @@ function publishActiveKeyReals(p){
 const PUNCT_RE=/^([<>\[\]{}(),.;:!?„“”"'…»«]*)([\s\S]*?)([<>\[\]{}(),.;:!?„“”"'…»«]*)$/;
 function splitPunc(w){ const m=w.match(PUNCT_RE); return m?{pre:m[1],core:m[2],post:m[3]}:{pre:"",core:w,post:""}; }
 
+const KNOWN_PROPER_WORDS=new Set(("Petr Pavel Karel Marek Jan Jana Anna Tereza Daniel Šárka Eva Ondřej Vojtěch Zdeněk Jiří Tomáš Lukáš Michal Martin Jakub Filip Radek Ostrava Brno Praha Olomouc Opava").split(/\s+/));
 const STOP=new Set(("Dobrý Dobré Dobrou Dobré Pěkný Pěkné Krásný Krásné Hezký Hezké Milý Milá Milé Vážený Vážená Vážené Vážení "+
   "Děkuji Děkujeme Děkuji Zdravím Zdraví Mává Mávám Mávejte Ahoj Nazdar Čau Nashledanou Sbohem Těším Přeji Přejeme Mějte Omlouvám Omlouváme Bohužel "+
   "Rád Ráda Také Toto Tento Tato Tyto Pokud Když Protože Jelikož Chtěl Chtěla Chtěli Mám Máme Máte Je Jsou Byl Byla Byly Bylo "+
   "Jak Co Kdy Kde Kdo Proč Můj Moje Naše Náš Vaše Váš Vás Vám Vy My Já On Ona Ano Ne Prosím Prosíme Předem Zatím Mezitím "+
   "Pondělí Úterý Středa Čtvrtek Pátek Sobota Neděle Leden Únor Březen Duben Květen Červen Červenec Srpen Září Říjen Listopad Prosinec "+
-  "Škola Třída Žák Žáci Rodiče Ředitel Ředitelka").split(/\s+/));
+  "Škola Třída Žák Žáci Rodiče Ředitel Ředitelka Zítra Dnes Včera Můžete Můžeš Volat Potřebuji Posílám Informuji Připomínám Absence Termín Zároveň Následně Ohledně Vzhledem Nicméně").split(/\s+/));
 
 function autoDetect(text){
   const found=[]; const add=(r)=>{ r=(r||"").trim(); if(r.length<2) return; if(found.some(f=>f.toLowerCase()===r.toLowerCase())) return; found.push(r); };
@@ -124,27 +125,35 @@ function czechCaseForms(name){
   const out=new Set([lo]);
   if(lo.length<2) return out;
   if(/ová$/.test(lo)){
-    const s=lo.slice(0,-1); ["é","ou"].forEach(x=>out.add(s+x));
+    const st=lo.slice(0,-1); ["é","ou"].forEach(x=>out.add(st+x));
     return out;
   }
   if(/a$/.test(lo)){
-    const s=lo.slice(0,-1); ["y","u","o","ou"].forEach(x=>out.add(s+x)); out.add(femaleDative(s)); out.add(s+"ovi");
+    const st=lo.slice(0,-1); ["y","u","o","ou"].forEach(x=>out.add(st+x)); out.add(femaleDative(st)); out.add(st+"ovi");
     return out;
   }
-  // Pohyblivé „e“ v běžných mužských jménech: Karel → Karla/Karlovi/Karlem/Karle,
-  // Pavel → Pavla/Pavlovi/Pavlem/Pavle. Jde o konkrétní tvary, ne prefixovou shodu.
+  // Pohyblivé e/ě: Marek → Marka, Havlíček → Havlíčka, Zdeněk → Zdeňka.
+  if(/[eě]k$/.test(lo) && lo.length>=4){
+    const prefix=lo.slice(0,-2);
+    const st=/ěk$/.test(lo)?(prefix.replace(/n$/,"ň")+"k"):(prefix+"k");
+    ["a","ovi","em","u"].forEach(x=>out.add(st+x));
+  }
+  // Němec → Němce/Němci/Němcovi/Němcem.
+  if(/ec$/.test(lo) && lo.length>=4){
+    const st=lo.slice(0,-2)+"c"; ["e","i","ovi","em"].forEach(x=>out.add(st+x));
+  }
+  // Karel/Pavel.
   if(/el$/.test(lo) && lo.length>=4){
-    const s=lo.slice(0,-2)+"l"; ["a","ovi","em","e"].forEach(x=>out.add(s+x));
+    const st=lo.slice(0,-2)+"l"; ["a","ovi","em","e"].forEach(x=>out.add(st+x));
   }
   if(/ý$/.test(lo)){
-    const s=lo.slice(0,-1); ["ého","ému","ým","í"].forEach(x=>out.add(s+x));
+    const st=lo.slice(0,-1); ["ého","ému","ým","í"].forEach(x=>out.add(st+x));
     return out;
   }
   if(/[eéií]$/.test(lo)){
-    const s=lo.replace(/[eéií]$/,""); ["e","i","í","ovi","em"].forEach(x=>out.add(s+x));
+    const st=lo.replace(/[eéií]$/," ").trim(); ["e","i","í","ovi","em"].forEach(x=>out.add(st+x));
     return out;
   }
-  // U třípísmenných jmen neprodukujeme nejednoznačné Jana/Janu: mohlo by jít o jiné jméno.
   if(lo.length>=4){
     out.add(lo+(/[šžčřcj]$/.test(lo)?"e":"a"));
     out.add(lo+"u");
@@ -156,17 +165,35 @@ function czechCaseForms(name){
   else out.add(lo+"e");
   return out;
 }
+function addReverseNameBase(variants,lo,base){
+  if(!base||base.length<3)return;
+  const forms=czechCaseForms(base);
+  if(forms.has(lo)) forms.forEach(v=>variants.add(v));
+}
 function nameVariants(real){
   const lo=String(real||"").toLocaleLowerCase("cs-CZ"), variants=czechCaseForms(lo);
-  // Když uživatel označí skloňovaný tvar, odvoď bezpečný základ a z něj opět jen konkrétní tvary.
   CZ_SUFFIXES.forEach(suf=>{
     if(lo.endsWith(suf) && lo.length-suf.length>=3){
       const base=lo.slice(0,lo.length-suf.length); czechCaseForms(base).forEach(v=>variants.add(v));
     }
   });
+  // Zpětné odvození pohyblivého e/ě při ručním označení pádového tvaru.
+  [["ovi",3],["em",2],["a",1],["u",1]].forEach(([suf,n])=>{
+    if(!lo.endsWith(suf))return;
+    const st=lo.slice(0,-n);
+    if(st.endsWith("k")){
+      let base=st.slice(0,-1)+"ek";
+      if(st.endsWith("ňk")) base=st.slice(0,-2)+"něk";
+      addReverseNameBase(variants,lo,base);
+    }
+  });
+  [["ovi",3],["em",2],["e",1],["i",1]].forEach(([suf,n])=>{
+    if(!lo.endsWith(suf))return;
+    const st=lo.slice(0,-n); if(st.endsWith("c")) addReverseNameBase(variants,lo,st.slice(0,-1)+"ec");
+  });
   return [...variants].filter(v=>v.length>=2);
 }
-function nameMatchWord(variants, coreL, isCap, origLen){
+function nameMatchWord(variants, coreL){
   return variants.has(coreL);
 }
 const _isUpper=c=>!!c && c!==c.toLowerCase() && c===c.toUpperCase();
@@ -199,7 +226,7 @@ function matchWordArray(matchers, words){
         for(let k=0;k<m.n;k++){
           const w=words[wi+k], mw=m.words[k];
           const exact=w.coreL===mw.lo;
-          const good=exactOnly ? exact : (m.isPerson ? nameMatchWord(mw.variants,w.coreL,w.cap,mw.origLen) : exact);
+          const good=exactOnly ? exact : (m.isPerson ? nameMatchWord(mw.variants,w.coreL) : exact);
           if(!good){ok=false;break;}
         }
         if(ok){selected=m;break;}
@@ -279,7 +306,15 @@ function clickedNameRange(words,index){
 }
 function clickedNamePhrase(words,index){ return clickedNameRange(words,index).phrase; }
 function suggestionKey(phrase){ return String(phrase||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim().toLocaleLowerCase("cs-CZ"); }
+const ANALYSIS_CACHE={suggestion:new Map(),preflight:new Map()};
+function analysisCacheKey(p,text){ const st=ST[p]||{}; return p+"|"+String(text||"")+"|"+JSON.stringify(st.km||[])+"|"+JSON.stringify(st.reviewedSuggestions||{}); }
+function clearAnalysisCache(){ ANALYSIS_CACHE.suggestion.clear(); ANALYSIS_CACHE.preflight.clear(); }
+function wordStartsSentence(parsed,w){
+  if(!w)return false; const prefix=parsed.segs.slice(0,w.pi).join("");
+  return !prefix.trim() || /(?:[.!?][\s\u00a0]*|\n[\s\u00a0]*)$/u.test(prefix);
+}
 function suggestionData(p){
+  const cacheKey=analysisCacheKey(p,ST[p]&&ST[p].raw); if(ANALYSIS_CACHE.suggestion.has(cacheKey)) return ANALYSIS_CACHE.suggestion.get(cacheKey);
   const st=ST[p], parsed=wordObjs(st.raw||""), words=parsed.words;
   const wtok=matchWordArray(buildMatchers((st.km||[]).filter(k=>k.real&&k.token)),words);
   const suggestions=[], byWord=new Map(), seen=new Set();
@@ -288,12 +323,14 @@ function suggestionData(p){
     const r=clickedNameRange(words,i), phrase=String(r.phrase||"").trim(), key=suggestionKey(phrase);
     if(!phrase||phrase.length<2||seen.has(key)||(st.reviewedSuggestions&&st.reviewedSuggestions[key]==="keep")) return;
     if(r.start<0||r.end>=words.length) return;
+    // Jednoslovné výrazy na začátku věty jsou velmi často běžná slova, ne jména.
+    if(r.start===r.end && wordStartsSentence(parsed,words[r.start]) && !KNOWN_PROPER_WORDS.has(words[r.start].core)) return;
     for(let x=r.start;x<=r.end;x++) if(wtok[x]) return;
     seen.add(key);
     const item={phrase,key,start:r.start,end:r.end}; suggestions.push(item);
     for(let x=r.start;x<=r.end;x++) byWord.set(x,item);
   });
-  return {suggestions,byWord,words,wtok,segs:parsed.segs};
+  const result={suggestions,byWord,words,wtok,segs:parsed.segs}; ANALYSIS_CACHE.suggestion.set(cacheKey,result); return result;
 }
 function categoryToken(st,kind){
   const bases={institution:"instituce",place:"místo",title:"název",contact:"kontakt",sensitive:"citlivý údaj"};
@@ -476,9 +513,9 @@ function renderView(p){
   wireTapSelection(p);
   if(!ST[p].raw.trim()){ el.innerHTML=EMPTY_MARK; renderSuggestionPanel(p,[]); return; }
   const data=suggestionData(p), {segs,words,wtok,byWord,suggestions}=data;
-  const mkSpan=(cls,label,title,aria,act)=>{
+  const mkSpan=(cls,label,title,aria,act,focusable)=>{
     const span=document.createElement("span"); span.className=cls; span.textContent=label; span.title=title;
-    span.tabIndex=0; span.setAttribute("role","button"); span.setAttribute("aria-label",aria);
+    span.tabIndex=focusable?0:-1; span.setAttribute("role","button"); span.setAttribute("aria-label",aria);
     span.onclick=(ev)=>{ if(selectionIsMulti()) return; act(ev); };
     span.addEventListener("keydown",ev=>{ if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); act(ev); } });
     return span;
@@ -493,7 +530,7 @@ function renderView(p){
     if(t==="SKIP") continue;
     if(t){
       if(w.pre) el.appendChild(document.createTextNode(w.pre));
-      el.appendChild(mkSpan("w hid "+tokenClass(t.token), t.token, "Ťukni a zase odkryješ", "Odkrýt "+t.token, ()=>removeByToken(p,t.token)));
+      el.appendChild(mkSpan("w hid "+tokenClass(t.token), t.token, "Ťukni a zase odkryješ", "Odkrýt "+t.token, ()=>removeByToken(p,t.token),true));
       const last=words[widx+t.n-1]; if(last && last.post) el.appendChild(document.createTextNode(last.post));
     } else {
       if(w.pre) el.appendChild(document.createTextNode(w.pre));
@@ -501,10 +538,18 @@ function renderView(p){
       const selected=suggestionKey(ST[p].selectedPhrase||"")===suggestionKey(phrase);
       const cls="w"+(suggestion?" maybe suggestion-word":"")+(selected?" selected-word":"");
       const title="Vybrat „"+phrase+"“ a určit kategorii v pravém panelu";
-      el.appendChild(mkSpan(cls,w.core,title,"Zkontrolovat "+phrase,()=>selectPhraseForReview(p,phrase,false)));
+      el.appendChild(mkSpan(cls,w.core,title,"Zkontrolovat "+phrase,()=>selectPhraseForReview(p,phrase,false),!!suggestion));
       if(w.post) el.appendChild(document.createTextNode(w.post));
     }
   }
+  const focusable=[...el.querySelectorAll('.w[role="button"]')].filter(x=>x.tabIndex===0);
+  if(!focusable.length){ const first=el.querySelector('.w[role="button"]'); if(first) first.tabIndex=0; }
+  el.onkeydown=(ev)=>{
+    if(ev.key!=="ArrowRight"&&ev.key!=="ArrowLeft")return;
+    const all=[...el.querySelectorAll('.w[role="button"]')], i=all.indexOf(document.activeElement); if(i<0||!all.length)return;
+    ev.preventDefault(); const next=all[(i+(ev.key==="ArrowRight"?1:-1)+all.length)%all.length];
+    all.forEach(x=>x.tabIndex=-1); next.tabIndex=0; next.focus();
+  };
   renderSuggestionPanel(p,suggestions);
 }
 function resetReview(p){ const cb=E(p,"reviewOk"); if(cb) cb.checked=false; if(ST[p])ST[p].outputReady=false; updateSendGate(p); updateProgress(p); }
@@ -522,7 +567,7 @@ function doAnon(p){
   buildKey(st, autoDetect(raw));
   afterKeyChange(p);
   const kd=E(p,"keyDetails"); if(kd) kd.open=false;
-  E(p,"step2").style.display="grid";
+  clearAnalysisCache(); E(p,"step2").hidden=false;
   E(p,"step2").scrollIntoView({behavior:"smooth",block:"start"});
   updateProgress(p);
   if(p==="my" && typeof updateMyMode==="function") updateMyMode();
@@ -535,12 +580,13 @@ function renderKeyTable(p){
     body.appendChild(tr); });
   renderKeySummary(p);
   E(p,"keyEmpty").style.display=st.km.length?"none":"block";
-  body.querySelectorAll("input").forEach(inp=>inp.addEventListener("input",(e)=>{
-    st.km[+e.target.dataset.i][e.target.dataset.f]=e.target.value;
-    publishActiveKeyReals(p); ST[p].clean=cleanFromKey(p);
-    resetReview(p);
-    renderView(p); renderPreview(p); renderKeySummary(p);
-  }));
+  body.querySelectorAll("input").forEach(inp=>{ let timer=null; inp.addEventListener("input",(e)=>{
+    st.km[+e.target.dataset.i][e.target.dataset.f]=e.target.value; clearAnalysisCache(); resetReview(p);
+    clearTimeout(timer); timer=setTimeout(()=>{
+      publishActiveKeyReals(p); ST[p].clean=cleanFromKey(p);
+      renderView(p); renderPreview(p); renderKeySummary(p);
+    },280);
+  }); });
   body.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{ st.km.splice(+b.dataset.del,1); afterKeyChange(p); });
 }
 function keySummaryItems(arr){ return arr.map(k=>k.token||k.real).filter(Boolean).slice(0,3).join(" · ") || "—"; }
@@ -567,66 +613,7 @@ function renderKeySummary(p){
   panel.innerHTML=cards.map(([label,arr])=>'<div class="key-card '+(arr.length?'':'emptyish')+'"><b>'+label+'</b><span class="count">'+arr.length+'</span><div class="items" title="'+escAttr(keySummaryItems(arr))+'">'+esc(keySummaryItems(arr))+'</div></div>').join("");
 }
 function addRow(p){ const st=ST[p]; st.km.push({real:"",token:nextPersonToken(st.km),auto:false}); renderKeyTable(p); renderKeySummary(p); }
-function renderRiskPieces(text){
-  let parts=[{text:String(text||""), cls:"", title:""}];
-  const apply=(re, cls, title)=>{
-    const out=[];
-    parts.forEach(part=>{
-      if(part.cls){ out.push(part); return; }
-      let last=0; const src=part.text; re.lastIndex=0; let m;
-      while((m=re.exec(src))){
-        if(m.index>last) out.push({text:src.slice(last,m.index), cls:"", title:""});
-        out.push({text:m[0], cls, title});
-        last=m.index+m[0].length;
-        if(m[0].length===0) re.lastIndex++;
-      }
-      if(last<src.length) out.push({text:src.slice(last), cls:"", title:""});
-    });
-    parts=out;
-  };
-  apply(/[A-Za-z0-9._%+\-]+@[\p{L}0-9.\-]+\.[A-Za-z]{2,}/gu,"ri-danger","Možný e-mail – skryj nebo odstraň");
-  apply(reAccount("g"),"ri-danger","Možné číslo účtu – skryj nebo odstraň");
-  apply(/(?:\+420|00420)?[\s./-]*\d{3}[\s./-]?\d{3}[\s./-]?\d{3}/g,"ri-danger","Možný telefon – skryj nebo odstraň");
-  apply(/\b\d{2}[0156]\d[0-3]\d\/?\d{3,4}\b/g,"ri-danger","Možný rodný nebo datumový identifikátor");
-  apply(/\b(?:nar\.|narozen(?:a|ý)?|datum narození|datum nar\.)\s*\d{1,2}\.\s*\d{1,2}\.\s*\d{2,4}\b/gi,"ri-danger","Možné datum narození");
-  apply(/\b\d{1,2}\.\s*\d{1,2}\.\s*(?:19|20)\d{2}\b/g,"ri-warn","Datum – ověř, zda nejde o datum narození");
-  apply(/\b[1-4]\.\s?[A-ZÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ]\b/g,"ri-warn","Třída – zvaž, zda v kombinaci s dalšími údaji neidentifikuje žáka");
-  apply(/\b(?:ul\.|ulice|náměstí|nábřeží|č\.p\.|čp\.|bytem|adresa)\b/gi,"ri-warn","Výraz související s adresou – zkontroluj kontext");
-  apply(new RegExp(SENSITIVE_TERMS_SOURCE,"giu"),"ri-danger","Citlivé školní, zdravotní nebo kázeňské téma");
-  apply(new RegExp(SENSITIVE_TERMS_INTL_RE.source,"gi"),"ri-danger","Citlivé téma (EN/ES)");
-  const out=[];
-  parts.forEach(part=>{
-    if(part.cls){ out.push(part); return; }
-    let last=0; const src=part.text;
-    const re=/[A-Za-zÁČĎÉĚÍŇÓŘŠŤÚŮÝŽáčďéěíňóřšťúůýž]+/g; let m;
-    while((m=re.exec(src))){
-      if(m.index>last) out.push({text:src.slice(last,m.index), cls:"", title:""});
-      const word=m[0];
-      if(isNameCandidate(word)) out.push({text:word, cls:"ri-warn", title:"Možné jméno nebo vlastní název – zkontroluj"});
-      else out.push({text:word, cls:"", title:""});
-      last=m.index+word.length;
-    }
-    if(last<src.length) out.push({text:src.slice(last), cls:"", title:""});
-  });
-  return out.map(part=>part.cls?'<mark class="risk-inline '+part.cls+'" title="'+esc(part.title)+'">'+esc(part.text)+'</mark>':esc(part.text)).join("");
-}
 function renderPreview(p){
-  const clean=ST[p].clean||"";
-  const tokens=[...new Set(ST[p].km.map(k=>k.token).filter(Boolean))].sort((a,b)=>b.length-a.length);
-  let html="";
-  if(tokens.length){
-    const re=new RegExp(tokens.map(escRe).join("|"),"g");
-    let last=0, m;
-    while((m=re.exec(clean))){
-      if(m.index>last) html+=renderRiskPieces(clean.slice(last,m.index));
-      const t=m[0]; html+='<span class="token '+tokenClass(t)+'">'+esc(t)+'</span>';
-      last=m.index+t.length;
-    }
-    if(last<clean.length) html+=renderRiskPieces(clean.slice(last));
-  } else {
-    html=renderRiskPieces(clean);
-  }
-  E(p,"preview").innerHTML=html||EMPTY_MARK;
   renderSafety(p);
   updateSendGate(p);
 }
@@ -634,6 +621,7 @@ function stripSafeTokens(text){
   return String(text||"").replace(/\[e-mail \d+\]|\[telefon \d+\]|\[rodné číslo \d+\]|\[datum narození \d+\]|\[číslo účtu \d+\]|\[instituce \d+\]|\[místo \d+\]|\[název \d+\]|\[kontakt \d+\]|\[citlivý údaj \d+\]|osoba [A-Z]+|\[podpis\]|\[učitel\]/g," ");
 }
 function preflightIssues(text,p){
+  const cacheKey=analysisCacheKey(p,text); if(ANALYSIS_CACHE.preflight.has(cacheKey)) return ANALYSIS_CACHE.preflight.get(cacheKey);
   const stripped=stripSafeTokens(text);
   const danger=[], warn=[], names=[];
   const addD=(x)=>{ if(!danger.includes(x)) danger.push(x); };
@@ -672,22 +660,18 @@ function preflightIssues(text,p){
   try{
     const norm=x=>String(x||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("cs-CZ");
     const active=(p&&ACTIVE_KEY_REALS[p]?ACTIVE_KEY_REALS[p]:(window.__ACTIVE_KEY_REALS||[]));
-    const exact=new Set(), roots=[];
-    active.forEach(real=>String(real||"").split(/\s+/).forEach(part=>{
-      nameVariants(part).forEach(v=>exact.add(norm(v)));
-      const root=norm(part); if(root.length>=4) roots.push(root);
-    }));
-    if(exact.size||roots.length){
+    const exact=new Set();
+    active.forEach(real=>String(real||"").split(/\s+/).forEach(part=>{ nameVariants(part).forEach(v=>exact.add(norm(v))); }));
+    if(exact.size){
       const missed=[];
       stripped.split(/[^\p{L}]+/u).forEach(word=>{
         const n=norm(word); if(n.length<2) return;
-        const suffixMatch=roots.some(root=>n.startsWith(root)&&/^(?:a|u|e|i|y|ovi|ove|ova|ovou|em|ou|mu|ho)$/.test(n.slice(root.length)));
-        if((exact.has(n)||suffixMatch)&&!missed.includes(word)) missed.push(word);
+        if(exact.has(n)&&!missed.includes(word)) missed.push(word);
       });
       if(missed.length) addD("nezakrytý tvar již skrytého jména: "+missed.slice(0,3).join(", "));
     }
   }catch(_){}
-  return {danger,warn,names};
+  const result={danger,warn,names}; ANALYSIS_CACHE.preflight.set(cacheKey,result); return result;
 }
 function safeAuxiliaryText(p, raw, state, label){
   const original=String(raw||"").trim();
@@ -770,11 +754,6 @@ function renderPreviewSummary(p){
   const first=el.querySelector("[data-review-first]"); if(first) first.onclick=()=>{const row=suggestionData(p).suggestions[0];if(row)selectPhraseForReview(p,row.phrase,true);};
   const keep=el.querySelector("[data-review-keep-all]"); if(keep) keep.onclick=()=>keepAllSuggestions(p,unresolved);
 }
-function renderReadyBanner(p, audit){
-  const el=E(p,"readyBanner"); if(!el) return;
-  el.className="ready-banner";
-  el.innerHTML="";
-}
 function localSafeFallbackText(p){
   if(p==="in"){
     return "Dobrý den,\n\nděkuji za zprávu. Vzhledem k tomu, že jde o citlivou školní záležitost, navrhuji ji neřešit podrobně e-mailem. Domluvme si prosím osobní setkání nebo telefonický rozhovor.\n\nS pozdravem";
@@ -820,7 +799,6 @@ function renderSafety(p){
   const stopHead=lvl==="nosend"?'<span class="stop-title">STOP – nejdřív uprav náhled</span>':'';
   el.innerHTML='<span class="sicon" aria-hidden="true">'+sym+'</span><span class="sbody">'+stopHead+'<b>'+esc(a.title)+':</b> '+esc(a.msg)+'<span class="safety-action">'+esc(a.action||"")+'</span></span>';
   renderSafeFallback(p, a);
-  renderReadyBanner(p, a);
   renderSafetyCounts(p);
   renderPreviewSummary(p);
 }
@@ -839,7 +817,6 @@ function updateSendGate(p){
     reason.className="gate-reason "+(hardStop?"danger":unresolved>0?"action":cb&&cb.checked?"ok":"ready");
     reason.innerHTML=hardStop?'<b>Nelze pokračovat:</b> bezpečnostní kontrola našla blokující údaj.':unresolved>0?('<b>Ještě chybí:</b> rozhodnout o '+czCount(unresolved,'výrazu','výrazech','výrazech')+'. Použij krok 2 výše.'):cb&&cb.checked?'<b>Připraveno.</b> Můžeš pokračovat.':'<b>Poslední krok:</b> zaškrtni pole Zkontrolováno.';
   }
-  renderPreviewSummary(p);
   updateProgress(p);
 }
 function flashPreview(p){
@@ -852,14 +829,13 @@ function flashPreview(p){
   E(p,"reAnon").onclick=()=>doAnon(p);
   E(p,"addRow").onclick=()=>addRow(p);
   E(p,"remember").onclick=()=>rememberNames(ST[p].km);
-  const prevToggle=E(p,"prevToggle"); if(prevToggle) prevToggle.onclick=()=>flashPreview(p);
   E(p,"reviewOk").addEventListener("change",()=>{if(!E(p,"reviewOk").checked)ST[p].outputReady=false;updateSendGate(p);});
   E(p,"raw").addEventListener("input",()=>{
     const value=E(p,"raw").value;
     if(ST[p].raw!==value){
       ST[p].raw=value;ST[p].clean="";ST[p].km=[];ST[p].outputReady=false;ST[p].sensitiveAck=false;ST[p].reviewedSuggestions={};ST[p].selectedPhrase="";publishActiveKeyReals(p);
       const cb=E(p,"reviewOk");if(cb)cb.checked=false;
-      const step2=E(p,"step2");if(step2)step2.style.display="none";
+      clearAnalysisCache(); const step2=E(p,"step2");if(step2)step2.hidden=true;
       const results=$(p==="in"?"in_results":"my_results");if(results)results.innerHTML="";
       updateSendGate(p);
     }else updateProgress(p);
@@ -902,7 +878,7 @@ function recompose(p, text){
   [...groups.entries()].sort((a,b)=>b[0].length-a[0].length).forEach(([token,reals])=>{
     const canonical=[...reals].sort((a,b)=>String(b).length-String(a).length)[0];
     if(/^osoba\b/.test(token)){
-      const salRe=new RegExp("((?:Ahoj|Milý|Milá|Vážený|Vážená|Pane|Paní)\\s+)"+escRe(token)+"(?=\\s*[,!?.]|\\s|$)","gi");
+      const salRe=new RegExp("((?:(?:Ahoj|Milý|Milá|Vážený|Vážená|Pane|Paní)\\s+|(?:Dobrý den|Dobrý večer)\\s*,?\\s*))"+escRe(token)+"(?=\\s*[,!?.]|\\s|$)","gi");
       t=t.replace(salRe,(m,lead)=>lead+salutationName(reals,lead));
     }
     t=t.replace(new RegExp(escRe(token),"g"),canonical);

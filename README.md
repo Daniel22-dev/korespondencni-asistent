@@ -2,28 +2,27 @@
 
 Samostatný repozitář aplikace pro Gymnázium, Ostrava-Hrabůvka.
 
-- **Verze:** 5.5.2
+- **Verze:** 5.5.5
 - **Doporučený název repozitáře:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
 
-## Co přináší verze 5.5.2
+## Co přináší verze 5.5.5
 
-- Dvě skutečné hlavní cesty na úvodu; školní situace je uvnitř sestavení vlastního e-mailu.
-- Pracovní profil je vidět hned v prvním kroku nad konceptem.
-- Kontextové tooltipy vysvětlují nejasné volby bez zahlcení rozhraní.
-
-- režim **Můj e-mail** zobrazuje pracovní profil přímo v pracovním toku; role, předměty a škola se ukládají lokálně a používají jako kontext,
-- volba **Rychle** transparentně používá místní pravidla a rozlišuje jednoho člověka od skupiny,
-- hlavní druh práce je oddělen od podrobností zvolené akce, školního scénáře a výsledného tónu a délky,
-- školní scénář je nepovinný a po výběru vypíše, které parametry změnil,
-- u pouhé jazykové opravy se nezobrazují nerelevantní volby tónu a délky,
-- hromadný e-mail používá množné oslovení a kontroluje nechtěné tvary určené jednotlivci,
-- interaktivní manuál 1.1.0 obsahuje samostatnou část k celému režimu Můj e-mail a sjednocené označení verze.
+- odstraněny osiřelé styly po zrušeném školním návodu a starších průvodcích;
+- release gate nyní provede všechny kontroly před jediným závěrečným verdiktem;
+- nové pojistky ověřují sestavený `dist/index.html` a `dist/manual/index.html`, nikoli jen zdrojové soubory;
+- kapitola **Bezpečná práce s údaji** se kontroluje podle stabilního ID a struktury, ne podle konkrétního znění nadpisu;
+- z finální anonymizační brány v obou pracovních cestách vede přímý odkaz na `manual/#bezpecnost`;
+- opraven rozpor v dokumentaci auditu 5.5.2;
+- interaktivní manuál 1.1.4 odpovídá aktuálnímu workflow;
+- `dist/` se již nemá verzovat; vytváří jej automaticky build a GitHub Actions.
 
 ## Nahrání na GitHub
 
-Obsah tohoto balíčku nahraj přímo do kořene repozitáře. Složky `.github`, `src`, `scripts` a `dist` musí být přímo v kořeni, nikoli uvnitř další složky.
+Obsah tohoto balíčku nahraj přímo do kořene repozitáře. Složky `.github`, `src` a `scripts` musí být přímo v kořeni, nikoli uvnitř další složky.
+
+**Jednorázově před nahráním 5.5.5 odstraň z repozitáře dříve verzovanou složku `dist/`.** Od této verze je v `.gitignore` a při každém nasazení ji znovu vytvoří GitHub Actions.
 
 V **Settings → Pages** nastav **Source: GitHub Actions**. Každý push do větve `main` provede build, interní testy a nasazení.
 
@@ -42,7 +41,7 @@ npm test
 src/                    editovatelné zdroje aplikace
 scripts/build.mjs       sestavení jednosouborového index.html
 scripts/test.mjs        release testy nad dist/
-dist/                   hotový web pro GitHub Pages
+dist/                   generovaný hotový web; nevkládá se do Git repozitáře
 .github/workflows/      automatické nasazení
 ```
 

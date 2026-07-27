@@ -243,7 +243,7 @@ wireChips($("apiPanel"));
 
 function loadTpls(){ try{ return JSON.parse(localStorage.getItem("rozbor_templates")||"[]"); }catch(_){ return []; } }
 function saveTpls(a){ try{ localStorage.setItem("rozbor_templates", JSON.stringify(a)); }catch(_){} }
-const TPL_KEYS=["my_flow","my_mode","my_adresat","my_oslov","my_prepis","my_ucel","my_cton","my_cdelka","my_subj","my_lang","my_scenario"];
+const TPL_KEYS=["my_flow","my_mode","my_adresat","my_scope","my_pisujako","my_oslov","my_prepis","my_ucel","my_cton","my_cdelka","my_subj","my_lang","my_scenario"];
 function renderTemplates(){
   const box=$("my_tpls"); if(!box) return; box.innerHTML="";
   loadTpls().forEach((t,i)=>{
@@ -409,26 +409,40 @@ function updateMyMode(){
   renderChoiceSummary("my");
 }
 function applyMyAdresat(a){ setChip("my_oslov", (a==="rodic"||a==="vedeni"||a==="jiny")?"vykani":"tykani"); syncCustomRecipient("my"); }
+function scenarioEffects(sc){
+  return sc&&sc.vals?Object.entries(sc.vals).map(([k,val])=>{
+    if(k==="my_mode") return {opravit:"opravit text",prepsat:"přeformulovat text",sestavit:"sestavit e-mail"}[val]||val;
+    if(k==="my_adresat") return "adresát: "+(ADRESAT[val]||val);
+    if(k==="my_scope") return "počet: "+(AUDIENCE_SCOPE[val]||val);
+    if(k==="my_oslov") return "oslovení: "+(val==="tykani"?"tykání":"vykání");
+    if(k==="my_ucel") return "účel: "+(UCEL[val]||val);
+    if(k==="my_cton") return "tón: "+(TON[val]||val);
+    if(k==="my_cdelka") return "délka: "+(DELKA[val]||val);
+    return null;
+  }).filter(Boolean):[];
+}
+function renderAppliedScenario(v,sc,effects){
+  const box=$("my_scenarioApplied"); if(!box)return;
+  if(v==="none"||!sc||!sc.hint){ box.hidden=true; box.innerHTML=""; return; }
+  box.hidden=false;
+  box.innerHTML='<div class="scenario-applied-head"><div><b>Aktivní školní situace: '+esc(sc.label)+'</b><p>'+esc(sc.hint)+'</p></div><button class="btn ghost small" type="button" id="my_cancelScenario">Zrušit scénář</button></div>'+
+    (effects.length?'<div class="scenario-effects"><b>Nastaveno:</b> '+esc(effects.join(" · "))+'</div>':'')+
+    (sc.strict?'<div class="strict-note">Přísný režim: historie a debug prompt jsou vypnuté; výstup má být obecný a bez identifikujících detailů.</div>':'');
+  const cancel=$("my_cancelScenario"); if(cancel)cancel.onclick=()=>syncSchoolScenario("none",false);
+}
 function syncSchoolScenario(v, applyDefaults){
   const sc=SCHOOL_SCENARIOS[v]||SCHOOL_SCENARIOS.none;
-  if(document.querySelector('.chips[data-group="my_scenario"]')) setChip("my_scenario", SCHOOL_SCENARIOS[v]?v:"none");
+  v=SCHOOL_SCENARIOS[v]?v:"none";
+  if(document.querySelector('.chips[data-group="my_scenario"]')) setChip("my_scenario",v);
   if(applyDefaults!==false && sc.vals) Object.keys(sc.vals).forEach(k=>setChip(k, sc.vals[k]));
-  const h=$("my_scenarioHint");
+  const effects=scenarioEffects(sc), h=$("my_scenarioHint");
   if(h){
-    const effects=sc.vals?Object.entries(sc.vals).map(([k,val])=>{
-      if(k==="my_mode") return {opravit:"opravit text",prepsat:"přeformulovat text",sestavit:"sestavit e-mail"}[val]||val;
-      if(k==="my_adresat") return "adresát: "+(ADRESAT[val]||val);
-      if(k==="my_scope") return "počet: "+(AUDIENCE_SCOPE[val]||val);
-      if(k==="my_oslov") return "oslovení: "+(val==="tykani"?"tykání":"vykání");
-      if(k==="my_ucel") return "účel: "+(UCEL[val]||val);
-      if(k==="my_cton") return "tón: "+(TON[val]||val);
-      if(k==="my_cdelka") return "délka: "+(DELKA[val]||val);
-      return null;
-    }).filter(Boolean):[];
     h.innerHTML=sc.hint?('<b>'+esc(sc.label)+':</b> '+esc(sc.hint)+(effects.length?'<div class="scenario-effects"><b>Automaticky se nastaví:</b> '+esc(effects.join(" · "))+'</div>':'')+(sc.strict?'<div class="strict-note">Přísný režim: historie výstupů a debug prompt se vypnou. Výstup má být kratší, obecný a bez identifikujících detailů.</div>':'')):'<b>Nepoužívá se žádné přednastavení.</b> Všechny volby zůstávají podle tvého ručního nastavení nebo rychlého rozpoznání.';
     h.classList.toggle("data-danger", !!sc.sensitive);
   }
+  renderAppliedScenario(v,sc,effects);
   if(sc.strict) activateStrictScenario(sc);
+  ST.my.replySenderMode=readChip("my_pisujako")||"jednotlivec";
   updateMyMode();
 }
 function applySchoolScenario(v){ syncSchoolScenario(v, true); }
@@ -439,6 +453,7 @@ function applySchoolScenario(v){ syncSchoolScenario(v, true); }
   const gscope=document.querySelector('.chips[data-group="my_scope"]'); if(gscope) gscope.addEventListener("click",(e)=>{ if(e.target.closest(".chip")){ updateScopeHint(); renderChoiceSummary("my"); } });
   const myOther=$("my_adresatJiny"); if(myOther) myOther.addEventListener("input",()=>renderChoiceSummary("my"));
   const gs=document.querySelector('.chips[data-group="my_scenario"]'); if(gs) gs.addEventListener("click",(e)=>{ const c=e.target.closest(".chip"); if(c) applySchoolScenario(c.dataset.v); });
+  const gp=document.querySelector('.chips[data-group="my_pisujako"]'); if(gp) gp.addEventListener("click",()=>{ ST.my.replySenderMode=readChip("my_pisujako")||"jednotlivec"; renderChoiceSummary("my"); });
   const profileBtn=$("my_profileOpen"); if(profileBtn) profileBtn.addEventListener("click",()=>{ if(window.__openProfile) window.__openProfile(); });
   updateMyMode();
   applySchoolScenario(readChip("my_scenario")||"none");
@@ -466,7 +481,8 @@ $("my_goBtn").onclick=async()=>{
   const note=safeAuxiliaryText("my", ($("my_note")&&$("my_note").value.trim())||"", state, "Doplňující pokyn");
   if(note===null || !enforcePreflight("my", state, note?[note]:[])) return;
   const subj=readChip("my_subj")==="ano";
-  const common="\nAdresát: "+recipientLabel("my")+"\n"+audiencePrompt()+"\nOslovení: "+oslovTxt+(note?"\nDalší pokyn: "+note:"")+(subj?"\nNa první řádek napiš „Předmět: …“ a pod něj samotný e-mail.":"")+scenarioLine+profileLine()+myLangLine();
+  const senderMode=readChip("my_pisujako")||"jednotlivec"; ST.my.replySenderMode=senderMode;
+  const common="\nAdresát: "+recipientLabel("my")+"\n"+audiencePrompt()+"\nOslovení: "+oslovTxt+senderPerspectivePrompt(senderMode)+(note?"\nDalší pokyn: "+note:"")+(subj?"\nNa první řádek napiš předmět zprávy ve tvaru Předmět: / Subject: / Asunto: podle jazyka výstupu a pod něj samotný e-mail.":"")+scenarioLine+profileLine()+myLangLine();
   let sys, prompt, styl;
   if(mode==="prepsat"){
     const s=readChip("my_prepis"), u=readChip("my_ucel"); styl="Přepsáno: "+(PREPIS[s]||s); sys=SYS_PREPIS;
@@ -482,7 +498,8 @@ $("my_goBtn").onclick=async()=>{
   try{
     const d=await callGemini(prompt, sys+myLangSystem(), "text", {pane:"my",texts:[text,note],ackSensitive:!!(ST.my&&ST.my.sensitiveAck)}); mergeSyn("my", d.synonyma);
     state.innerHTML=""; const wrap=$("my_results"); wrap.innerHTML="";
-    const card=draftCard("my",{ styl, text:d.text||"", sourceText:text, hint:"Dvojklik na slovo nabídne synonyma. Označenou formulaci můžeš uzamknout a zbytek dále upravovat." });
+    const cleanedOutput=replyAllowsEmoji(note)?(d.text||""):stripReplyEmoji(d.text||"");
+    const card=draftCard("my",{ styl, text:cleanedOutput, sourceText:text, hint:"Dvojklik na slovo nabídne synonyma. Označenou formulaci můžeš uzamknout a zbytek dále upravovat." });
     if(mode==="opravit" && Array.isArray(d.zmeny)&&d.zmeny.length){ const cv=document.createElement("div"); cv.innerHTML='<h3 style="margin:14px 0 6px">Co se změnilo</h3><div class="cover">'+d.zmeny.map(z=>'<span class="ok">• '+esc(z)+'</span>').join("<br>")+'</div>'; card.insertBefore(cv, card.querySelector(".actions")); }
     wrap.appendChild(card); ST.my.outputReady=true; recordCorrespondenceTelemetry('outgoing-email',1,1,0); updateProgress("my"); if(typeof markWorkspaceStage==="function") markWorkspaceStage("draft"); if(typeof setActiveDraftCard==="function") setActiveDraftCard(card,"my"); wrap.scrollIntoView({behavior:"smooth",block:"start"});
   }catch(err){ recordCorrespondenceTelemetry('outgoing-email',1,0,1); setApiError(state, err, ()=>$("my_goBtn").click()); }
@@ -587,7 +604,7 @@ function readFileInto(p, file){
     catch(_){ txt=new TextDecoder("utf-8",{fatal:false}).decode(bytes); }
     if(name.endsWith(".eml")) txt=parseEml(txt);
     else if(name.endsWith(".html")||name.endsWith(".htm")) txt=stripHtml(txt);
-    if(txt.length>250000){ txt=txt.slice(0,250000); toast("Soubor byl zkrácen na 250 000 znaků."); }
+    if(txt.length>60000){ txt=txt.slice(0,60000); toast("Soubor byl zkrácen na 60 000 znaků. Pro rychlejší a přesnější práci vlož raději jen poslední relevantní zprávu nebo část vlákna."); }
     E(p,"raw").value=txt;
     doAnon(p);
   };

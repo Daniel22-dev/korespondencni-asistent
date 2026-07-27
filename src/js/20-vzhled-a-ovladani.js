@@ -144,6 +144,7 @@ function bindShellControls(){
 /* ===================== VOLBA PRACOVNÍHO POSTUPU ===================== */
 function showWorkspace(p){
   const shell=$("workspaceShell"),desk=$("teacherDesk"),ctx=$("workspaceContext"),bar=$("globalActionBar");
+  document.body.classList.add("workspace-open");
   if(shell) shell.hidden=false;
   if(desk) desk.hidden=true;
   if(bar) bar.hidden=false;
@@ -151,6 +152,7 @@ function showWorkspace(p){
 }
 function showStartScreen(){
   const shell=$("workspaceShell"),desk=$("teacherDesk"),bar=$("globalActionBar");
+  document.body.classList.remove("workspace-open");
   if(shell) shell.hidden=true;
   if(bar) bar.hidden=true;
   if(desk){desk.hidden=false;desk.scrollIntoView({behavior:"smooth",block:"start"});}
@@ -159,6 +161,7 @@ function showStartScreen(){
 }
 function switchTab(p){
   const tabIn=$("tabIn"),tabMy=$("tabMy"),paneIn=$("pane-in"),paneMy=$("pane-my");
+  if(typeof renderWorkspaceNav==="function") renderWorkspaceNav(p);
   if(tabIn){tabIn.classList.toggle("active",p==="in");tabIn.setAttribute("aria-pressed",p==="in"?"true":"false");}
   if(tabMy){tabMy.classList.toggle("active",p==="my");tabMy.setAttribute("aria-pressed",p==="my"?"true":"false");}
   if(paneIn)paneIn.classList.toggle("active",p==="in");

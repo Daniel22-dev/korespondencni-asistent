@@ -36,7 +36,7 @@
     "templates"
   ],
   "compatibility": {
-    "studioMinVersion": "0.5.1",
+    "studioMinVersion": "0.18.9",
     "materialSchema": "ghrab-material-v1",
     "studioBridge": "1.3"
   },

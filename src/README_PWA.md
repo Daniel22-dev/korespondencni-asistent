@@ -24,3 +24,8 @@ Při změně aplikace zvyš verzi v `js/10-release-changelog.js` v objektu `RELE
 ## Staré odkazy
 
 Přesměrování historických adres patří do původního společného repozitáře, nikoli do této samostatné aplikace. Postup a souvislosti jsou popsány v `docs/MIGRACE.md`.
+
+
+## Permissions-Policy na GitHub Pages
+
+GitHub Pages neumožňuje nastavit vlastní HTTP hlavičku `Permissions-Policy`. Neúčinná meta značka byla ve verzi 5.5.3 odstraněna; bezpečnostní záměr je dokumentován, ale skutečná hlavička vyžaduje hosting s podporou vlastních hlaviček.

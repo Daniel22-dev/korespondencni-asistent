@@ -1,13 +1,16 @@
-const IS_TEST_MODE=new URLSearchParams(window.location.search).has("test")||String(window.location.hash||"").toLowerCase().includes("test");
+const IS_TEST_MODE=new URLSearchParams(window.location.search).get("test")==="1";
 
 "use strict";
 
 const RELEASE = {
-  version: "5.5.2",
+  version: "5.5.5",
   date: "2026-07-27",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.5.5: dotažení bezpečnostního release — odstraněny osiřelé styly po starém školním návodu a dalších zrušených průvodcích, release gate kontroluje až finální nasazované artefakty a vypisuje jediný závěrečný verdikt, dokumentace auditu byla opravena a z obou anonymizačních cest vede přímý odkaz na kapitolu Bezpečná práce s údaji. Složka dist se nově negeneruje do verzovaného balíčku; sestavuje ji CI při nasazení.",
+    "5.5.4: nepřístupný starý Školní návod pro kolegy byl odstraněn z kódu a jeho užitečný obsah byl přepracován do samostatné kapitoly Bezpečná práce s údaji v interaktivním manuálu. Kapitola vysvětluje, co anonymizovat, co do AI nevkládat, kdy komunikaci řešit bez AI, jak postupovat na sdíleném počítači a uvádí konkrétní bezpečné i nevhodné příklady.",
+    "5.5.3: zapracován hloubkový audit pracovního toku a bezpečnosti — opraveno skutečné skrývání anonymizačního kroku, české pády jmen s pohyblivým e/ě, historie anonymizovaných výstupů, viditelná zpětná vazba školního scénáře, oslovení po Dobrý den, šum návrhů jmen, perspektiva odesílatele v Můj e-mail, emoji, předměty EN/ES, výkon dlouhých zpráv, navigace, přístupnost, PWA a nasazení.",
     "5.5.2: úvodní obrazovka má nově dvě skutečné hlavní cesty; rychlá školní situace byla přesunuta dovnitř sestavení vlastního e-mailu jako přednastavení. Pracovní profil je vidět už nad polem Tvůj koncept a ne až po anonymizaci. U nejasných voleb přibyly přístupné tooltipy pro způsob práce, typ zásahu, počet adresátů, školní scénář, předmět a doplňující pokyn.",
     "5.5.1: opraven a rozšířen interaktivní manuál pro režim Můj e-mail. Nově samostatně vysvětluje pracovní profil, rychlé pravidlové rozpoznání, rozdíl mezi hlavním druhem práce a jeho podrobnostmi, školní scénáře, podmíněné zobrazení tónu a délky a volbu jednoho člověka nebo skupiny. Sjednocena byla také čísla verzí v manuálu a README.",
     "5.5.0: zpřehledněn režim Můj e-mail — přímo v pracovním toku je vidět a upravitelný profil s rolí, vyučovanými předměty a školou; jméno zůstává pouze lokální. Rychlé rozpoznání nově transparentně popisuje svůj pravidlový algoritmus, rozlišuje jednotlivce od skupiny a správně připraví hromadný e-mail kolegům bez tvaru ‚tě‘. Hlavní typ práce, podrobnosti úpravy, školní scénář a podoba výsledku jsou oddělené; prázdná sekce tónu se už u korektury nezobrazuje a scénář ukazuje, které volby automaticky změnil.",
@@ -94,26 +97,6 @@ function toast(msg){
   setTimeout(()=>{ t.classList.remove("show"); setTimeout(()=>t.remove(),300); }, 2600);
 }
 const SECURITY_GUIDE_SK="rozbor_security_guide_seen_v1";
-function openSecurityGuide(force){
-  if(!force){ try{ if(localStorage.getItem(SECURITY_GUIDE_SK)==="1") return; }catch(_){} }
-  const overlay=document.createElement("div"); overlay.className="guide-overlay";
-  overlay.innerHTML='<div class="guide-card" role="dialog" aria-modal="true" aria-label="Bezpečný začátek">'+
-    '<h2>Než odešleš text k modelu</h2>'+
-    '<div class="guide-bigline">Bez anonymizace neposílej studentské údaje.</div>'+
-    '<div class="guide-quick" aria-label="Tři bezpečné kroky">'+
-      '<div class="guide-quick-card"><b>1) Vlož text</b>Zatím zůstává jen v prohlížeči.</div>'+
-      '<div class="guide-quick-card"><b>2) Anonymizuj</b>Skryj jména, kontakty a citlivé údaje.</div>'+
-      '<div class="guide-quick-card"><b>3) Zkontroluj náhled</b>Odešli až po ruční kontrole.</div>'+
-    '</div>'+
-    '<p>Asistent pomůže s kontrolou, ale odpovědnost za očištěný náhled zůstává na uživateli.</p>'+
-    '<div class="row"><button class="btn primary" id="sg_ok">Rozumím, začít bezpečně</button><button class="btn ghost" id="sg_later">Zavřít</button></div>'+
-    '</div>';
-  document.body.appendChild(overlay);
-  const close=(remember)=>{ if(remember){ try{ localStorage.setItem(SECURITY_GUIDE_SK,"1"); }catch(_){} } overlay.remove(); };
-  overlay.querySelector("#sg_ok").onclick=()=>close(true);
-  overlay.querySelector("#sg_later").onclick=()=>close(false);
-  overlay.addEventListener("click",e=>{ if(e.target===overlay) close(false); });
-}
 const TOUR_SK="rozbor_tour_seen_v1";
 const TOUR_STEPS=[
   { t:"Vítej v Korespondenčním asistentovi",

@@ -54,9 +54,9 @@ window.evaluateDraftReadiness=function(p,text,source,cover){
   const bezPodpisu=finalText.replace(/\[u[čc]itel\]/g," ");
   add(typeof hasLeftoverToken!=="function"||!hasLeftoverToken(bezPodpisu),"Nezůstala nevyplněná anonymizační značka","danger");
   add(!/\[u[čc]itel\]/.test(finalText),"Podpis je vyplněný v profilu odesílatele","warn");
-  add(/^(předmět:.*\n+)?\s*(dobrý den|vážen|ahoj|mil[ýáé]|dear|hello|hola|buenos)/im.test(t),"Zpráva obsahuje vhodné oslovení","warn");
+  add(/^((?:předmět|subject|asunto):.*\n+)?\s*(dobrý den|dobrý večer|vážen|ahoj|mil[ýáé]|dear|hello|hola|buenos)/im.test(t),"Zpráva obsahuje vhodné oslovení","warn");
   add(/(s pozdravem|děkuji|hezký den|kind regards|best regards|saludos|atentamente|\[podpis\])/i.test(t),"Zpráva má zakončení nebo podpis","warn");
-  if(p==="in" && ST.in && ST.in.replySenderMode==="jednotlivec"){
+  if((p==="in"||p==="my") && ST[p] && ST[p].replySenderMode==="jednotlivec"){
     const plural=/(?:\bvážíme si\b|\bděkujeme\b|\bpotvrzujeme\b|\bbudeme\b|\bjsme\b|\bmáme\b|\bchceme\b|\bprosíme\b|\bozveme se\b|\bkontaktujeme\b|\bzvážíme\b|\bvyhodnotíme\b|\bprojednáme\b|\bdomluvíme\b)/i.test(t);
     add(!plural,"Odpověď je psána za jednotlivce v 1. osobě jednotného čísla","danger",plural?"Uprav tvary typu ‚vážíme / budeme / projednáme‘ na jednotné číslo.":"");
   }
@@ -145,7 +145,7 @@ window.saveWorkbenchDraft=function(el,p,opts){
   let text=el.__getSrc?el.__getSrc():clean(el.querySelector(".body")&&el.querySelector(".body").innerText);if(!text)return toast("Není co uložit.");
   try{text=applyKeyToText(p,text);}catch(_){}
   let audit={level:"danger"};try{audit=safetyAudit(text,p);}catch(_){}
-  if(!text||audit.level==="danger"||hasSensitiveSchoolTerms(text)){toast("Koncept se neuložil: obsahuje údaj, který není bezpečné ukládat. Uložení je dovoleno jen pro anonymizovanou verzi.");return;}
+  if(!text||audit.level==="danger"||audit.level==="nosend"||hasSensitiveSchoolTerms(text)){toast("Koncept se neuložil: obsahuje údaj, který není bezpečné ukládat. Uložení je dovoleno jen pro anonymizovanou verzi.");return;}
   const a=jget(LS.drafts,[]),item={id:uid("draft"),at:Date.now(),pane:p,label:(opts&&opts.styl)||"Rozpracovaný e-mail",text:safeText(text),variant:(opts&&opts.variantType)||"",safe:true,format:1};
   a.unshift(item);jset(LS.drafts,a.filter(x=>x&&x.safe===true).slice(0,20));el.classList.add("is-saved");refreshDeskStatus();toast("Anonymizovaný koncept uložen ✓");
 };
@@ -159,16 +159,6 @@ window.openFollowupDialog=function(el,p){
   const html='<div class="quick-dates"><button class="chip on" data-days="2">Za 2 dny</button><button class="chip" data-days="7">Za týden</button><button class="chip" data-days="0">Vlastní datum</button></div><label class="dialog-label">Co pohlídat</label><input id="fuTitle" class="dialog-input" value="Čekám na odpověď"><label class="dialog-label">Datum a čas</label><input id="fuDate" class="dialog-input" type="datetime-local"><label class="review-check"><input id="fuWaiting" type="checkbox" checked><span>Označit jako „čekám na odpověď“</span></label><div class="dialog-actions"><button class="btn ghost" id="fuIcs">Stáhnout .ics</button><button class="btn" id="fuSave">Uložit připomínku</button></div>';
   openModal("Navazující krok",html,{onMount(body,close){const dt=body.querySelector("#fuDate");const setDate=days=>{if(!days)return;const d=new Date(Date.now()+days*86400000);dt.value=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")+"T09:00";};setDate(2);body.querySelectorAll("[data-days]").forEach(b=>b.onclick=()=>{body.querySelectorAll("[data-days]").forEach(x=>x.classList.toggle("on",x===b));setDate(+b.dataset.days);if(+b.dataset.days===0)dt.focus();});const get=()=>({id:uid("follow"),title:clean(body.querySelector("#fuTitle").value)||"Čekám na odpověď",date:dt.value,waiting:body.querySelector("#fuWaiting").checked,note:"Vytvořeno v Korespondenčním asistentovi",created:Date.now()});body.querySelector("#fuIcs").onclick=()=>{const x=get();downloadIcs(x.title,x.date,x.note);};body.querySelector("#fuSave").onclick=()=>{const x=get();if(!x.date)return toast("Vyber datum.");const a=jget(LS.followups,[]);a.unshift(x);jset(LS.followups,a.slice(0,40));refreshDeskStatus();close();toast("Připomínka uložena ✓");};}});
 };
-function uniqueWordMarkup(text,other){
-  const otherSet=new Set(String(other||"").toLowerCase().match(/[\p{L}\p{N}]+/gu)||[]);
-  return String(text||"").split(/(\s+|[^\p{L}\p{N}]+)/u).map(tok=>{const w=tok.toLowerCase();return /^[\p{L}\p{N}]+$/u.test(tok)&&!otherSet.has(w)?'<mark>'+esc(tok)+'</mark>':esc(tok);}).join("");
-}
-window.openDraftComparison=function(cards){
-  const arr=cards.filter(Boolean);if(arr.length<2)return toast("Pro porovnání jsou potřeba alespoň dvě varianty.");
-  const labels=arr.map((c,i)=>({strucna:"Stručná",standardni:"Standardní",diplomaticka:"Diplomatická"}[c.dataset.variant]||("Varianta "+(i+1))));
-  const html='<div class="compare-controls"><label>Vlevo <select id="cmpA">'+labels.map((x,i)=>'<option value="'+i+'">'+esc(x)+'</option>').join("")+'</select></label><label>Vpravo <select id="cmpB">'+labels.map((x,i)=>'<option value="'+i+'" '+(i===1?'selected':'')+'>'+esc(x)+'</option>').join("")+'</select></label></div><p class="hintline">Zvýrazněna jsou slova, která se v druhé zvolené variantě nevyskytují.</p><div class="comparison-grid" id="cmpGrid"></div>';
-  openModal("Porovnání variant",html,{onMount(body,close){const a=body.querySelector("#cmpA"),b=body.querySelector("#cmpB"),grid=body.querySelector("#cmpGrid");const render=()=>{if(a.value===b.value)b.value=String((+a.value+1)%arr.length);const ca=arr[+a.value],cb=arr[+b.value],ta=ca.__getSrc?ca.__getSrc():ca.innerText,tb=cb.__getSrc?cb.__getSrc():cb.innerText;grid.innerHTML='<section><h4>'+esc(labels[+a.value])+'</h4><div>'+uniqueWordMarkup(ta,tb)+'</div><button class="btn small" data-use="'+a.value+'">Použít tuto variantu</button></section><section><h4>'+esc(labels[+b.value])+'</h4><div>'+uniqueWordMarkup(tb,ta)+'</div><button class="btn small" data-use="'+b.value+'">Použít tuto variantu</button></section>';grid.querySelectorAll("[data-use]").forEach(x=>x.onclick=()=>{const c=arr[+x.dataset.use];setActiveDraftCard(c,"in");c.scrollIntoView({behavior:"smooth",block:"center"});close();});};a.onchange=render;b.onchange=render;render();}});
-};
 window.updateAssistantRail=function(ctx){
   const d=(ctx&&ctx.analysis)||{},r=$("railOverview");if(!r)return;const req=Array.isArray(d.pozadavky)?d.pozadavky:[],terms=Array.isArray(d.terminy)?d.terminy:[];
   r.innerHTML='<div class="rail-priority '+escAttr((ctx&&ctx.priorityMeta&&ctx.priorityMeta.cls)||"week")+'">'+esc((ctx&&ctx.priorityMeta&&ctx.priorityMeta.label)||"Vyřídit tento týden")+'</div><dl><dt>Požadavky</dt><dd>'+esc(req.length?req.slice(0,4).join(" · "):"Bez jasného požadavku")+'</dd><dt>Termíny</dt><dd>'+esc(terms.length?terms.join(" · "):"Bez výslovného termínu")+'</dd><dt>Další krok</dt><dd>'+esc(d.dalsiKrok||"Připravit odpověď a zkontrolovat fakta.")+'</dd></dl>';
@@ -177,7 +167,7 @@ window.markWorkspaceStage=function(stage){document.querySelectorAll("#workspaceN
 
 function scenarioEntries(){return Object.entries(SCHOOL_SCENARIOS).filter(([k])=>k!=="none");}
 function rememberScenario(key){let a=jget(LS.recentScenarios,[]);a=[key].concat(a.filter(x=>x!==key)).slice(0,6);jset(LS.recentScenarios,a);}
-function activateScenario(key){if(!SCHOOL_SCENARIOS[key])return;switchTab("my");setChip("my_flow","guided");syncSchoolScenario(key,true);rememberScenario(key);updateMyMode();const raw=$("my_raw");if(raw){raw.focus();raw.scrollIntoView({behavior:"smooth",block:"center"});}renderQuickScenarios();}
+function activateScenario(key){if(!SCHOOL_SCENARIOS[key])return;switchTab("my");setChip("my_flow","guided");syncSchoolScenario(key,true);rememberScenario(key);updateMyMode();const sc=SCHOOL_SCENARIOS[key],effects=typeof scenarioEffects==="function"?scenarioEffects(sc):[];toast("Scénář „"+sc.label+"“ použit"+(effects.length?" — "+effects.join(" · "):""));const raw=$("my_raw");if(raw){raw.focus();raw.scrollIntoView({behavior:"smooth",block:"center"});}renderQuickScenarios();}
 function renderQuickScenarios(){
   const defaults=["grade_parent","consultation","complaint_reply","class_info","meeting_change","proposal"],recent=jget(LS.recentScenarios,[]),keys=[...new Set(recent.concat(defaults))].filter(k=>SCHOOL_SCENARIOS[k]).slice(0,6),q=$("quickScenarios");
   if(q)q.innerHTML=keys.map(k=>'<button class="quick-scenario" type="button" data-quick="'+k+'">'+esc(SCHOOL_SCENARIOS[k].label)+'</button>').join("");
@@ -209,11 +199,17 @@ function openSchoolLibraryManager(){
 }
 window.openSchoolLibraryManager=openSchoolLibraryManager;
 function syncBar(){const enabled=!!activeDraft;["barSave","barCheck","barCopy"].forEach(id=>{const b=$(id);if(b)b.disabled=!enabled;});}
+function renderWorkspaceNav(p){
+  const nav=$("workspaceNav"); if(!nav)return;
+  const steps=p==="my"?[["source","Zdroj"],["privacy","Anonymizace"],["draft","Text"],["check","Kontrola"]]:[["source","Zdroj"],["privacy","Anonymizace"],["analysis","Rozbor"],["draft","Odpověď"],["check","Kontrola"]];
+  nav.innerHTML=steps.map((x,i)=>'<button type="button" data-jump="'+x[0]+'" class="'+(i===0?'is-current':'')+'"><span>'+(i+1)+'</span>'+x[1]+'</button>').join("");
+}
+window.renderWorkspaceNav=renderWorkspaceNav;
 function initDesk(){
-  renderQuickScenarios();const q=$("quickScenarios");if(q)q.addEventListener("click",e=>{const b=e.target.closest("[data-quick]");if(b)activateScenario(b.dataset.quick);});
+  renderWorkspaceNav(activePane()); renderQuickScenarios();const q=$("quickScenarios");if(q)q.addEventListener("click",e=>{const b=e.target.closest("[data-quick]");if(b)activateScenario(b.dataset.quick);});
   document.querySelectorAll('[data-start="scenario"]').forEach(b=>b.onclick=openScenarioLibrary);
-  document.querySelectorAll('[data-start="in"]').forEach(b=>b.onclick=()=>switchTab("in"));
-  document.querySelectorAll('[data-start="my"]').forEach(b=>b.onclick=()=>switchTab("my"));
+  document.querySelectorAll('[data-start="in"]').forEach(b=>b.onclick=()=>{renderWorkspaceNav("in");switchTab("in");});
+  document.querySelectorAll('[data-start="my"]').forEach(b=>b.onclick=()=>{renderWorkspaceNav("my");switchTab("my");});
   $("my_startOwn")&&$("my_startOwn").addEventListener("click",()=>{$("my_raw")?.focus();});
   $("my_startScenario")&&$("my_startScenario").addEventListener("click",openScenarioLibrary);
   $("openScenarioLibrary")&&$("openScenarioLibrary").addEventListener("click",openScenarioLibrary);$("openFollowups")&&$("openFollowups").addEventListener("click",openFollowupsManager);$("railFollowupsOpen")&&$("railFollowupsOpen").addEventListener("click",openFollowupsManager);

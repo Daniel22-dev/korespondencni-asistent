@@ -91,6 +91,23 @@ async function runKorespTests(){
       assertTest(profile&&step&&step.querySelector("#my_raw"),"pracovní profil není v prvním kroku u konceptu");
       assertTest(document.querySelectorAll(".help-tip[data-tip]").length>=7,"chybí kontextové tooltipy u nejasných voleb");
     });
+    await test("Pracovní plocha má jeden ukazatel a správnou navigaci", async()=>{
+      try{
+        switchTab("my");
+        assertTest(document.body.classList.contains("workspace-open"),"pracovní plocha neaktivovala vlastní stav stránky");
+        assertTest(getComputedStyle($("appProgress")).display==="none","v pracovní ploše zůstalo duplicitní horní číslování");
+        const labels=[...document.querySelectorAll("#workspaceNav button")].map(x=>x.textContent.replace(/\s+/g," ").trim()).join(" | ");
+        assertTest(labels.includes("Zdroj")&&labels.includes("Anonymizace")&&labels.includes("Text")&&labels.includes("Kontrola")&&!labels.includes("Rozbor"),"navigace Můj e-mail obsahuje nesprávné kroky: "+labels);
+      }finally{ showStartScreen(); }
+      assertTest(!document.body.classList.contains("workspace-open")&&$("workspaceShell").hidden===true,"návrat na úvod neobnovil stav rozhraní");
+    });
+    await test("Tooltipy předávají vysvětlení i čtečkám", async()=>{
+      initAccessibleTooltips();
+      [...document.querySelectorAll(".help-tip[data-tip]")].forEach(btn=>{
+        const id=btn.getAttribute("aria-describedby"),node=id&&document.getElementById(id);
+        assertTest(node&&node.textContent===btn.dataset.tip,"tooltip nemá dostupný vysvětlující text");
+      });
+    });
     await test("Unit anonymizace telefonu/e-mailu", async()=>{
       E("in","raw").value="Kontakt: jana@example.cz, tel. +420 777-123-456 a také 777 123 456."; doAnon("in");
       assertTest(ST.in.clean.includes("[e-mail 1]"),"e-mail nebyl nahrazen");
@@ -106,7 +123,7 @@ async function runKorespTests(){
     await test("Unit rekompozice značek", async()=>{
       ST.in.km=[{real:"Anna Nováková",token:"osoba A"},{real:"jana@example.cz",token:"[e-mail 1]"},{real:"777 123 456",token:"[telefon 1]"}];
       const r=recompose("in","Dobrý den, osoba A, kontakt [e-mail 1], [telefon 1].");
-      assertTest(r.includes("Anna Nováková"),"osoba se nevrátila");
+      assertTest(r.includes("Dobrý den, Anno"),"osoba se nevrátila ve správném oslovení");
       assertTest(r.includes("jana@example.cz"),"e-mail se nevrátil");
       assertTest(r.includes("777 123 456"),"telefon se nevrátil");
     });
@@ -504,7 +521,7 @@ async function runKorespTests(){
       assertTest(ST.my.clean==="" && ST.my.outputReady===false,"stará anonymizace nebo výsledek zůstaly aktivní");
       assertTest(!E("my","reviewOk").checked,"potvrzení náhledu nebylo zrušeno");
       assertTest($("my_results").textContent.trim()==="","starý výsledek nebyl odstraněn");
-      assertTest(E("my","step2").style.display==="none","stará anonymizační část zůstala otevřená");
+      assertTest(E("my","step2").hidden===true,"stará anonymizační část zůstala otevřená");
     });
     await test("Mobilní zobrazení a jednoduchý průvodce", async()=>{
       const css=[...document.querySelectorAll("style")].map(x=>x.textContent).join("\n");
@@ -552,7 +569,7 @@ async function runKorespTests(){
     await test("Škodlivý/importovaný vstup a escapování", async()=>{
       E("in","raw").value='Dobrý den, <scr'+'ipt>alert(1)</scr'+'ipt> píše VelmiDlouhéJménoSloženéNováková-Králová 😀, tel. +420 777/123/456, třídy 1.A a 2.B, nar. 1. 2. 2010, OSPOD PPP. Podpis: Mgr. Testovací <b>učitel</b>.';
       doAnon("in");
-      assertTest(!$('in_preview').querySelector('script'),"script tag se propsal do náhledu jako prvek");
+      assertTest(!E('in','view').querySelector('script'),"script tag se propsal do hlavního náhledu jako prvek");
       const iss=preflightIssues(ST.in.clean+" 1.A 2.B nar. 1. 2. 2010 OSPOD PPP +420 777/123/456");
       assertTest(iss.danger.some(x=>/telefon/.test(x)),"netypický telefon nebyl zachycen");
       assertTest(iss.warn.some(x=>/třída/.test(x)),"více tříd nebylo zachyceno jako upozornění");
@@ -599,6 +616,57 @@ async function runKorespTests(){
       clearAllLocalData();
       const zbytek=Object.keys(localStorage).filter(k=>/^(rozbor_|ks5_)/.test(k));
       assertTest(!zbytek.length,"po smazání zůstaly klíče: "+zbytek.join(", "));
+    });
+
+    await test("Anonymizační blok je před vložením textu skrytý", async()=>{
+      E("in","raw").value=""; E("in","raw").dispatchEvent(new Event("input",{bubbles:true}));
+      assertTest(E("in","step2").hidden===true,"krok 2 je vidět bez vloženého textu");
+      E("in","raw").value="Dobrý den, děkuji za zprávu."; doAnon("in");
+      assertTest(E("in","step2").hidden===false,"krok 2 se po anonymizaci nezobrazil");
+    });
+    await test("Pádové tvary jmen s pohyblivým -e-", async()=>{
+      const tab=[["Marek",["Marka","Markovi","Markem","Marku"]],["Havlíček",["Havlíčka","Havlíčkovi","Havlíčkem"]],["Němec",["Němce","Němcovi","Němcem"]],["Zdeněk",["Zdeňka","Zdeňkovi"]]];
+      tab.forEach(([n,forms])=>{const v=new Set(nameVariants(n));forms.forEach(f=>assertTest(v.has(f.toLocaleLowerCase("cs-CZ")),n+" nezná tvar "+f));});
+      const v=new Set(nameVariants("Marek")); ["marketa","markéta","markiz"].forEach(x=>assertTest(!v.has(x),"Marek pohltil cizí slovo "+x));
+    });
+    await test("Nezakrytý pád již skrytého jména je tvrdá stopka", async()=>{
+      ST.in.raw="Marek to řekl. Marka jsem viděl včera."; ST.in.km=[{real:"Marek",token:"osoba A",auto:false}]; ST.in.clean=cleanFromKey("in"); publishActiveKeyReals("in"); clearAnalysisCache();
+      assertTest(!/Marka/.test(ST.in.clean)||preflightIssues(ST.in.clean,"in").danger.length,"tvar Marka prošel bez stopky");
+    });
+    await test("Anonymizovaný výstup se ukládá do historie", async()=>{
+      setNoHistory(false); try{localStorage.setItem("rozbor_history","[]");}catch(_){}
+      ST.in.km=[{real:"Jana Nováková",token:"osoba A",auto:false}];
+      saveHistory("in","Standardní","Dobrý den, osoba A,\n\nděkuji. Termín posouvám na pátek.\n\n[podpis]");
+      assertTest(loadHistory().length===1,"nezávadný výstup se neuložil do historie");
+      saveHistory("in","Standardní","Dobrý den, ozvi se na 777 123 456.");
+      assertTest(!loadHistory().some(x=>/777/.test(x.text)),"do historie se dostal kontakt");
+    });
+    await test("Školní scénář dá zpětnou vazbu i v jednoduchém režimu", async()=>{
+      setUiMode("simple"); syncSchoolScenario("grade_parent",true); const box=$("my_scenarioApplied");
+      assertTest(box&&!box.hidden,"potvrzení scénáře není v jednoduchém režimu vidět"); assertTest(/Rodič/.test(box.textContent),"potvrzení nevypisuje změněné parametry");
+    });
+    await test("Vokativ po Dobrý den", async()=>{
+      ST.in.km=[{real:"Petr Novák",token:"osoba A",auto:false}]; const r=recompose("in","Dobrý den, osoba A,\n\nděkuji.\n\n[podpis]");
+      assertTest(!/Dobrý den, Petr Novák/.test(r),"jméno zůstalo v 1. pádu: "+r);
+    });
+    await test("Návrhy nešumí běžnými slovy na začátku vět", async()=>{
+      E("in","raw").value="Dobrý den,\n\nmoje dcera Tereza byla nemocná. Zítra jdeme na kontrolu. Můžete mi napsat termín? Volat můžete odpoledne.\n\nJana Nováková"; doAnon("in");
+      const f=suggestionData("in").suggestions.map(x=>x.phrase); ["Zítra","Můžete","Volat"].forEach(x=>assertTest(!f.includes(x),"falešný návrh: "+x));
+      assertTest(f.includes("Tereza")&&f.includes("Jana Nováková"),"skutečná jména zmizela z návrhů: "+f.join(", "));
+    });
+    await test("Píšu jako funguje i v režimu Můj e-mail", async()=>{
+      assertTest(document.querySelector('.chips[data-group="my_pisujako"]'),"chybí volba Píšu jako v Můj e-mail"); ST.my.replySenderMode="jednotlivec";
+      const r=evaluateDraftReadiness("my","Dobrý den,\n\nprojednáme to na komisi a ozveme se.\n\n[podpis]","",{});
+      assertTest(r.items.some(x=>!x.ok&&/jednotlivce/.test(x.label)),"množné tvary neprošly kontrolou");
+    });
+    await test("Předmět se pozná i v angličtině a španělštině", async()=>{
+      assertTest(splitSubject("Subject: Missing homework\n\nDear parents,").subject==="Missing homework","EN předmět");
+      assertTest(splitSubject("Asunto: Tarea pendiente\n\nEstimados padres,").subject==="Tarea pendiente","ES předmět");
+      assertTest(splitSubject("Předmět: Chybějící úkol\n\nDobrý den,").subject==="Chybějící úkol","CS předmět");
+    });
+    await test("Překreslení dlouhého e-mailu je v rozumném čase", async()=>{
+      E("in","raw").value="Dobrý den, potvrzuji termín odevzdání. ".repeat(600); const t0=performance.now(); doAnon("in"); const ms=performance.now()-t0;
+      assertTest(ms<2500,"anonymizace 22 tisíc znaků trvala "+Math.round(ms)+" ms");
     });
   } finally {
     restoreTestState(snap); window.__setTestRunActive(false);
@@ -735,31 +803,13 @@ function openDeveloperTools(){
   m.body.querySelector("#devOps").onclick=()=>{ m.close(); openOpsLog(); };
   return m;
 }
-function openSchoolGuide(){
-  const html='<div class="school-guide-onepage">'+
-    '<p class="guide-lead"><b>Bez anonymizace neposílej studentské údaje.</b> Aplikace pomáhá připravit zdvořilý školní e-mail, ale odpovědnost za obsah a ochranu údajů zůstává na učiteli.</p>'+ 
-    '<div class="guide-section"><h3>Co aplikace dělá</h3><p>Pomůže shrnout přijatý e-mail, připravit odpověď nebo přeformulovat vlastní text. Před odesláním vždy čti hotový návrh.</p></div>'+ 
-    '<div class="guide-section"><h3>Co neposílat</h3><p>Nevkládej skutečná jména žáků, kontakty, adresy, rodná čísla, data narození, zdravotní údaje, PPP/IVP, OSPOD, rodinné poměry ani podrobnosti kázeňských případů. <strong>Podmínky práce s daty se liší podle regionu a fakturace.</strong> Mimo EHP, Švýcarsko a Spojené království může Google u neplacené služby odeslaný obsah a odpovědi použít ke zlepšování produktů a mohou je kontrolovat lidští hodnotitelé. V uvedených evropských regionech platí podle aktuálních podmínek pravidla placených služeb i pro neplacenou kvótu a veřejně zpřístupněná aplikace má používat projekt s aktivní fakturací. Vždy posílej výhradně ručně zkontrolovaný anonymizovaný náhled.</p></div>'+ 
-    '<div class="guide-section"><h3>3 zakázané příklady</h3>'+
-      '<div class="school-guide-examples">'+
-        '<div class="school-guide-example bad"><b>Neposílat do AI</b><p>„Jan Novák má PPP a problém v 1.A.“</p></div>'+
-        '<div class="school-guide-example safe"><b>Bezpečně zobecnit</b><p>„Žák má citlivou školní situaci. Potřebuji připravit neutrální a věcnou odpověď rodiči bez osobních údajů.“</p></div>'+
-        '<div class="school-guide-example offline"><b>Raději mimo AI</b><p>Zdravotní údaje, OSPOD, rodinné poměry, sebepoškozování a závažné kázeňské detaily řeš podle školních pravidel bez vkládání do modelu.</p></div>'+
-      '</div>'+
-    '</div>'+
-    '<div class="guide-section"><h3>Jak anonymizovat</h3><p>Po vložení textu klikni na anonymizaci, zkontroluj náhled a ručně skryj vše, co může žáka, rodiče nebo kolegu identifikovat.</p></div>'+ 
-    '<div class="guide-section"><h3>Sdílený počítač</h3><p>Nepoužívej trvalé uložení API klíče. Po práci otevři Správu dat a smaž lokální data.</p></div>'+ 
-    '<div class="guide-section"><h3>Kdy raději bez AI</h3><p>U právně citlivých věcí, konfliktů, zdravotních informací, OSPOD, sebepoškozování nebo závažné kázně piš jen obecně a finální formulaci konzultuj podle školních pravidel.</p></div>'+ 
-    '</div>';
-  return openModal("Školní návod pro kolegy", html, {label:"Školní návod pro kolegy"});
-}
-
-
-function makeParamFold(title, nodes, openByDefault){
+function makeParamFold(title, nodes, openByDefault, tip){
   const usable=nodes.filter(Boolean);
   if(!usable.length) return null;
   const d=document.createElement("details"); d.className="param-fold simple-hide"; if(openByDefault) d.open=true;
-  const sum=document.createElement("summary"); sum.textContent=title; d.appendChild(sum);
+  const sum=document.createElement("summary"); sum.textContent=title;
+  if(tip){ const b=document.createElement("button"); b.type="button"; b.className="help-tip"; b.setAttribute("aria-label","Nápověda k "+title); b.dataset.tip=tip; b.textContent="i"; b.onclick=e=>e.preventDefault(); sum.append(" ",b); }
+  d.appendChild(sum);
   const body=document.createElement("div"); body.className="param-fold-body"; d.appendChild(body);
   usable.forEach(n=>body.appendChild(n));
   return d;
@@ -771,8 +821,8 @@ function compactAdvancedParams(){
   const byId=(id)=>$(id);
   const tpl=byId("my_tplGroup");
   const before=card.querySelector(".simple-action-note") || card.querySelector(".choice-summary") || card.querySelector(".row.actsticky");
-  const audienceFold=makeParamFold("Komu píšu", [grp("my_adresat"), byId("my_scopeGroup"), grp("my_oslov")], true);
-  const scenarioFold=makeParamFold("Volitelný školní scénář", [grp("my_scenario")], false);
+  const audienceFold=makeParamFold("Komu píšu", [grp("my_adresat"), byId("my_scopeGroup"), byId("my_senderGroup"), grp("my_oslov")], true);
+  const scenarioFold=makeParamFold("Volitelný školní scénář", [byId("my_scenarioGroup")], false, "Scénář není nový režim ani pevná šablona. Pouze přednastaví typ práce, adresáta, počet adresátů, oslovení, účel, tón, délku a někdy bezpečnostní režim. Změny se zobrazí i v jednoduchém režimu.");
   const actionFold=makeParamFold("Podrobnosti zvolené práce", [byId("my_fixGroup"), byId("my_styleGroup"), byId("my_ucelGroup"), grp("my_lang")], false);
   const resultFold=makeParamFold("Podoba výsledku", [byId("my_toneGroup"), byId("my_lenGroup"), byId("my_subjGroup")], false);
   if(audienceFold) audienceFold.id="my_audienceFold";
@@ -783,7 +833,17 @@ function compactAdvancedParams(){
   folds.forEach(f=>card.insertBefore(f,before));
   if(tpl) card.insertBefore(tpl, folds[0] || before);
   card.dataset.compactParams="1";
+  if(typeof initAccessibleTooltips==="function") initAccessibleTooltips(card);
   if(typeof updateMyMode==="function") updateMyMode();
 }
 
 
+
+
+function initAccessibleTooltips(root=document){
+  root.querySelectorAll('.help-tip[data-tip]').forEach((btn,i)=>{
+    if(btn.dataset.a11yTip)return; btn.dataset.a11yTip="1";
+    const span=document.createElement("span"); span.className="sr-only"; span.id="helpTipText"+(i+1)+"_"+Math.random().toString(36).slice(2,7); span.textContent=btn.dataset.tip;
+    btn.after(span); btn.setAttribute("aria-describedby",span.id);
+  });
+}
