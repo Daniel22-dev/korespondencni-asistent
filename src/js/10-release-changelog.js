@@ -3,11 +3,12 @@ const IS_TEST_MODE=new URLSearchParams(window.location.search).has("test")||Stri
 "use strict";
 
 const RELEASE = {
-  version: "5.4.3",
+  version: "5.4.4",
   date: "2026-07-27",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.4.4: v nastavení odpovědi přibyla volba Píšu jako — Jednotlivec, Za tým / komisi nebo Za školu / instituci. Výchozí jednotlivec drží 1. osobu jednotného čísla i při zmínce o kolezích či předmětové komisi a kontrola před exportem zachytí tvary typu vážíme, budeme nebo projednáme. Gemini nově vrací jen značku [podpis]; aplikace odstraní případné vlastní rozloučení modelu a lokálně doplní profilový podpis právě jednou.",
     "5.4.3: kliknutí nebo výběr slov přímo v anonymizovaném e-mailu otevře pevný pravý panel s kategoriemi Osoba, Instituce / organizace, Místo, Název / dílo, Kontakt, Jiný citlivý údaj a Ponechat. Finální kontrola nově ukazuje tři jasné kroky, přesný důvod blokace a hromadné ponechání přímo u brány. V pokročilém režimu přibyl adresát Jiný s vlastním popisem, například nakladatelství nebo externí partner.",
     "5.4.2: našeptávač už nenutí odklikávat desítky bezpečných výrazů jednotlivě — po přečtení seznamu je lze potvrzenou akcí ponechat všechny zbývající. Postupné označení sousedních částí jména nebo iniciály se sloučí do stejné osoby; funguje i podpis Petr H bez tečky a nevzniká osoba B.",
     "5.4.1: opravena rozbitá kontrola před odesláním — varovné položky už nekolidují s obecným stylem upozornění, text se zobrazuje v normální šířce a bez zdvojených ikon. Tři varianty odpovědi ve výchozím stavu nepřebírají emoji ani smajlíky z původního e-mailu; zachovají se pouze při výslovném požadavku v poznámce pro odpověď.",

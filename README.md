@@ -2,21 +2,20 @@
 
 Samostatný repozitář aplikace pro Gymnázium, Ostrava-Hrabůvka.
 
-- **Verze:** 5.4.3
+- **Verze:** 5.4.4
 - **Doporučený název repozitáře:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
 
-## Co přináší verze 5.4.3
+## Co přináší verze 5.4.4
 
-- kliknutí na libovolné slovo nebo označení víceslovného úseku přímo v e-mailu otevře pevný panel napravo; u dlouhých zpráv není nutné rolovat k oddělenému seznamu,
-- panel nabízí kategorie **Osoba**, **Instituce / organizace**, **Místo**, **Název / dílo**, **Kontakt**, **Jiný citlivý údaj** a **Ponechat**,
-- nové bezpečné značky `[název 1]`, `[kontakt 1]` a `[citlivý údaj 1]` se zpracovávají stejně jako dosavadní náhrady a zůstávají v lokálním klíči,
-- finální kontrola má tři jasné kroky: skryté údaje, návrhy k posouzení a potvrzení uživatele; vždy uvádí konkrétní důvod, proč ještě nelze pokračovat,
-- hromadná volba **Ponechat všech N** je dostupná přímo ve finální kontrole,
-- opakované a matoucí varovné bloky byly zjednodušeny; oranžová označuje skutečně potřebnou akci a zelená dokončený krok,
-- v pokročilém režimu přibyl adresát **Jiný** s polem pro vlastní popis, například nakladatelství, knihovna nebo externí partner,
-- zachovány jsou opravy 5.4.2: hromadné ponechání návrhů, slučování `Petr` + `H.` do jedné osoby, opravená kontrola a potlačení nevyžádaných emoji.
+- v pokročilém nastavení odpovědi je nová volba **Píšu jako**: **Jednotlivec**, **Za tým / komisi** nebo **Za školu / instituci**,
+- výchozí režim **Jednotlivec** drží 1. osobu jednotného čísla i tehdy, když se v původním e-mailu mluví o kolezích, škole nebo předmětové komisi,
+- prompt používá jednotné tvary jako „děkuji“, „vážím si“, „projednám s kolegy“ a „budu Vás kontaktovat“,
+- kontrola před exportem zachytí nechtěné množné tvary typu „vážíme“, „budeme“, „zvážíme“ nebo „projednáme“ a nepustí je bez opravy,
+- Gemini má vytvořit tělo e-mailu zakončené pouze značkou `[podpis]`; vlastní „S pozdravem“ ani jméno už generovat nemá,
+- aplikace před zobrazením automaticky odstraní případné rozloučení modelu před značkou `[podpis]` a profilový podpis doplní lokálně právě jednou,
+- zachovány jsou změny 5.4.3: přímý výběr anonymizační kategorie v textu, jasná finální kontrola a adresát **Jiný**.
 
 ## Nahrání na GitHub
 

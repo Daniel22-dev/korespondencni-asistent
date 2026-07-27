@@ -906,8 +906,9 @@ function recompose(p, text){
     }
     t=t.replace(new RegExp(escRe(token),"g"),canonical);
   });
+  if(typeof normalizeReplySignature==="function") t=normalizeReplySignature(t);
   t=t.replace(/\[podpis\]|\[učitel\]|\(\s*učitel\s*\)/gi, signatureText());
-  return t;
+  return t.replace(/\n{3,}/g,"\n\n").trimEnd();
 }
 function tokenizeHTML(p, text){
   let html=esc(text);

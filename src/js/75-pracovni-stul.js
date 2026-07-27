@@ -56,6 +56,10 @@ window.evaluateDraftReadiness=function(p,text,source,cover){
   add(!/\[u[čc]itel\]/.test(finalText),"Podpis je vyplněný v profilu odesílatele","warn");
   add(/^(předmět:.*\n+)?\s*(dobrý den|vážen|ahoj|mil[ýáé]|dear|hello|hola|buenos)/im.test(t),"Zpráva obsahuje vhodné oslovení","warn");
   add(/(s pozdravem|děkuji|hezký den|kind regards|best regards|saludos|atentamente|\[podpis\])/i.test(t),"Zpráva má zakončení nebo podpis","warn");
+  if(p==="in" && ST.in && ST.in.replySenderMode==="jednotlivec"){
+    const plural=/(?:\bvážíme si\b|\bděkujeme\b|\bpotvrzujeme\b|\bbudeme\b|\bjsme\b|\bmáme\b|\bchceme\b|\bprosíme\b|\bozveme se\b|\bkontaktujeme\b|\bzvážíme\b|\bvyhodnotíme\b|\bprojednáme\b|\bdomluvíme\b)/i.test(t);
+    add(!plural,"Odpověď je psána za jednotlivce v 1. osobě jednotného čísla","danger",plural?"Uprav tvary typu ‚vážíme / budeme / projednáme‘ na jednotné číslo.":"");
+  }
   const srcDates=extractDates(src),outDates=extractDates(t),missingDates=srcDates.filter(x=>!outDates.includes(x));
   add(!missingDates.length,"Data a časy ze zadání jsou zachovány",missingDates.length?"danger":"warn",missingDates.join(", "));
   const sourceAttachment=containsAny(src,["příloha","v příloze","přikládám","soubor","attached","adjunto"]);

@@ -137,6 +137,23 @@ async function runKorespTests(){
       assertTest(!replyAllowsEmoji("Prosím bez smajlíků"),"zákaz smajlíků byl chybně vyhodnocen jako povolení");
       assertTest(SYS_REPLY.includes("Emoji, emotikony"),"systémový prompt neobsahuje zákaz automatického přebírání emoji");
     });
+    await test("Podpis se nedubluje", async()=>{
+      const a=ensureSignaturePlaceholder("Přeji hezký den.\n\nS pozdravem\n\n[podpis]");
+      assertTest((a.match(/s pozdravem/gi)||[]).length===0,"rozloučení zůstalo před lokálním podpisem: "+a);
+      assertTest((a.match(/\[podpis\]/gi)||[]).length===1,"značka podpisu není právě jednou: "+a);
+      const b=ensureSignaturePlaceholder("Přeji hezký den.\n\nS pozdravem\nS pozdravem");
+      assertTest((b.match(/\[podpis\]/gi)||[]).length===1 && !(b.match(/s pozdravem/gi)||[]).length,"opakované rozloučení se nevyčistilo: "+b);
+    });
+    await test("Perspektiva jednotlivce je v promptu i kontrole", async()=>{
+      assertTest(senderPerspectivePrompt("jednotlivec").includes("1. osobu jednotného čísla")&&senderPerspectivePrompt("jednotlivec").includes("projednám s kolegy"),"prompt jednotlivce není dostatečně jednoznačný");
+      ST.in.replySenderMode="jednotlivec";
+      const bad=evaluateDraftReadiness("in","Dobrý den,\n\nděkujeme a budeme Vás kontaktovat.\n\n[podpis]","",{});
+      const item=bad.items.find(x=>x.label.includes("1. osobě jednotného čísla"));
+      assertTest(item&&!item.ok&&item.level==="danger","množné číslo u jednotlivce neblokuje export");
+      const good=evaluateDraftReadiness("in","Dobrý den,\n\nděkuji a budu Vás kontaktovat.\n\n[podpis]","",{});
+      const okItem=good.items.find(x=>x.label.includes("1. osobě jednotného čísla"));
+      assertTest(okItem&&okItem.ok,"jednotné číslo nebylo přijato");
+    });
     await test("České pády krátkých jmen", async()=>{
       const cases=[
         ["Petr","Petrovi zavolám. Petra jsem viděl. S Petrem mluvím.",["Petrovi","Petra","Petrem"]],

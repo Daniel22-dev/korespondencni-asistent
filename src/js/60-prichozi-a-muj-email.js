@@ -91,6 +91,7 @@ function renderAnalysis(d){
   const pc=document.createElement("div"); pc.className="res-card reveal params reply-setup-card"; pc.dataset.workspaceStage="draft";
   pc.innerHTML='<h3>Vytvořit tři varianty odpovědi</h3><p class="hintline">Dostaneš stručnou, standardní a diplomatickou variantu. Všechny reagují na stejné zaškrtnuté body.</p>'+
     '<div class="pgroup simple-hide"><div class="plabel" title="Komu odpovídáš. Předvolí oslovení i tón.">Adresát</div>'+chipGroup("in_adresat",ADRESAT,"rodic")+'<div class="custom-recipient" id="in_adresatJinyWrap" hidden><label for="in_adresatJiny">Komu odpovídáte?</label><input id="in_adresatJiny" type="text" maxlength="80" placeholder="např. nakladatelství, knihovna, externí partner"><small>Popis se použije pro tón a formálnost odpovědi.</small></div></div>'+
+    '<div class="pgroup advanced-only"><div class="plabel" title="Určuje, zda má odpověď mluvit v jednotném, nebo množném čísle.">Píšu jako</div>'+chipGroup("in_pisujako",PISU_JAKO,"jednotlivec")+'<p class="hintline">Výchozí je jednotlivec. Zmínka o kolezích nebo předmětové komisi sama o sobě nepřepne odpověď na „my“.</p></div>'+
     '<div class="pgroup simple-hide"><div class="plabel">Záměr</div>'+chipGroup("in_zamer",ZAMER,sug)+'</div>'+
     '<div class="pgroup advanced-only"><div class="plabel">Výchozí tón</div>'+chipGroup("in_ton",TON,(d.konflikt||st==="napeti")?"vstricny":"vecny")+'</div>'+
     '<div class="pgroup advanced-only"><div class="plabel">Orientační délka standardní varianty</div>'+chipGroup("in_delka",DELKA,"stredni")+'</div>'+
@@ -134,7 +135,8 @@ async function genReplies(){
   const state=$("in_replyState"); state.innerHTML="";
   if(!$("in_reviewOk").checked){ state.innerHTML='<div class="error">Nejdřív potvrď finální kontrolu náhledu pod semaforem anonymizace.</div>'; flashPreview("in"); return; }
   if(!geminiApiKey && !testMockAvailable()){ $("apiPanel").classList.add("open"); state.innerHTML='<div class="error">Chybí klíč k API. Vlož ho nahoře.</div>'; return; }
-  const zamer=readChip("in_zamer"),ton=readChip("in_ton"),delka=readChip("in_delka"),oslov=readChip("in_oslov"),adr=readChip("in_adresat");
+  const zamer=readChip("in_zamer"),ton=readChip("in_ton"),delka=readChip("in_delka"),oslov=readChip("in_oslov"),adr=readChip("in_adresat"),pisuJako=readChip("in_pisujako")||"jednotlivec";
+  ST.in.replySenderMode=pisuJako;
   if(adr==="jiny"&&!customRecipientValue("in")){ state.innerHTML='<div class="error"><b>Upřesni adresáta.</b> Do pole „Komu odpovídáte?“ napiš například nakladatelství nebo externí partner.</div>'; $("in_adresatJiny")?.focus(); return; }
   const allEls=[...document.querySelectorAll('#in_asks input[data-ask]')];
   const checked=allEls.filter(c=>c.checked).map(c=>ST.in.pozadavky[+c.dataset.ask]).filter(Boolean);
@@ -146,7 +148,7 @@ async function genReplies(){
   const threadLine=ST.in.analysis&&ST.in.analysis.vlakno&&ST.in.analysis.vlakno.jeVlakno?"\nJde o e-mailové vlákno. Odpověz na poslední relevantní zprávu a neopakuj již uzavřené části.":"";
   const prompt="Přijatý e-mail nebo vlákno (se značkami):\n\"\"\"\n"+ST.in.clean+"\n\"\"\"\n\n"+
     "Napiš přesně 3 varianty: STRUČNOU, STANDARDNÍ a DIPLOMATICKOU. Všechny musí reagovat na stejné vybrané body.\n"+
-    "Adresát: "+recipientLabel("in")+"\nZáměr: "+(ZAMER[zamer]||zamer)+"\nVýchozí tón: "+(TON[ton]||ton)+"\nOrientační délka standardní varianty: "+(DELKA[delka]||delka)+"\nOslovení: "+(OSLOV[oslov]||oslov)+"\n"+
+    "Adresát: "+recipientLabel("in")+"\nPíšu jako: "+(PISU_JAKO[pisuJako]||"Jednotlivec")+"\n"+senderPerspectivePrompt(pisuJako)+"\nZáměr: "+(ZAMER[zamer]||zamer)+"\nVýchozí tón: "+(TON[ton]||ton)+"\nOrientační délka standardní varianty: "+(DELKA[delka]||delka)+"\nOslovení: "+(OSLOV[oslov]||oslov)+"\n"+
     (note?"Další pokyn: "+note+"\n":"")+
     "Reaguj POUZE na tyto požadavky: "+JSON.stringify(checked.length?checked:ST.in.pozadavky)+
     (unchecked.length?"\nTyto body ani osoby, kterých se týkají, v odpovědi VŮBEC nezmiňuj: "+JSON.stringify(unchecked):"")+
@@ -166,7 +168,7 @@ async function genReplies(){
       pouzite.add(idx); return navrhy[idx];
     }).filter(Boolean);
     const allowEmoji=replyAllowsEmoji(noteRaw);
-    if(!allowEmoji) navrhy=navrhy.map(n=>({...n,text:stripReplyEmoji(n&&n.text)}));
+    navrhy=navrhy.map(n=>({...n,text:normalizeReplySignature(allowEmoji?String(n&&n.text||""):stripReplyEmoji(n&&n.text))}));
     const toolbar=document.createElement("div"); toolbar.className="reply-toolbar reply-choice-head";
     toolbar.innerHTML='<div><p class="eyebrow">Hotové návrhy</p><h3>Nejdřív pouze vyber jednu variantu</h3><p>Přečti si tři návrhy vedle sebe. Úpravy, kontrola a finální akce se zobrazí až u zvolené varianty.</p></div>';
     const grid=document.createElement("div"); grid.className="reply-grid variant-choice-grid";
