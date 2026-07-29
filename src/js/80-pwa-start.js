@@ -29,6 +29,8 @@ function registerPwa(){
 bindShellControls();
 registerPwa();
 loadKey(); loadModel(); initUiMode();
+if(typeof restoreWorkingSession==="function") restoreWorkingSession();
+if(typeof renderPersonReferenceChips==="function") renderPersonReferenceChips("my");
 footBtn("Profil odesílatele", "👤", "Jméno, role a podpis doplňované do hotových e-mailů", ()=>{ if(window.__openProfile) window.__openProfile(); });
 footBtn("Poslední výstupy", "🕘", "Anonymizované výstupy uložené v tomto prohlížeči", ()=>{ if(window.__openHistory) window.__openHistory(); });
 footBtn("Přehled změn", "✨", "Co se změnilo v aktuálních verzích aplikace", openChangelog);

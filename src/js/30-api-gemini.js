@@ -181,6 +181,7 @@ function friendlyApiMessage(e){
   if(e.code==="SAFETY_STOP") return "Gemini požadavek nebo odpověď zastavilo bezpečnostním filtrem. Uprav vstup a zkus to znovu.";
   if(e.code==="PREFLIGHT_REQUIRED") return "Bezpečnostní kontrola této akce nebyla správně zapojena. Akce byla preventivně zastavena.";
   if(e.code==="PREFLIGHT_BLOCKED") return e.message;
+  if(e.code==="OUTPUT_PRIVACY_BLOCKED") return "Odpověď modelu obsahovala skutečný údaj, který se nepodařilo bezpečně skrýt. Výstup nebyl zobrazen; spusť akci znovu nebo zkontroluj klíč náhrad.";
   if(e.quota) return "Kvóta nebo limit API je vyčerpaný. Zkus lehčí model, počkej, nebo použij jiný klíč.";
   if(e.status===401 || e.status===403) return "API klíč není platný nebo nemá oprávnění. Zkontroluj klíč v horním panelu.";
   if(e.status===400) return "Gemini odmítlo požadavek. Zkontroluj délku textu a anonymizaci.";
@@ -196,14 +197,14 @@ function setApiError(container, err, retryFn){
   const b=$(id); if(b && retryFn) b.onclick=()=>retryFn();
   const dev=$(devId); if(dev) dev.onclick=openDeveloperTools;
 }
-function assertGeminiSafety(context){
+function assertGeminiSafety(context, exactPrompt){
   if(!context || !Array.isArray(context.texts)) throw makeAppError("Chybí povinný anonymizační preflight této akce.","PREFLIGHT_REQUIRED");
-  const text=context.texts.map(x=>String(x||"")).filter(Boolean).join("\n");
+  const text=[String(exactPrompt||""),...context.texts.map(x=>String(x||""))].filter(Boolean).join("\n");
   const iss=preflightIssues(text,context.pane);
   const danger=context.ackSensitive ? iss.danger.filter(x=>!/citlivé/.test(x)) : iss.danger;
   if(danger.length){
     const findings=danger;
-    throw makeAppError("Odeslání zastaveno: bezpečnostní kontrola našla možný osobní nebo citlivý údaj („"+findings.join(", ")+"“). Uprav text nebo použij anonymizované značky.","PREFLIGHT_BLOCKED",findings);
+    throw makeAppError("Odeslání zastaveno: bezpečnostní kontrola přesného promptu našla možný osobní nebo citlivý údaj („"+findings.join(", ")+"“). Uprav text nebo použij anonymizované značky.","PREFLIGHT_BLOCKED",findings);
   }
   return text;
 }
@@ -211,21 +212,24 @@ const GEMINI_MAX_OUTPUT_TOKENS=32768;
 async function callGemini(prompt, system, schema, safetyContext, opts){
   schema=schema||inferSchema(system); opts=opts||{};
   if(!geminiApiKey && !testMockAvailable()) throw makeAppError("Chybí klíč k API. Vlož ho v „Klíč k API“ nahoře a zvol „Použít jen pro relaci“.","MISSING_KEY");
-  assertGeminiSafety(safetyContext);
+  const pane=safetyContext&&safetyContext.pane;
+  const exactPrompt=typeof toModelPersonTokens==="function"?toModelPersonTokens(pane,prompt):String(prompt||"");
+  assertGeminiSafety(safetyContext,exactPrompt);
   const thinking=opts.thinking||(schema==="synonyms"||schema==="tone"?"minimal":"medium");
   if(testMockAvailable()){
-    const mocked=await window.__TEST_MOCK_GEMINI({prompt,system,schema,thinking});
+    const mocked=await window.__TEST_MOCK_GEMINI({prompt:exactPrompt,system,schema,thinking});
     const obj=typeof mocked==="string"?parseModelJson(mocked):mocked;
-    return validateModelJson(obj, schema);
+    const parsed=validateModelJson(obj,schema);
+    return typeof secureModelResult==="function"?secureModelResult(parsed,schema,pane):parsed;
   }
   const requestModel=async(model,withThinking)=>{
     const started=Date.now();
     try{ logOp("api",withThinking?"start":"thinking_retry",{model,schema}); }catch(_){}
-    saveLastPromptDebug(prompt, system, model, schema);
+    saveLastPromptDebug(exactPrompt, system, model, schema);
     const url="https://generativelanguage.googleapis.com/v1beta/models/"+encodeURIComponent(model)+":generateContent";
     const generationConfig={maxOutputTokens:GEMINI_MAX_OUTPUT_TOKENS,responseMimeType:"application/json"};
     if(withThinking&&thinking) generationConfig.thinkingConfig={thinkingLevel:thinking};
-    const body={contents:[{role:"user",parts:[{text:prompt}]}],systemInstruction:{parts:[{text:system}]},generationConfig};
+    const body={contents:[{role:"user",parts:[{text:exactPrompt}]}],systemInstruction:{parts:[{text:system}]},generationConfig};
     const ctrl=new AbortController();
     const timer=setTimeout(()=>ctrl.abort(), GEMINI_TIMEOUT_MS);
     let res,data;
@@ -250,7 +254,7 @@ async function callGemini(prompt, system, schema, safetyContext, opts){
     if(block) throw makeAppError("Požadavek byl zablokován: "+block,"SAFETY_STOP");
     const text=((cand&&cand.content&&cand.content.parts)||[]).map(p=>p.text||"").join("").trim();
     if(finish&&finish!=="STOP") throw makeAppError("Model nedokončil odpověď ("+finish+").",finish==="MAX_TOKENS"?"INCOMPLETE_RESPONSE":"SAFETY_STOP");
-    try{const parsed=validateModelJson(parseModelJson(text),schema);logOp("api","success",{model,schema,ms:Date.now()-started});return parsed;}
+    try{const parsed=validateModelJson(parseModelJson(text),schema),secured=typeof secureModelResult==="function"?secureModelResult(parsed,schema,pane):parsed;logOp("api","success",{model,schema,ms:Date.now()-started});return secured;}
     catch(e){try{logOp("api",e&&e.code?e.code:"parse_error",{model,schema,ms:Date.now()-started});}catch(_){}throw e;}
   };
   const tryModel=async(model)=>{ try{return await requestModel(model,true);}catch(e){if(e&&e.thinkingRejected)return await requestModel(model,false);throw e;} };

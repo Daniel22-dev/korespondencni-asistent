@@ -44,6 +44,58 @@ function publishActiveKeyReals(p){
   try{ ACTIVE_KEY_REALS[p]=(ST[p].km||[]).map(k=>k.real).filter(Boolean); window.__ACTIVE_KEY_REALS=ACTIVE_KEY_REALS[p].slice(); }catch(_){}
 }
 
+
+/* ===================== DOČASNÉ OBNOVENÍ ROZPRACOVANÉ PRÁCE ===================== */
+const WORK_SESSION_KEY="rozbor_work_session_v2";
+let workSessionTimer=null,workSessionRestoring=false;
+function compactPaneForSession(p){
+  const st=ST[p]||{};
+  return {
+    km:JSON.parse(JSON.stringify(st.km||[])),emailN:st.emailN||0,phoneN:st.phoneN||0,
+    raw:String(st.raw||""),clean:String(st.clean||""),pozadavky:Array.isArray(st.pozadavky)?st.pozadavky:[],
+    analysis:st.analysis||null,sensitiveAck:!!st.sensitiveAck,reviewedSuggestions:st.reviewedSuggestions||{},
+    selectedPhrase:String(st.selectedPhrase||""),replySenderMode:st.replySenderMode||"",outputReady:!!st.outputReady
+  };
+}
+function saveWorkingSessionNow(){
+  if(workSessionRestoring)return;
+  try{
+    const rec={format:2,appVersion:(typeof RELEASE!=="undefined"?RELEASE.version:""),savedAt:Date.now(),active:typeof activePane==="function"?activePane():"in",workspace:document.body.classList.contains("workspace-open"),
+      in:{state:compactPaneForSession("in"),raw:E("in","raw")?E("in","raw").value:"",review:!!(E("in","reviewOk")&&E("in","reviewOk").checked),note:$("in_note")?$("in_note").value:""},
+      my:{state:compactPaneForSession("my"),raw:E("my","raw")?E("my","raw").value:"",review:!!(E("my","reviewOk")&&E("my","reviewOk").checked),note:$("my_note")?$("my_note").value:""}
+    };
+    const hasWork=[rec.in,rec.my].some(x=>String(x.raw||"").trim()||String(x.state.clean||"").trim());
+    if(hasWork)sessionStorage.setItem(WORK_SESSION_KEY,JSON.stringify(rec));else sessionStorage.removeItem(WORK_SESSION_KEY);
+  }catch(_){}
+}
+function scheduleWorkingSessionSave(){clearTimeout(workSessionTimer);workSessionTimer=setTimeout(saveWorkingSessionNow,180);}
+function clearWorkingSession(){try{sessionStorage.removeItem(WORK_SESSION_KEY);}catch(_){};}
+function restoreWorkingSession(){
+  let rec=null;try{rec=JSON.parse(sessionStorage.getItem(WORK_SESSION_KEY)||"null");}catch(_){rec=null;}
+  if(!rec||rec.format!==2)return false;
+  workSessionRestoring=true;
+  try{
+    ["in","my"].forEach(p=>{
+      const saved=rec[p]||{},base=ST[p],state=saved.state||{};
+      ST[p]=Object.assign(base,state,{syn:base.syn||{},km:Array.isArray(state.km)?state.km:[],reviewedSuggestions:state.reviewedSuggestions||{}});
+      const raw=E(p,"raw");if(raw)raw.value=String(saved.raw!=null?saved.raw:state.raw||"");ST[p].raw=raw?raw.value:String(state.raw||"");
+      publishActiveKeyReals(p);clearAnalysisCache();
+      renderView(p);renderKeyTable(p);renderPreview(p);
+      const step=E(p,"step2");if(step)step.hidden=!String(ST[p].clean||"").trim();
+    });
+    if(ST.in.analysis&&typeof renderAnalysis==="function")renderAnalysis(ST.in.analysis);
+    if($("in_note")&&rec.in)$("in_note").value=String(rec.in.note||"");
+    if($("my_note")&&rec.my)$("my_note").value=String(rec.my.note||"");
+    ["in","my"].forEach(p=>{const cb=E(p,"reviewOk");if(cb)cb.checked=!!(rec[p]&&rec[p].review)&&!cb.disabled;updateSendGate(p);renderPersonReferenceChips(p);});
+    if(rec.workspace&&typeof switchTab==="function")switchTab(rec.active==="my"?"my":"in");
+    return true;
+  }catch(e){console.warn("Obnova rozpracované práce selhala:",e);return false;}
+  finally{workSessionRestoring=false;}
+}
+document.addEventListener("input",scheduleWorkingSessionSave,true);
+document.addEventListener("change",scheduleWorkingSessionSave,true);
+window.addEventListener("beforeunload",saveWorkingSessionNow);
+
 /* ===================== ANONYMIZACE (ťukání) ===================== */
 const PUNCT_RE=/^([<>\[\]{}(),.;:!?„“”"'…»«]*)([\s\S]*?)([<>\[\]{}(),.;:!?„“”"'…»«]*)$/;
 function splitPunc(w){ const m=w.match(PUNCT_RE); return m?{pre:m[1],core:m[2],post:m[3]}:{pre:"",core:w,post:""}; }
@@ -111,153 +163,154 @@ function buildKey(st, detected){
     st.km.push({real:it.real, token:"["+base+" "+(cnt+1)+"]", auto:true});
   });
 }
-// České pádové tvary jmen. Generujeme konkrétní tvary, nikoli obecné prefixy:
-// prefixová shoda spolykala cizí jména (Jan → Janák), explicitní sada je bezpečná i u krátkých jmen.
-const CZ_SUFFIXES=["níkovi","níkem","níka","ovou","ákovi","ákem","áka","ičkou","ičce","ičku","ičky","čkou","čce","čku","čka","ovi","ové","ova","em","ou","ě","e","i","y","a","u"].sort((a,b)=>b.length-a.length);
+// České pádové tvary jmen a bezpečný protokol značek osob.
+// Skutečné jméno zůstává lokálně. Gemini dostává [[PERSON_A]] a vrací
+// [[PERSON_A|N]], kde N je požadovaný český pád 1–7.
+const PERSON_CASE_WORDS={1:"osoba",2:"osoby",3:"osobě",4:"osobu",5:"osobo",6:"osobě",7:"osobou"};
+const PERSON_CASE_LABELS={1:"1. pád – kdo/co",2:"2. pád – bez koho/čeho",3:"3. pád – ke komu/čemu",4:"4. pád – koho/co",5:"5. pád – oslovení",6:"6. pád – o kom/čem",7:"7. pád – s kým/čím"};
+const CZ_SUFFIXES=["níkovi","níkem","níka","ovou","ákovi","ákem","áka","ičkou","ičce","ičku","ičky","čkou","čce","čku","čka","ovi","ové","ova","em","ou","ě","e","i","í","y","a","u"].sort((a,b)=>b.length-a.length);
 const CZ_FEMALE_PALATAL={"k":"c","h":"z","g":"z"};
 function femaleDative(stem){
   if(stem.endsWith("ch")) return stem.slice(0,-2)+"še";
   const last=stem.slice(-1), rep=CZ_FEMALE_PALATAL[last];
   return rep?stem.slice(0,-1)+rep+"e":stem+"ě";
 }
-function czechCaseForms(name){
-  const lo=String(name||"").toLocaleLowerCase("cs-CZ");
-  const out=new Set([lo]);
-  if(lo.length<2) return out;
+function preserveWholeCase(source,value){
+  const src=String(source||""),v=String(value||"");
+  if(!src||!v)return v;
+  if(src===src.toLocaleUpperCase("cs-CZ"))return v.toLocaleUpperCase("cs-CZ");
+  if(src[0]===src[0].toLocaleUpperCase("cs-CZ"))return v[0].toLocaleUpperCase("cs-CZ")+v.slice(1);
+  return v.toLocaleLowerCase("cs-CZ");
+}
+function declineNameWord(word){
+  const src=String(word||"").trim(),lo=src.toLocaleLowerCase("cs-CZ");
+  const same=()=>({1:src,2:src,3:src,4:src,5:src,6:src,7:src,confidence:"low"});
+  if(!lo||lo.length<2)return same();
+  const make=(o,confidence="medium")=>{const out={confidence};for(let i=1;i<=7;i++)out[i]=preserveWholeCase(src,o[i]||o[1]||src);return out;};
+  if(/^(?:mgr|ing|bc|mudr|rndr|phdr|judr|doc|prof)\.?$/i.test(lo))return same();
   if(/ová$/.test(lo)){
-    const st=lo.slice(0,-1); ["é","ou"].forEach(x=>out.add(st+x));
-    return out;
+    const st=lo.slice(0,-1);return make({1:lo,2:st+"é",3:st+"é",4:st+"ou",5:lo,6:st+"é",7:st+"ou"},"high");
+  }
+  if(/ia$/.test(lo)){
+    const st=lo.slice(0,-1);return make({1:lo,2:st+"e",3:st+"i",4:st+"i",5:st+"e",6:st+"i",7:st+"í"},"high");
+  }
+  if(/ie$/.test(lo)){
+    const st=lo.slice(0,-1);return make({1:lo,2:lo,3:st+"i",4:st+"i",5:lo,6:st+"i",7:st+"í"},"high");
   }
   if(/a$/.test(lo)){
-    const st=lo.slice(0,-1); ["y","u","o","ou"].forEach(x=>out.add(st+x)); out.add(femaleDative(st)); out.add(st+"ovi");
-    return out;
-  }
-  // Pohyblivé e/ě: Marek → Marka, Havlíček → Havlíčka, Zdeněk → Zdeňka.
-  if(/[eě]k$/.test(lo) && lo.length>=4){
-    const prefix=lo.slice(0,-2);
-    const st=/ěk$/.test(lo)?(prefix.replace(/n$/,"ň")+"k"):(prefix+"k");
-    ["a","ovi","em","u"].forEach(x=>out.add(st+x));
-  }
-  // Němec → Němce/Němci/Němcovi/Němcem.
-  if(/ec$/.test(lo) && lo.length>=4){
-    const st=lo.slice(0,-2)+"c"; ["e","i","ovi","em"].forEach(x=>out.add(st+x));
-  }
-  // Karel/Pavel.
-  if(/el$/.test(lo) && lo.length>=4){
-    const st=lo.slice(0,-2)+"l"; ["a","ovi","em","e"].forEach(x=>out.add(st+x));
+    const st=lo.slice(0,-1),dat=femaleDative(st);return make({1:lo,2:st+"y",3:dat,4:st+"u",5:st+"o",6:dat,7:st+"ou"},"high");
   }
   if(/ý$/.test(lo)){
-    const st=lo.slice(0,-1); ["ého","ému","ým","í"].forEach(x=>out.add(st+x));
-    return out;
+    const st=lo.slice(0,-1);return make({1:lo,2:st+"ého",3:st+"ému",4:st+"ého",5:lo,6:st+"ém",7:st+"ým"},"high");
   }
-  if(/[eéií]$/.test(lo)){
-    const st=lo.replace(/[eéií]$/," ").trim(); ["e","i","í","ovi","em"].forEach(x=>out.add(st+x));
-    return out;
+  if(/[eě]k$/.test(lo)&&lo.length>=4){
+    const prefix=lo.slice(0,-2),st=/ěk$/.test(lo)?(prefix.replace(/n$/,"ň")+"k"):(prefix+"k");
+    return make({1:lo,2:st+"a",3:st+"ovi",4:st+"a",5:st+"u",6:st+"ovi",7:st+"em"},"high");
   }
-  if(lo.length>=4){
-    out.add(lo+(/[šžčřcj]$/.test(lo)?"e":"a"));
-    out.add(lo+"u");
+  if(/ec$/.test(lo)&&lo.length>=4){
+    const st=lo.slice(0,-2)+"c";return make({1:lo,2:st+"e",3:st+"ovi",4:st+"e",5:st+"i",6:st+"ovi",7:st+"em"},"high");
   }
-  out.add(lo+"ovi"); out.add(lo+"em");
-  if(lo.endsWith("r")) out.add(lo.slice(0,-1)+"ře");
-  else if(/(?:ch|[kgh])$/.test(lo)) out.add(lo+"u");
-  else if(/[šžčřcj]$/.test(lo)) out.add(lo+"i");
-  else out.add(lo+"e");
+  if(/el$/.test(lo)&&lo.length>=4){
+    const st=lo.slice(0,-2)+"l";return make({1:lo,2:st+"a",3:st+"ovi",4:st+"a",5:st+"e",6:st+"ovi",7:st+"em"},"medium");
+  }
+  if(/[eéiíy]$/.test(lo))return same();
+  if(/[bcčdďfghjklmnňpqrřsštťvwxzž]$/.test(lo)){
+    const gen=lo+(/[šžčřcj]$/.test(lo)?"e":"a"),voc=lo.endsWith("r")?lo.slice(0,-1)+"ře":(/(?:ch|[kgh])$/.test(lo)?lo+"u":(/[šžčřcj]$/.test(lo)?lo+"i":lo+"e"));
+    return make({1:lo,2:gen,3:lo+"ovi",4:gen,5:voc,6:lo+"ovi",7:lo+"em"},"medium");
+  }
+  return same();
+}
+function generatedPersonForms(real){
+  const parts=String(real||"").replace(/[<>]/g," ").trim().split(/\s+/).filter(Boolean);
+  const wordForms=parts.map(declineNameWord),out={confidence:wordForms.every(x=>x.confidence==="high")?"high":wordForms.some(x=>x.confidence==="low")?"low":"medium"};
+  for(let c=1;c<=7;c++)out[c]=wordForms.map(x=>x[c]).join(" ");
   return out;
+}
+function personFormsForEntry(entry){
+  const generated=generatedPersonForms(entry&&entry.real||"");
+  const custom=entry&&entry.forms&&typeof entry.forms==="object"?entry.forms:{};
+  for(let c=1;c<=7;c++)if(String(custom[c]||"").trim())generated[c]=String(custom[c]).trim();
+  return generated;
+}
+function czechCaseForms(name){
+  const f=declineNameWord(name),out=new Set();for(let c=1;c<=7;c++)if(f[c])out.add(String(f[c]).toLocaleLowerCase("cs-CZ"));return out;
 }
 function addReverseNameBase(variants,lo,base){
   if(!base||base.length<3)return;
-  const forms=czechCaseForms(base);
-  if(forms.has(lo)) forms.forEach(v=>variants.add(v));
+  const forms=czechCaseForms(base);if(forms.has(lo))forms.forEach(v=>variants.add(v));
 }
 function nameVariants(real){
-  const lo=String(real||"").toLocaleLowerCase("cs-CZ"), variants=czechCaseForms(lo);
-  CZ_SUFFIXES.forEach(suf=>{
-    if(lo.endsWith(suf) && lo.length-suf.length>=3){
-      const base=lo.slice(0,lo.length-suf.length); czechCaseForms(base).forEach(v=>variants.add(v));
-    }
-  });
-  // Zpětné odvození pohyblivého e/ě při ručním označení pádového tvaru.
-  [["ovi",3],["em",2],["a",1],["u",1]].forEach(([suf,n])=>{
-    if(!lo.endsWith(suf))return;
-    const st=lo.slice(0,-n);
-    if(st.endsWith("k")){
-      let base=st.slice(0,-1)+"ek";
-      if(st.endsWith("ňk")) base=st.slice(0,-2)+"něk";
-      addReverseNameBase(variants,lo,base);
-    }
-  });
-  [["ovi",3],["em",2],["e",1],["i",1]].forEach(([suf,n])=>{
-    if(!lo.endsWith(suf))return;
-    const st=lo.slice(0,-n); if(st.endsWith("c")) addReverseNameBase(variants,lo,st.slice(0,-1)+"ec");
-  });
+  const lo=String(real||"").toLocaleLowerCase("cs-CZ"),variants=czechCaseForms(lo);
+  CZ_SUFFIXES.forEach(suf=>{if(lo.endsWith(suf)&&lo.length-suf.length>=3){const base=lo.slice(0,lo.length-suf.length);czechCaseForms(base).forEach(v=>variants.add(v));}});
+  [["ovi",3],["em",2],["a",1],["u",1]].forEach(([suf,n])=>{if(!lo.endsWith(suf))return;const st=lo.slice(0,-n);if(st.endsWith("k")){let base=st.slice(0,-1)+"ek";if(st.endsWith("ňk"))base=st.slice(0,-2)+"něk";addReverseNameBase(variants,lo,base);}});
+  [["ovi",3],["em",2],["e",1],["i",1]].forEach(([suf,n])=>{if(!lo.endsWith(suf))return;const st=lo.slice(0,-n);if(st.endsWith("c"))addReverseNameBase(variants,lo,st.slice(0,-1)+"ec");});
   return [...variants].filter(v=>v.length>=2);
 }
-function nameMatchWord(variants, coreL){
-  return variants.has(coreL);
+function nameMatchWord(variants,coreL){return variants.has(coreL);}
+function parsePersonToken(token){const m=String(token||"").match(/^osoba\s+([A-Z]+)$/);return m?m[1]:"";}
+function personTokenForCase(token,caseNo){const label=parsePersonToken(token);return label?(PERSON_CASE_WORDS[+caseNo]||PERSON_CASE_WORDS[1])+" "+label:token;}
+function modelPersonToken(token,caseNo){const label=parsePersonToken(token);return label?"[[PERSON_"+label+(caseNo?("|"+caseNo):"")+"]]":token;}
+function toModelPersonTokens(p,text){
+  if(text===undefined){text=p;p="";}
+  return String(text||"").replace(/\b(osoba|osoby|osobě|osobu|osobo|osobou)\s+([A-Z]+)\b/g,(m,_word,label)=>"[[PERSON_"+label+"]]");
 }
-const _isUpper=c=>!!c && c!==c.toLowerCase() && c===c.toUpperCase();
+function fromModelPersonTokens(text){
+  return String(text||"").replace(/\[\[PERSON_([A-Z]+)(?:\|([1-7]))?\]\]/g,(m,label,c)=>personTokenForCase("osoba "+label,+(c||1)));
+}
+const _isUpper=c=>!!c&&c!==c.toLowerCase()&&c===c.toUpperCase();
 function buildMatchers(km){
   return km.filter(k=>k.real&&k.token).map(k=>{
-    const words=String(k.real).trim().split(/\s+/).map(w=>splitPunc(w).core).filter(Boolean);
-    const isPerson=/^osoba\b/.test(k.token);
-    return {
-      token:k.token, isPerson, n:words.length,
-      words: words.map(w=>({ lo:w.toLowerCase(), origLen:w.length, variants:isPerson?new Set(nameVariants(w)):null })),
-      weight: words.reduce((s,w)=>s+w.length,0)
-    };
-  }).filter(m=>m.n>0).sort((a,b)=> (b.n-a.n) || (b.weight-a.weight));
+    const words=String(k.real).trim().split(/\s+/).map(w=>splitPunc(w).core).filter(Boolean),isPerson=/^osoba\b/.test(k.token);
+    return {token:k.token,isPerson,n:words.length,entry:k,words:words.map(w=>({lo:w.toLocaleLowerCase("cs-CZ"),origLen:w.length,variants:isPerson?new Set(nameVariants(w)):null})),weight:words.reduce((sum,w)=>sum+w.length,0)};
+  }).filter(m=>m.n>0).sort((a,b)=>(b.n-a.n)||(b.weight-a.weight));
 }
 function wordObjs(text){
-  const segs=String(text).split(/(\s+)/); const words=[];
-  segs.forEach((s,pi)=>{ if(pi%2===0 && s!==""){ const sp=splitPunc(s); words.push({pi, pre:sp.pre, core:sp.core, post:sp.post, coreL:sp.core.toLowerCase(), cap:_isUpper(sp.core[0])}); } });
-  return {segs, words};
+  const segs=String(text).split(/(\s+)/),words=[];
+  segs.forEach((seg,pi)=>{if(pi%2===0&&seg!==""){const sp=splitPunc(seg);words.push({pi,pre:sp.pre,core:sp.core,post:sp.post,coreL:sp.core.toLocaleLowerCase("cs-CZ"),cap:_isUpper(sp.core[0])});}});
+  return {segs,words};
 }
 // Pro každé slovo vrátí null (ponech), {token,n} (začátek značky) nebo "SKIP" (uvnitř značky).
-function matchWordArray(matchers, words){
-  const wtok=new Array(words.length).fill(null); let wi=0;
+function matchWordArray(matchers,words){
+  const wtok=new Array(words.length).fill(null);let wi=0;
   while(wi<words.length){
     let selected=null;
-    // Nejdřív vždy přesná shoda všech osob. Tím Jana Nováková nemůže pohltit přesné „Jan Novák“.
     for(const exactOnly of [true,false]){
       for(const m of matchers){
-        if(wi+m.n>words.length) continue;
-        let ok=true;
-        for(let k=0;k<m.n;k++){
-          const w=words[wi+k], mw=m.words[k];
-          const exact=w.coreL===mw.lo;
-          const good=exactOnly ? exact : (m.isPerson ? nameMatchWord(mw.variants,w.coreL) : exact);
-          if(!good){ok=false;break;}
-        }
+        if(wi+m.n>words.length)continue;let ok=true;
+        for(let k=0;k<m.n;k++){const w=words[wi+k],mw=m.words[k],exact=w.coreL===mw.lo,shortFeminineCollision=m.isPerson&&w.cap&&mw.lo.length<=3&&w.coreL===mw.lo+"a",good=exactOnly?exact:(m.isPerson&&!shortFeminineCollision?nameMatchWord(mw.variants,w.coreL):exact);if(!good){ok=false;break;}}
         if(ok){selected=m;break;}
       }
       if(selected)break;
     }
-    if(selected){wtok[wi]={token:selected.token,n:selected.n};for(let k=1;k<selected.n;k++)wtok[wi+k]="SKIP";wi+=selected.n;}
-    else wi++;
+    if(selected){wtok[wi]={token:selected.token,n:selected.n,entry:selected.entry};for(let k=1;k<selected.n;k++)wtok[wi+k]="SKIP";wi+=selected.n;}else wi++;
   }
   return wtok;
 }
-// Nahrazuje po CELÝCH slovech (žádné podřetězce → žádné „osoba Aovi"),
-// víceslovná jména skloňuje po jednotlivých slovech a spojí do jedné značky.
-function applyKeyToText(p, text){
-  if(!text) return text||"";
-  const {segs, words}=wordObjs(text);
-  const wtok=matchWordArray(buildMatchers(ST[p].km.filter(k=>k.real&&k.token)), words);
-  let out="", widx=-1;
-  for(let pi=0; pi<segs.length; pi++){
-    const s=segs[pi];
+// Nahrazuje po celých slovech. Ve vstupu pro Gemini se pád záměrně zahodí:
+// model dostane neutrální [[PERSON_A]] a ve výstupu určí potřebný pád sám.
+// Při bezpečnostním čištění hotového výstupu lze naopak povrchový pád zachovat,
+// aby případný únik „Cecilii“ po lokálním návratu nezměnil tvar na „Cecilia“.
+function matchedPersonCase(entry,words,start,count){
+  if(!entry||!/^osoba\b/.test(entry.token||""))return 1;
+  const observed=normName(words.slice(start,start+count).map(w=>w.core).join(" "));
+  const forms=personFormsForEntry(entry);
+  for(let c=1;c<=7;c++)if(normName(forms[c])===observed)return c;
+  return 1;
+}
+function applyKeyToText(p,text,preservePersonCase){
+  if(!text)return text||"";
+  const {segs,words}=wordObjs(text),wtok=matchWordArray(buildMatchers(ST[p].km.filter(k=>k.real&&k.token)),words);
+  let out="",widx=-1;
+  for(let pi=0;pi<segs.length;pi++){
+    const seg=segs[pi];
     if(pi%2===0){
-      if(s==="") continue;
-      widx++;
-      const t=wtok[widx];
-      if(t==="SKIP"){ /* uvnitř značky → vynech */ }
-      else if(t){ const last=words[widx+t.n-1]; out+=words[widx].pre+t.token+(last?last.post:""); }
-      else { out+=s; }
-    } else {
-      if(wtok[widx+1]==="SKIP"){ /* vnitřní mezera značky → vynech */ }
-      else out+=s;
-    }
+      if(seg==="")continue;widx++;const t=wtok[widx];
+      if(t==="SKIP"){}
+      else if(t){
+        const last=words[widx+t.n-1],token=preservePersonCase&&/^osoba\b/.test(t.token||"")?personTokenForCase(t.token,matchedPersonCase(t.entry,words,widx,t.n)):t.token;
+        out+=words[widx].pre+token+(last?last.post:"");
+      }else out+=seg;
+    }else {if(wtok[widx+1]!=="SKIP")out+=seg;}
   }
   return out;
 }
@@ -553,7 +606,7 @@ function renderView(p){
   renderSuggestionPanel(p,suggestions);
 }
 function resetReview(p){ const cb=E(p,"reviewOk"); if(cb) cb.checked=false; if(ST[p])ST[p].outputReady=false; updateSendGate(p); updateProgress(p); }
-function afterKeyChange(p){ publishActiveKeyReals(p); ST[p].sensitiveAck=false; ST[p].clean=cleanFromKey(p); resetReview(p); renderView(p); renderKeyTable(p); renderPreview(p); }
+function afterKeyChange(p){ publishActiveKeyReals(p); ST[p].sensitiveAck=false; ST[p].clean=cleanFromKey(p); resetReview(p); renderView(p); renderKeyTable(p); renderPreview(p); renderPersonReferenceChips(p); scheduleWorkingSessionSave(); }
 function addWord(p, core){ addPhraseAs(p,core,"person"); }
 function activateSensitiveMode(reason){
   setNoHistory(true);
@@ -576,18 +629,40 @@ function renderKeyTable(p){
   const st=ST[p], body=E(p,"keyBody"); body.innerHTML="";
   st.km.forEach((k,idx)=>{ const tr=document.createElement("tr");
     const uses=k.token?(String(st.clean||"").match(new RegExp(escRe(k.token),"g"))||[]).length:0;
-    tr.innerHTML='<td><input value="'+escAttr(k.real)+'" data-i="'+idx+'" data-f="real"></td><td class="tok"><input value="'+escAttr(k.token)+'" data-i="'+idx+'" data-f="token"><small title="Počet výskytů značky v odesílaném náhledu">'+uses+'× v náhledu</small></td><td><button class="del-row" data-del="'+idx+'" title="Smazat">×</button></td>';
+    const person=/^osoba\b/.test(k.token||"");
+    tr.innerHTML='<td><input value="'+escAttr(k.real)+'" data-i="'+idx+'" data-f="real"></td><td class="tok"><input value="'+escAttr(k.token)+'" data-i="'+idx+'" data-f="token"><small title="Počet výskytů značky v odesílaném náhledu">'+uses+'× v náhledu</small></td><td class="key-actions">'+(person?'<button class="case-row" data-cases="'+idx+'" title="Zkontrolovat nebo upravit skloňování jména">1–7</button>':'')+'<button class="del-row" data-del="'+idx+'" title="Smazat">×</button></td>';
     body.appendChild(tr); });
   renderKeySummary(p);
   E(p,"keyEmpty").style.display=st.km.length?"none":"block";
   body.querySelectorAll("input").forEach(inp=>{ let timer=null; inp.addEventListener("input",(e)=>{
-    st.km[+e.target.dataset.i][e.target.dataset.f]=e.target.value; clearAnalysisCache(); resetReview(p);
-    clearTimeout(timer); timer=setTimeout(()=>{
-      publishActiveKeyReals(p); ST[p].clean=cleanFromKey(p);
-      renderView(p); renderPreview(p); renderKeySummary(p);
-    },280);
+    const row=st.km[+e.target.dataset.i];row[e.target.dataset.f]=e.target.value;if(e.target.dataset.f==="real")delete row.forms;clearAnalysisCache();resetReview(p);
+    clearTimeout(timer);timer=setTimeout(()=>{publishActiveKeyReals(p);ST[p].clean=cleanFromKey(p);renderView(p);renderPreview(p);renderKeySummary(p);renderPersonReferenceChips(p);scheduleWorkingSessionSave();},280);
   }); });
-  body.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{ st.km.splice(+b.dataset.del,1); afterKeyChange(p); });
+  body.querySelectorAll("[data-cases]").forEach(b=>b.onclick=()=>openPersonFormsEditor(p,+b.dataset.cases));
+  body.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{st.km.splice(+b.dataset.del,1);afterKeyChange(p);});
+  renderPersonReferenceChips(p);
+}
+function openPersonFormsEditor(p,idx){
+  const entry=ST[p]&&ST[p].km&&ST[p].km[idx];if(!entry||!/^osoba\b/.test(entry.token||""))return;
+  const forms=personFormsForEntry(entry),rows=[];
+  for(let c=1;c<=7;c++)rows.push('<label class="case-form-row"><span>'+esc(PERSON_CASE_LABELS[c])+'</span><input data-case="'+c+'" value="'+escAttr(forms[c]||entry.real)+'"></label>');
+  openModal("Skloňování: "+entry.real,'<p class="dialog-text">Tvary zůstávají pouze v tomto prohlížeči a nikdy se neposílají Gemini. U běžných jmen jsou doplněné automaticky; neobvyklé jméno můžeš jednou opravit.</p><div class="case-form-grid">'+rows.join("")+'</div><div class="dialog-actions"><button class="btn ghost case-reset" type="button">Vrátit automatický návrh</button><button class="btn case-save" type="button">Uložit tvary</button></div>',{className:"case-editor-modal",onMount(body,close){
+    body.querySelector(".case-reset").onclick=()=>{const auto=generatedPersonForms(entry.real);body.querySelectorAll("[data-case]").forEach(i=>i.value=auto[+i.dataset.case]||entry.real);};
+    body.querySelector(".case-save").onclick=()=>{const custom={};body.querySelectorAll("[data-case]").forEach(i=>custom[i.dataset.case]=i.value.trim()||entry.real);entry.forms=custom;clearAnalysisCache();resetReview(p);renderKeyTable(p);scheduleWorkingSessionSave();toast("Skloňování bylo uloženo jen lokálně.");close();};
+  }});
+}
+function insertAtCursor(input,text){
+  const start=Number.isFinite(input.selectionStart)?input.selectionStart:input.value.length,end=Number.isFinite(input.selectionEnd)?input.selectionEnd:start;
+  const before=input.value.slice(0,start),after=input.value.slice(end),left=before&&!/\s$/.test(before)?" ":"",right=after&&!/^\s/.test(after)?" ":"";
+  input.value=before+left+text+right+after;const pos=(before+left+text).length;input.focus();try{input.setSelectionRange(pos,pos);}catch(_){}input.dispatchEvent(new Event("input",{bubbles:true}));
+}
+function renderPersonReferenceChips(p){
+  const input=$(p==="in"?"in_note":"my_note");if(!input||!input.parentNode)return;
+  const id=p+"_personRefs";let box=$(id);if(!box){box=document.createElement("div");box.id=id;box.className="person-reference-box";input.insertAdjacentElement("afterend",box);}
+  const people=(ST[p].km||[]).filter(k=>k.real&&/^osoba\b/.test(k.token||""));
+  if(!people.length){box.hidden=true;box.innerHTML="";return;}
+  box.hidden=false;box.innerHTML='<span class="person-reference-title">Vložit bezpečně osobu:</span><div class="person-reference-chips">'+people.map((k,i)=>'<button type="button" class="person-reference-chip" data-person="'+i+'"><b>'+esc(k.token)+'</b><span>'+esc(k.real)+'</span></button>').join("")+'</div><small>Jméno vidíš jen lokálně. Do Gemini se vloží pouze anonymní značka.</small>';
+  box.querySelectorAll("[data-person]").forEach((btn,i)=>btn.onclick=()=>insertAtCursor(input,people[i].token));
 }
 function keySummaryItems(arr){ return arr.map(k=>k.token||k.real).filter(Boolean).slice(0,3).join(" · ") || "—"; }
 function renderKeySummary(p){
@@ -618,7 +693,7 @@ function renderPreview(p){
   updateSendGate(p);
 }
 function stripSafeTokens(text){
-  return String(text||"").replace(/\[e-mail \d+\]|\[telefon \d+\]|\[rodné číslo \d+\]|\[datum narození \d+\]|\[číslo účtu \d+\]|\[instituce \d+\]|\[místo \d+\]|\[název \d+\]|\[kontakt \d+\]|\[citlivý údaj \d+\]|osoba [A-Z]+|\[podpis\]|\[učitel\]/g," ");
+  return String(text||"").replace(/\[e-mail \d+\]|\[telefon \d+\]|\[rodné číslo \d+\]|\[datum narození \d+\]|\[číslo účtu \d+\]|\[instituce \d+\]|\[místo \d+\]|\[název \d+\]|\[kontakt \d+\]|\[citlivý údaj \d+\]|\b(?:osoba|osoby|osobě|osobu|osobo|osobou) [A-Z]+\b|\[\[PERSON_[A-Z]+(?:\|[1-7])?\]\]|\[podpis\]|\[učitel\]/g," ");
 }
 function preflightIssues(text,p){
   const cacheKey=analysisCacheKey(p,text); if(ANALYSIS_CACHE.preflight.has(cacheKey)) return ANALYSIS_CACHE.preflight.get(cacheKey);
@@ -673,18 +748,57 @@ function preflightIssues(text,p){
   }catch(_){}
   const result={danger,warn,names}; ANALYSIS_CACHE.preflight.set(cacheKey,result); return result;
 }
-function safeAuxiliaryText(p, raw, state, label){
-  const original=String(raw||"").trim();
-  if(!original) return "";
-  const clean=applyKeyToText(p, original);
-  const iss=preflightIssues(clean,p);
-  if(iss.danger.length){
-    const findings=iss.danger;
-    const msg=(label||"Doplňující pokyn")+" obsahuje možný osobní nebo citlivý údaj („"+findings.join(", ")+"“). Použij anonymizovanou značku, například osoba A, nebo pokyn zobecni.";
-    if(state) state.innerHTML='<div class="error"><b>Pokyn nebyl odeslán.</b> '+esc(msg)+'</div>';
-    else toast(msg);
-    flashPreview(p);
-    return null;
+function normName(value){return String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("cs-CZ");}
+function editDistance(a,b){
+  a=normName(a);b=normName(b);const prev=Array.from({length:b.length+1},(_,i)=>i),cur=new Array(b.length+1);
+  for(let i=1;i<=a.length;i++){cur[0]=i;for(let j=1;j<=b.length;j++)cur[j]=Math.min(cur[j-1]+1,prev[j]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1));for(let j=0;j<=b.length;j++)prev[j]=cur[j];}
+  return prev[b.length];
+}
+function commonPrefixLength(a,b){a=normName(a);b=normName(b);let i=0;while(i<a.length&&i<b.length&&a[i]===b[i])i++;return i;}
+function likelyKnownPersonTokens(p,word){
+  const observed=normName(word);if(observed.length<2)return [];
+  const hits=[];
+  (ST[p].km||[]).filter(k=>k.real&&/^osoba\b/.test(k.token||"")).forEach(entry=>{
+    const matched=String(entry.real).split(/\s+/).some(part=>{
+      const base=normName(splitPunc(part).core);if(!base)return false;
+      if(new Set(nameVariants(base).map(normName)).has(observed))return true;
+      const min=Math.min(base.length,observed.length);
+      return min>=6&&Math.max(base.length,observed.length)>=7&&Math.abs(base.length-observed.length)<=2&&editDistance(base,observed)<=2&&commonPrefixLength(base,observed)>=min-2;
+    });
+    if(matched&&!hits.includes(entry.token))hits.push(entry.token);
+  });
+  return hits;
+}
+function replaceLikelyKnownNameForms(p,text){
+  const parsed=wordObjs(text),replace=new Map(),ambiguous=[];
+  parsed.words.forEach((w,i)=>{
+    if(!w.core||/^(?:osoba|osoby|osobě|osobu|osobo|osobou)$/i.test(w.core))return;
+    const hits=likelyKnownPersonTokens(p,w.core);
+    if(hits.length===1)replace.set(i,hits[0]);else if(hits.length>1)ambiguous.push(w.core);
+  });
+  if(!replace.size)return {text:String(text||""),replaced:0,ambiguous};
+  let out="",widx=-1;for(let pi=0;pi<parsed.segs.length;pi++){const seg=parsed.segs[pi];if(pi%2===0){if(seg==="")continue;widx++;const token=replace.get(widx);out+=token?(parsed.words[widx].pre+token+parsed.words[widx].post):seg;}else out+=seg;}
+  return {text:out,replaced:replace.size,ambiguous};
+}
+function unresolvedAuxiliaryNames(text){
+  const stripped=stripSafeTokens(text),parsed=wordObjs(stripped),localStop=new Set(["Gemini","Google","Teams","Dobrý","Dobry","Vážený","Vážená","Milý","Milá","Prosím","Děkuji","Nemohu","Nemůžu","Napiš","Navrhni","Přidej","Uveď","Odpověz"]),out=[];
+  parsed.words.forEach(w=>{
+    if(!isNameCandidate(w.core)||localStop.has(w.core)||STOP.has(w.core)||wordStartsSentence(parsed,w))return;
+    if(!out.includes(w.core))out.push(w.core);
+  });
+  return out;
+}
+function safeAuxiliaryText(p,raw,state,label){
+  const original=String(raw||"").trim();if(!original)return "";
+  let clean=applyKeyToText(p,original);
+  const fuzzy=replaceLikelyKnownNameForms(p,clean);clean=applyKeyToText(p,fuzzy.text);
+  const iss=preflightIssues(clean,p),unknown=unresolvedAuxiliaryNames(clean),findings=iss.danger.slice();
+  if(fuzzy.ambiguous.length)findings.push("nejednoznačný tvar jména: "+fuzzy.ambiguous.join(", "));
+  if(unknown.length)findings.push("nevyřešené možné jméno nebo vlastní název: "+unknown.join(", "));
+  if(findings.length){
+    const msg=(label||"Doplňující pokyn")+" obsahuje možný osobní nebo citlivý údaj („"+findings.join("; ")+"“). Vlož osobu pomocí místního štítku pod polem, použij značku osoba A/B, nebo pokyn zobecni.";
+    if(state)state.innerHTML='<div class="error"><b>Pokyn nebyl odeslán.</b> '+esc(msg)+'</div>';else toast(msg);
+    flashPreview(p);return null;
   }
   return clean;
 }
@@ -750,7 +864,7 @@ function renderPreviewSummary(p){
     '<div class="review-step '+(step2ok?'done':'action')+'"><span class="review-step-no">2</span><span><b>Návrhy k posouzení</b><small>'+(step2ok?'Všechny návrhy jsou vyřešené.':'Zbývá rozhodnout o '+czCount(unresolved.length,'výrazu','výrazech','výrazech')+'.')+'</small></span>'+
       (step2ok?'<span class="review-state">Hotovo</span>':'<span class="review-step-actions"><button type="button" class="btn ghost small" data-review-first>Projít jednotlivě</button><button type="button" class="btn primary small" data-review-keep-all>Ponechat všech '+unresolved.length+'</button></span>')+'</div>'+
     '<div class="review-step '+(step2ok?(step3ok?'done':'ready'):'locked')+'"><span class="review-step-no">3</span><span><b>Potvrzení uživatele</b><small>'+(step2ok?(step3ok?'Ruční kontrola byla potvrzena.':'Teď můžeš zaškrtnout pole Zkontrolováno.'):"Nejprve dokonči krok 2.")+'</small></span><span class="review-state">'+(step3ok?'Hotovo':(step2ok?'Čeká na potvrzení':'Zamčeno'))+'</span></div>'+
-    '<div class="review-model-note"><b>Co odejde modelu:</b> pouze přesný anonymizovaný text v hlavním poli po potvrzení. <b>Co je rizikové:</b> '+(danger?esc(iss.danger.join('; ')):'žádný blokující nález')+'.</div>';
+    '<div class="review-model-note"><b>Co odejde modelu:</b> hlavní anonymizovaný text, zvolené parametry a znovu prověřená poznámka. Před API se kontroluje celý sestavený prompt. <b>Co je rizikové:</b> '+(danger?esc(iss.danger.join('; ')):'žádný blokující nález')+'.</div>';
   const first=el.querySelector("[data-review-first]"); if(first) first.onclick=()=>{const row=suggestionData(p).suggestions[0];if(row)selectPhraseForReview(p,row.phrase,true);};
   const keep=el.querySelector("[data-review-keep-all]"); if(keep) keep.onclick=()=>keepAllSuggestions(p,unresolved);
 }
@@ -837,8 +951,8 @@ function flashPreview(p){
       const cb=E(p,"reviewOk");if(cb)cb.checked=false;
       clearAnalysisCache(); const step2=E(p,"step2");if(step2)step2.hidden=true;
       const results=$(p==="in"?"in_results":"my_results");if(results)results.innerHTML="";
-      updateSendGate(p);
-    }else updateProgress(p);
+      updateSendGate(p); scheduleWorkingSessionSave();
+    }else { updateProgress(p); scheduleWorkingSessionSave(); }
   });
 });
 
@@ -871,25 +985,72 @@ function salutationName(reals,lead){
   const useLast=/\b(?:pane|paní)\s*$/i.test(String(lead||""));
   return czechVocativeWord(useLast?parts[parts.length-1]:parts[0]);
 }
-function recompose(p, text){
+function genericPersonCase(word){
+  const lo=String(word||"").toLocaleLowerCase("cs-CZ");
+  if(lo==="osoby")return 2;if(lo==="osobě")return 3;if(lo==="osobu")return 4;if(lo==="osobo")return 5;if(lo==="osobou")return 7;return 1;
+}
+function canonicalPersonEntry(entries){return [...(entries||[])].sort((a,b)=>String(b.real||"").length-String(a.real||"").length)[0]||null;}
+function recompose(p,text){
   let t=String(text||"");
   const groups=new Map();
-  (ST[p].km||[]).forEach(k=>{if(!k||!k.token||!k.real)return;const a=groups.get(k.token)||[];if(!a.includes(k.real))a.push(k.real);groups.set(k.token,a);});
-  [...groups.entries()].sort((a,b)=>b[0].length-a[0].length).forEach(([token,reals])=>{
-    const canonical=[...reals].sort((a,b)=>String(b).length-String(a).length)[0];
+  (ST[p].km||[]).forEach(k=>{if(!k||!k.token||!k.real)return;const arr=groups.get(k.token)||[];arr.push(k);groups.set(k.token,arr);});
+  [...groups.entries()].sort((a,b)=>b[0].length-a[0].length).forEach(([token,entries])=>{
+    const canonicalEntry=canonicalPersonEntry(entries),canonical=canonicalEntry&&canonicalEntry.real||"";
     if(/^osoba\b/.test(token)){
+      const label=parsePersonToken(token),forms=personFormsForEntry(canonicalEntry||{real:canonical});
       const salRe=new RegExp("((?:(?:Ahoj|Milý|Milá|Vážený|Vážená|Pane|Paní)\\s+|(?:Dobrý den|Dobrý večer)\\s*,?\\s*))"+escRe(token)+"(?=\\s*[,!?.]|\\s|$)","gi");
-      t=t.replace(salRe,(m,lead)=>lead+salutationName(reals,lead));
+      t=t.replace(salRe,(m,lead)=>lead+(forms[5]||salutationName(entries.map(x=>x.real),lead)));
+      const genericRe=new RegExp("\\b(osoba|osoby|osobě|osobu|osobo|osobou)\\s+"+escRe(label)+"\\b","gi");
+      t=t.replace(genericRe,(m,word)=>forms[genericPersonCase(word)]||canonical);
     }
     t=t.replace(new RegExp(escRe(token),"g"),canonical);
   });
-  if(typeof normalizeReplySignature==="function") t=normalizeReplySignature(t);
-  t=t.replace(/\[podpis\]|\[učitel\]|\(\s*učitel\s*\)/gi, signatureText());
+  if(typeof normalizeReplySignature==="function")t=normalizeReplySignature(t);
+  t=t.replace(/\[podpis\]|\[učitel\]|\(\s*učitel\s*\)/gi,signatureText());
   return t.replace(/\n{3,}/g,"\n\n").trimEnd();
+}
+function knownKeyLeaks(p,text){
+  const stripped=stripSafeTokens(text),words=wordObjs(stripped).words.map(w=>normName(w.core)).filter(Boolean),leaks=[];
+  (ST[p].km||[]).filter(k=>k.real&&k.token).forEach(entry=>{
+    if(!/^osoba\b/.test(entry.token||"")){
+      if(String(stripped).toLocaleLowerCase("cs-CZ").includes(String(entry.real).toLocaleLowerCase("cs-CZ"))&&!leaks.includes(entry.real))leaks.push(entry.real);
+      return;
+    }
+    String(entry.real).split(/\s+/).forEach(part=>{const vars=new Set(nameVariants(splitPunc(part).core).map(normName));words.forEach(w=>{if(vars.has(w)&&!leaks.includes(part))leaks.push(part);});});
+  });
+  return leaks;
+}
+function sanitizeModelString(p,value){
+  const original=String(value||"");let text=fromModelPersonTokens(original),replaced=text!==original?1:0;
+  const keyed=applyKeyToText(p,text,true);if(keyed!==text)replaced++;text=keyed;
+  const fuzzy=replaceLikelyKnownNameForms(p,text);if(fuzzy.replaced)replaced+=fuzzy.replaced;text=applyKeyToText(p,fuzzy.text,true);
+  const leaks=knownKeyLeaks(p,text);
+  if(leaks.length||fuzzy.ambiguous.length)throw makeAppError("Výstup modelu obsahoval skutečný údaj, který se nepodařilo bezpečně skrýt.","OUTPUT_PRIVACY_BLOCKED",leaks.concat(fuzzy.ambiguous));
+  return {text,replaced};
+}
+function secureModelResult(obj,schema,p){
+  if(!p||!obj||typeof obj!=="object")return obj;
+  let replacements=0;
+  const walk=value=>{
+    if(typeof value==="string"){const safe=sanitizeModelString(p,value);replacements+=safe.replaced;return safe.text;}
+    if(Array.isArray(value))return value.map(walk);
+    if(value&&typeof value==="object"){
+      const out={};Object.keys(value).forEach(key=>{if(knownKeyLeaks(p,key).length)return;out[key]=walk(value[key]);});return out;
+    }
+    return value;
+  };
+  const safe=walk(obj);
+  if(replacements){try{toast("Ve výstupu modelu byly bezpečnostně upraveny značky nebo zachycený skutečný údaj.");}catch(_){};try{logOp("output_privacy","sanitized",{pane:p,count:replacements,schema});}catch(_){}}
+  return safe;
 }
 function tokenizeHTML(p, text){
   let html=esc(text);
-  [...new Set(ST[p].km.map(k=>k.token).filter(Boolean))].sort((a,b)=>b.length-a.length).forEach(t=>{ html=html.replace(new RegExp(escRe(esc(t)),"g"),'<span class="token '+tokenClass(t)+'">'+esc(t)+'</span>'); });
+  [...new Set(ST[p].km.map(k=>k.token).filter(Boolean))].sort((a,b)=>b.length-a.length).forEach(t=>{
+    if(/^osoba\b/.test(t)){
+      const label=parsePersonToken(t),re=new RegExp("\\b(osoba|osoby|osobě|osobu|osobo|osobou)\\s+"+escRe(label)+"\\b","g");
+      html=html.replace(re,m=>'<span class="token '+tokenClass(t)+'">'+m+'</span>');
+    }else html=html.replace(new RegExp(escRe(esc(t)),"g"),'<span class="token '+tokenClass(t)+'">'+esc(t)+'</span>');
+  });
   html=html.replace(/\[podpis\]|\[učitel\]|\(\s*učitel\s*\)/gi, m=>{
     const signature=typeof signatureText==="function"?signatureText():m;
     return '<span class="token t-sign visible-signature" contenteditable="false" data-sign-token="[podpis]" title="Podpis se doplňuje lokálně z profilu a neposílá se Gemini.">'+esc(signature)+'</span>';

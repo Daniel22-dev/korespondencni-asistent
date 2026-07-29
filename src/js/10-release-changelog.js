@@ -3,11 +3,12 @@ const IS_TEST_MODE=new URLSearchParams(window.location.search).get("test")==="1"
 "use strict";
 
 const RELEASE = {
-  version: "5.5.5",
+  version: "5.6.0",
   date: "2026-07-27",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.6.0: bezpečnostní aktualizace anonymizace — kontextová pravidla se otevírají přímo v aplikaci bez ztráty rozpracované práce; stav anonymizace se dočasně obnovuje v rámci relace. Poznámky pro Gemini nově procházejí přísnou kontrolou celého sestaveného promptu, známé tvary jmen se skryjí a nevyřešené možné identifikátory odeslání zastaví. Osoby lze do poznámky vložit lokálním štítkem se jménem, model pracuje jen se strojovou značkou a gramatickým pádem, skutečná jména se doplňují až lokálně. Odpověď Gemini se před zobrazením znovu kontroluje a případný únik známého údaje se bezpečně skryje. Přibyla lokální úprava pádových tvarů a 85 interních testů.",
     "5.5.5: dotažení bezpečnostního release — odstraněny osiřelé styly po starém školním návodu a dalších zrušených průvodcích, release gate kontroluje až finální nasazované artefakty a vypisuje jediný závěrečný verdikt, dokumentace auditu byla opravena a z obou anonymizačních cest vede přímý odkaz na kapitolu Bezpečná práce s údaji. Složka dist se nově negeneruje do verzovaného balíčku; sestavuje ji CI při nasazení.",
     "5.5.4: nepřístupný starý Školní návod pro kolegy byl odstraněn z kódu a jeho užitečný obsah byl přepracován do samostatné kapitoly Bezpečná práce s údaji v interaktivním manuálu. Kapitola vysvětluje, co anonymizovat, co do AI nevkládat, kdy komunikaci řešit bez AI, jak postupovat na sdíleném počítači a uvádí konkrétní bezpečné i nevhodné příklady.",
     "5.5.3: zapracován hloubkový audit pracovního toku a bezpečnosti — opraveno skutečné skrývání anonymizačního kroku, české pády jmen s pohyblivým e/ě, historie anonymizovaných výstupů, viditelná zpětná vazba školního scénáře, oslovení po Dobrý den, šum návrhů jmen, perspektiva odesílatele v Můj e-mail, emoji, předměty EN/ES, výkon dlouhých zpráv, navigace, přístupnost, PWA a nasazení.",
@@ -149,6 +150,6 @@ function tokenClass(tok){
   if(/^\[citlivý údaj/.test(tok)) return "t-sensitive";
   return "t-osoba";
 }
-function hasLeftoverToken(text){ return /osoba\s+[A-Z]|\[e-mail\s*\d|\[telefon\s*\d|\[rodné číslo|\[datum narození|\[číslo účtu|\[instituce\s*\d|\[místo\s*\d|\[název\s*\d|\[kontakt\s*\d|\[citlivý údaj\s*\d|\[podpis\]|\[u[čc]itel\]/.test(text); }
+function hasLeftoverToken(text){ return /(?:osoba|osoby|osobě|osobu|osobo|osobou)\s+[A-Z]|\[\[PERSON_[A-Z]+(?:\|[1-7])?\]\]|\[e-mail\s*\d|\[telefon\s*\d|\[rodné číslo|\[datum narození|\[číslo účtu|\[instituce\s*\d|\[místo\s*\d|\[název\s*\d|\[kontakt\s*\d|\[citlivý údaj\s*\d|\[podpis\]|\[u[čc]itel\]/.test(text); }
 const escRe = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 

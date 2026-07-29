@@ -60,7 +60,7 @@ if(!manualHtml)bad("chybí manuál");else{if(!manualHtml.includes(`const APP_ID=
 if(/\.privacy-stage\{[^}]*display\s*:\s*block\s*!important/.test(raw))bad("privacy-stage přebíjí skrývání kroku 2");else ok("privacy-stage neruší skrývání kroku 2");
 if(/\bopenSchoolGuide\b/.test(raw))bad("v sestavené aplikaci zůstal nepřístupný školní návod");else ok("starý nepřístupný školní návod není v sestavené aplikaci");
 const deadCss=(raw.match(/\.(?:school-guide-[\w-]+|safety-guide|guide-bigline|guide-quick(?:-card)?)(?=[\s>{:.,])/g)||[]);if(deadCss.length)bad("v sestavené aplikaci zůstaly osiřelé styly: "+[...new Set(deadCss)].join(", "));else ok("bez osiřelých stylů po odstraněných průvodcích");
-const deepLinks=(raw.match(/href="\.\/manual\/#bezpecnost"/g)||[]).length;if(deepLinks<2)bad("obě pracovní cesty nemají odkaz na bezpečnostní kapitolu");else ok("obě pracovní cesty odkazují na bezpečnostní kapitolu");
+const safetyOpeners=(raw.match(/data-open-safety-rules/g)||[]).length;if(safetyOpeners<2||!raw.includes("openSafetyRulesModal"))bad("obě pracovní cesty nemají bezpečné kontextové otevření pravidel");else ok("obě pracovní cesty otevírají pravidla bez opuštění aplikace");
 if(manualHtml){
   const manualVersion=(manualHtml.match(/data-manual-version="([\d.]+)"/)||[])[1];
   const manualAppVersion=(manualHtml.match(/data-app-version="([\d.]+)"/)||[])[1];

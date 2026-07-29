@@ -462,7 +462,59 @@ async function runKorespTests(){
       ST.in.km=[{real:"Anna",token:"osoba A",auto:false},{real:"Karel",token:"osoba B",auto:false}]; ST.in.clean="Bezpečný text.";
       assertTest(safeAuxiliaryText("in","pracoval jsem s Annou",null,"Poznámka").includes("osoba A"),"známé jméno v poznámce nebylo anonymizováno");
       assertTest(safeAuxiliaryText("in","Vyřiď Karlovi, aby odpověděl.",null,"Poznámka").includes("osoba B"),"skloňované jméno v poznámce nebylo anonymizováno");
-      assertTest(safeAuxiliaryText("in","pracoval jsem s Klárou",null,"Poznámka")!==null,"kontrolní heuristika v poznámce nesmí bez důvodu blokovat odeslání");
+      assertTest(safeAuxiliaryText("in","pracoval jsem s Klárou",null,"Poznámka")===null,"neznámé možné jméno v poznámce musí odeslání zastavit");
+    });
+    await test("Cizí jména -ia a -ie mají lokální pádové tvary", async()=>{
+      const c=generatedPersonForms("Cecilia"),j=generatedPersonForms("Julie");
+      assertTest(c[2]==="Cecilie"&&c[4]==="Cecilii"&&c[7]==="Cecilií","Cecilia se skloňuje chybně: "+JSON.stringify(c));
+      assertTest(j[4]==="Julii"&&j[7]==="Julií","Julie se skloňuje chybně: "+JSON.stringify(j));
+    });
+    await test("Poznámka skryje tvar Cecilii bez databáze jednotlivých jmen", async()=>{
+      ST.in.km=[{real:"Cecilia",token:"osoba B",auto:false}];publishActiveKeyReals("in");clearAnalysisCache();
+      const safe=safeAuxiliaryText("in","Nemůžu odpovědět, protože Cecilii vůbec neučím.",null,"Poznámka");
+      assertTest(safe&&safe.includes("osoba B")&&!/Cecili/i.test(safe),"tvar Cecilii unikl do poznámky: "+safe);
+    });
+    await test("Technická značka nese pád a lokálně vrátí Cecilii", async()=>{
+      ST.in.km=[{real:"Cecilia",token:"osoba B",auto:false}];publishActiveKeyReals("in");
+      const prompt=toModelPersonTokens("Nemohu odpovědět osobě B.");
+      assertTest(prompt.includes("[[PERSON_B]]")&&!prompt.includes("Cecilia"),"prompt neobsahuje bezpečnou technickou značku: "+prompt);
+      const anonymous=fromModelPersonTokens("Cecilii neučím: [[PERSON_B|4]].");
+      assertTest(anonymous.includes("osobu B"),"výstupní pád se nepřevedl na anonymní tvar: "+anonymous);
+      const final=recompose("in","Nemohu odpovědět, protože osobu B vůbec neučím.");
+      assertTest(final.includes("Cecilii")&&!final.includes("osobu B"),"lokální návrat jména nemá správný pád: "+final);
+    });
+    await test("Výstupní pojistka znovu skryje skutečné jméno modelu", async()=>{
+      ST.in.km=[{real:"Cecilia",token:"osoba B",auto:false}];publishActiveKeyReals("in");clearAnalysisCache();
+      const safe=secureModelResult({text:"Cecilia se nemůže účastnit."},"text","in");
+      assertTest(safe.text.includes("osoba B")&&!safe.text.includes("Cecilia"),"skutečné jméno zůstalo ve výstupu: "+safe.text);
+    });
+    await test("Výstupní pojistka zachová pád uniklého jména", async()=>{
+      ST.in.km=[{real:"Cecilia",token:"osoba B",auto:false}];publishActiveKeyReals("in");clearAnalysisCache();
+      const safe=secureModelResult({text:"Cecilii vůbec neučím."},"text","in");
+      assertTest(safe.text.includes("osob")&&!safe.text.includes("Cecili"),"uniklý pád nebyl skryt: "+safe.text);
+      const final=recompose("in",safe.text);assertTest(final.includes("Cecilii"),"po lokálním návratu se ztratil pád: "+final);
+    });
+    await test("Cizojazyčný systém vyžaduje základní tvar osoby", async()=>{
+      const old=readChip;let selected="en";window.readChip=(id)=>id==="outlang"?selected:old(id);
+      const en=langSystem();selected="es";const es=langSystem();window.readChip=old;
+      assertTest(en.includes("[[PERSON_A|1]]")&&es.includes("[[PERSON_A|1]]"),"angličtina nebo španělština nevyžaduje základní tvar značky");
+    });
+    await test("Preflight kontroluje skutečný finální prompt", async()=>{
+      ST.in.km=[{real:"Cecilia",token:"osoba B",auto:false}];publishActiveKeyReals("in");clearAnalysisCache();
+      const old=window.__TEST_MOCK_GEMINI;window.__TEST_MOCK_GEMINI=async()=>({text:"ok"});let blocked=false;
+      try{await callGemini("Instrukce obsahuje Cecilia.",SYS_PREPIS,"text",{pane:"in",texts:["bezpečný text"]});}catch(e){blocked=e.code==="PREFLIGHT_BLOCKED";}
+      window.__TEST_MOCK_GEMINI=old;assertTest(blocked,"skutečné jméno v kompletním promptu nevyvolalo stopku");
+    });
+    await test("Místní štítky ukazují osobu, ale vkládají jen značku", async()=>{
+      ST.my.km=[{real:"Cecilia",token:"osoba B",auto:false}];renderPersonReferenceChips("my");
+      const box=$("my_personRefs"),input=$("my_note");input.value="";
+      assertTest(box&&box.textContent.includes("osoba B")&&box.textContent.includes("Cecilia"),"místní štítek není srozumitelný");
+      box.querySelector("button").click();assertTest(input.value.includes("osoba B")&&!input.value.includes("Cecilia"),"štítek vložil skutečné jméno do poznámky");
+    });
+    await test("Rozpracovaná anonymizace se ukládá jen do relace", async()=>{
+      E("in","raw").value="Cecilia píše.";ST.in.raw=E("in","raw").value;ST.in.clean="osoba B píše.";ST.in.km=[{real:"Cecilia",token:"osoba B",auto:false}];saveWorkingSessionNow();
+      const rec=JSON.parse(sessionStorage.getItem(WORK_SESSION_KEY)||"null");
+      assertTest(rec&&rec.format===2&&rec.in.state.km[0].real==="Cecilia"&&localStorage.getItem(WORK_SESSION_KEY)===null,"rozpracovaný stav není správně omezen na sessionStorage");
     });
     await test("Import EML: vnořené MIME a kódované hlavičky", async()=>{
       const eml='From: =?UTF-8?Q?Petr_Nov=C3=A1k?= <petr@example.cz>\nSubject: =?UTF-8?Q?P=C5=99edm=C4=9Bt_test?=\nContent-Type: multipart/mixed; boundary="outer"\n\n--outer\nContent-Type: multipart/alternative; boundary="inner"\n\n--inner\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: quoted-printable\n\nDobr=C3=BD den.\n--inner--\n--outer--';

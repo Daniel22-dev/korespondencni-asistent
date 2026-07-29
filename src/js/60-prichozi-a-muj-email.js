@@ -97,7 +97,7 @@ function renderAnalysis(d){
     '<div class="pgroup advanced-only"><div class="plabel">Orientační délka standardní varianty</div>'+chipGroup("in_delka",DELKA,"stredni")+'</div>'+
     '<div class="pgroup simple-hide"><div class="plabel" title="Vykání nebo tykání ve výsledné odpovědi.">Oslovení</div>'+chipGroup("in_oslov",OSLOV,"vykani")+'</div>'+
     '<div class="pgroup advanced-only"><div class="plabel" title="V jakém jazyce má být odpověď.">Jazyk odpovědi</div>'+chipGroup("in_lang",LANG,(readChip("outlang")||"cs"))+'</div>'+
-    '<div class="pgroup advanced-only note-field"><div class="plabel" title="Cokoli navíc — třeba na co nereagovat nebo co zmínit.">Poznámka pro odpověď</div><input id="in_note" type="text" title="Poznámka je součástí promptu. Před odesláním se znovu anonymizuje a kontroluje." placeholder="např. napiš, že školy neznám; navrhni telefonickou domluvu"><p class="field-safety-note">Poznámka se skutečně promítne do návrhu. Před odesláním se znovu anonymizuje; známé jméno se nahradí značkou a neznámý citlivý údaj odeslání zastaví.</p></div>'+
+    '<div class="pgroup advanced-only note-field"><div class="plabel" title="Cokoli navíc — třeba na co nereagovat nebo co zmínit.">Poznámka pro odpověď</div><input id="in_note" type="text" title="Poznámka je součástí promptu. Osobu vlož nejlépe místním štítkem pod polem; do Gemini odejde pouze anonymní značka." placeholder="např. napiš, že danou žákyni neučím; navrhni telefonickou domluvu"><p class="field-safety-note">Poznámka se skutečně promítne do návrhu. Známé tvary jmen se skryjí; nevyřešené možné jméno nebo citlivý údaj odeslání zastaví.</p></div>'+
     '<div class="simple-action-note simple-only"><b>Jednoduchý režim:</b> použije doporučený záměr a bezpečné výchozí nastavení.</div>'+
     '<div class="choice-summary advanced-only" id="in_choiceSummary"></div>'+
     '<div class="row actsticky"><button class="btn primary" id="in_replyBtn" title="Vytvoří stručnou, standardní a diplomatickou variantu."><span class="action-icon">✉️</span>Vytvořit 3 varianty <span class="req">1 ⚡</span></button></div>'+
@@ -105,6 +105,7 @@ function renderAnalysis(d){
   wrap.appendChild(pc);
   const sc=pc.querySelector('.chips[data-group="in_zamer"] .chip[data-v="'+sug+'"]'); if(sc) sc.classList.add("suggested");
   wireChips(pc); renderChoiceSummary("in");
+  renderPersonReferenceChips("in");
   pc.querySelector('.chips[data-group="in_adresat"]').addEventListener("click",(e)=>{ const c=e.target.closest(".chip"); if(c){ applyAdresat(c.dataset.v); syncCustomRecipient("in"); } });
   const inOther=$("in_adresatJiny"); if(inOther) inOther.addEventListener("input",()=>renderChoiceSummary("in"));
   syncCustomRecipient("in");
@@ -220,8 +221,8 @@ function outLangCode(p){
   const l=readChip("my_lang")||"cs"; return (l==="en"||l==="es")?l:"cs";
 }
 function langSystem(){ const l=readChip("outlang");
-  if(l==="en") return " NADŘAZENÝ POKYN: Text e-mailu (hodnoty „text“/„navrhy“ v JSON) napiš celý v bezchybné, přirozené ANGLIČTINĚ, i kdyby výše stálo psát česky. Značky (osoba A, [e-mail 1], [podpis]) ponech přesně. Klíče a struktura JSON zůstávají.";
-  if(l==="es") return " NADŘAZENÝ POKYN: Text e-mailu napiš celý v bezchybné, přirozené ŠPANĚLŠTINĚ, i kdyby výše stálo psát česky. Značky (osoba A, [e-mail 1], [podpis]) ponech přesně. Klíče a struktura JSON zůstávají.";
+  if(l==="en") return " NADŘAZENÝ POKYN: Text e-mailu (hodnoty „text“/„navrhy“ v JSON) napiš celý v bezchybné, přirozené ANGLIČTINĚ, i kdyby výše stálo psát česky. Technické značky osob v anglickém textu vrať vždy jako [[PERSON_A|1]], protože jméno se v angličtině lokálně dosadí v základním tvaru; ostatní značky [e-mail 1] a [podpis] ponech přesně. Klíče a struktura JSON zůstávají.";
+  if(l==="es") return " NADŘAZENÝ POKYN: Text e-mailu napiš celý v bezchybné, přirozené ŠPANĚLŠTINĚ, i kdyby výše stálo psát česky. Technické značky osob ve španělském textu vrať vždy jako [[PERSON_A|1]], protože jméno se lokálně dosadí v základním tvaru; ostatní značky [e-mail 1] a [podpis] ponech přesně. Klíče a struktura JSON zůstávají.";
   return ""; }
 function myLangLine(){
   const l=readChip("my_lang")||"cs";
@@ -233,10 +234,10 @@ function myLangLine(){
 }
 function myLangSystem(){
   const l=readChip("my_lang")||"cs";
-  if(l==="en") return " NADŘAZENÝ POKYN: Hodnotu „text“ v JSON napiš celou v bezchybné, přirozené ANGLIČTINĚ, i kdyby výše stálo psát česky. Značky ponech přesně.";
-  if(l==="es") return " NADŘAZENÝ POKYN: Hodnotu „text“ v JSON napiš celou v bezchybné, přirozené ŠPANĚLŠTINĚ, i kdyby výše stálo psát česky. Značky ponech přesně.";
-  if(l==="keep") return " NADŘAZENÝ POKYN: Zachovej jazyk vstupu. Pokud je vstup anglicky, piš anglicky; pokud španělsky, piš španělsky; pokud česky, piš česky. Značky ponech přesně.";
-  if(l==="translate_style") return " NADŘAZENÝ POKYN: Výsledný text přelož a stylisticky uprav podle voleb uživatele; pokud není explicitně zvolen cílový jazyk, použij češtinu. Značky ponech přesně.";
+  if(l==="en") return " NADŘAZENÝ POKYN: Hodnotu „text“ v JSON napiš celou v bezchybné, přirozené ANGLIČTINĚ, i kdyby výše stálo psát česky. Každou značku [[PERSON_A]] vrať jako [[PERSON_A|1]]; ostatní značky ponech přesně.";
+  if(l==="es") return " NADŘAZENÝ POKYN: Hodnotu „text“ v JSON napiš celou v bezchybné, přirozené ŠPANĚLŠTINĚ, i kdyby výše stálo psát česky. Každou značku [[PERSON_A]] vrať jako [[PERSON_A|1]]; ostatní značky ponech přesně.";
+  if(l==="keep") return " NADŘAZENÝ POKYN: Zachovej jazyk vstupu. V českém textu vrať každou [[PERSON_A]] s potřebným pádem jako [[PERSON_A|N]], N=1–7. V anglickém nebo španělském textu vrať vždy [[PERSON_A|1]]. Ostatní značky ponech přesně.";
+  if(l==="translate_style") return " NADŘAZENÝ POKYN: Výsledný text přelož a stylisticky uprav podle voleb uživatele; pokud není explicitně zvolen cílový jazyk, použij češtinu. V češtině vrať [[PERSON_A|N]] s potřebným pádem 1–7, v angličtině nebo španělštině vždy [[PERSON_A|1]]. Ostatní značky ponech přesně.";
   return "";
 }
 wireChips($("apiPanel"));
