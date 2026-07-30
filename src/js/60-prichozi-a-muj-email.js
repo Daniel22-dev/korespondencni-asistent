@@ -310,9 +310,12 @@ loadHistory();
     const p=loadProfile();
     overlay.innerHTML='<div class="modal-card" role="dialog" aria-modal="true" aria-label="Profil odes\u00edlatele">'+
       '<div class="modal-head"><b>Profil odes\u00edlatele</b><button id="profClose" class="modal-close" title="Zav\u0159\u00edt" aria-label="Zav\u0159\u00edt">\u00d7</button></div>'+
-      '<p class="hint" style="margin:0 0 6px"><b>Jméno zůstává pouze v prohlížeči</b> a doplní se lokálně místo značky [podpis]. Role, vyučované předměty a škola se při tvorbě mohou poslat Gemini jako pracovní kontext, aby ses nemusel(a) v každém zadání znovu představovat.</p>'+
+      '<p class="hint" style="margin:0 0 6px"><b>Jméno zůstává pouze v prohlížeči</b> a doplní se lokálně místo značky [podpis]. Role, vyučované předměty, škola a zvolený gramatický rod se mohou použít jako pracovní kontext. Model nikdy nemá rod odhadovat ze jména.</p>'+
       '<label style="'+lbl+'">Jméno (a příjmení) · pouze pro místní podpis</label><input id="pf_name" type="text" style="'+inS+'" value="'+escAttr(p.name||"")+'" placeholder="Jan Novák">'+
       '<label style="'+lbl+'">Role / funkce</label><input id="pf_role" type="text" style="'+inS+'" value="'+escAttr(p.role||"")+'" placeholder="středoškolský učitel">'+
+      '<label style="'+lbl+'">Gramatický rod pisatele</label><div class="chips" data-group="pf_gender" style="margin-top:6px">'+
+        '<button class="chip" data-v="male">Mužský</button><button class="chip" data-v="female">Ženský</button><button class="chip" data-v="neutral">Bezrodové formulace</button></div>'+ 
+      '<p class="hintline">Určuje tvary jako „předal/předala jsem“ nebo „rád/ráda bych“. U bezrodové volby se mají věty přeformulovat.</p>'+ 
       '<label style="'+lbl+'">Vyučované předměty</label><input id="pf_subjects" type="text" style="'+inS+'" value="'+escAttr(p.subjects||"")+'" placeholder="angličtina a španělština">'+
       '<label style="'+lbl+'">Škola / pracoviště</label><input id="pf_school" type="text" style="'+inS+'" value="'+escAttr(p.school||"")+'" placeholder="Gymnázium …">'+
       '<label style="'+lbl+'">Styl podpisu</label><div class="chips" data-group="pf_sign" style="margin-top:6px">'+
@@ -322,13 +325,14 @@ loadHistory();
       '</div>';
     wireChips(overlay);
     const sign=p.sign||"pozdrav"; setChip("pf_sign", sign);
+    setChip("pf_gender", typeof resolvedProfileGender==="function"?resolvedProfileGender(p):"neutral");
     const customWrap=overlay.querySelector("#pf_customWrap");
     const upd=()=>{ customWrap.style.display = readChip("pf_sign")==="vlastni"?"block":"none"; };
     overlay.querySelector('.chips[data-group="pf_sign"]').addEventListener("click",(e)=>{ if(e.target.closest(".chip")) upd(); });
     upd();
     overlay.querySelector("#profClose").onclick=close;
     overlay.querySelector("#pf_save").onclick=()=>{
-      const prof={ name:overlay.querySelector("#pf_name").value.trim(), role:overlay.querySelector("#pf_role").value.trim(), subjects:overlay.querySelector("#pf_subjects").value.trim(), school:overlay.querySelector("#pf_school").value.trim(), sign:readChip("pf_sign"), custom:overlay.querySelector("#pf_custom").value };
+      const prof={ name:overlay.querySelector("#pf_name").value.trim(), role:overlay.querySelector("#pf_role").value.trim(), gender:readChip("pf_gender")||"neutral", subjects:overlay.querySelector("#pf_subjects").value.trim(), school:overlay.querySelector("#pf_school").value.trim(), sign:readChip("pf_sign"), custom:overlay.querySelector("#pf_custom").value };
       try{ localStorage.setItem("rozbor_profile", JSON.stringify(prof)); }catch(_){}
       if(typeof renderMyProfileContext==="function") renderMyProfileContext();
       toast("Profil uložen ✓"); close();
@@ -483,7 +487,7 @@ $("my_goBtn").onclick=async()=>{
   if(note===null || !enforcePreflight("my", state, note?[note]:[])) return;
   const subj=readChip("my_subj")==="ano";
   const senderMode=readChip("my_pisujako")||"jednotlivec"; ST.my.replySenderMode=senderMode;
-  const common="\nAdresát: "+recipientLabel("my")+"\n"+audiencePrompt()+"\nOslovení: "+oslovTxt+senderPerspectivePrompt(senderMode)+(note?"\nDalší pokyn: "+note:"")+(subj?"\nNa první řádek napiš předmět zprávy ve tvaru Předmět: / Subject: / Asunto: podle jazyka výstupu a pod něj samotný e-mail.":"")+scenarioLine+profileLine()+myLangLine();
+  const common="\nAdresát: "+recipientLabel("my")+"\n"+audiencePrompt()+"\nOslovení: "+oslovTxt+"\n"+senderPerspectivePrompt(senderMode)+(note?"\nDalší pokyn: "+note:"")+(subj?"\nNa první řádek napiš předmět zprávy ve tvaru Předmět: / Subject: / Asunto: podle jazyka výstupu a pod něj samotný e-mail.":"")+scenarioLine+profileLine()+myLangLine();
   let sys, prompt, styl;
   if(mode==="prepsat"){
     const s=readChip("my_prepis"), u=readChip("my_ucel"); styl="Přepsáno: "+(PREPIS[s]||s); sys=SYS_PREPIS;

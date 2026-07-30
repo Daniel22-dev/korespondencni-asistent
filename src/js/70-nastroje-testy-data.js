@@ -204,9 +204,26 @@ async function runKorespTests(){
     await test("Jedna osoba = jedna značka", async()=>{
       ST.in.raw="Petr Malý chybí. Petrovi jsem psal. S Petrem mluvím."; ST.in.km=[];
       addWord("in","Petr"); addWord("in","Petrovi"); addWord("in","Petrem");
-      assertTest(ST.in.km.length===3,"doťukané tvary nebyly přidány samostatně do klíče");
-      assertTest(new Set(ST.in.km.map(k=>k.token)).size===1&&ST.in.km[0].token==="osoba A","tvary jedné osoby dostaly různé značky");
+      assertTest(ST.in.km.length===1&&ST.in.km[0].real==="Petr","skloňované tvary se nesloučily do základního tvaru: "+JSON.stringify(ST.in.km));
+      assertTest(ST.in.km[0].token==="osoba A","tvary jedné osoby dostaly různé značky");
       assertTest(!/Petr(?:ovi|em)?/.test(ST.in.clean),"v anonymizovaném textu zůstal tvar Petra: "+ST.in.clean);
+    });
+    await test("Spojovací slova se nepřipojí ke jménu", async()=>{
+      ST.in.raw="Mimochodem Kamča odpověděla. Podle Adély je vše hotové."; ST.in.km=[]; ST.in.reviewedSuggestions={}; clearAnalysisCache();
+      const phrases=suggestionData("in").suggestions.map(x=>x.phrase);
+      assertTest(!phrases.includes("Mimochodem Kamča")&&!phrases.includes("Podle Adély"),"spojovací slovo bylo připojeno ke jménu: "+phrases.join(" | "));
+      assertTest(phrases.includes("Kamča")&&phrases.includes("Adély"),"samotné jméno se přestalo nabízet: "+phrases.join(" | "));
+    });
+    await test("Skloňovaný výběr se uloží v základním tvaru", async()=>{
+      const a=canonicalizePersonPhrase("Mluvil jsem s Adélou Kulovou.","Adélou Kulovou");
+      const b=canonicalizePersonPhrase("Podle Adély je vše hotové.","Adély");
+      assertTest(a.real==="Adéla Kulová"&&a.caseNo===7,"instrumentál celého jména nebyl převeden: "+JSON.stringify(a));
+      assertTest(b.real==="Adéla"&&b.caseNo===2,"genitiv jména nebyl převeden: "+JSON.stringify(b));
+    });
+    await test("Poznámka skryje skloňované celé jméno", async()=>{
+      ST.in.km=[{real:"Adéla Kulová",token:"osoba A",auto:false}]; publishActiveKeyReals("in");
+      const safe=safeAuxiliaryText("in","Mluvil jsem s Adélou Kulovou.",null,"Poznámka");
+      assertTest(safe&&safe.includes("osoba A")&&!safe.includes("Adél")&&!safe.includes("Kulov"),"poznámka nebyla bezpečně anonymizována: "+safe);
     });
     await test("Prázdný profil není anonymizační chyba", async()=>{
       const keys=["rozbor_profile","ks5_signatures","ks5_selected_signature"],old={};
@@ -239,6 +256,40 @@ async function runKorespTests(){
         assertTest(line.includes("středoškolský učitel")&&line.includes("angličtina a španělština")&&line.includes("Gymnázium Test"),"pracovní kontext není úplný: "+line);
         assertTest(!line.includes("Daniel Baláž"),"jméno se propsalo do promptu: "+line);
       }finally{if(old===null)localStorage.removeItem("rozbor_profile");else localStorage.setItem("rozbor_profile",old);}
+    });
+    await test("Profil řídí gramatický rod pisatele", async()=>{
+      const old=localStorage.getItem("rozbor_profile"),oldMode=ST.in.replySenderMode;
+      try{
+        ST.in.replySenderMode="jednotlivec";
+        localStorage.setItem("rozbor_profile",JSON.stringify({gender:"female"}));
+        window.__openProfile();
+        const femaleChip=document.querySelector('.chips[data-group="pf_gender"] .chip[data-v="female"]');
+        assertTest(femaleChip&&femaleChip.classList.contains("on"),"uložený ženský rod se neoznačil v profilu");
+        document.querySelector('.chips[data-group="pf_gender"] .chip[data-v="male"]').click();
+        document.querySelector("#pf_save").click();
+        assertTest(loadProfile().gender==="male","volba gramatického rodu se neuložila z profilu");
+        localStorage.setItem("rozbor_profile",JSON.stringify({gender:"female"}));
+        const fp=senderPerspectivePrompt("jednotlivec");
+        assertTest(fp.includes("ŽENSKÝ")&&fp.includes("předala jsem"),"ženský rod se nepropsal do promptu: "+fp);
+        const bad=evaluateDraftReadiness("in","Dobrý den,\n\nmusel jsem návrh upravit.\n\n[podpis]","",{});
+        const badItem=bad.items.find(x=>x.label==="Gramatický rod pisatele odpovídá profilu");
+        assertTest(badItem&&!badItem.ok&&badItem.level==="danger","mužský tvar u ženského profilu neblokuje export: "+JSON.stringify(badItem));
+        const good=evaluateDraftReadiness("in","Dobrý den,\n\nmusela jsem návrh upravit.\n\n[podpis]","",{});
+        const goodItem=good.items.find(x=>x.label==="Gramatický rod pisatele odpovídá profilu");
+        assertTest(goodItem&&goodItem.ok,"správný ženský tvar nebyl přijat: "+JSON.stringify(goodItem));
+        localStorage.setItem("rozbor_profile",JSON.stringify({gender:"male"}));
+        const mp=senderPerspectivePrompt("jednotlivec");
+        assertTest(mp.includes("MUŽSKÝ")&&mp.includes("předal jsem"),"mužský rod se nepropsal do promptu: "+mp);
+        localStorage.setItem("rozbor_profile",JSON.stringify({gender:"neutral"}));
+        const np=senderPerspectivePrompt("jednotlivec");
+        assertTest(np.includes("rodově neutrální"),"bezrodová varianta se nepropsala do promptu: "+np);
+        const neutralBad=evaluateDraftReadiness("in","Dobrý den,\n\nmusela jsem návrh upravit.\n\n[podpis]","",{});
+        const neutralItem=neutralBad.items.find(x=>x.label==="Gramatický rod pisatele odpovídá profilu");
+        assertTest(neutralItem&&!neutralItem.ok&&neutralItem.level==="danger","rodový tvar u neutrálního profilu neblokuje export: "+JSON.stringify(neutralItem));
+      }finally{
+        ST.in.replySenderMode=oldMode;
+        if(old===null)localStorage.removeItem("rozbor_profile");else localStorage.setItem("rozbor_profile",old);
+      }
     });
     await test("Školní scénáře používají existující hodnoty", async()=>{
       Object.entries(SCHOOL_SCENARIOS).forEach(([key,sc])=>{

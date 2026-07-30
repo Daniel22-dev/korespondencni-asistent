@@ -106,7 +106,9 @@ const STOP=new Set(("Dobrý Dobré Dobrou Dobré Pěkný Pěkné Krásný Krásn
   "Rád Ráda Také Toto Tento Tato Tyto Pokud Když Protože Jelikož Chtěl Chtěla Chtěli Mám Máme Máte Je Jsou Byl Byla Byly Bylo "+
   "Jak Co Kdy Kde Kdo Proč Můj Moje Naše Náš Vaše Váš Vás Vám Vy My Já On Ona Ano Ne Prosím Prosíme Předem Zatím Mezitím "+
   "Pondělí Úterý Středa Čtvrtek Pátek Sobota Neděle Leden Únor Březen Duben Květen Červen Červenec Srpen Září Říjen Listopad Prosinec "+
-  "Škola Třída Žák Žáci Rodiče Ředitel Ředitelka Zítra Dnes Včera Můžete Můžeš Volat Potřebuji Posílám Informuji Připomínám Absence Termín Zároveň Následně Ohledně Vzhledem Nicméně").split(/\s+/));
+  "Škola Třída Žák Žáci Rodiče Ředitel Ředitelka Zítra Dnes Včera Můžete Můžeš Volat Potřebuji Posílám Informuji Připomínám Absence Termín Zároveň Následně Ohledně Vzhledem Nicméně "+
+  "Mimochodem Podle Navíc Každopádně Přitom Proto Tedy Takže Jinak Například Konkrétně Kromě Včetně Během Kvůli Díky Místo "+
+  "Na V Ve S Se K Ke Do Od U Bez Pro O Po Před Za Mezi Nad Pod Přes Při Skrz").split(/\s+/));
 
 function autoDetect(text){
   const found=[]; const add=(r)=>{ r=(r||"").trim(); if(r.length<2) return; if(found.some(f=>f.toLowerCase()===r.toLowerCase())) return; found.push(r); };
@@ -226,6 +228,60 @@ function generatedPersonForms(real){
   for(let c=1;c<=7;c++)out[c]=wordForms.map(x=>x[c]).join(" ");
   return out;
 }
+const PERSON_CASE_PREPOSITIONS={
+  2:new Set(["bez","během","dle","do","kolem","kromě","místo","od","podle","u","vedle","včetně","z","ze"]),
+  3:new Set(["k","ke","kvůli","naproti","oproti","proti","vůči"]),
+  4:new Set(["pro","přes","skrze"]),
+  6:new Set(["o"]),
+  7:new Set(["s","se","mezi","nad","pod","před","za"])
+};
+function nameCaseFromContext(raw,phrase){
+  const parsed=wordObjs(raw||""),parts=coreWords(phrase).map(x=>x.toLocaleLowerCase("cs-CZ"));
+  if(!parts.length)return 1;
+  for(let i=0;i<=parsed.words.length-parts.length;i++){
+    let ok=true;for(let k=0;k<parts.length;k++)if(parsed.words[i+k].coreL!==parts[k]){ok=false;break;}
+    if(!ok)continue;
+    const prev=i>0?parsed.words[i-1].coreL:"";
+    for(const [c,set] of Object.entries(PERSON_CASE_PREPOSITIONS))if(set.has(prev))return +c;
+    return 1;
+  }
+  return 1;
+}
+function reverseNameCandidates(word,caseNo){
+  const src=String(word||"").trim(),lo=src.toLocaleLowerCase("cs-CZ"),cands=[];
+  const add=x=>{x=String(x||"").trim();if(x.length>=2&&!cands.includes(x))cands.push(x);};
+  if(/ovou$/.test(lo))add(lo.slice(0,-4)+"ová");
+  if(/ové$/.test(lo))add(lo.slice(0,-3)+"ová");
+  if(/ou$/.test(lo))add(lo.slice(0,-2)+"a");
+  if(/ovi$/.test(lo))add(lo.slice(0,-3));
+  if(/em$/.test(lo)){const st=lo.slice(0,-2);add(st);add(st+"ek");add(st+"ec");}
+  if(/y$/.test(lo))add(lo.slice(0,-1)+"a");
+  if(/u$/.test(lo))add(lo.slice(0,-1)+"a");
+  if(/o$/.test(lo))add(lo.slice(0,-1)+"a");
+  if(/í$/.test(lo)){add(lo.slice(0,-1)+"ie");add(lo.slice(0,-1)+"ia");}
+  if(/ě$/.test(lo))add(lo.slice(0,-1)+"a");
+  if(/e$/.test(lo)){const st=lo.slice(0,-1);add(st+"a");add(st);add(st+"ec");add(st+"el");}
+  if(/a$/.test(lo)){const st=lo.slice(0,-1);add(st);add(st+"el");add(st+"ek");add(st+"ec");}
+  add(lo);
+  return cands.filter(c=>normName(declineNameWord(c)[caseNo])===normName(lo)).map(c=>preserveWholeCase(src,c));
+}
+function canonicalizePersonPhrase(raw,phrase){
+  const observed=String(phrase||"").replace(/\s+/g," ").trim(),parts=coreWords(observed);
+  if(!observed||!parts.length)return {real:observed,observed,caseNo:1,changed:false,confidence:"low"};
+  let caseNo=nameCaseFromContext(raw,observed);
+  if(caseNo===1 && parts.some(w=>/(?:ovou|ové|ovi|em|ou|y|ě)$/i.test(w))){
+    const inferred=[3,6,7,2,4,5].find(c=>{
+      const rows=parts.map(w=>reverseNameCandidates(w,c));
+      return rows.every(x=>x.length)&&rows.some((x,i)=>normName(x[0])!==normName(parts[i]));
+    });
+    if(inferred)caseNo=inferred;
+  }
+  if(caseNo===1)return {real:observed,observed,caseNo,changed:false,confidence:"high"};
+  const bases=parts.map(w=>reverseNameCandidates(w,caseNo)[0]||w),changed=bases.some((x,i)=>normName(x)!==normName(parts[i]));
+  if(!changed)return {real:observed,observed,caseNo,changed:false,confidence:"low"};
+  const real=bases.join(" ");
+  return {real,observed,caseNo,changed:true,confidence:generatedPersonForms(real).confidence};
+}
 function personFormsForEntry(entry){
   const generated=generatedPersonForms(entry&&entry.real||"");
   const custom=entry&&entry.forms&&typeof entry.forms==="object"?entry.forms:{};
@@ -259,10 +315,15 @@ function fromModelPersonTokens(text){
 }
 const _isUpper=c=>!!c&&c!==c.toLowerCase()&&c===c.toUpperCase();
 function buildMatchers(km){
-  return km.filter(k=>k.real&&k.token).map(k=>{
-    const words=String(k.real).trim().split(/\s+/).map(w=>splitPunc(w).core).filter(Boolean),isPerson=/^osoba\b/.test(k.token);
-    return {token:k.token,isPerson,n:words.length,entry:k,words:words.map(w=>({lo:w.toLocaleLowerCase("cs-CZ"),origLen:w.length,variants:isPerson?new Set(nameVariants(w)):null})),weight:words.reduce((sum,w)=>sum+w.length,0)};
-  }).filter(m=>m.n>0).sort((a,b)=>(b.n-a.n)||(b.weight-a.weight));
+  const out=[];
+  km.filter(k=>k.real&&k.token).forEach(k=>{
+    const values=[k.real].concat(Array.isArray(k.aliases)?k.aliases:[]).filter(Boolean),isPerson=/^osoba\b/.test(k.token);
+    [...new Set(values.map(v=>String(v).trim()).filter(Boolean))].forEach(value=>{
+      const words=value.split(/\s+/).map(w=>splitPunc(w).core).filter(Boolean);
+      out.push({token:k.token,isPerson,n:words.length,entry:k,words:words.map(w=>({lo:w.toLocaleLowerCase("cs-CZ"),origLen:w.length,variants:isPerson?new Set(nameVariants(w)):null})),weight:words.reduce((sum,w)=>sum+w.length,0)});
+    });
+  });
+  return out.filter(m=>m.n>0).sort((a,b)=>(b.n-a.n)||(b.weight-a.weight));
 }
 function wordObjs(text){
   const segs=String(text).split(/(\s+)/),words=[];
@@ -317,7 +378,7 @@ function applyKeyToText(p,text,preservePersonCase){
 function cleanFromKey(p){ return applyKeyToText(p, ST[p].raw); }
 
 /* ---- pomocníci pro interaktivní náhled (#3, #4, #6) ---- */
-const NAME_CAND_STOP=new Set(["Od","Komu","Kopie","Skrytá","Předmět","Re","Fw","Fwd","Dobrý","Dobrá","Dobré","Milá","Milý","Vážená","Vážený","Vážení","Pane","Paní","Slečno","Prosím","Děkuji","Děkuju","Dobry","Kontakt","Telefon","Tel","Zdravím","Zdraví","Mává","Mávám","Mávejte","Ahoj","Pozdravem","Srdečně","Tématem","Téma"]);
+const NAME_CAND_STOP=new Set(["Od","Komu","Kopie","Skrytá","Předmět","Re","Fw","Fwd","Dobrý","Dobrá","Dobré","Milá","Milý","Vážená","Vážený","Vážení","Pane","Paní","Slečno","Prosím","Děkuji","Děkuju","Dobry","Kontakt","Telefon","Tel","Zdravím","Zdraví","Mává","Mávám","Mávejte","Ahoj","Pozdravem","Srdečně","Tématem","Téma","Mimochodem","Podle","Navíc","Každopádně","Přitom","Proto","Tedy","Takže","Jinak","Například","Konkrétně","Kromě","Včetně","Během","Kvůli","Díky","Místo","Na","V","Ve","S","Se","K","Ke","Do","U","Bez","Pro","O","Po","Před","Za","Mezi","Nad","Pod","Přes","Při","Skrz"]);
 const NAME_TITLES=new Set(["mgr","ing","bc","mudr","rndr","phdr","judr","doc","prof"]);
 function isNameCandidate(core){
   if(!/^\p{L}+$/u.test(core)) return false;
@@ -449,22 +510,31 @@ function adjacentPersonMerge(st, cleaned){
 function addPhraseAs(p, phrase, kind){
   const st=ST[p]; const cleaned=String(phrase).replace(/\s+/g," ").trim().replace(/^[<>\[\]{}(),.;:!?„“”"'…»«\s]+|[<>\[\]{}(),.;:!?„“”"'…»«\s]+$/g,"");
   if(!cleaned || cleaned.length<1) return;
-  if(st.km.some(k=>k.real.toLocaleLowerCase("cs-CZ")===cleaned.toLocaleLowerCase("cs-CZ"))) return;
+  let normalized={real:cleaned,observed:cleaned,caseNo:1,changed:false};
+  if(kind==="person")normalized=canonicalizePersonPhrase(st.raw,cleaned);
+  const storedReal=normalized.real||cleaned;
+  const duplicate=st.km.some(k=>[k.real].concat(Array.isArray(k.aliases)?k.aliases:[]).some(v=>normName(v)===normName(cleaned)||normName(v)===normName(storedReal)));
+  if(duplicate) return;
   let token="", related="";
   if(["institution","place","title","contact","sensitive"].includes(kind)) token=categoryToken(st,kind);
   else {
     const merged=adjacentPersonMerge(st,cleaned);
     if(merged){
-      const previous=merged.entry.real; merged.entry.real=merged.phrase; merged.entry.auto=false;
+      const previous=merged.entry.real,base=canonicalizePersonPhrase(st.raw,merged.phrase);
+      merged.entry.real=base.real||merged.phrase; merged.entry.auto=false;
+      const aliases=new Set([].concat(merged.entry.aliases||[],base.changed?[merged.phrase]:[]).filter(Boolean)); merged.entry.aliases=[...aliases];
       if(st.reviewedSuggestions){ delete st.reviewedSuggestions[suggestionKey(previous)]; delete st.reviewedSuggestions[suggestionKey(cleaned)]; delete st.reviewedSuggestions[suggestionKey(merged.phrase)]; }
-      afterKeyChange(p); toast("Sousední části jména byly sloučeny do "+merged.entry.token+"."); return;
+      afterKeyChange(p); toast(base.changed?"Jméno bylo sloučeno a uloženo v základním tvaru „"+merged.entry.real+"“.":"Sousední části jména byly sloučeny do "+merged.entry.token+"."); return;
     }
-    related=tokenForRelatedPerson(st,cleaned); token=related||nextPersonToken(st.km);
+    related=tokenForRelatedPerson(st,storedReal)||tokenForRelatedPerson(st,cleaned); token=related||nextPersonToken(st.km);
   }
-  st.km.push({real:cleaned,token,auto:false});
+  const entry={real:storedReal,token,auto:false};
+  if(normalized.changed)entry.aliases=[cleaned];
+  st.km.push(entry);
   if(st.reviewedSuggestions) delete st.reviewedSuggestions[suggestionKey(cleaned)];
   afterKeyChange(p);
   if(related) toast("Přidáno ke stejné osobě ("+token+").");
+  else if(normalized.changed) toast("Jméno bylo uloženo v základním tvaru „"+storedReal+"“. Označený pád zůstává rozpoznatelný.");
 }
 function addPhrase(p, phrase){ addPhraseAs(p,phrase,"person"); }
 function keepSuggestion(p,phrase){

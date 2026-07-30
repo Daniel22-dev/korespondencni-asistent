@@ -18,9 +18,9 @@ const defaultBlocks=[
   {id:"consult",name:"Nabídka konzultace",category:"Schůzka",text:"V případě potřeby se můžeme domluvit na osobní nebo telefonické konzultaci."},
   {id:"thanks",name:"Poděkování za spolupráci",category:"Zakončení",text:"Děkuji za spolupráci a za Vaši odpověď."},
   {id:"deadline",name:"Jasný termín",category:"Organizace",text:"Prosím o vyřízení nejpozději do [datum]."},
-  {id:"received",name:"Potvrzení přijetí",category:"Reakce",text:"Děkuji za zprávu. Potvrzuji, že jsem ji obdržel a budu se jí zabývat."},
+  {id:"received",name:"Potvrzení přijetí",category:"Reakce",text:"Děkuji za zprávu. Potvrzuji její přijetí a budu se jí zabývat."},
   {id:"phone",name:"Nabídka telefonické domluvy",category:"Schůzka",text:"Pokud by bylo snazší věc probrat telefonicky, můžeme si domluvit vhodný termín hovoru."},
-  {id:"decline",name:"Zdvořilé odmítnutí",category:"Reakce",text:"V této podobě bohužel nemohu žádosti vyhovět. Rád však navrhnu jiné možné řešení."},
+  {id:"decline",name:"Zdvořilé odmítnutí",category:"Reakce",text:"V této podobě bohužel nemohu žádosti vyhovět. Mohu však navrhnout jiné možné řešení."},
   {id:"agreement",name:"Potvrzení domluvy",category:"Organizace",text:"Pro jistotu shrnuji naši domluvu: [doplňte body, odpovědnosti a termíny]."}
 ];
 function getCustomBlocks(){const a=jget(LS.blocks,[]);return Array.isArray(a)?a.filter(x=>x&&x.id&&x.name&&x.text):[];}
@@ -59,6 +59,15 @@ window.evaluateDraftReadiness=function(p,text,source,cover){
   if((p==="in"||p==="my") && ST[p] && ST[p].replySenderMode==="jednotlivec"){
     const plural=/(?:\bvážíme si\b|\bděkujeme\b|\bpotvrzujeme\b|\bbudeme\b|\bjsme\b|\bmáme\b|\bchceme\b|\bprosíme\b|\bozveme se\b|\bkontaktujeme\b|\bzvážíme\b|\bvyhodnotíme\b|\bprojednáme\b|\bdomluvíme\b)/i.test(t);
     add(!plural,"Odpověď je psána za jednotlivce v 1. osobě jednotného čísla","danger",plural?"Uprav tvary typu ‚vážíme / budeme / projednáme‘ na jednotné číslo.":"");
+    const lang=typeof outLangCode==="function"?outLangCode(p):"cs";
+    if(lang==="cs" && typeof resolvedProfileGender==="function"){
+      const gender=resolvedProfileGender();
+      const male=/(?:\b(?:musel|předal|byl|mohl|chtěl|odeslal|připravil|upravil|doplnil|zpracoval|obdržel|rozhodl|navrhl|provedl|zkontroloval|poslal|potvrdil|informoval|omluvil)\s+(?:jsem|bych)\b|\b(?:jsem|bych)\s+(?:musel|předal|byl|mohl|chtěl|odeslal|připravil|upravil|doplnil|zpracoval|obdržel|rozhodl|navrhl|provedl|zkontroloval|poslal|potvrdil|informoval|omluvil)\b|\brád bych\b)/i.test(t);
+      const female=/(?:\b(?:musela|předala|byla|mohla|chtěla|odeslala|připravila|upravila|doplnila|zpracovala|obdržela|rozhodla|navrhla|provedla|zkontrolovala|poslala|potvrdila|informovala|omluvila)\s+(?:jsem|bych)\b|\b(?:jsem|bych)\s+(?:musela|předala|byla|mohla|chtěla|odeslala|připravila|upravila|doplnila|zpracovala|obdržela|rozhodla|navrhla|provedla|zkontrolovala|poslala|potvrdila|informovala|omluvila)\b|\bráda bych\b)/i.test(t);
+      const mismatch=gender==="female"?male:gender==="male"?female:(male||female);
+      const detail=gender==="female"?"Profil je nastaven na ženský rod; uprav tvary typu ‚předal jsem / musel jsem / rád bych‘.":gender==="male"?"Profil je nastaven na mužský rod; uprav tvary typu ‚předala jsem / musela jsem / ráda bych‘.":"Profil požaduje bezrodové formulace; přeformuluj rodově příznakové tvary v 1. osobě.";
+      add(!mismatch,"Gramatický rod pisatele odpovídá profilu","danger",mismatch?detail:"");
+    }
   }
   const srcDates=extractDates(src),outDates=extractDates(t),missingDates=srcDates.filter(x=>!outDates.includes(x));
   add(!missingDates.length,"Data a časy ze zadání jsou zachovány",missingDates.length?"danger":"warn",missingDates.join(", "));

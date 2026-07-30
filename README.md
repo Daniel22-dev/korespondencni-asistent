@@ -2,25 +2,24 @@
 
 Samostatný repozitář aplikace pro Gymnázium, Ostrava-Hrabůvka.
 
-- **Verze:** 5.6.0
+- **Verze:** 5.6.1
 - **Doporučený název repozitáře:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
 
-## Co přináší verze 5.6.0
+## Co přináší verze 5.6.1
 
-- bezpečnostní pravidla se z anonymizačního kroku otevírají v modálním okně přímo v aplikaci; úplný manuál se otevírá v nové kartě;
-- rozpracovaná anonymizace, klíč náhrad, kontrola i aktuální pracovní krok se dočasně ukládají do `sessionStorage` a po návratu nebo obnovení stejné karty se obnoví;
-- poznámky pro odpověď procházejí stejnou přísnou anonymizací jako hlavní text; nevyřešený možný identifikátor odeslání zastaví;
-- před každým API voláním se kontroluje celý skutečně sestavený prompt včetně poznámky, voleb a doplňujícího kontextu;
-- u poznámek jsou lokální štítky ve tvaru `osoba B · Cecilia`; skutečné jméno se do Gemini neposílá;
-- Gemini pracuje se strojovými značkami osob a požadovaným gramatickým pádem, skutečný tvar jména se doplní až lokálně v prohlížeči;
-- pádové tvary lze u neobvyklých jmen jednorázově zkontrolovat a upravit v klíči náhrad;
-- odpověď Gemini se před zobrazením znovu bezpečnostně kontroluje a známé skutečné údaje se nesmějí objevit bez vědomého odanonymizování;
-- interaktivní manuál 1.2.0 odpovídá novému workflow;
-- interní sada byla rozšířena na **85 testů**.
+- běžná spojovací slova a předložky jako `Mimochodem` nebo `Podle` se už nespojují se jménem do jedné osoby;
+- ručně označený pád jména se lokálně převádí na základní tvar, například `s Adélou Kulovou` → `Adéla Kulová`;
+- různé pády jedné osoby se ukládají pod jedinou značkou a skryjí se i v doplňující poznámce;
+- profil odesílatele obsahuje explicitní volbu **Mužský / Ženský / Bezrodové formulace**;
+- gramatický rod se přenáší do všech hlavních promptů i do následných AI úprav již vytvořeného návrhu;
+- kontrola před exportem blokuje zjevný opačný rod a u bezrodové volby upozorní na rodově příznakové formulace;
+- předpřipravené bloky „Potvrzení přijetí“ a „Zdvořilé odmítnutí“ jsou nově rodově neutrální;
+- interní sada byla rozšířena na **89 testů**.
+- interaktivní manuál 1.2.0 odpovídá verzi aplikace 5.6.1.
 
-Podrobnosti jsou v `docs/WORKFLOW-UPDATE-5.6.0.md`.
+Podrobnosti jsou v `docs/WORKFLOW-UPDATE-5.6.1.md`.
 
 ## Nahrání na GitHub
 

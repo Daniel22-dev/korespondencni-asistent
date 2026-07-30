@@ -250,6 +250,22 @@ function profileContextParts(){
   if(school) parts.push("pracoviště: "+school);
   return parts;
 }
+const PROFILE_GENDER_LABELS={male:"mužský",female:"ženský",neutral:"bezrodové formulace"};
+function resolvedProfileGender(profile){
+  const p=profile||loadProfile(),saved=String(p.gender||"").trim();
+  if(saved==="male"||saved==="female"||saved==="neutral")return saved;
+  const role=String(p.role||"").toLocaleLowerCase("cs-CZ");
+  if(/(?:učitelka|ředitelka|zástupkyně|koordinátorka|metodička|výchovná poradkyně|psycholožka|pedagožka|lektorka)/.test(role))return "female";
+  if(/(?:učitel|ředitel|zástupce|koordinátor|metodik|výchovný poradce|psycholog|pedagog|lektor)/.test(role))return "male";
+  return "neutral";
+}
+function writerGenderPrompt(mode){
+  if(mode&&mode!=="jednotlivec")return "";
+  const gender=resolvedProfileGender();
+  if(gender==="female")return " Gramatický rod pisatelky je ŽENSKÝ. Ve všech tvarech vztahujících se k pisatelce používej důsledně ženský rod, například ‚musela jsem, předala jsem, byla jsem, připravila jsem, ráda bych‘. Mužské tvary pro pisatelku nepoužívej.";
+  if(gender==="male")return " Gramatický rod pisatele je MUŽSKÝ. Ve všech tvarech vztahujících se k pisateli používej důsledně mužský rod, například ‚musel jsem, předal jsem, byl jsem, připravil jsem, rád bych‘. Ženské tvary pro pisatele nepoužívej.";
+  return " Rod pisatele není určen. Používej rodově neutrální formulace a vyhýbej se tvarům typu ‚musel/musela jsem‘, ‚předal/předala jsem‘ nebo ‚rád/ráda bych‘; větu raději přeformuluj bez rodového příznaku.";
+}
 function profileLine(){
   const parts=profileContextParts();
   return parts.length ? ("\nPracovní kontext pisatele: "+parts.join("; ")+". Tento kontext použij jen pro správné pochopení role a situace. Nevkládej jej automaticky do e-mailu a pisatele znovu nepředstavuj, pokud to není pro adresáta skutečně potřebné.") : "";
@@ -261,15 +277,16 @@ function renderMyProfileContext(){
   if(String(p.role||"").trim()) parts.push(String(p.role).trim());
   if(String(p.subjects||"").trim()) parts.push("předměty: "+String(p.subjects).trim());
   if(String(p.school||"").trim()) parts.push(String(p.school).trim());
-  const ready=parts.length>0;
+  parts.push("rod pisatele: "+PROFILE_GENDER_LABELS[resolvedProfileGender(p)]);
+  const ready=parts.length>1;
   box.classList.toggle("is-ready",ready);
   title.textContent=ready?"Profil je připravený":"Pracovní kontext není vyplněný";
-  text.textContent=ready?(parts.join(" · ")+". Jméno zůstává pouze v prohlížeči; pracovní kontext se používá jen tam, kde je pro e-mail relevantní."):"Doplň roli, vyučované předměty a školu. Při sestavování pak nemusíš pokaždé vysvětlovat, kdo jsi.";
+  text.textContent=ready?(parts.join(" · ")+". Jméno zůstává pouze v prohlížeči; pracovní kontext a gramatický rod se použijí jen tam, kde jsou pro e-mail relevantní."):"Doplň roli, vyučované předměty, školu a zkontroluj gramatický rod pisatele.";
 }
 function senderPerspectivePrompt(mode){
   if(mode==="tym") return "Píšu za tým nebo předmětovou komisi. Používej 1. osobu množného čísla jen tam, kde tým skutečně jedná společně.";
   if(mode==="instituce") return "Píšu za školu nebo instituci. Používej institucionální 1. osobu množného čísla a nepředstírej osobní rozhodnutí jednotlivce.";
-  return "Píšu jako jednotlivec. DŮSLEDNĚ používej 1. osobu jednotného čísla (děkuji, vážím si, projednám, ozvu se, budu Vás kontaktovat). Pouhá zmínka o kolezích, komisi nebo škole NENÍ důvod přejít na ‚my‘; napiš například ‚projednám s kolegy‘, nikoli ‚projednáme‘.";
+  return "Píšu jako jednotlivec. DŮSLEDNĚ používej 1. osobu jednotného čísla (děkuji, vážím si, projednám, ozvu se, budu Vás kontaktovat). Pouhá zmínka o kolezích, komisi nebo škole NENÍ důvod přejít na ‚my‘; napiš například ‚projednám s kolegy‘, nikoli ‚projednáme‘."+writerGenderPrompt("jednotlivec");
 }
 async function refineDraft(p, card, srcText, instruction){
   if(!geminiApiKey && !testMockAvailable()){ $("apiPanel").classList.add("open"); toast("Chybí klíč k API."); return; }
@@ -282,8 +299,9 @@ async function refineDraft(p, card, srcText, instruction){
   const lockedLine=locked.length?"\nUZAMČENÉ FORMULACE: následující části musí zůstat ve výsledku DOSLOVA a ve stejném pořadí: "+JSON.stringify(locked):"";
   card.style.opacity=".55";
   try{
+    const senderMode=ST[p]&&ST[p].replySenderMode||"jednotlivec";
     const d=await callGemini(
-      "Uprav tento koncept e-mailu podle pokynu, zachovej značky a podpis [podpis].\nPokyn: "+safeInstruction+lockedLine+"\n\nKoncept:\n\"\"\"\n"+safeDraft+"\n\"\"\""+lLine,
+      "Uprav tento koncept e-mailu podle pokynu, zachovej značky a podpis [podpis].\n"+senderPerspectivePrompt(senderMode)+profileLine()+"\nPokyn: "+safeInstruction+lockedLine+"\n\nKoncept:\n\"\"\"\n"+safeDraft+"\n\"\"\""+lLine,
       SYS_REFINE+lSystem, "text", {pane:p,texts:[safeDraft,safeInstruction],ackSensitive:!!(ST[p]&&ST[p].sensitiveAck)}
     );
     if(d&&d.text){ if(card.__setSrc) card.__setSrc(d.text,"AI úprava"); mergeSyn(p,d.synonyma); toast("Upraveno ✓"); }

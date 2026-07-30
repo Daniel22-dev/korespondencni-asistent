@@ -3,11 +3,12 @@ const IS_TEST_MODE=new URLSearchParams(window.location.search).get("test")==="1"
 "use strict";
 
 const RELEASE = {
-  version: "5.6.0",
-  date: "2026-07-27",
+  version: "5.6.1",
+  date: "2026-07-30",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.6.1: přesnější anonymizace jmen a rod pisatele — běžná spojovací slova a předložky se už nepřipojují ke jménům; ručně označený skloňovaný tvar se lokálně převádí na základní podobu a všechny pády zůstávají skryté pod jedinou značkou osoby. Profil odesílatele nově obsahuje explicitní volbu mužského, ženského nebo bezrodového vyjadřování; volba se propisuje do prvotního generování i následných AI úprav a kontrola před exportem zachytí opačný rod. Výchozí formulace pracovního stolu jsou rodově neutrální a interní sada má 89 testů.",
     "5.6.0: bezpečnostní aktualizace anonymizace — kontextová pravidla se otevírají přímo v aplikaci bez ztráty rozpracované práce; stav anonymizace se dočasně obnovuje v rámci relace. Poznámky pro Gemini nově procházejí přísnou kontrolou celého sestaveného promptu, známé tvary jmen se skryjí a nevyřešené možné identifikátory odeslání zastaví. Osoby lze do poznámky vložit lokálním štítkem se jménem, model pracuje jen se strojovou značkou a gramatickým pádem, skutečná jména se doplňují až lokálně. Odpověď Gemini se před zobrazením znovu kontroluje a případný únik známého údaje se bezpečně skryje. Přibyla lokální úprava pádových tvarů a 85 interních testů.",
     "5.5.5: dotažení bezpečnostního release — odstraněny osiřelé styly po starém školním návodu a dalších zrušených průvodcích, release gate kontroluje až finální nasazované artefakty a vypisuje jediný závěrečný verdikt, dokumentace auditu byla opravena a z obou anonymizačních cest vede přímý odkaz na kapitolu Bezpečná práce s údaji. Složka dist se nově negeneruje do verzovaného balíčku; sestavuje ji CI při nasazení.",
     "5.5.4: nepřístupný starý Školní návod pro kolegy byl odstraněn z kódu a jeho užitečný obsah byl přepracován do samostatné kapitoly Bezpečná práce s údaji v interaktivním manuálu. Kapitola vysvětluje, co anonymizovat, co do AI nevkládat, kdy komunikaci řešit bez AI, jak postupovat na sdíleném počítači a uvádí konkrétní bezpečné i nevhodné příklady.",

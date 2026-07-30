@@ -1013,7 +1013,7 @@ body.dark .dev-tool-card span{color:var(--ink-soft)}
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 body.workspace-open #appProgress{display:none!important}
 
-/* 5.6.0 — bezpečné poznámky, lokální identity a skloňování */
+/* 5.6.1 — bezpečné poznámky, lokální identity a skloňování */
 .manual-context-link[type="button"]{font:inherit;text-align:left;cursor:pointer}
 .person-reference-box{margin-top:8px;padding:10px 11px;border:1px solid var(--line);border-radius:10px;background:color-mix(in srgb,var(--paper) 84%,var(--accent) 16%)}
 .person-reference-title{display:block;font:700 12px var(--sans);color:var(--ink);margin-bottom:7px}
