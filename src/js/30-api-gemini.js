@@ -70,18 +70,28 @@ const LAST_PROMPT_SK="rozbor_last_prompt_debug";
 const NO_HISTORY_SK="rozbor_no_history";
 const OPS_LOG_SK="rozbor_ops_log";
 // Silné termíny blokují přímo; víceznačná slova jen v citlivém kontextu.
-const SENSITIVE_TERMS_SOURCE=String.raw`(?:diagn[oó]z|diagnostik|PPP|SPU|IVP|SVP|OSPOD|pedagogicko-psychologick|asistent pedagoga|podp[uů]rn\S*\s+opatřen|zdravotn[ií]\s+(?:stav|obtíž|omezen|dokument)|l[eé]ka[řr]sk\S*\s+zpr[aá]v|psycholo|psychiatr|rodinn[ée] pom[eě]r|soudn[ií]\s+(?:říz|rozhodnut|jedn[aá]n)|soci[aá]ln[ií]\s+situac|k[aá]ze[nň]sk|napomenut|d[uů]tk|vylou[čc]en\S*\s+ze\s+studia|podm[ií]ne[čc]n|[šs]ikan|sebepo[šs]koz|agresivn[ií]\s+chov|alkohol\S*\s+(?:u\s+ž[aá]k|požit|konzum)|drog)`;
+// Školní zkratky jsou úmyslně oddělené: jsou case-sensitive a musí tvořit celé slovo,
+// aby např. „spustíme“ nebo „Spuštění“ neaktivovalo přísný režim přes podřetězec SPU.
+const SENSITIVE_ABBREVIATIONS_RE=/(?<![\p{L}\p{M}])(?:PPP|SPU|IVP|SVP|OSPOD)(?![\p{L}\p{M}])/u;
+const SENSITIVE_TERMS_SOURCE=String.raw`(?:diagn[oó]z|diagnostik|pedagogicko-psychologick|asistent pedagoga|podp[uů]rn\S*\s+opatřen|zdravotn[ií]\s+(?:stav|obtíž|omezen|dokument)|l[eé]ka[řr]sk\S*\s+zpr[aá]v|psycholog(?!i(?:e|i|í))|psycholožk|psychologick|psychiatr|rodinn[ée] pom[eě]r|soudn[ií]\s+(?:říz|rozhodnut|jedn[aá]n)|soci[aá]ln[ií]\s+situac|k[aá]ze[nň]sk|napomenut|d[uů]tk|vylou[čc]en\S*\s+ze\s+studia|podm[ií]ne[čc]n|[šs]ikan|sebepo[šs]koz|agresivn[ií]\s+chov|alkohol\S*\s+(?:u\s+ž[aá]k|požit|konzum)|drog(?!eri))`;
 const SENSITIVE_TERMS_RE=new RegExp(String.raw`(?:^|[^\p{L}])`+SENSITIVE_TERMS_SOURCE,"iu");
-const SENSITIVE_TERMS_INTL_RE=/(?:\bdiagnos(?:is|ed|tic\w*)\b|\bADHD\b|\bautis(?:m|tic)\b|\bdyslexi\w*\b|\bdisabilit\w*\b|\bdisabled\b|\bspecial needs\b|\bIEP\b|\bcounsel(?:ing|or|lor)\b|\bpsycholog\w*\b|\bpsychiatr\w*\b|\bmedication\b|\bmental health\b|\bdepress\w*\b|\banxiety\b|\bself-?harm\b|\bsuicid\w*\b|\bbully\w*\b|\bharass\w*\b|\babus(?:e|ive)\b|\bsuspen(?:sion|ded)\b|\bexpel\w*\b|\bexpulsion\b|\bdetention\b|\bdivorce\b|\bcustody\b|\bsocial services\b|diagn[oó]stic\w*|discapacidad|dislexi\w*|autismo|necesidades especiales|psic[oó]log\w*|psiquiatr\w*|medicaci[oó]n|salud mental|depresi[oó]n|ansiedad|autolesi[oó]n|suicid\w*|acoso|abuso|expulsi[oó]n|suspensi[oó]n|divorcio|custodia|servicios sociales)/i;
+const SENSITIVE_TERMS_INTL_RE=/(?:\bdiagnos(?:is|ed|tic\w*)\b|\bADHD\b|\bautis(?:m|tic)\b|\bdyslexi\w*\b|\bdisabilit\w*\b|\bdisabled\b|\bspecial needs\b|\bIEP\b|\bcounsel(?:ing|or|lor)\b|\bpsycholog(?:y|ist|ical|ically)\w*\b|\bpsychiatr\w*\b|\bmedication\b|\bmental health\b|\bdepress\w*\b|\banxiety\b|\bself-?harm\b|\bsuicid\w*\b|\bbully\w*\b|\bharass\w*\b|\babus(?:e|ive)\b|\bsuspen(?:sion|ded)\b|\bexpel\w*\b|\bexpulsion\b|\bdetention\b|\bdivorce\b|\bcustody\b|\bsocial services\b|diagn[oó]stic\w*|discapacidad|dislexi\w*|autismo|necesidades especiales|psic[oó]log\w*|psiquiatr\w*|medicaci[oó]n|salud mental|depresi[oó]n|ansiedad|autolesi[oó]n|suicid\w*|acoso|abuso|expulsi[oó]n|suspensi[oó]n|divorcio|custodia|servicios sociales)/i;
 function hasContextualSensitiveTerms(text){
   const s=String(text||"");
-  if(/(?:rozvod\S*\s+rodič|rozvád[ěe]j|po\s+rozvodu|rozvodov\S*\s+říz)/iu.test(s))return true;
-  if(/z[aá]vislost\S*\s+na\s+(?:alkohol|drog|návykov|hazard|telefonu|internetu|sociálních)/iu.test(s) && !/v\s+z[aá]vislosti\s+na/iu.test(s))return true;
+  if(/(?:rozvod\S*\s+rodič|rozvád[ěe]j|po\s+rozvodu(?!\s+(?:vody|topení|tepla|plynu|elektřiny|elektroinstalace|vzduchotechniky|sítě|internetu))|rozvodov\S*\s+říz)/iu.test(s))return true;
   if(/soci[aá]ln[ií]\s+(?:situac|služb|odbor|pracovn)/iu.test(s) && /(?:žák|dítě|rodin|rodič|OSPOD|péč|ohrožen)/iu.test(s))return true;
   const sentences=s.split(/(?<=[.!?\n])\s*/u);
-  return sentences.some(row=>/(?:doporučen|zpr[aá]v|vyšetřen)\S*\s+z\s+poradn/iu.test(row) && /(?:žák|dítě|vzděláv|podp[uů]rn|diagn|PPP|SPU|IVP|psycholog)/iu.test(row));
+  return sentences.some(row=>{
+    const dependency=[...row.matchAll(/z[aá]vislost\S*\s+na\s+(?:alkohol|drog|návykov|hazard|automat|telefonu|internetu|sociálních)/igu)].some(m=>{
+      const prefix=row.slice(0,m.index||0);
+      return !/(?:^|[^\p{L}\p{M}])v(?:e)?\s*$/iu.test(prefix);
+    });
+    if(dependency)return true;
+    if(/psychologi(?:e|i|í)/iu.test(row) && /(?:žák|dítě|syn|dcer|vyšetřen|zpr[aá]v|doporučen|poradn|diagn|PPP|SPU|IVP)/iu.test(row))return true;
+    return /(?:doporučen|zpr[aá]v|vyšetřen)\S*\s+z\s+poradn/iu.test(row) && /(?:žák|dítě|vzděláv|podp[uů]rn|diagn|PPP|SPU|IVP|psycholog)/iu.test(row);
+  });
 }
-function hasSensitiveSchoolTerms(text){ const s=String(text||""); return SENSITIVE_TERMS_RE.test(s) || SENSITIVE_TERMS_INTL_RE.test(s) || hasContextualSensitiveTerms(s); }
+function hasSensitiveSchoolTerms(text){ const s=String(text||""); return SENSITIVE_ABBREVIATIONS_RE.test(s) || SENSITIVE_TERMS_RE.test(s) || SENSITIVE_TERMS_INTL_RE.test(s) || hasContextualSensitiveTerms(s); }
 
 function cleanLogMeta(meta){
   const deny=/prompt|text|body|content|system|raw|clean|email|mail/i;

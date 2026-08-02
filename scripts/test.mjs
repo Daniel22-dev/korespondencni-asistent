@@ -49,7 +49,7 @@ if(!raw.includes('data-ghrab-access-bootstrap')||!raw.includes('application/ghra
 if(/\b(?:prompt|confirm)\s*\(/.test(raw))bad("obsahuje nativní prompt/confirm");else ok("bez nativních blokujících dialogů");
 if(runtime.errors.length)bad("runtime chyby: "+runtime.errors.join(" | "));else ok("start bez runtime chyb");
 if(runtime.dup.length)bad("duplicitní ID: "+runtime.dup.join(", "));else ok("žádná duplicitní ID");
-const MIN_INTERNAL_TESTS=104;
+const MIN_INTERNAL_TESTS=113;
 if(runtime.fatal)bad("interní testy nešly spustit: "+runtime.fatal);else if(!runtime.count)bad("interní testy nic nevrátily");else if(runtime.count<MIN_INTERNAL_TESTS)bad(`počet interních testů klesl na ${runtime.count}, minimum je ${MIN_INTERNAL_TESTS}`);else if(runtime.fails.length){bad(`${runtime.fails.length}/${runtime.count} interních testů selhalo`);runtime.fails.forEach(x=>console.error("      "+x))}else ok(`${runtime.count}/${runtime.count} interních testů prošlo`);
 if(raw.includes('thinkingLevel:"low"'))bad("Gemini stále používá thinkingLevel low");else ok("Gemini nepoužívá thinkingLevel low");
 if(!raw.includes("GEMINI_MAX_OUTPUT_TOKENS=32768"))bad("Gemini nemá výstupní limit 32768");else ok("Gemini má výstupní limit 32768");
@@ -71,6 +71,7 @@ if(manualHtml){
   const safetyNavCount=(manualHtml.match(/href="#bezpecnost"/g)||[]).length;
   const safetyItems=(safetySection.match(/class="safety-item\b/g)||[]).length;
   if(!safetySection||safetyNavCount<2||!safetySection.includes('class="safety-list"')||safetyItems<3)bad("bezpečnostní kapitola nemá požadované ID, navigaci nebo strukturu");else ok("bezpečnostní kapitola má stabilní ID, navigaci a strukturu");
+  if(!safetySection.includes("Novákovic")||!safetySection.includes("Novákových"))bad("manuál nepopisuje známé omezení odvozených příjmení");else ok("manuál dokumentuje omezení odvozených příjmení");
 }
 const gitignore=readFileSync(join(ROOT,".gitignore"),"utf-8");if(!/^dist\/$/m.test(gitignore))bad("generované dist není v .gitignore");else ok("generované dist je v .gitignore");
 if(existsSync(join(ROOT,".git"))){let tracked="";try{tracked=execSync("git ls-files dist",{cwd:ROOT,stdio:["ignore","pipe","ignore"]}).toString().trim()}catch{}if(tracked)bad("dist je stále verzované v Git repozitáři; před vydáním ho odstraň");else ok("dist není verzované v Git repozitáři")}

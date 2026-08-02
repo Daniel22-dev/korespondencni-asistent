@@ -3,11 +3,12 @@ const IS_TEST_MODE=new URLSearchParams(window.location.search).get("test")==="1"
 "use strict";
 
 const RELEASE = {
-  version: "5.7.1",
+  version: "5.7.2",
   date: "2026-08-02",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.7.2: hloubkový audit anonymizace a přísného režimu — opraveny české dativy a lokály ženských jmen, zpětná kanonizace Šárka/Monika/Lenka/Olga, pohyblivé -e- u Pavel/Karel/Havel, oddělení mužských a ženských nominativů, automatické skrytí samostatného příjmení víceslovné osoby, falešné aktivace přes SPU/spustit, drogerii, školní psychologii a rozvody technických sítí, větná detekce závislosti, kontrola cizích jmen, přesnější rozlišení telefonu a rodného čísla a zákaz ukládání citlivého rozepsaného textu do pracovní relace. Interní sada má 113 testů.",
     "5.7.1: auditní oprava jazykové a bezpečnostní vrstvy — tabulkově ověřená kanonizace českých pádů jmen, jednotný detektor telefonů s výjimkami pro čísla dokladů, přesnější kontextová detekce citlivých témat, Unicode bezpečné hranice slov, neblokující kontrola stylu a termínů, potlačení pracovní relace v přísném režimu, validace importovaného profilu a úplnější mazání lokálních dat. Interní sada byla rozšířena o regresní tabulky pro skutečné školní vstupy.",
     "5.7.0: profil odesílatele nově obsahuje samostatnou sekci Můj způsob psaní se čtyřmi dlouhodobými profily, vlastními preferencemi a obraty, kterým se vyhýbat. U konkrétního e-mailu se osobní styl pouze zapíná nebo vypíná; tón, délka, účel, adresát, jednorázová úprava, fakta a bezpečnost mají vždy přednost. Prostá pravopisná a gramatická oprava osobní styl nepoužívá. Nastavení se propisuje do odpovědi, přepisu, sestavení z bodů i následných AI úprav a interní sada má 94 testů.",
     "5.6.2: přidána vrstva Přirozený styl — generativní prompty omezují prázdné úvody, opakování, úřednický jazyk a automatická zdvořilostní klišé, aniž by si model domýšlel fakta nebo rozvíjel citlivé údaje. Editor nabízí cílenou úpravu Přirozeněji, bezplatná kontrola před odesláním upozorní na nápadně šablonovité obraty a funkce Jak text působí? nově společně hodnotí tón, přirozenost i konkrétní problematické formulace. Prostá pravopisná korektura zůstává beze změny osobního stylu a interní sada má 92 testů.",

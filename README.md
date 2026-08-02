@@ -2,27 +2,27 @@
 
 Samostatný repozitář aplikace pro Gymnázium, Ostrava-Hrabůvka.
 
-- **Verze:** 5.7.1
+- **Verze:** 5.7.2
 - **Doporučený název repozitáře:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
 
-## Co přináší verze 5.7.1
+## Co přináší verze 5.7.2
 
-- opravena kanonizace českých pádů osob včetně jmen a příjmení typu **Petr Novák**, **Jana Nováková**, **Marek Krejčí**, **Lucie Malá** a **Ondřej Vaněk**;
-- celý navržený základní tvar se nyní zpětně ověřuje skloňováním; nejistý případ se viditelně označí a vyžádá ruční kontrolu;
-- telefonní čísla a čísla dokladů používají jeden zdroj pravidel; variabilní symboly, objednávky, faktury, ISBN, IČO a DIČ už nejsou falešně blokované jako telefon;
-- citlivé školní termíny jsou vyhodnocovány v kontextu, takže provozní věty o rozvodu vody, závislosti na počasí nebo objednávce z poradny nespouštějí přísný režim;
-- kontrola před exportem blokuje jen prázdný text a zbylou anonymizační značku; stylistické, rodové a termínové pochybnosti jsou upozornění;
-- česká pravidla používají Unicode bezpečné hranice slov a rozpoznávají také adresy a dny s diakritikou;
-- přísný režim smaže a potlačí pracovní relaci se skutečnými údaji;
-- smazání lokálních dat zahrnuje také předávku a provozní události AI Studia;
-- importovaný i přímo uložený profil prochází whitelistem, délkovými limity a kontrolou povolených hodnot;
-- funkce **Můj způsob psaní** z verze 5.7.0 zůstává beze změny a prošla auditem bez nálezu;
-- interní sada byla rozšířena z **94 na 104 testů** a release gate hlídá, že jejich počet neklesne;
-- interaktivní manuál 1.3.0 odpovídá verzi aplikace 5.7.1.
+- opraveny neexistující české tvary ženských jmen, například **Terezě → Tereze**, **Petrě → Petře** a **Barborě → Barboře**;
+- zpětná kanonizace bezpečně vrací tvary **Šárce → Šárka**, **Monice → Monika**, **Lence → Lenka** a **Olze → Olga**;
+- doplněno pohyblivé **-e-** u jmen **Pavel, Karel a Havel**, aniž by se měnil **Daniel**;
+- mužský a ženský nominativ, například **Petr / Petra** nebo **Jan / Jana**, se už nesloučí do jedné osoby;
+- u víceslovné osoby se stejnou značkou automaticky skryje také samostatné příjmení a vokativ, například **Pane Nováku**;
+- přísný režim už falešně nespouštějí slova **spustíme**, **Spuštění**, **drogerie**, školní předmět **psychologie** ani technické spojení **po rozvodu vody**;
+- detekce závislosti pracuje po větách, takže obecná věta „v závislosti na počasí“ nezakryje citlivý údaj v jiné větě;
+- neznámý cizí tvar, který by vedl k vymyšlenému českému základu, vyžádá ruční kontrolu skloňování;
+- mobilní číslo se nehlásí zároveň jako rodné číslo a neoznačené dlouhé číslo lze lokálně převést na číslo dokladu;
+- citlivý rozepsaný text se neukládá do pracovní relace ani před spuštěním anonymizace;
+- manuál 1.3.1 popisuje známé omezení odvozených rodinných tvarů příjmení, například **Novákovic / Novákových**;
+- interní sada byla rozšířena ze **104 na 113 testů** a release gate hlídá, že jejich počet neklesne.
 
-Podrobnosti jsou v `docs/WORKFLOW-UPDATE-5.7.1.md`.
+Podrobnosti jsou v `docs/WORKFLOW-UPDATE-5.7.2.md`.
 
 ## Nahrání na GitHub
 

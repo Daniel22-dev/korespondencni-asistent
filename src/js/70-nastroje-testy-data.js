@@ -215,6 +215,10 @@ async function runKorespTests(){
         assertTest(!left.length,name+" — zůstaly tvary: "+left.join(", ")+" | "+c);
       });
     });
+    await test("Ženský 3. a 6. pád používá existující české tvary", async()=>{
+      const rows=[["Tereza","Tereze"],["Petra","Petře"],["Pavla","Pavle"],["Barbora","Barboře"],["Jana","Janě"],["Eva","Evě"],["Šárka","Šárce"],["Olga","Olze"],["Alena","Aleně"],["Denisa","Denise"]];
+      rows.forEach(([name,expected])=>{const forms=generatedPersonForms(name);assertTest(forms[3]===expected&&forms[6]===expected,name+" má chybný dativ/lokál: "+JSON.stringify(forms));});
+    });
     await test("České pády celého jména", async()=>{
       ST.in.raw="Anna Nováková psala. Anně Novákové odpovím. Annu Novákovou pozvu."; ST.in.km=[{real:"Anna Nováková",token:"osoba A",auto:false}]; publishActiveKeyReals("in");
       const c=cleanFromKey("in");
@@ -264,6 +268,46 @@ async function runKorespTests(){
         assertTest(r.real===base&&r.confidence!=="unresolved",phrase+" → "+JSON.stringify(r));
         assertTest(forms[1]===nominative&&forms[5]===vocative,base+" má chybné pády: "+JSON.stringify(forms));
       });
+    });
+    await test("Zpětná palatalizace vrací skutečný základ jména", async()=>{
+      const rows=[["Děkuji Šárce.","Šárce","Šárka",3],["Píšu Monice.","Monice","Monika",3],["Píšu Lence.","Lence","Lenka",3],["Píšu Radce.","Radce","Radka",3],["Píšu Olze.","Olze","Olga",3],["Píšu Jitce.","Jitce","Jitka",3]];
+      rows.forEach(([raw,phrase,base,caseNo])=>{const r=canonicalizePersonPhrase(raw,phrase);assertTest(r.real===base&&r.caseNo===caseNo,phrase+" → "+JSON.stringify(r));});
+    });
+    await test("Pohyblivé e u jmen na -el se vrací jen tam, kam patří", async()=>{
+      const rows=[["Píšu Pavlu.","Pavlu","Pavel",3],["Píšu Pavlovi.","Pavlovi","Pavel",3],["Píšu Karlu.","Karlu","Karel",3],["Mluvil jsem s Karlem.","Karlem","Karel",7],["Mluvil jsem s Havlem.","Havlem","Havel",7],["Píšu Danielovi.","Danielovi","Daniel",3]];
+      rows.forEach(([raw,phrase,base,caseNo])=>{const r=canonicalizePersonPhrase(raw,phrase);assertTest(r.real===base&&r.caseNo===caseNo,phrase+" → "+JSON.stringify(r));});
+    });
+    await test("Neznámý cizí tvar vyžádá kontrolu skloňování", async()=>{
+      const foreign=normalizePersonSelection("Prosím vyřiďte to Xiu.","Xiu");
+      assertTest(foreign.real==="Xia"&&foreign.confidence==="unresolved","Xiu se přijalo bez kontroly: "+JSON.stringify(foreign));
+      const known=normalizePersonSelection("Bez Marka to nezvládneme.","Marka");
+      assertTest(known.real==="Marek"&&known.confidence!=="unresolved","známý tvar s předložkou se zbytečně zablokoval: "+JSON.stringify(known));
+      const czech=normalizePersonSelection("Děkuji Šárce.","Šárce");
+      assertTest(czech.real==="Šárka"&&czech.confidence!=="unresolved","známé české jméno se zbytečně zablokovalo: "+JSON.stringify(czech));
+    });
+    await test("Mužský a ženský nominativ nejsou jedna osoba", async()=>{
+      ST.in.raw="Petra Nováková je matka žáka. Petr je její syn.";ST.in.km=[];ST.in.reviewedSuggestions={};
+      addPhraseAs("in","Petra Nováková","person");addPhraseAs("in","Petr","person");
+      assertTest(ST.in.km.length===2&&ST.in.km[0].token!==ST.in.km[1].token,"Petra a Petr se sloučili: "+JSON.stringify(ST.in.km));
+      ST.in.raw="Petr nepřijde. Petrovi to předejte.";ST.in.km=[];ST.in.reviewedSuggestions={};
+      addPhraseAs("in","Petr","person");addPhraseAs("in","Petrovi","person");
+      assertTest(ST.in.km.length===1&&ST.in.km[0].real==="Petr","Petr a Petrovi se rozdělili: "+JSON.stringify(ST.in.km));
+      ST.in.raw="Petra nepřijde. Petrovi to předejte.";ST.in.km=[];ST.in.reviewedSuggestions={};
+      addPhraseAs("in","Petra","person");
+      assertTest(/Petrovi/.test(cleanFromKey("in")),"ženská Petra automaticky skryla mužský tvar Petrovi");
+      addPhraseAs("in","Petrovi","person");
+      assertTest(ST.in.km.length===2&&ST.in.km[0].token!==ST.in.km[1].token,"Petra a mužský tvar Petrovi se sloučily: "+JSON.stringify(ST.in.km));
+      ST.in.raw="Vidím Petra. Petrovi odpovím.";ST.in.km=[{real:"Petr",token:"osoba A",auto:false,aliases:["Petra"]}];ST.in.reviewedSuggestions={};
+      assertTest((cleanFromKey("in").match(/osoba A/g)||[]).length===2,"mužský Petr přestal skrývat vlastní pádové tvary a přesný alias");
+      ST.in.raw="Jana Malá přišla. Jan přišel také.";ST.in.km=[];ST.in.reviewedSuggestions={};
+      addPhraseAs("in","Jana Malá","person");addPhraseAs("in","Jan","person");
+      assertTest(ST.in.km.length===2&&ST.in.km[0].token!==ST.in.km[1].token,"Jana a Jan se sloučili: "+JSON.stringify(ST.in.km));
+    });
+    await test("Část víceslovného jména se skryje stejnou značkou", async()=>{
+      ST.in.raw="Petr Novák nepřijde. Pane Nováku, děkujeme.";ST.in.km=[{real:"Petr Novák",token:"osoba A",auto:false}];publishActiveKeyReals("in");clearAnalysisCache();
+      ST.in.clean=cleanFromKey("in");
+      assertTest(!/Novák/u.test(ST.in.clean)&&(ST.in.clean.match(/osoba A/g)||[]).length===2,"samostatné příjmení zůstalo odkryté: "+ST.in.clean);
+      assertTest(!preflightIssues(ST.in.clean,"in").danger.some(x=>/nezakrytý tvar/.test(x)),"samostatný vokativ vyvolal stopku");
     });
     await test("Různé pády téže osoby vytvoří jednu značku", async()=>{
       ST.in.raw="Týká se to Jany Novákové. Mluvil jsem s Janou Novákovou. Janě Novákové jsem psal.";ST.in.km=[];ST.in.reviewedSuggestions={};
@@ -405,6 +449,21 @@ async function runKorespTests(){
         assertTest(detected===isPhone,text+" autodetekce telefon="+detected+" / "+JSON.stringify(autoDetect(text)));
       });
     });
+    await test("Telefon se nehlásí zároveň jako rodné číslo a doklad má ústupovou akci", async()=>{
+      const phone=preflightIssues("Kontakt 775123456.").danger;
+      assertTest(phone.includes("telefon")&&!phone.some(x=>/rodné číslo/.test(x)),"mobil má dvojí hlášku: "+phone.join(" | "));
+      const rc=preflightIssues("Rodné číslo žáka je 105512/1234.").danger;
+      assertTest(rc.some(x=>/rodné číslo/.test(x)),"rodné číslo s lomítkem přestalo blokovat: "+rc.join(" | "));
+      ST.in.raw="Rodné číslo žáka je 105512/1234.";ST.in.clean=ST.in.raw;ST.in.km=[];clearAnalysisCache();
+      renderSafeFallback("in",safetyAudit(ST.in.clean,"in"));
+      assertTest(!E("in","safeFallback").querySelector("[data-docnum]"),"výslovné rodné číslo nabízí nebezpečné překlasifikování na doklad");
+      ST.in.raw="Do systému zadejte kód 2151234567.";ST.in.clean=ST.in.raw;ST.in.km=[];clearAnalysisCache();
+      renderSafeFallback("in",safetyAudit(ST.in.clean,"in"));
+      const btn=E("in","safeFallback").querySelector("[data-docnum]");
+      assertTest(!!btn,"u neoznačeného desetimístného čísla chybí akce číslo dokladu");
+      btn.click();
+      assertTest(ST.in.km.some(x=>/^\[číslo dokladu /.test(x.token||"")),"číslo se nepřevedlo na bezpečnou značku dokladu");
+    });
     await test("Citlivé termíny jsou kalibrované kontextem", async()=>{
       const safe=[
         "V učebně chemie je porouchaný rozvod vody.","Odjezd bude v závislosti na počasí posunut.","Prosím o zprávu z poradny ohledně objednávky učebnic.",
@@ -423,6 +482,13 @@ async function runKorespTests(){
       const falsePos=safe.filter(hasSensitiveSchoolTerms),falseNeg=sensitive.filter(x=>!hasSensitiveSchoolTerms(x));
       assertTest(!falsePos.length,"falešně citlivé: "+falsePos.join(" | "));
       assertTest(!falseNeg.length,"neodhalené citlivé: "+falseNeg.join(" | "));
+    });
+    await test("Přísný režim nebere provozní slova za citlivé údaje", async()=>{
+      const safe=["Zítra spustíme přihlašování na kroužky.","Spuštění nového rozvrhu proběhne v pondělí.","Prosím spusťte prezentaci.","Barvy koupíme v drogerii u školy.","Objednávka pro drogerii Teta je připravena.","Seminář z psychologie se příští týden ruší.","Maturitní otázky z psychologie pošlu zítra.","Po rozvodu vody v suterénu bude učebna přístupná.","V závislosti na počasí pojedeme ven."];
+      const sensitive=["Žák má SPU a IVP.","Psycholožka doporučila podpůrná opatření.","Vyšetření u psychologa proběhne v PPP.","Rodiče jsou po rozvodu.","Řešíme závislost na hazardu u syna.","V závislosti na počasí pojedeme ven. Řešíme také závislost na hazardu u našeho syna.","Ve třídě se objevily drogy."];
+      const falsePos=safe.filter(hasSensitiveSchoolTerms),falseNeg=sensitive.filter(x=>!hasSensitiveSchoolTerms(x));
+      assertTest(!falsePos.length,"provozní věty spustily přísný režim: "+falsePos.join(" | "));
+      assertTest(!falseNeg.length,"citlivé věty přestaly blokovat: "+falseNeg.join(" | "));
     });
     await test("Běžné školní věty neaktivují stopku", async()=>{
       const safe=["Prosím o zaslání organizačního opatření k výletu.","Žák byl omluven z důvodu nemoci.","Soutěž pořádá poradna pro volbu povolání.","Prosím o vyjádření k incidentu na chodbě.","Chemický pokus s alkoholem v laboratoři."];
@@ -831,6 +897,16 @@ async function runKorespTests(){
       activateSensitiveMode("test");saveWorkingSessionNow();
       assertTest(!sessionStorage.getItem(WORK_SESSION_KEY),"přísný režim ponechal pracovní relaci se skutečnými údaji");
       resumeWorkingSession();clearWorkingSession();
+    });
+    await test("Citlivý rozepsaný text se do pracovní relace vůbec neuloží", async()=>{
+      resumeWorkingSession();clearWorkingSession();
+      E("in","raw").value="Žák má SPU a doporučení z PPP.";ST.in.raw=E("in","raw").value;
+      saveWorkingSessionNow();
+      assertTest(!sessionStorage.getItem(WORK_SESSION_KEY),"citlivý rozepsaný text zůstal v sessionStorage");
+      E("in","raw").value="Běžná organizační zpráva.";ST.in.raw=E("in","raw").value;
+      saveWorkingSessionNow();
+      assertTest(!!sessionStorage.getItem(WORK_SESSION_KEY),"nezávadný rozepsaný text se přestal ukládat");
+      clearWorkingSession();
     });
     await test("Škodlivý/importovaný vstup a escapování", async()=>{
       E("in","raw").value='Dobrý den, <scr'+'ipt>alert(1)</scr'+'ipt> píše VelmiDlouhéJménoSloženéNováková-Králová 😀, tel. +420 777/123/456, třídy 1.A a 2.B, nar. 1. 2. 2010, OSPOD PPP. Podpis: Mgr. Testovací <b>učitel</b>.';
