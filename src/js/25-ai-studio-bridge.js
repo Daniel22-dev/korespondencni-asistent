@@ -1,4 +1,4 @@
-/* AI Studio GHRAB — GHRAB Material v1 adapter (Korespondenční asistent 5.6.1, bridge 1.3) */
+/* AI Studio GHRAB — GHRAB Material v1 adapter (Korespondenční asistent 5.7.0, bridge 1.3) */
 (function(){
   'use strict';
   const KEY='ghrab.handoff.v1',EVENTS='ghrab.pilot.events.v2',MAX_SOURCE=180000;

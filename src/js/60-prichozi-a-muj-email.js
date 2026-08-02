@@ -93,8 +93,8 @@ function renderAnalysis(d){
     '<div class="pgroup simple-hide"><div class="plabel" title="Komu odpovídáš. Předvolí oslovení i tón.">Adresát</div>'+chipGroup("in_adresat",ADRESAT,"rodic")+'<div class="custom-recipient" id="in_adresatJinyWrap" hidden><label for="in_adresatJiny">Komu odpovídáte?</label><input id="in_adresatJiny" type="text" maxlength="80" placeholder="např. nakladatelství, knihovna, externí partner"><small>Popis se použije pro tón a formálnost odpovědi.</small></div></div>'+
     '<div class="pgroup advanced-only"><div class="plabel" title="Určuje, zda má odpověď mluvit v jednotném, nebo množném čísle.">Píšu jako</div>'+chipGroup("in_pisujako",PISU_JAKO,"jednotlivec")+'<p class="hintline">Výchozí je jednotlivec. Zmínka o kolezích nebo předmětové komisi sama o sobě nepřepne odpověď na „my“.</p></div>'+
     '<div class="pgroup simple-hide"><div class="plabel">Záměr</div>'+chipGroup("in_zamer",ZAMER,sug)+'</div>'+
-    '<div class="pgroup advanced-only"><div class="plabel">Výchozí tón</div>'+chipGroup("in_ton",TON,(d.konflikt||st==="napeti")?"vstricny":"vecny")+'</div>'+
-    '<div class="pgroup advanced-only"><div class="plabel">Orientační délka standardní varianty</div>'+chipGroup("in_delka",DELKA,"stredni")+'</div>'+
+    '<div class="pgroup advanced-only"><div class="plabel">Tón této odpovědi <button class="help-tip" type="button" aria-label="Nápověda k tónu odpovědi" data-tip="Tón platí pro tuto odpověď a má přednost před dlouhodobým způsobem psaní z profilu.">i</button></div>'+chipGroup("in_ton",TON,(d.konflikt||st==="napeti")?"vstricny":"vecny")+'</div>'+
+    '<div class="pgroup advanced-only"><div class="plabel">Orientační délka standardní varianty</div>'+chipGroup("in_delka",DELKA,"stredni")+'</div>'+    '<div class="pgroup advanced-only writing-style-use">'+writingStyleControlHtml("in")+'</div>'+
     '<div class="pgroup simple-hide"><div class="plabel" title="Vykání nebo tykání ve výsledné odpovědi.">Oslovení</div>'+chipGroup("in_oslov",OSLOV,"vykani")+'</div>'+
     '<div class="pgroup advanced-only"><div class="plabel" title="V jakém jazyce má být odpověď.">Jazyk odpovědi</div>'+chipGroup("in_lang",LANG,(readChip("outlang")||"cs"))+'</div>'+
     '<div class="pgroup advanced-only note-field"><div class="plabel" title="Cokoli navíc — třeba na co nereagovat nebo co zmínit.">Poznámka pro odpověď</div><input id="in_note" type="text" title="Poznámka je součástí promptu. Osobu vlož nejlépe místním štítkem pod polem; do Gemini odejde pouze anonymní značka." placeholder="např. napiš, že danou žákyni neučím; navrhni telefonickou domluvu"><p class="field-safety-note">Poznámka se skutečně promítne do návrhu. Známé tvary jmen se skryjí; nevyřešené možné jméno nebo citlivý údaj odeslání zastaví.</p></div>'+
@@ -104,7 +104,9 @@ function renderAnalysis(d){
     '<div id="in_replyState"></div><div id="in_replies"></div>';
   wrap.appendChild(pc);
   const sc=pc.querySelector('.chips[data-group="in_zamer"] .chip[data-v="'+sug+'"]'); if(sc) sc.classList.add("suggested");
-  wireChips(pc); renderChoiceSummary("in");
+  wireChips(pc); renderWritingStyleControls(); renderChoiceSummary("in");
+  const inStyleEdit=$("in_writingStyleEdit"); if(inStyleEdit) inStyleEdit.onclick=()=>{ if(window.__openProfile) window.__openProfile(); };
+  const inStyleUse=$("in_useWritingStyle"); if(inStyleUse) inStyleUse.onchange=()=>renderChoiceSummary("in");
   renderPersonReferenceChips("in");
   pc.querySelector('.chips[data-group="in_adresat"]').addEventListener("click",(e)=>{ const c=e.target.closest(".chip"); if(c){ applyAdresat(c.dataset.v); syncCustomRecipient("in"); } });
   const inOther=$("in_adresatJiny"); if(inOther) inOther.addEventListener("input",()=>renderChoiceSummary("in"));
@@ -145,7 +147,8 @@ async function genReplies(){
   if(allEls.length && !checked.length){ state.innerHTML='<div class="error"><b>Není vybrán žádný požadavek.</b> Zaškrtni alespoň jeden bod, na který má odpověď reagovat.</div>'; return; }
   const noteRaw=($("in_note")&&$("in_note").value.trim())||"";
   const note=safeAuxiliaryText("in",noteRaw,state,"Poznámka pro odpověď");
-  if(note===null || !enforcePreflight("in",state,note?[note]:[])) return;
+  const styleCtx=buildPersonalWritingStyleContext("in",state,isPersonalWritingStyleEnabled("in"));
+  if(note===null || styleCtx===null || !enforcePreflight("in",state,[note,...(styleCtx?styleCtx.texts:[])].filter(Boolean))) return;
   const threadLine=ST.in.analysis&&ST.in.analysis.vlakno&&ST.in.analysis.vlakno.jeVlakno?"\nJde o e-mailové vlákno. Odpověz na poslední relevantní zprávu a neopakuj již uzavřené části.":"";
   const prompt="Přijatý e-mail nebo vlákno (se značkami):\n\"\"\"\n"+ST.in.clean+"\n\"\"\"\n\n"+
     "Napiš přesně 3 varianty: STRUČNOU, STANDARDNÍ a DIPLOMATICKOU. Všechny musí reagovat na stejné vybrané body.\n"+
@@ -153,10 +156,10 @@ async function genReplies(){
     (note?"Další pokyn: "+note+"\n":"")+
     "Reaguj POUZE na tyto požadavky: "+JSON.stringify(checked.length?checked:ST.in.pozadavky)+
     (unchecked.length?"\nTyto body ani osoby, kterých se týkají, v odpovědi VŮBEC nezmiňuj: "+JSON.stringify(unchecked):"")+
-    threadLine+profileLine()+langLine();
+    threadLine+profileLine()+styleCtx.line+langLine();
   const done=setBusy($("in_replyBtn"),"Skládám tři varianty…");
   try{
-    const d=await callGemini(prompt,SYS_REPLY+langSystem(),"reply", {pane:"in",texts:[ST.in.clean,note,...checked,...unchecked],ackSensitive:!!(ST.in&&ST.in.sensitiveAck)}); mergeSyn("in",d.synonyma);
+    const d=await callGemini(prompt,SYS_REPLY+langSystem(),"reply", {pane:"in",texts:[ST.in.clean,note,...styleCtx.texts,...checked,...unchecked],ackSensitive:!!(ST.in&&ST.in.sensitiveAck)}); mergeSyn("in",d.synonyma);
     state.innerHTML=""; const box=$("in_replies"); box.innerHTML="";
     let navrhy=Array.isArray(d&&d.navrhy)?d.navrhy:[];
     if(!navrhy.length){ recordCorrespondenceTelemetry('reply-draft',3,0,3); box.innerHTML='<p class="empty">Model nevrátil návrh — zkus to znovu.</p>'; return; }
@@ -194,7 +197,7 @@ async function genReplies(){
     };
     navrhy.forEach((n,i)=>{
       const type=n.typ||types[i]||"standardni";
-      const card=draftCard("in",{styl:n.styl||({strucna:"Rychlá věcná odpověď",standardni:"Vyvážená profesionální odpověď",diplomaticka:"Citlivější diplomatická odpověď"}[type]),variantType:type,text:n.text||"",cover:{pokryva:n.pokryva,vynechava:n.vynechava},sourceText:ST.in.clean,hint:"Text můžeš po výběru přímo upravit nebo zadat jeden vlastní pokyn k úpravě.",deferActive:true});
+      const card=draftCard("in",{styl:n.styl||({strucna:"Rychlá věcná odpověď",standardni:"Vyvážená profesionální odpověď",diplomaticka:"Citlivější diplomatická odpověď"}[type]),variantType:type,text:n.text||"",cover:{pokryva:n.pokryva,vynechava:n.vynechava},sourceText:ST.in.clean,hint:"Text můžeš po výběru přímo upravit nebo zadat jeden vlastní pokyn k úpravě.",deferActive:true,usePersonalStyle:styleCtx.enabled});
       card.classList.add("variant-choice-card");
       const editor=card.querySelector(".editor-toolbar"); if(editor) editor.remove();
       const locked=card.querySelector(".locked-list"); if(locked) locked.remove();
@@ -308,41 +311,74 @@ loadHistory();
   const lbl="font:600 12px var(--sans);color:var(--ink-soft);display:block;margin-top:12px";
   function render(){
     const p=loadProfile();
-    overlay.innerHTML='<div class="modal-card" role="dialog" aria-modal="true" aria-label="Profil odes\u00edlatele">'+
-      '<div class="modal-head"><b>Profil odes\u00edlatele</b><button id="profClose" class="modal-close" title="Zav\u0159\u00edt" aria-label="Zav\u0159\u00edt">\u00d7</button></div>'+
-      '<p class="hint" style="margin:0 0 6px"><b>Jméno zůstává pouze v prohlížeči</b> a doplní se lokálně místo značky [podpis]. Role, vyučované předměty, škola a zvolený gramatický rod se mohou použít jako pracovní kontext. Model nikdy nemá rod odhadovat ze jména.</p>'+
-      '<label style="'+lbl+'">Jméno (a příjmení) · pouze pro místní podpis</label><input id="pf_name" type="text" style="'+inS+'" value="'+escAttr(p.name||"")+'" placeholder="Jan Novák">'+
-      '<label style="'+lbl+'">Role / funkce</label><input id="pf_role" type="text" style="'+inS+'" value="'+escAttr(p.role||"")+'" placeholder="středoškolský učitel">'+
-      '<label style="'+lbl+'">Gramatický rod pisatele</label><div class="chips" data-group="pf_gender" style="margin-top:6px">'+
-        '<button class="chip" data-v="male">Mužský</button><button class="chip" data-v="female">Ženský</button><button class="chip" data-v="neutral">Bezrodové formulace</button></div>'+ 
-      '<p class="hintline">Určuje tvary jako „předal/předala jsem“ nebo „rád/ráda bych“. U bezrodové volby se mají věty přeformulovat.</p>'+ 
-      '<label style="'+lbl+'">Vyučované předměty</label><input id="pf_subjects" type="text" style="'+inS+'" value="'+escAttr(p.subjects||"")+'" placeholder="angličtina a španělština">'+
-      '<label style="'+lbl+'">Škola / pracoviště</label><input id="pf_school" type="text" style="'+inS+'" value="'+escAttr(p.school||"")+'" placeholder="Gymnázium …">'+
-      '<label style="'+lbl+'">Styl podpisu</label><div class="chips" data-group="pf_sign" style="margin-top:6px">'+
-        '<button class="chip" data-v="jmeno">Jen jméno</button><button class="chip" data-v="pozdrav">S pozdravem + jméno</button><button class="chip" data-v="funkce">Funkce + jméno</button><button class="chip" data-v="vlastni">Vlastní</button></div>'+
-      '<div id="pf_customWrap" style="display:none"><label style="'+lbl+'">Vlastní podpis</label><textarea id="pf_custom" style="'+inS+';min-height:70px;font-family:var(--sans)" placeholder="S pozdravem\nJan Novák\nučitel angličtiny">'+esc(p.custom||"")+'</textarea></div>'+
-      '<div style="margin-top:16px;display:flex;gap:8px"><button class="btn" id="pf_save">Uložit profil</button><button class="btn ghost" id="pf_clear">Smazat profil</button></div>'+
+    overlay.innerHTML='<div class="modal-card" role="dialog" aria-modal="true" aria-label="Profil odesílatele">'+
+      '<div class="modal-head"><b>Profil odesílatele</b><button id="profClose" class="modal-close" title="Zavřít" aria-label="Zavřít">×</button></div>'+ 
+      '<p class="hint" style="margin:0 0 6px"><b>Jméno zůstává pouze v prohlížeči</b> a doplní se lokálně místo značky [podpis]. Pracovní kontext a způsob psaní se použijí jen při tvorbě textu. Konkrétní tón, délka a účel zprávy mají vždy přednost.</p>'+ 
+      '<section class="profile-modal-section"><p class="profile-modal-kicker">Identita a pracovní kontext</p>'+ 
+        '<label style="'+lbl+'">Jméno (a příjmení) · pouze pro místní podpis</label><input id="pf_name" type="text" style="'+inS+'" value="'+escAttr(p.name||"")+'" placeholder="Jan Novák">'+ 
+        '<label style="'+lbl+'">Role / funkce</label><input id="pf_role" type="text" style="'+inS+'" value="'+escAttr(p.role||"")+'" placeholder="středoškolský učitel">'+ 
+        '<label style="'+lbl+'">Gramatický rod pisatele</label><div class="chips" data-group="pf_gender" style="margin-top:6px">'+ 
+          '<button class="chip" data-v="male">Mužský</button><button class="chip" data-v="female">Ženský</button><button class="chip" data-v="neutral">Bezrodové formulace</button></div>'+ 
+        '<p class="hintline">Určuje tvary jako „předal/předala jsem“ nebo „rád/ráda bych“. U bezrodové volby se mají věty přeformulovat.</p>'+ 
+        '<label style="'+lbl+'">Vyučované předměty</label><input id="pf_subjects" type="text" style="'+inS+'" value="'+escAttr(p.subjects||"")+'" placeholder="angličtina a španělština">'+ 
+        '<label style="'+lbl+'">Škola / pracoviště</label><input id="pf_school" type="text" style="'+inS+'" value="'+escAttr(p.school||"")+'" placeholder="Gymnázium …">'+ 
+      '</section>'+ 
+      '<section class="profile-modal-section profile-writing-section"><p class="profile-modal-kicker">Můj způsob psaní</p>'+ 
+        '<p class="hintline">Dlouhodobý základ formulací. Není to tón konkrétního e-mailu: volba „vstřícný“, „věcný“ nebo „důraznější“ jej pro danou zprávu přebije.</p>'+ 
+        '<label style="'+lbl+'">Výchozí způsob formulace</label><div class="chips profile-style-chips" data-group="pf_wstyle" style="margin-top:6px">'+ 
+          '<button class="chip" data-v="civilni">Civilní profesionální</button><button class="chip" data-v="usporny">Úsporný a přímý</button><button class="chip" data-v="vysvetlujici">Vysvětlující a přehledný</button><button class="chip" data-v="formalni">Formální a přesný</button></div>'+ 
+        '<p class="writing-style-description" id="pf_wstyleDesc"></p>'+ 
+        '<label style="'+lbl+'">Obraty, kterým se vyhýbat · nepovinné</label><textarea id="pf_styleAvoid" maxlength="500" style="'+inS+';min-height:66px;font-family:var(--sans)" placeholder="touto cestou; dovolte mi, abych; věřím, že společně">'+esc(p.styleAvoid||"")+'</textarea>'+ 
+        '<label style="'+lbl+'">Další preference formulace · nepovinné</label><textarea id="pf_styleCustom" maxlength="500" style="'+inS+';min-height:76px;font-family:var(--sans)" placeholder="Začni rovnou věcí. Používej kratší odstavce. U žádostí napiš jasně, co potřebuji.">'+esc(p.styleCustom||"")+'</textarea>'+ 
+        '<p class="profile-style-privacy"><b>Bez citlivých údajů:</b> tyto dvě preference se při zapnutém osobním stylu přidají k zadání pro model. Neuváděj jména, třídy, diagnózy ani konkrétní případy.</p>'+ 
+      '</section>'+ 
+      '<section class="profile-modal-section"><p class="profile-modal-kicker">Podpis</p>'+ 
+        '<label style="'+lbl+'">Styl podpisu</label><div class="chips" data-group="pf_sign" style="margin-top:6px">'+ 
+          '<button class="chip" data-v="jmeno">Jen jméno</button><button class="chip" data-v="pozdrav">S pozdravem + jméno</button><button class="chip" data-v="funkce">Funkce + jméno</button><button class="chip" data-v="vlastni">Vlastní</button></div>'+ 
+        '<div id="pf_customWrap" style="display:none"><label style="'+lbl+'">Vlastní podpis</label><textarea id="pf_custom" style="'+inS+';min-height:70px;font-family:var(--sans)" placeholder="S pozdravem\nJan Novák\nučitel angličtiny">'+esc(p.custom||"")+'</textarea></div>'+ 
+      '</section>'+ 
+      '<div style="margin-top:16px;display:flex;gap:8px"><button class="btn" id="pf_save">Uložit profil</button><button class="btn ghost" id="pf_clear">Smazat profil</button></div>'+ 
       '</div>';
     wireChips(overlay);
-    const sign=p.sign||"pozdrav"; setChip("pf_sign", sign);
-    setChip("pf_gender", typeof resolvedProfileGender==="function"?resolvedProfileGender(p):"neutral");
-    const customWrap=overlay.querySelector("#pf_customWrap");
-    const upd=()=>{ customWrap.style.display = readChip("pf_sign")==="vlastni"?"block":"none"; };
-    overlay.querySelector('.chips[data-group="pf_sign"]').addEventListener("click",(e)=>{ if(e.target.closest(".chip")) upd(); });
-    upd();
+    setChip("pf_sign",p.sign||"pozdrav");
+    setChip("pf_gender",typeof resolvedProfileGender==="function"?resolvedProfileGender(p):"neutral");
+    setChip("pf_wstyle",profileWritingStyleKey(p));
+    const customWrap=overlay.querySelector("#pf_customWrap"),styleDesc=overlay.querySelector("#pf_wstyleDesc");
+    const updateSignature=()=>{customWrap.style.display=readChip("pf_sign")==="vlastni"?"block":"none";};
+    const updateStyleDescription=()=>{if(styleDesc)styleDesc.textContent=PROFILE_WRITING_STYLE_DESCRIPTIONS[readChip("pf_wstyle")]||PROFILE_WRITING_STYLE_DESCRIPTIONS.civilni;};
+    overlay.querySelector('.chips[data-group="pf_sign"]').addEventListener("click",e=>{if(e.target.closest(".chip"))updateSignature();});
+    overlay.querySelector('.chips[data-group="pf_wstyle"]').addEventListener("click",e=>{if(e.target.closest(".chip"))updateStyleDescription();});
+    updateSignature(); updateStyleDescription();
     overlay.querySelector("#profClose").onclick=close;
     overlay.querySelector("#pf_save").onclick=()=>{
-      const prof={ name:overlay.querySelector("#pf_name").value.trim(), role:overlay.querySelector("#pf_role").value.trim(), gender:readChip("pf_gender")||"neutral", subjects:overlay.querySelector("#pf_subjects").value.trim(), school:overlay.querySelector("#pf_school").value.trim(), sign:readChip("pf_sign"), custom:overlay.querySelector("#pf_custom").value };
-      try{ localStorage.setItem("rozbor_profile", JSON.stringify(prof)); }catch(_){}
-      if(typeof renderMyProfileContext==="function") renderMyProfileContext();
-      toast("Profil uložen ✓"); close();
+      const prof={
+        name:overlay.querySelector("#pf_name").value.trim(),
+        role:overlay.querySelector("#pf_role").value.trim(),
+        gender:readChip("pf_gender")||"neutral",
+        subjects:overlay.querySelector("#pf_subjects").value.trim(),
+        school:overlay.querySelector("#pf_school").value.trim(),
+        writingStyle:readChip("pf_wstyle")||"civilni",
+        styleAvoid:overlay.querySelector("#pf_styleAvoid").value.trim(),
+        styleCustom:overlay.querySelector("#pf_styleCustom").value.trim(),
+        sign:readChip("pf_sign"),
+        custom:overlay.querySelector("#pf_custom").value
+      };
+      try{localStorage.setItem("rozbor_profile",JSON.stringify(typeof sanitizeProfile==="function"?sanitizeProfile(prof):prof));}catch(_){}
+      if(typeof renderMyProfileContext==="function")renderMyProfileContext();
+      if(typeof renderWritingStyleControls==="function")renderWritingStyleControls();
+      toast("Profil a způsob psaní uloženy ✓"); close();
     };
-    overlay.querySelector("#pf_clear").onclick=()=>{ try{ localStorage.removeItem("rozbor_profile"); }catch(_){} if(typeof renderMyProfileContext==="function") renderMyProfileContext(); toast("Profil smazán"); render(); };
+    overlay.querySelector("#pf_clear").onclick=()=>{
+      try{localStorage.removeItem("rozbor_profile");}catch(_){}
+      if(typeof renderMyProfileContext==="function")renderMyProfileContext();
+      if(typeof renderWritingStyleControls==="function")renderWritingStyleControls();
+      toast("Profil smazán"); render();
+    };
   }
-  function open(){ render(); overlay.classList.add("open"); }
-  function close(){ overlay.classList.remove("open"); }
-  overlay.addEventListener("click",(e)=>{ if(e.target===overlay) close(); });
-  document.addEventListener("keydown",(e)=>{ if(e.key==="Escape" && overlay.classList.contains("open")) close(); });
+  function open(){render();overlay.classList.add("open");}
+  function close(){overlay.classList.remove("open");}
+  overlay.addEventListener("click",e=>{if(e.target===overlay)close();});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&overlay.classList.contains("open"))close();});
   document.body.appendChild(overlay);
   window.__openProfile=open;
 })();
@@ -403,6 +439,8 @@ function updateMyMode(){
   $("my_toneGroup").style.display=(m==="sestavit")?"block":"none";
   $("my_lenGroup").style.display=(m==="sestavit")?"block":"none";
   $("my_subjGroup").style.display=(m==="prepsat"||m==="sestavit")?"block":"none";
+  const styleApplicable=m==="prepsat"||m==="sestavit"||(m==="opravit"&&readChip("my_fix")==="sloh");
+  $("my_writingStyleGroup").style.display=styleApplicable?"block":"none";
   const pane=$("pane-my"); if(pane) pane.classList.toggle("quick-compose",flow==="quick");
   updateModeHint(); updateScopeHint(); updateQuickPreview();
   const actionFold=$("my_actionFold"), resultFold=$("my_resultFold");
@@ -446,7 +484,7 @@ function syncSchoolScenario(v, applyDefaults){
     h.classList.toggle("data-danger", !!sc.sensitive);
   }
   renderAppliedScenario(v,sc,effects);
-  if(sc.strict) activateStrictScenario(sc);
+  if(sc.strict) activateStrictScenario(sc); else if(v==="none"&&typeof resumeWorkingSession==="function")resumeWorkingSession();
   ST.my.replySenderMode=readChip("my_pisujako")||"jednotlivec";
   updateMyMode();
 }
@@ -454,12 +492,16 @@ function applySchoolScenario(v){ syncSchoolScenario(v, true); }
 (function(){
   const gf=document.querySelector('.chips[data-group="my_flow"]'); if(gf) gf.addEventListener("click",(e)=>{ if(e.target.closest(".chip")) updateMyMode(); });
   const gm=document.querySelector('.chips[data-group="my_mode"]'); if(gm) gm.addEventListener("click",(e)=>{ if(e.target.closest(".chip")) updateMyMode(); });
+  const gfix=document.querySelector('.chips[data-group="my_fix"]'); if(gfix) gfix.addEventListener("click",(e)=>{ if(e.target.closest(".chip")) updateMyMode(); });
   const ga=document.querySelector('.chips[data-group="my_adresat"]'); if(ga) ga.addEventListener("click",(e)=>{ const c=e.target.closest(".chip"); if(c) applyMyAdresat(c.dataset.v); });
   const gscope=document.querySelector('.chips[data-group="my_scope"]'); if(gscope) gscope.addEventListener("click",(e)=>{ if(e.target.closest(".chip")){ updateScopeHint(); renderChoiceSummary("my"); } });
   const myOther=$("my_adresatJiny"); if(myOther) myOther.addEventListener("input",()=>renderChoiceSummary("my"));
   const gs=document.querySelector('.chips[data-group="my_scenario"]'); if(gs) gs.addEventListener("click",(e)=>{ const c=e.target.closest(".chip"); if(c) applySchoolScenario(c.dataset.v); });
   const gp=document.querySelector('.chips[data-group="my_pisujako"]'); if(gp) gp.addEventListener("click",()=>{ ST.my.replySenderMode=readChip("my_pisujako")||"jednotlivec"; renderChoiceSummary("my"); });
   const profileBtn=$("my_profileOpen"); if(profileBtn) profileBtn.addEventListener("click",()=>{ if(window.__openProfile) window.__openProfile(); });
+  const styleEdit=$("my_writingStyleEdit"); if(styleEdit) styleEdit.addEventListener("click",()=>{ if(window.__openProfile) window.__openProfile(); });
+  const styleUse=$("my_useWritingStyle"); if(styleUse) styleUse.addEventListener("change",()=>renderChoiceSummary("my"));
+  renderWritingStyleControls();
   updateMyMode();
   applySchoolScenario(readChip("my_scenario")||"none");
   syncCustomRecipient("my");
@@ -484,10 +526,11 @@ $("my_goBtn").onclick=async()=>{
   const scenario=SCHOOL_SCENARIOS[scenarioKey]||SCHOOL_SCENARIOS.none;
   const scenarioLine=scenarioKey!=="none"?("\nŠkolní scénář: "+scenario.label+". Bezpečnostní upozornění: "+(scenario.hint||"dodrž obecnou anonymizaci a školní citlivost.")+strictScenarioPrompt()):"";
   const note=safeAuxiliaryText("my", ($("my_note")&&$("my_note").value.trim())||"", state, "Doplňující pokyn");
-  if(note===null || !enforcePreflight("my", state, note?[note]:[])) return;
+  const styleCtx=buildPersonalWritingStyleContext("my",state,isPersonalWritingStyleEnabled("my"));
+  if(note===null || styleCtx===null || !enforcePreflight("my", state,[note,...(styleCtx?styleCtx.texts:[])].filter(Boolean))) return;
   const subj=readChip("my_subj")==="ano";
   const senderMode=readChip("my_pisujako")||"jednotlivec"; ST.my.replySenderMode=senderMode;
-  const common="\nAdresát: "+recipientLabel("my")+"\n"+audiencePrompt()+"\nOslovení: "+oslovTxt+"\n"+senderPerspectivePrompt(senderMode)+(note?"\nDalší pokyn: "+note:"")+(subj?"\nNa první řádek napiš předmět zprávy ve tvaru Předmět: / Subject: / Asunto: podle jazyka výstupu a pod něj samotný e-mail.":"")+scenarioLine+profileLine()+myLangLine();
+  const common="\nAdresát: "+recipientLabel("my")+"\n"+audiencePrompt()+"\nOslovení: "+oslovTxt+"\n"+senderPerspectivePrompt(senderMode)+(note?"\nDalší pokyn: "+note:"")+(subj?"\nNa první řádek napiš předmět zprávy ve tvaru Předmět: / Subject: / Asunto: podle jazyka výstupu a pod něj samotný e-mail.":"")+scenarioLine+profileLine()+styleCtx.line+myLangLine();
   let sys, prompt, styl;
   if(mode==="prepsat"){
     const s=readChip("my_prepis"), u=readChip("my_ucel"); styl="Přepsáno: "+(PREPIS[s]||s); sys=SYS_PREPIS;
@@ -501,10 +544,10 @@ $("my_goBtn").onclick=async()=>{
   }
   const done=setBusy($("my_goBtn"),"Pracuji…");
   try{
-    const d=await callGemini(prompt, sys+myLangSystem(), "text", {pane:"my",texts:[text,note],ackSensitive:!!(ST.my&&ST.my.sensitiveAck)}); mergeSyn("my", d.synonyma);
+    const d=await callGemini(prompt, sys+myLangSystem(), "text", {pane:"my",texts:[text,note,...styleCtx.texts],ackSensitive:!!(ST.my&&ST.my.sensitiveAck)}); mergeSyn("my", d.synonyma);
     state.innerHTML=""; const wrap=$("my_results"); wrap.innerHTML="";
     const cleanedOutput=replyAllowsEmoji(note)?(d.text||""):stripReplyEmoji(d.text||"");
-    const card=draftCard("my",{ styl, text:cleanedOutput, sourceText:text, hint:"Dvojklik na slovo nabídne synonyma. Označenou formulaci můžeš uzamknout a zbytek dále upravovat." });
+    const card=draftCard("my",{ styl, text:cleanedOutput, sourceText:text, hint:"Dvojklik na slovo nabídne synonyma. Označenou formulaci můžeš uzamknout a zbytek dále upravovat.", usePersonalStyle:styleCtx.enabled });
     if(mode==="opravit" && Array.isArray(d.zmeny)&&d.zmeny.length){ const cv=document.createElement("div"); cv.innerHTML='<h3 style="margin:14px 0 6px">Co se změnilo</h3><div class="cover">'+d.zmeny.map(z=>'<span class="ok">• '+esc(z)+'</span>').join("<br>")+'</div>'; card.insertBefore(cv, card.querySelector(".actions")); }
     wrap.appendChild(card); ST.my.outputReady=true; recordCorrespondenceTelemetry('outgoing-email',1,1,0); updateProgress("my"); if(typeof markWorkspaceStage==="function") markWorkspaceStage("draft"); if(typeof setActiveDraftCard==="function") setActiveDraftCard(card,"my"); wrap.scrollIntoView({behavior:"smooth",block:"start"});
   }catch(err){ recordCorrespondenceTelemetry('outgoing-email',1,0,1); setApiError(state, err, ()=>$("my_goBtn").click()); }

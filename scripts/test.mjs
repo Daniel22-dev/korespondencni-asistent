@@ -49,7 +49,8 @@ if(!raw.includes('data-ghrab-access-bootstrap')||!raw.includes('application/ghra
 if(/\b(?:prompt|confirm)\s*\(/.test(raw))bad("obsahuje nativní prompt/confirm");else ok("bez nativních blokujících dialogů");
 if(runtime.errors.length)bad("runtime chyby: "+runtime.errors.join(" | "));else ok("start bez runtime chyb");
 if(runtime.dup.length)bad("duplicitní ID: "+runtime.dup.join(", "));else ok("žádná duplicitní ID");
-if(runtime.fatal)bad("interní testy nešly spustit: "+runtime.fatal);else if(!runtime.count)bad("interní testy nic nevrátily");else if(runtime.fails.length){bad(`${runtime.fails.length}/${runtime.count} interních testů selhalo`);runtime.fails.forEach(x=>console.error("      "+x))}else ok(`${runtime.count}/${runtime.count} interních testů prošlo`);
+const MIN_INTERNAL_TESTS=104;
+if(runtime.fatal)bad("interní testy nešly spustit: "+runtime.fatal);else if(!runtime.count)bad("interní testy nic nevrátily");else if(runtime.count<MIN_INTERNAL_TESTS)bad(`počet interních testů klesl na ${runtime.count}, minimum je ${MIN_INTERNAL_TESTS}`);else if(runtime.fails.length){bad(`${runtime.fails.length}/${runtime.count} interních testů selhalo`);runtime.fails.forEach(x=>console.error("      "+x))}else ok(`${runtime.count}/${runtime.count} interních testů prošlo`);
 if(raw.includes('thinkingLevel:"low"'))bad("Gemini stále používá thinkingLevel low");else ok("Gemini nepoužívá thinkingLevel low");
 if(!raw.includes("GEMINI_MAX_OUTPUT_TOKENS=32768"))bad("Gemini nemá výstupní limit 32768");else ok("Gemini má výstupní limit 32768");
 const manifest=JSON.parse(readFileSync(join(BASE,"manifest.webmanifest"),"utf-8")),resolved=new URL(manifest.id,"https://daniel22-dev.github.io/").href,expected=`https://daniel22-dev.github.io/${REPO}/`;if(resolved!==expected)bad(`PWA id ${resolved}, očekáváno ${expected}`);else ok("jednoznačná PWA identita");

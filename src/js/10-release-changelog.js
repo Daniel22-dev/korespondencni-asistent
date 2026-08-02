@@ -3,11 +3,14 @@ const IS_TEST_MODE=new URLSearchParams(window.location.search).get("test")==="1"
 "use strict";
 
 const RELEASE = {
-  version: "5.6.1",
-  date: "2026-07-30",
+  version: "5.7.1",
+  date: "2026-08-02",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.7.1: auditní oprava jazykové a bezpečnostní vrstvy — tabulkově ověřená kanonizace českých pádů jmen, jednotný detektor telefonů s výjimkami pro čísla dokladů, přesnější kontextová detekce citlivých témat, Unicode bezpečné hranice slov, neblokující kontrola stylu a termínů, potlačení pracovní relace v přísném režimu, validace importovaného profilu a úplnější mazání lokálních dat. Interní sada byla rozšířena o regresní tabulky pro skutečné školní vstupy.",
+    "5.7.0: profil odesílatele nově obsahuje samostatnou sekci Můj způsob psaní se čtyřmi dlouhodobými profily, vlastními preferencemi a obraty, kterým se vyhýbat. U konkrétního e-mailu se osobní styl pouze zapíná nebo vypíná; tón, délka, účel, adresát, jednorázová úprava, fakta a bezpečnost mají vždy přednost. Prostá pravopisná a gramatická oprava osobní styl nepoužívá. Nastavení se propisuje do odpovědi, přepisu, sestavení z bodů i následných AI úprav a interní sada má 94 testů.",
+    "5.6.2: přidána vrstva Přirozený styl — generativní prompty omezují prázdné úvody, opakování, úřednický jazyk a automatická zdvořilostní klišé, aniž by si model domýšlel fakta nebo rozvíjel citlivé údaje. Editor nabízí cílenou úpravu Přirozeněji, bezplatná kontrola před odesláním upozorní na nápadně šablonovité obraty a funkce Jak text působí? nově společně hodnotí tón, přirozenost i konkrétní problematické formulace. Prostá pravopisná korektura zůstává beze změny osobního stylu a interní sada má 92 testů.",
     "5.6.1: přesnější anonymizace jmen a rod pisatele — běžná spojovací slova a předložky se už nepřipojují ke jménům; ručně označený skloňovaný tvar se lokálně převádí na základní podobu a všechny pády zůstávají skryté pod jedinou značkou osoby. Profil odesílatele nově obsahuje explicitní volbu mužského, ženského nebo bezrodového vyjadřování; volba se propisuje do prvotního generování i následných AI úprav a kontrola před exportem zachytí opačný rod. Výchozí formulace pracovního stolu jsou rodově neutrální a interní sada má 89 testů.",
     "5.6.0: bezpečnostní aktualizace anonymizace — kontextová pravidla se otevírají přímo v aplikaci bez ztráty rozpracované práce; stav anonymizace se dočasně obnovuje v rámci relace. Poznámky pro Gemini nově procházejí přísnou kontrolou celého sestaveného promptu, známé tvary jmen se skryjí a nevyřešené možné identifikátory odeslání zastaví. Osoby lze do poznámky vložit lokálním štítkem se jménem, model pracuje jen se strojovou značkou a gramatickým pádem, skutečná jména se doplňují až lokálně. Odpověď Gemini se před zobrazením znovu kontroluje a případný únik známého údaje se bezpečně skryje. Přibyla lokální úprava pádových tvarů a 85 interních testů.",
     "5.5.5: dotažení bezpečnostního release — odstraněny osiřelé styly po starém školním návodu a dalších zrušených průvodcích, release gate kontroluje až finální nasazované artefakty a vypisuje jediný závěrečný verdikt, dokumentace auditu byla opravena a z obou anonymizačních cest vede přímý odkaz na kapitolu Bezpečná práce s údaji. Složka dist se nově negeneruje do verzovaného balíčku; sestavuje ji CI při nasazení.",
@@ -92,6 +95,12 @@ const EMPTY_MARK = '<span class="empty empty-mark">— prázdné —</span>';
 // Číslo bankovního účtu: [předčíslí-]základ/kód banky. Jeden zdroj, čerstvá instance při každém užití.
 const RE_ACCOUNT_SRC = "\\b(?:\\d{1,6}-\\d{2,10}|\\d{7,10})\\/\\d{3,4}\\b";
 function reAccount(flags){ return new RegExp(RE_ACCOUNT_SRC, flags||""); }
+const RE_PHONE_SRC = "(?<!\\d)(?:(?:\\+420|00420)[\\s./-]?)?[2-9]\\d{2}[\\s./-]?\\d{3}[\\s./-]?\\d{3}(?!\\d)";
+const RE_DOCNUM_SRC = "(?<![\\p{L}\\p{M}])(?:VS|variabiln[ií]\\s+symbol|specifick[ýy]\\s+symbol|konstantn[ií]\\s+symbol|číslo\\s+(?:objednávky|faktury|jednací)|č\\.\\s*j\\.|ISBN|IČO|DIČ)\\D{0,12}[\\dA-Z-]{6,}";
+function rePhone(flags){ return new RegExp(RE_PHONE_SRC, flags||"u"); }
+function reDocnum(flags){ return new RegExp(RE_DOCNUM_SRC, (flags||"").includes("u")?(flags||"u"):(flags||"")+"u"); }
+function maskDocumentNumbers(text){ return String(text||"").replace(reDocnum("giu"),m=>" ".repeat(m.length)); }
+function unicodeWordRegex(source,flags){ const f=String(flags||"iu"); return new RegExp("(?<![\\p{L}\\p{M}\\d])(?:"+source+")(?![\\p{L}\\p{M}\\d])",f.includes("u")?f:f+"u"); }
 function toast(msg){
   const c=$("toasts"); if(!c) return;
   const t=document.createElement("div"); t.className="toast"; t.textContent=msg; c.appendChild(t);

@@ -185,6 +185,10 @@
     .draft .tweakrow{ margin-top:10px; }
   }
   .tonecard{ margin-top:12px; padding:14px; background:var(--paper); border:1px solid var(--line); border-radius:10px; }
+  .tone-summary{ display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+  .tone-summary .mood{ margin-top:0; }
+  .tone-section-title{ margin:12px 0 5px; color:var(--ink-soft); font:800 10.5px var(--sans); letter-spacing:.05em; text-transform:uppercase; }
+  .tone-section-title + .asks{ margin-top:0; }
   .token.t-sign, .w.hid.t-sign{ background:rgba(120,124,130,.20); color:var(--ink-soft); }
 
   .empty{ color:var(--ink-soft); font-size:14px; padding:6px 0; }
@@ -1013,7 +1017,7 @@ body.dark .dev-tool-card span{color:var(--ink-soft)}
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 body.workspace-open #appProgress{display:none!important}
 
-/* 5.6.1 — bezpečné poznámky, lokální identity a skloňování */
+/* 5.6.2 — přirozený styl, kontrola šablonovitosti a rozšířené hodnocení textu */
 .manual-context-link[type="button"]{font:inherit;text-align:left;cursor:pointer}
 .person-reference-box{margin-top:8px;padding:10px 11px;border:1px solid var(--line);border-radius:10px;background:color-mix(in srgb,var(--paper) 84%,var(--accent) 16%)}
 .person-reference-title{display:block;font:700 12px var(--sans);color:var(--ink);margin-bottom:7px}
@@ -1027,3 +1031,26 @@ body.workspace-open #appProgress{display:none!important}
 .case-form-grid{display:grid;gap:9px;margin-top:14px}.case-form-row{display:grid;grid-template-columns:minmax(150px,.85fr) minmax(180px,1.15fr);gap:10px;align-items:center}.case-form-row span{font:600 12px var(--sans);color:var(--ink-soft)}.case-form-row input{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font:13px var(--sans)}
 .safety-rules-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}.safety-rules-grid>div{border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--paper)}.safety-rules-grid ol{margin:8px 0 0 20px;padding:0}.safety-rules-grid li{margin:4px 0}.safety-rules-modal p{line-height:1.55}
 @media (max-width:640px){.case-form-row{grid-template-columns:1fr}.safety-rules-grid{grid-template-columns:1fr}.person-reference-chip{max-width:100%}.person-reference-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px}}
+
+/* 5.7.0 — osobní způsob psaní oddělený od tónu konkrétní zprávy */
+.profile-modal-section{margin-top:14px;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:color-mix(in srgb,var(--paper) 92%,var(--accent) 8%)}
+.profile-modal-section:first-of-type{margin-top:10px}
+.profile-modal-kicker{margin:0 0 7px;color:var(--accent-text);font:850 10.5px var(--sans);letter-spacing:.07em;text-transform:uppercase}
+.profile-writing-section{border-color:color-mix(in srgb,var(--accent) 36%,var(--line));background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 8%,var(--paper)),var(--paper))}
+.profile-style-chips .chip{white-space:normal;text-align:left}
+.writing-style-description{margin:8px 0 0;padding:8px 10px;border-left:3px solid var(--accent);background:var(--paper);color:var(--ink-soft);font:500 12px/1.45 var(--sans)}
+.profile-style-privacy{margin:10px 0 0;padding:9px 10px;border:1px dashed color-mix(in srgb,var(--warn) 55%,var(--line));border-radius:9px;background:color-mix(in srgb,var(--warn) 8%,var(--paper));color:var(--ink-soft);font:500 11.5px/1.45 var(--sans)}
+.profile-style-privacy b{color:var(--ink)}
+.writing-style-use{position:relative}
+.writing-style-toggle{display:flex;align-items:flex-start;gap:10px;margin-top:7px;padding:10px 11px;border:1px solid var(--line);border-radius:10px;background:var(--paper);cursor:pointer}
+.writing-style-toggle input{margin-top:3px;flex:0 0 auto}
+.writing-style-toggle span{display:block;min-width:0}
+.writing-style-toggle strong{display:block;color:var(--ink);font:750 12.5px var(--sans)}
+.writing-style-toggle small{display:block;margin-top:3px;color:var(--ink-soft);font:500 11.5px/1.4 var(--sans)}
+.writing-style-toggle:has(input:disabled){cursor:not-allowed;opacity:.7}
+.writing-style-toggle:has(input:not(:checked)){border-style:dashed}
+.writing-style-edit{margin-top:8px;padding:0}
+@media (max-width:620px){.profile-modal-section{padding:12px}.writing-style-toggle{padding:9px 10px}}
+
+.case-unresolved td{background:color-mix(in srgb,var(--warning,#d97706) 7%,transparent)}
+.case-warning{display:block;margin-top:4px;color:var(--warning,#b45309);font-weight:750;font-size:11px}

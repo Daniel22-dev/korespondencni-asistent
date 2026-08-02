@@ -41,15 +41,41 @@ window.getSelectedSignatureText=function(){
   const a=getSignatures();if(!a.length)return "";const id=localStorage.getItem(LS.selectedSignature)||"profile";return (a.find(x=>x.id===id)||a[0]).text||"";
 };
 function containsAny(t,arr){t=String(t||"").toLowerCase();return arr.some(x=>t.includes(x));}
-function extractDates(t){return [...new Set((String(t||"").match(/\b(?:\d{1,2}[.\/-]\s*\d{1,2}(?:[.\/-]\s*\d{2,4})?|\d{1,2}:\d{2}|ponděl[íia]?|úter[ýí]|střed[auy]|čtvrt(?:ek|ka|ku)|pát(?:ek|ku)|sobot[auy]|neděl[ei]|zítra|pozítří|příští týden|do konce týdne)\b/gi)||[]).map(x=>x.toLowerCase()))];}
+function extractDates(t){
+  const text=String(t||""),out=[];
+  const add=x=>{x=String(x||"").toLocaleLowerCase("cs-CZ");if(x&&!out.includes(x))out.push(x);};
+  (text.match(/(?<!\d)\d{1,2}[.\/-]\s*\d{1,2}(?:[.\/-]\s*\d{2,4})?(?!\d)|(?<!\d)\d{1,2}:\d{2}(?!\d)/g)||[]).forEach(add);
+  const days=[
+    [/ponděl(?:í|ní)/giu,"pondělí"],[/úter(?:ý|ní)/giu,"úterý"],[/střed(?:a|u|y|eční)/giu,"středa"],
+    [/čtvrt(?:ek|ka|ku|eční)/giu,"čtvrtek"],[/pát(?:ek|ku|eční)/giu,"pátek"],[/sobot(?:a|u|y|ní)/giu,"sobota"],[/neděl(?:e|i|ní)/giu,"neděle"]
+  ];
+  days.forEach(([re,label])=>{if(re.test(text))add(label);});
+  [[/zítra/giu,"zítra"],[/pozítří/giu,"pozítří"],[/příští\s+týden/giu,"příští týden"],[/do\s+konce\s+týdne/giu,"do konce týdne"]].forEach(([re,label])=>{if(re.test(text))add(label);});
+  return out;
+}
+window.extractDraftDates=extractDates;
+const TEMPLATE_PHRASE_RULES=[
+  {re:unicodeWordRegex("touto cestou","iu"),label:"touto cestou"},
+  {re:unicodeWordRegex("dovolte mi,? abych","iu"),label:"dovolte mi, abych"},
+  {re:unicodeWordRegex("je důležité (?:zdůraznit|podotknout|zmínit)","iu"),label:"je důležité zdůraznit"},
+  {re:unicodeWordRegex("věřím,? že společně","iu"),label:"věřím, že společně"},
+  {re:unicodeWordRegex("neváhejte (?:mě|mne|nás) kontaktovat","iu"),label:"neváhejte mě kontaktovat"},
+  {re:unicodeWordRegex("v dnešní (?:uspěchané |rychlé )?době","iu"),label:"v dnešní době"},
+  {re:/\bi hope this (?:email|message) finds you well\b/i,label:"I hope this email finds you well"},
+  {re:/\bplease do not hesitate to contact (?:me|us)\b/i,label:"please do not hesitate to contact me"},
+  {re:/\bit is important to (?:emphasize|highlight|note)\b/i,label:"it is important to emphasize"},
+  {re:/\bpor medio de la presente\b/i,label:"por medio de la presente"},
+  {re:/\bno dude en (?:ponerse en contacto|contactarme|contactarnos)\b/i,label:"no dude en ponerse en contacto"},
+  {re:unicodeWordRegex("es importante (?:destacar|señalar|mencionar)","iu"),label:"es importante destacar"}
+];
+function findTemplatePhrases(text){const t=String(text||"");return TEMPLATE_PHRASE_RULES.filter(x=>x.re.test(t)).map(x=>x.label);}
+window.findTemplatePhrases=findTemplatePhrases;
 
 window.evaluateDraftReadiness=function(p,text,source,cover){
   const t=safeText(text),src=safeText(source),items=[];
   const add=(ok,label,level,detail)=>items.push({ok:!!ok,label,level:ok?"ok":(level||"warn"),detail:detail||""});
-  add(t.length>=45,"Text není prázdný ani příliš krátký","danger");
-  // Pracovní koncept záměrně obsahuje bezpečné značky (např. „osoba A“).
-  // Kontrola před odesláním proto musí posuzovat až finální rekomponovanou verzi,
-  // ve které se známé značky vrátí na skutečné údaje a [podpis] na profilový podpis.
+  add(t.length>0,"Text není prázdný","danger");
+  add(!t.length||t.length>=15,"Text není neobvykle krátký","warn",t.length&&t.length<15?"Krátké potvrzení může být v pořádku; ověř, že nechybí podstata.":"");
   const finalText=typeof recompose==="function"?safeText(recompose(p,t)):t;
   const bezPodpisu=finalText.replace(/\[u[čc]itel\]/g," ");
   add(typeof hasLeftoverToken!=="function"||!hasLeftoverToken(bezPodpisu),"Nezůstala nevyplněná anonymizační značka","danger");
@@ -57,38 +83,31 @@ window.evaluateDraftReadiness=function(p,text,source,cover){
   add(/^((?:předmět|subject|asunto):.*\n+)?\s*(dobrý den|dobrý večer|vážen|ahoj|mil[ýáé]|dear|hello|hola|buenos)/im.test(t),"Zpráva obsahuje vhodné oslovení","warn");
   add(/(s pozdravem|děkuji|hezký den|kind regards|best regards|saludos|atentamente|\[podpis\])/i.test(t),"Zpráva má zakončení nebo podpis","warn");
   if((p==="in"||p==="my") && ST[p] && ST[p].replySenderMode==="jednotlivec"){
-    const plural=/(?:\bvážíme si\b|\bděkujeme\b|\bpotvrzujeme\b|\bbudeme\b|\bjsme\b|\bmáme\b|\bchceme\b|\bprosíme\b|\bozveme se\b|\bkontaktujeme\b|\bzvážíme\b|\bvyhodnotíme\b|\bprojednáme\b|\bdomluvíme\b)/i.test(t);
-    add(!plural,"Odpověď je psána za jednotlivce v 1. osobě jednotného čísla","danger",plural?"Uprav tvary typu ‚vážíme / budeme / projednáme‘ na jednotné číslo.":"");
-    const lang=typeof outLangCode==="function"?outLangCode(p):"cs";
-    if(lang==="cs" && typeof resolvedProfileGender==="function"){
-      const gender=resolvedProfileGender();
-      const male=/(?:\b(?:musel|předal|byl|mohl|chtěl|odeslal|připravil|upravil|doplnil|zpracoval|obdržel|rozhodl|navrhl|provedl|zkontroloval|poslal|potvrdil|informoval|omluvil)\s+(?:jsem|bych)\b|\b(?:jsem|bych)\s+(?:musel|předal|byl|mohl|chtěl|odeslal|připravil|upravil|doplnil|zpracoval|obdržel|rozhodl|navrhl|provedl|zkontroloval|poslal|potvrdil|informoval|omluvil)\b|\brád bych\b)/i.test(t);
-      const female=/(?:\b(?:musela|předala|byla|mohla|chtěla|odeslala|připravila|upravila|doplnila|zpracovala|obdržela|rozhodla|navrhla|provedla|zkontrolovala|poslala|potvrdila|informovala|omluvila)\s+(?:jsem|bych)\b|\b(?:jsem|bych)\s+(?:musela|předala|byla|mohla|chtěla|odeslala|připravila|upravila|doplnila|zpracovala|obdržela|rozhodla|navrhla|provedla|zkontrolovala|poslala|potvrdila|informovala|omluvila)\b|\bráda bych\b)/i.test(t);
+    const actionPlural=unicodeWordRegex(String.raw`(?:vážíme si|děkujeme|potvrzujeme|ozveme se|kontaktujeme|zvážíme|vyhodnotíme|projednáme|domluvíme|budeme Vás informovat)`,"iu").test(t);
+    add(!actionPlural,"Odpověď je psána za jednotlivce v 1. osobě jednotného čísla","warn",actionPlural?"Zkontroluj, zda skutečně píšeš za tým, nebo změň sloveso na jednotné číslo.":"");
+    const lang=typeof outLangCode==="function"?outLangCode(p):"cs",profile=typeof loadProfile==="function"?loadProfile():{},savedGender=String(profile.gender||"");
+    if(lang==="cs" && typeof resolvedProfileGender==="function" && ["male","female","neutral"].includes(savedGender)){
+      const gender=resolvedProfileGender(profile);
+      const male=unicodeWordRegex(String.raw`(?:(?:musel|předal|byl|mohl|chtěl|odeslal|připravil|upravil|doplnil|zpracoval|obdržel|rozhodl|navrhl|provedl|zkontroloval|poslal|potvrdil|informoval|omluvil)\s+(?:jsem|bych)|(?:jsem|bych)\s+(?:musel|předal|byl|mohl|chtěl|odeslal|připravil|upravil|doplnil|zpracoval|obdržel|rozhodl|navrhl|provedl|zkontroloval|poslal|potvrdil|informoval|omluvil)|rád bych)`,"iu").test(t);
+      const female=unicodeWordRegex(String.raw`(?:(?:musela|předala|byla|mohla|chtěla|odeslala|připravila|upravila|doplnila|zpracovala|obdržela|rozhodla|navrhla|provedla|zkontrolovala|poslala|potvrdila|informovala|omluvila)\s+(?:jsem|bych)|(?:jsem|bych)\s+(?:musela|předala|byla|mohla|chtěla|odeslala|připravila|upravila|doplnila|zpracovala|obdržela|rozhodla|navrhla|provedla|zkontrolovala|poslala|potvrdila|informovala|omluvila)|ráda bych)`,"iu").test(t);
       const mismatch=gender==="female"?male:gender==="male"?female:(male||female);
-      const detail=gender==="female"?"Profil je nastaven na ženský rod; uprav tvary typu ‚předal jsem / musel jsem / rád bych‘.":gender==="male"?"Profil je nastaven na mužský rod; uprav tvary typu ‚předala jsem / musela jsem / ráda bych‘.":"Profil požaduje bezrodové formulace; přeformuluj rodově příznakové tvary v 1. osobě.";
-      add(!mismatch,"Gramatický rod pisatele odpovídá profilu","danger",mismatch?detail:"");
+      const detail=gender==="female"?"Profil je nastaven na ženský rod.":gender==="male"?"Profil je nastaven na mužský rod.":"Profil výslovně požaduje bezrodové formulace.";
+      add(!mismatch,"Gramatický rod pisatele odpovídá profilu","warn",mismatch?detail:"");
     }
   }
   const srcDates=extractDates(src),outDates=extractDates(t),missingDates=srcDates.filter(x=>!outDates.includes(x));
-  add(!missingDates.length,"Data a časy ze zadání jsou zachovány",missingDates.length?"danger":"warn",missingDates.join(", "));
-  const sourceAttachment=containsAny(src,["příloha","v příloze","přikládám","soubor","attached","adjunto"]);
-  const outputAttachment=containsAny(t,["příloha","v příloze","přikládám","soubor","attached","adjunto"]);
-  add(!sourceAttachment||outputAttachment,"Nezapomnělo se na zmíněnou přílohu","warn");
-  add(!outputAttachment||sourceAttachment,"Text neslibuje přílohu, která nebyla v zadání","warn");
-  const misses=cover&&Array.isArray(cover.vynechava)?cover.vynechava.filter(Boolean):[];
-  add(!misses.length,"Pokryty jsou všechny zvolené požadavky",misses.length>1?"danger":"warn",misses.join(" · "));
-  const harsh=/(je nepřijatelné|okamžitě musíte|vaše vina|selhání|neschopn|absurdní|odmítám se o tom bavit|tohle nebudu tolerovat)/i.test(t);
-  add(!harsh,"Tón není zbytečně útočný nebo osobní","danger");
-  const labels=/(líný|problémový|nevychovaný|nezodpovědný žák|špatný rodič)/i.test(t);
-  add(!labels,"Text popisuje jednání, nehodnotí člověka","danger");
-  const commitments=/(zaručuji|garantuji|určitě zajistím|bez výjimky|stoprocentně|slibuji, že)/i.test(t);
-  add(!commitments,"Text nevytváří nechtěný absolutní závazek","warn");
-  const vague=/(někdy|co nejdříve|brzy|snad|asi bychom mohli)/i.test(t)&&!extractDates(t).length;
-  add(!vague,"Termín nebo další krok není zbytečně neurčitý","warn");
-  const questions=(src.match(/\?/g)||[]).length;
-  add(questions===0||containsAny(t,["odpov","potvr","prosím","navrh","termín","domluv","inform","souhlas","nemohu"]),"Text reaguje na otázky nebo jasně říká další krok","warn");
-  const danger=items.some(x=>!x.ok&&x.level==="danger"),warn=items.some(x=>!x.ok);
-  return {level:danger?"danger":warn?"warn":"ok",items};
+  add(!missingDates.length,"Data a časy ze zadání jsou zachovány","warn",missingDates.join(", "));
+  const sourceAttachment=containsAny(src,["příloha","v příloze","přikládám","soubor","attached","adjunto"]),outputAttachment=containsAny(t,["příloha","v příloze","přikládám","soubor","attached","adjunto"]);
+  add(!sourceAttachment||outputAttachment,"Nezapomnělo se na zmíněnou přílohu","warn");add(!outputAttachment||sourceAttachment,"Text neslibuje přílohu, která nebyla v zadání","warn");
+  const misses=cover&&Array.isArray(cover.vynechava)?cover.vynechava.filter(Boolean):[];add(!misses.length,"Pokryty jsou všechny zvolené požadavky","warn",misses.join(" · "));
+  const harsh=/(je nepřijatelné|okamžitě musíte|vaše vina|selhal(?:a|i)? jste|vaše selhání|osobní selhání|neschopn|absurdní|odmítám se o tom bavit|tohle nebudu tolerovat)/i.test(t);
+  add(!harsh,"Tón není zbytečně útočný nebo osobní","warn");
+  const labels=/(líný|problémový|nevychovaný|nezodpovědný žák|špatný rodič)/i.test(t);add(!labels,"Text popisuje jednání, nehodnotí člověka","warn");
+  const commitments=/(zaručuji|garantuji|určitě zajistím|bez výjimky|stoprocentně|slibuji, že)/i.test(t);add(!commitments,"Text nevytváří nechtěný absolutní závazek","warn");
+  const vague=/(někdy|co nejdříve|brzy|snad|asi bychom mohli)/i.test(t)&&!extractDates(t).length;add(!vague,"Termín nebo další krok není zbytečně neurčitý","warn");
+  const templatePhrases=findTemplatePhrases(t);add(!templatePhrases.length,"Text nepůsobí zbytečně šablonovitě","warn",templatePhrases.length?"Zvaž úpravu obratů: "+templatePhrases.join(" · "):"");
+  const questions=(src.match(/\?/g)||[]).length;add(questions===0||containsAny(t,["odpov","potvr","prosím","navrh","termín","domluv","inform","souhlas","nemohu"]),"Text reaguje na otázky nebo jasně říká další krok","warn");
+  const danger=items.some(x=>!x.ok&&x.level==="danger"),warn=items.some(x=>!x.ok);return {level:danger?"danger":warn?"warn":"ok",items};
 };
 function readinessLabel(level){return level==="ok"?"Připraveno":level==="warn"?"Zkontrolovat":"Chybí důležitá informace";}
 window.refreshDraftReadiness=function(el,p){

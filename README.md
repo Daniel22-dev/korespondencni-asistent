@@ -2,24 +2,27 @@
 
 Samostatný repozitář aplikace pro Gymnázium, Ostrava-Hrabůvka.
 
-- **Verze:** 5.6.1
+- **Verze:** 5.7.1
 - **Doporučený název repozitáře:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
 
-## Co přináší verze 5.6.1
+## Co přináší verze 5.7.1
 
-- běžná spojovací slova a předložky jako `Mimochodem` nebo `Podle` se už nespojují se jménem do jedné osoby;
-- ručně označený pád jména se lokálně převádí na základní tvar, například `s Adélou Kulovou` → `Adéla Kulová`;
-- různé pády jedné osoby se ukládají pod jedinou značkou a skryjí se i v doplňující poznámce;
-- profil odesílatele obsahuje explicitní volbu **Mužský / Ženský / Bezrodové formulace**;
-- gramatický rod se přenáší do všech hlavních promptů i do následných AI úprav již vytvořeného návrhu;
-- kontrola před exportem blokuje zjevný opačný rod a u bezrodové volby upozorní na rodově příznakové formulace;
-- předpřipravené bloky „Potvrzení přijetí“ a „Zdvořilé odmítnutí“ jsou nově rodově neutrální;
-- interní sada byla rozšířena na **89 testů**.
-- interaktivní manuál 1.2.0 odpovídá verzi aplikace 5.6.1.
+- opravena kanonizace českých pádů osob včetně jmen a příjmení typu **Petr Novák**, **Jana Nováková**, **Marek Krejčí**, **Lucie Malá** a **Ondřej Vaněk**;
+- celý navržený základní tvar se nyní zpětně ověřuje skloňováním; nejistý případ se viditelně označí a vyžádá ruční kontrolu;
+- telefonní čísla a čísla dokladů používají jeden zdroj pravidel; variabilní symboly, objednávky, faktury, ISBN, IČO a DIČ už nejsou falešně blokované jako telefon;
+- citlivé školní termíny jsou vyhodnocovány v kontextu, takže provozní věty o rozvodu vody, závislosti na počasí nebo objednávce z poradny nespouštějí přísný režim;
+- kontrola před exportem blokuje jen prázdný text a zbylou anonymizační značku; stylistické, rodové a termínové pochybnosti jsou upozornění;
+- česká pravidla používají Unicode bezpečné hranice slov a rozpoznávají také adresy a dny s diakritikou;
+- přísný režim smaže a potlačí pracovní relaci se skutečnými údaji;
+- smazání lokálních dat zahrnuje také předávku a provozní události AI Studia;
+- importovaný i přímo uložený profil prochází whitelistem, délkovými limity a kontrolou povolených hodnot;
+- funkce **Můj způsob psaní** z verze 5.7.0 zůstává beze změny a prošla auditem bez nálezu;
+- interní sada byla rozšířena z **94 na 104 testů** a release gate hlídá, že jejich počet neklesne;
+- interaktivní manuál 1.3.0 odpovídá verzi aplikace 5.7.1.
 
-Podrobnosti jsou v `docs/WORKFLOW-UPDATE-5.6.1.md`.
+Podrobnosti jsou v `docs/WORKFLOW-UPDATE-5.7.1.md`.
 
 ## Nahrání na GitHub
 

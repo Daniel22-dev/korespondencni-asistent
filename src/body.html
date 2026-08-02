@@ -217,11 +217,11 @@
         <div class="scenario-applied" id="my_scenarioApplied" hidden aria-live="polite"></div>
         <div class="profile-context-card profile-context-early" id="my_profileContext" aria-live="polite">
           <div class="profile-context-copy">
-            <span class="profile-context-kicker">Pracovní profil</span>
+            <span class="profile-context-kicker">Pracovní profil a způsob psaní</span>
             <strong id="my_profileContextTitle">Zatím není vyplněný</strong>
-            <p id="my_profileContextText">Doplň roli, vyučované předměty, školu a gramatický rod pisatele. Při sestavování pak nemusíš pokaždé vysvětlovat, kdo jsi.</p>
+            <p id="my_profileContextText">Doplň pracovní kontext, gramatický rod a svůj dlouhodobý způsob psaní. Tón a délku konkrétní zprávy budeš dál volit samostatně.</p>
           </div>
-          <div class="profile-context-actions"><button class="help-tip" type="button" aria-label="Nápověda k pracovnímu profilu" data-tip="Role, předměty, škola a gramatický rod se uloží jen v tomto prohlížeči a použijí se jako kontext. Jméno se neposílá modelu; slouží pouze pro místní podpis.">i</button><button class="btn ghost small" id="my_profileOpen" type="button">Upravit profil</button></div>
+          <div class="profile-context-actions"><button class="help-tip" type="button" aria-label="Nápověda k pracovnímu profilu a způsobu psaní" data-tip="Pracovní kontext a způsob psaní se uloží jen v tomto prohlížeči. Jméno se modelu neposílá; slouží pouze pro místní podpis. Konkrétní tón, délka a účel zprávy mají vždy přednost před dlouhodobým stylem.">i</button><button class="btn ghost small" id="my_profileOpen" type="button">Upravit profil</button></div>
         </div>
         <textarea id="my_raw" placeholder="Vlož svůj koncept k opravě či přepisu — nebo jen body (odrážky), ze kterých mám e-mail sestavit. Můžeš i nahrát soubor (.eml/.txt/.html)…"></textarea>
         <div class="row">
@@ -346,7 +346,7 @@
                 </div>
               </div>
               <div class="pgroup simple-hide" id="my_styleGroup" style="display:none">
-                <div class="plabel" title="Do jakého stylu přepsat.">Styl</div>
+                <div class="plabel" title="Jednorázová změna formulace tohoto konkrétního textu. Dlouhodobý způsob psaní zůstává v profilu.">Jednorázová úprava textu</div>
                 <div class="chips" data-group="my_prepis">
                   <button class="chip on" data-v="diplomaticky">Diplomatický</button>
                   <button class="chip" data-v="strucnejsi">Stručnější</button>
@@ -413,7 +413,7 @@
                 <div class="choice-summary" id="my_scenarioHint"></div>
               </div>
               <div class="pgroup advanced-only" id="my_toneGroup" style="display:none">
-                <div class="plabel">Tón</div>
+                <div class="plabel">Tón této zprávy <button class="help-tip" type="button" aria-label="Nápověda k tónu zprávy" data-tip="Tón platí jen pro tento e-mail a má přednost před dlouhodobým způsobem psaní uloženým v profilu.">i</button></div>
                 <div class="chips" data-group="my_cton">
                   <button class="chip on" data-v="vstricny">Vstřícný</button>
                   <button class="chip" data-v="vecny">Věcný</button>
@@ -427,6 +427,11 @@
                   <button class="chip on" data-v="stredni">Střední</button>
                   <button class="chip" data-v="podrobna">Podrobná</button>
                 </div>
+              </div>
+              <div class="pgroup advanced-only writing-style-use" id="my_writingStyleGroup" style="display:none">
+                <div class="plabel">Můj způsob psaní <button class="help-tip" type="button" aria-label="Nápověda k osobnímu způsobu psaní" data-tip="Jde o dlouhodobou preferenci formulací z profilu. Nemění fakta, adresáta, účel, délku ani tón této konkrétní zprávy.">i</button></div>
+                <label class="writing-style-toggle" for="my_useWritingStyle"><input id="my_useWritingStyle" type="checkbox" checked><span><strong id="my_writingStyleLabel">Nenastavený</strong><small id="my_writingStyleHint">V profilu zatím není uložen osobní způsob psaní.</small></span></label>
+                <button class="link-btn writing-style-edit" id="my_writingStyleEdit" type="button">Upravit v profilu</button>
               </div>
               <div class="pgroup advanced-only" id="my_subjGroup" style="display:none">
                 <div class="plabel">Předmět výsledného e-mailu <button class="help-tip" type="button" aria-label="Nápověda k předmětu e-mailu" data-tip="Volba určuje, zda aplikace kromě těla zprávy vytvoří také text do pole Předmět v Gmailu nebo Outlooku.">i</button></div>

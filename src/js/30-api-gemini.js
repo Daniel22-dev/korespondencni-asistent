@@ -69,12 +69,20 @@ const GEMINI_TIMEOUT_MS=45000;
 const LAST_PROMPT_SK="rozbor_last_prompt_debug";
 const NO_HISTORY_SK="rozbor_no_history";
 const OPS_LOG_SK="rozbor_ops_log";
-// Obecná slova (opatření, poradna, soud, sociální, incident, alkohol) blokují jen v citlivém kontextu.
-const SENSITIVE_TERMS_SOURCE="(?:diagn[oó]z|diagnostik|PPP|SPU|IVP|SVP|OSPOD|pedagogicko-psychologick|(?:doporučen|zpr[aá]v|vyšetřen)\\S*\\s+(?:(?:z|v)\\s+)?poradn|asistent pedagoga|podp[uů]rn\\S*\\s+opatřen|zdravotn[ií]\\s+(?:stav|obtíž|omezen|dokument)|l[eé]ka[řr]sk\\S*\\s+zpr[aá]v|psycholo|psychiatr|rodinn[ée] pom[eě]r|rozvod|soudn[ií]\\s+(?:říz|rozhodnut|jedn[aá]n)|soci[aá]ln[ií]\\s+(?:situac|služb|odbor|pracovn)|k[aá]ze[nň]sk|napomenut|d[uů]tk|vylou[čc]en\\S*\\s+ze\\s+studia|podm[ií]ne[čc]n|[šs]ikan|sebepo[šs]koz|agresivn[ií]\\s+chov|z[aá]vislost|alkohol\\S*\\s+(?:u\\s+ž[aá]k|požit|konzum)|drog)";
-const SENSITIVE_TERMS_RE=new RegExp("(?:^|[^\\p{L}])"+SENSITIVE_TERMS_SOURCE,"iu");
-// EN/ES citlivé termíny — vždy zapnuto (chrání i když je vstup cizojazyčný a výstup český).
-const SENSITIVE_TERMS_INTL_RE=/(?:\bdiagnos(?:is|ed|tic\w*)\b|\bADHD\b|\bautis(?:m|tic)\b|\bdyslexi\w*\b|\bdisabilit\w*\b|\bdisabled\b|\bspecial needs\b|\bIEP\b|\bcounsel(?:ing|or|lor)\b|\bpsycholog\w*\b|\bpsychiatr\w*\b|\btherap(?:y|ist)\b|\bmedication\b|\bmental health\b|\bdepress\w*\b|\banxiety\b|\bself-?harm\b|\bsuicid\w*\b|\bbully\w*\b|\bharass\w*\b|\babus(?:e|ive)\b|\bsuspen(?:sion|ded)\b|\bexpel\w*\b|\bexpulsion\b|\bdetention\b|\bdivorce\b|\bcustody\b|\bsocial services\b|\billness\b|\bdisease\b|\bdisorder\b|diagn[oó]stic\w*|discapacidad|dislexi\w*|autismo|necesidades especiales|psic[oó]log\w*|psiquiatr\w*|terapia|medicaci[oó]n|salud mental|depresi[oó]n|ansiedad|autolesi[oó]n|suicid\w*|acoso|abuso|expulsi[oó]n|suspensi[oó]n|divorcio|custodia|servicios sociales|enfermedad)/i;
-function hasSensitiveSchoolTerms(text){ const s=String(text||""); return SENSITIVE_TERMS_RE.test(s) || SENSITIVE_TERMS_INTL_RE.test(s); }
+// Silné termíny blokují přímo; víceznačná slova jen v citlivém kontextu.
+const SENSITIVE_TERMS_SOURCE=String.raw`(?:diagn[oó]z|diagnostik|PPP|SPU|IVP|SVP|OSPOD|pedagogicko-psychologick|asistent pedagoga|podp[uů]rn\S*\s+opatřen|zdravotn[ií]\s+(?:stav|obtíž|omezen|dokument)|l[eé]ka[řr]sk\S*\s+zpr[aá]v|psycholo|psychiatr|rodinn[ée] pom[eě]r|soudn[ií]\s+(?:říz|rozhodnut|jedn[aá]n)|soci[aá]ln[ií]\s+situac|k[aá]ze[nň]sk|napomenut|d[uů]tk|vylou[čc]en\S*\s+ze\s+studia|podm[ií]ne[čc]n|[šs]ikan|sebepo[šs]koz|agresivn[ií]\s+chov|alkohol\S*\s+(?:u\s+ž[aá]k|požit|konzum)|drog)`;
+const SENSITIVE_TERMS_RE=new RegExp(String.raw`(?:^|[^\p{L}])`+SENSITIVE_TERMS_SOURCE,"iu");
+const SENSITIVE_TERMS_INTL_RE=/(?:\bdiagnos(?:is|ed|tic\w*)\b|\bADHD\b|\bautis(?:m|tic)\b|\bdyslexi\w*\b|\bdisabilit\w*\b|\bdisabled\b|\bspecial needs\b|\bIEP\b|\bcounsel(?:ing|or|lor)\b|\bpsycholog\w*\b|\bpsychiatr\w*\b|\bmedication\b|\bmental health\b|\bdepress\w*\b|\banxiety\b|\bself-?harm\b|\bsuicid\w*\b|\bbully\w*\b|\bharass\w*\b|\babus(?:e|ive)\b|\bsuspen(?:sion|ded)\b|\bexpel\w*\b|\bexpulsion\b|\bdetention\b|\bdivorce\b|\bcustody\b|\bsocial services\b|diagn[oó]stic\w*|discapacidad|dislexi\w*|autismo|necesidades especiales|psic[oó]log\w*|psiquiatr\w*|medicaci[oó]n|salud mental|depresi[oó]n|ansiedad|autolesi[oó]n|suicid\w*|acoso|abuso|expulsi[oó]n|suspensi[oó]n|divorcio|custodia|servicios sociales)/i;
+function hasContextualSensitiveTerms(text){
+  const s=String(text||"");
+  if(/(?:rozvod\S*\s+rodič|rozvád[ěe]j|po\s+rozvodu|rozvodov\S*\s+říz)/iu.test(s))return true;
+  if(/z[aá]vislost\S*\s+na\s+(?:alkohol|drog|návykov|hazard|telefonu|internetu|sociálních)/iu.test(s) && !/v\s+z[aá]vislosti\s+na/iu.test(s))return true;
+  if(/soci[aá]ln[ií]\s+(?:situac|služb|odbor|pracovn)/iu.test(s) && /(?:žák|dítě|rodin|rodič|OSPOD|péč|ohrožen)/iu.test(s))return true;
+  const sentences=s.split(/(?<=[.!?\n])\s*/u);
+  return sentences.some(row=>/(?:doporučen|zpr[aá]v|vyšetřen)\S*\s+z\s+poradn/iu.test(row) && /(?:žák|dítě|vzděláv|podp[uů]rn|diagn|PPP|SPU|IVP|psycholog)/iu.test(row));
+}
+function hasSensitiveSchoolTerms(text){ const s=String(text||""); return SENSITIVE_TERMS_RE.test(s) || SENSITIVE_TERMS_INTL_RE.test(s) || hasContextualSensitiveTerms(s); }
+
 function cleanLogMeta(meta){
   const deny=/prompt|text|body|content|system|raw|clean|email|mail/i;
   const out={};
@@ -159,7 +167,11 @@ function validateModelJson(obj, schema){
     if(!obj.synonyma || typeof obj.synonyma!=="object" || Array.isArray(obj.synonyma)) obj.synonyma={};
   } else if(schema==="tone"){
     if(!obj.naladeni || typeof obj.naladeni!=="object") obj.naladeni={stupen:"neutral",popis:""};
+    if(!obj.prirozenost || typeof obj.prirozenost!=="object" || Array.isArray(obj.prirozenost)) obj.prirozenost={stupen:"prirozeny",popis:""};
+    if(!["prirozeny","mirne_sablonovity","sablonovity"].includes(obj.prirozenost.stupen)) obj.prirozenost.stupen="prirozeny";
+    if(typeof obj.prirozenost.popis!=="string") obj.prirozenost.popis="";
     assertArrayField(obj,"rizika",false);
+    assertArrayField(obj,"sablonoviteObraty",false);
   } else if(schema==="synonyms"){
     assertArrayField(obj,"synonyma",true);
   }
