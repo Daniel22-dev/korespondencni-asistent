@@ -5,6 +5,17 @@ let geminiApiKey="", geminiKeyScope="", geminiModel=MODEL_DEFAULT;
 let TEST_RUN_ACTIVE=false;
 window.__setTestRunActive=v=>{ TEST_RUN_ACTIVE=!!v; };
 function testMockAvailable(){ return (IS_TEST_MODE||TEST_RUN_ACTIVE) && !!window.__TEST_MOCK_GEMINI; }
+function currentAiMode(){return window.GHRABRuntime?GHRABRuntime.getMode():"direct-gemini";}
+function isAiServiceReady(){return currentAiMode()==="school-gateway"||!!geminiApiKey||testMockAvailable();}
+function applyAiRuntimeUi(){
+  const school=currentAiMode()==="school-gateway",direct=$("directGeminiSettings"),schoolBox=$("schoolGatewayStatus"),title=$("apiTitle"),toggle=$("apiToggle");
+  if(direct)direct.hidden=school;
+  if(schoolBox)schoolBox.hidden=!school;
+  if(title)title.textContent=school?"⚡ Generování přes školní AI službu":"⚡ Generování přes Gemini";
+  if(toggle)toggle.textContent=school?"Připojení ke školní AI ▾":"Připojení k AI ▾";
+  updateKeyStatus();
+}
+window.addEventListener("ghrab:runtime-config-changed",applyAiRuntimeUi);
 
 function cleanKey(s){ return String(s||"").replace(/[^\x21-\x7E]/g,""); }
 function inputKey(){ return cleanKey($("keyInput").value); }
@@ -25,11 +36,20 @@ function saveKeyPermanent(){
 }
 function clearKey(){ try{sessionStorage.removeItem(KEY_SESSION_SK);}catch(_){} try{localStorage.removeItem(KEY_SK);}catch(_){} setKey("",""); }
 function updateKeyStatus(){
-  const el=$("keyStatus"); el.className="api-status";
-  const badge=$("keyBadge"); let bCls="none", bTxt="klíč: nezadán";
-  if(geminiApiKey){ if(geminiKeyScope==="permanent"){el.textContent="✓ Klíč uložen trvale";el.classList.add("perm"); bCls="perm"; bTxt="klíč: trvale";} else if(geminiKeyScope==="session"){el.textContent="✓ Klíč uložen pro relaci";el.classList.add("ok"); bCls="ok"; bTxt="klíč: relace";} else {el.textContent="✓ Klíč zadán (neuložen)";el.classList.add("ok"); bCls="ok"; bTxt="klíč: jen v paměti";} }
-  else el.textContent="Klíč není nastaven";
-  if(badge){ badge.className="key-badge "+bCls; badge.textContent=bTxt; }
+  const el=$("keyStatus"),badge=$("keyBadge"); if(!el)return;
+  el.className="api-status";
+  if(currentAiMode()==="school-gateway"){
+    el.textContent="✓ Školní AI služba";el.classList.add("ok");
+    if(badge){badge.className="key-badge ok";badge.textContent="školní server";}
+    return;
+  }
+  let bCls="none",bTxt="klíč: nezadán";
+  if(geminiApiKey){
+    if(geminiKeyScope==="permanent"){el.textContent="✓ Klíč uložen trvale";el.classList.add("perm");bCls="perm";bTxt="klíč: trvale";}
+    else if(geminiKeyScope==="session"){el.textContent="✓ Klíč uložen pro relaci";el.classList.add("ok");bCls="ok";bTxt="klíč: relace";}
+    else{el.textContent="✓ Klíč zadán (neuložen)";el.classList.add("ok");bCls="ok";bTxt="klíč: jen v paměti";}
+  }else el.textContent="Klíč není nastaven";
+  if(badge){badge.className="key-badge "+bCls;badge.textContent=bTxt;}
 }
 $("btnSession").onclick=()=>{ useKeySession(); flash($("btnSession"),"Uloženo pro relaci ✓"); };
 $("btnPermanent").onclick=()=>{ saveKeyPermanent(); };
@@ -194,21 +214,13 @@ function saveLastPromptDebug(prompt, system, model, schema){
 }
 function loadLastPromptDebug(){ try{ return JSON.parse(sessionStorage.getItem(LAST_PROMPT_SK)||"null"); }catch(_){ return null; } }
 function friendlyApiMessage(e){
-  if(!e) return "Neznámá chyba.";
-  if(e.code==="MISSING_KEY") return "Chybí API klíč. Vlož ho nahoře v panelu Klíč k API a použij ho pro relaci.";
-  if(e.name==="AbortError" || e.code==="TIMEOUT") return "Model neodpověděl včas. Vstup zůstal zachovaný, zkus akci spustit znovu.";
-  if(e.code==="BAD_JSON") return "Model nevrátil čitelný JSON. Vstup zůstal zachovaný, zkus to znovu.";
-  if(e.code==="BAD_SCHEMA") return "Model vrátil neúplnou odpověď. Zkus to znovu; pokud se to opakuje, přepni model.";
-  if(e.code==="INCOMPLETE_RESPONSE") return "Model odpověď nedokončil. Zkrať text nebo akci spusť znovu.";
-  if(e.code==="SAFETY_STOP") return "Gemini požadavek nebo odpověď zastavilo bezpečnostním filtrem. Uprav vstup a zkus to znovu.";
-  if(e.code==="PREFLIGHT_REQUIRED") return "Bezpečnostní kontrola této akce nebyla správně zapojena. Akce byla preventivně zastavena.";
-  if(e.code==="PREFLIGHT_BLOCKED") return e.message;
-  if(e.code==="OUTPUT_PRIVACY_BLOCKED") return "Odpověď modelu obsahovala skutečný údaj, který se nepodařilo bezpečně skrýt. Výstup nebyl zobrazen; spusť akci znovu nebo zkontroluj klíč náhrad.";
-  if(e.quota) return "Kvóta nebo limit API je vyčerpaný. Zkus lehčí model, počkej, nebo použij jiný klíč.";
-  if(e.status===401 || e.status===403) return "API klíč není platný nebo nemá oprávnění. Zkontroluj klíč v horním panelu.";
-  if(e.status===400) return "Gemini odmítlo požadavek. Zkontroluj délku textu a anonymizaci.";
-  if(e.status>=500) return "Služba Gemini má dočasný problém. Vstup zůstal zachovaný, zkus to znovu.";
-  return e.message || "Nepovedlo se spojit s modelem.";
+  if(!e)return "Neznámá chyba.";
+  const code=String(e.code||"");
+  if(code==="BAD_JSON")return "AI služba nevrátila čitelnou odpověď. Vstup zůstal zachovaný, zkus to znovu.";
+  if(code==="BAD_SCHEMA")return "Model vrátil neúplnou odpověď. Zkus to znovu.";
+  if(code==="INCOMPLETE_RESPONSE")return "Model odpověď nedokončil. Zkrať text nebo akci spusť znovu.";
+  if(code==="PREFLIGHT_BLOCKED"&&e.message)return e.message;
+  return GHRAB_AI.formatUserError(e,"cs-CZ");
 }
 function setApiError(container, err, retryFn){
   if(!container) return;
@@ -231,62 +243,42 @@ function assertGeminiSafety(context, exactPrompt){
   return text;
 }
 const GEMINI_MAX_OUTPUT_TOKENS=32768;
-async function callGemini(prompt, system, schema, safetyContext, opts){
-  schema=schema||inferSchema(system); opts=opts||{};
-  if(!geminiApiKey && !testMockAvailable()) throw makeAppError("Chybí klíč k API. Vlož ho v „Klíč k API“ nahoře a zvol „Použít jen pro relaci“.","MISSING_KEY");
+function inferAiOperation(schema,system){
+  if(schema==="analyze")return "incoming-analysis";
+  if(schema==="reply")return "reply-draft";
+  if(schema==="tone")return "tone-check";
+  if(schema==="synonyms")return "synonym-suggestions";
+  const text=String(system||"");
+  if(/kontroluješ komunikační tón|rizika/i.test(text))return "tone-check";
+  if(/uprav|přeformul|preformul/i.test(text))return "draft-refinement";
+  return "outgoing-proofread";
+}
+function defaultProfileForOperation(operation){return /synonym|tone-check/.test(operation)?"economy":"balanced";}
+
+async function callGemini(prompt,system,schema,safetyContext,opts){
+  schema=schema||inferSchema(system);opts=opts||{};
+  if(currentAiMode()==="direct-gemini"&&!geminiApiKey&&!testMockAvailable())throw GHRAB_AI.createError("API_KEY_MISSING");
   const pane=safetyContext&&safetyContext.pane;
   const exactPrompt=typeof toModelPersonTokens==="function"?toModelPersonTokens(pane,prompt):String(prompt||"");
   assertGeminiSafety(safetyContext,exactPrompt);
+  const operation=String(opts.operation||inferAiOperation(schema,system)),modelProfile=String(opts.modelProfile||defaultProfileForOperation(operation));
   const thinking=opts.thinking||(schema==="synonyms"||schema==="tone"?"minimal":"medium");
-  if(testMockAvailable()){
-    const mocked=await window.__TEST_MOCK_GEMINI({prompt:exactPrompt,system,schema,thinking});
-    const obj=typeof mocked==="string"?parseModelJson(mocked):mocked;
-    const parsed=validateModelJson(obj,schema);
-    return typeof secureModelResult==="function"?secureModelResult(parsed,schema,pane):parsed;
-  }
-  const requestModel=async(model,withThinking)=>{
-    const started=Date.now();
-    try{ logOp("api",withThinking?"start":"thinking_retry",{model,schema}); }catch(_){}
-    saveLastPromptDebug(exactPrompt, system, model, schema);
-    const url="https://generativelanguage.googleapis.com/v1beta/models/"+encodeURIComponent(model)+":generateContent";
-    const generationConfig={maxOutputTokens:GEMINI_MAX_OUTPUT_TOKENS,responseMimeType:"application/json"};
-    if(withThinking&&thinking) generationConfig.thinkingConfig={thinkingLevel:thinking};
-    const body={contents:[{role:"user",parts:[{text:exactPrompt}]}],systemInstruction:{parts:[{text:system}]},generationConfig};
-    const ctrl=new AbortController();
-    const timer=setTimeout(()=>ctrl.abort(), GEMINI_TIMEOUT_MS);
-    let res,data;
-    try{
-      res=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":cleanKey(geminiApiKey)},body:JSON.stringify(body),signal:ctrl.signal});
-      data=await res.json().catch(()=>({}));
-    }catch(e){
-      if(e&&e.name==="AbortError"){ try{logOp("api","timeout",{model,schema,ms:Date.now()-started});}catch(_){} throw makeAppError("Model neodpověděl včas.","TIMEOUT"); }
-      try{logOp("api","network_error",{model,schema,ms:Date.now()-started});}catch(_){}
-      throw makeAppError("Nepodařilo se připojit k Gemini API: "+(e&&e.message?e.message:"síťová chyba"),"NETWORK");
-    }finally{ clearTimeout(timer); }
-    if(!res.ok){
-      const st=(data&&data.error&&data.error.status)?String(data.error.status):"";
-      const quota=res.status===429||/RESOURCE_EXHAUSTED/i.test(st);
-      const msg=(data&&data.error&&data.error.message)?data.error.message:("HTTP "+res.status);
-      try{logOp("api",quota?"quota":"http_error",{model,schema,status:res.status,ms:Date.now()-started});}catch(_){}
-      const e=new Error(msg); e.quota=quota; e.status=res.status; e.thinkingRejected=withThinking&&res.status===400&&/thinking/i.test(msg); throw e;
-    }
-    const cand=data.candidates&&data.candidates[0];
-    const finish=cand&&cand.finishReason;
-    const block=data.promptFeedback&&data.promptFeedback.blockReason;
-    if(block) throw makeAppError("Požadavek byl zablokován: "+block,"SAFETY_STOP");
-    const text=((cand&&cand.content&&cand.content.parts)||[]).map(p=>p.text||"").join("").trim();
-    if(finish&&finish!=="STOP") throw makeAppError("Model nedokončil odpověď ("+finish+").",finish==="MAX_TOKENS"?"INCOMPLETE_RESPONSE":"SAFETY_STOP");
-    try{const parsed=validateModelJson(parseModelJson(text),schema),secured=typeof secureModelResult==="function"?secureModelResult(parsed,schema,pane):parsed;logOp("api","success",{model,schema,ms:Date.now()-started});return secured;}
-    catch(e){try{logOp("api",e&&e.code?e.code:"parse_error",{model,schema,ms:Date.now()-started});}catch(_){}throw e;}
-  };
-  const tryModel=async(model)=>{ try{return await requestModel(model,true);}catch(e){if(e&&e.thinkingRejected)return await requestModel(model,false);throw e;} };
-  bumpReq();
-  try{return await tryModel(geminiModel);}
-  catch(e){
-    const fallbackAllowed=e&&(e.quota||e.status===404||e.status===429||e.status===500||e.status===503);
-    if(fallbackAllowed){const fb=FALLBACK_MODELS.find(m=>m!==geminiModel);if(fb){bumpReq();return await tryModel(fb);}}
-    throw e;
-  }
+  const diagnostic=currentAiMode()==="school-gateway"?("school-gateway/"+modelProfile):geminiModel;
+  saveLastPromptDebug(exactPrompt,system,diagnostic,schema);
+  const response=await GHRAB_AI.generate({
+    clientRequestId:opts.clientRequestId,workflowId:opts.workflowId,operation,modelProfile,
+    instructions:String(system||""),inputParts:[{type:"text",text:exactPrompt}],
+    outputSchemaId:KS_AI_SCHEMA_IDS[schema]||KS_AI_SCHEMA_IDS.object,
+    options:{reasoningHint:thinking,maxOutputTokensHint:GEMINI_MAX_OUTPUT_TOKENS},
+    privacy:{clientAnonymized:true,preflightPassed:true},
+    usageContext:{userActions:1,expectedOutputs:Number(opts.generatedOutputs)||(schema==="reply"?3:1)},
+    localContext:{pane,startedAt:Date.now(),validateResult:(raw)=>{
+      const object=typeof raw==="string"?parseModelJson(raw):raw;
+      const parsed=validateModelJson(object,schema);
+      return typeof secureModelResult==="function"?secureModelResult(parsed,schema,pane):parsed;
+    }}
+  });
+  return response.result;
 }
-function bumpReq(){ /* požadavky se značí u akcí (1 ⚡); sdílený klíč nelze měřit z jedné aplikace */ }
+function bumpReq(){return GHRAB_AI.getLastUsage();}
 

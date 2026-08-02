@@ -3,11 +3,13 @@ const IS_TEST_MODE=new URLSearchParams(window.location.search).get("test")==="1"
 "use strict";
 
 const RELEASE = {
-  version: "5.7.2",
+  version: "5.9.0",
   date: "2026-08-02",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.9.0: referenční integrace GHRAB AI Core 1.0.0 — lokální prototyp společného klienta a adaptérů byl nahrazen bitově ověřovaným vydaným Core. KS používá registrované operace appId + operation, schemaId, input.parts, clientRequestId a nový attemptId; runtime odděluje defaultMode a allowedModes a umožňuje vědomý rollback bez automatického fallbacku. Gateway už nepřebírá serverový text chyby do UI, klientský tokenový limit je pouze hint a usage metadata školního režimu jsou autoritativně převzata ze serveru. Build ověřuje SHA-256 Core artefaktů a release gate spouští 118 aplikačních a 17 společných konformitních testů.",
+    "5.8.0: server-ready architektura — přidán poskytovatelsky neutrální GHRAB AI Client, veřejná runtime konfigurace, samostatný Direct Gemini Adapter a připravený School Gateway Adapter. Výchozí serverless provoz přes osobní Gemini klíč zůstává beze změny; budoucí školní server lze zapnout konfigurací bez přímého OpenAI klíče v prohlížeči. Operace mají stabilní názvy a modelové profily, skutečná provider volání, retry, tokeny, latence a počet výstupů se měří odděleně. Interní sada má 118 testů.",
     "5.7.2: hloubkový audit anonymizace a přísného režimu — opraveny české dativy a lokály ženských jmen, zpětná kanonizace Šárka/Monika/Lenka/Olga, pohyblivé -e- u Pavel/Karel/Havel, oddělení mužských a ženských nominativů, automatické skrytí samostatného příjmení víceslovné osoby, falešné aktivace přes SPU/spustit, drogerii, školní psychologii a rozvody technických sítí, větná detekce závislosti, kontrola cizích jmen, přesnější rozlišení telefonu a rodného čísla a zákaz ukládání citlivého rozepsaného textu do pracovní relace. Interní sada má 113 testů.",
     "5.7.1: auditní oprava jazykové a bezpečnostní vrstvy — tabulkově ověřená kanonizace českých pádů jmen, jednotný detektor telefonů s výjimkami pro čísla dokladů, přesnější kontextová detekce citlivých témat, Unicode bezpečné hranice slov, neblokující kontrola stylu a termínů, potlačení pracovní relace v přísném režimu, validace importovaného profilu a úplnější mazání lokálních dat. Interní sada byla rozšířena o regresní tabulky pro skutečné školní vstupy.",
     "5.7.0: profil odesílatele nově obsahuje samostatnou sekci Můj způsob psaní se čtyřmi dlouhodobými profily, vlastními preferencemi a obraty, kterým se vyhýbat. U konkrétního e-mailu se osobní styl pouze zapíná nebo vypíná; tón, délka, účel, adresát, jednorázová úprava, fakta a bezpečnost mají vždy přednost. Prostá pravopisná a gramatická oprava osobní styl nepoužívá. Nastavení se propisuje do odpovědi, přepisu, sestavení z bodů i následných AI úprav a interní sada má 94 testů.",
@@ -114,9 +116,9 @@ const TOUR_STEPS=[
   { t:"Vítej v Korespondenčním asistentovi",
     h:'<p>Pomůže ti připravit zdvořilý školní e-mail — rozbor přijaté zprávy a návrh odpovědi, nebo opravu, přepis a sestavení vlastního textu.</p><div class="tour-line">Bezpečný tok je vždy stejný: <b>vlož text → anonymizuj → zkontroluj náhled → odešli</b>. Prohlídka zabere půl minuty.</div>' },
   { t:"1 · Klíč k API",
-    h:'<p>Generování běží přes Gemini. Klíč zadáš nahoře v panelu <b>„Klíč k API“</b> (rozbalíš ho ťuknutím).</p><div class="tour-line">Na <b>sdíleném nebo školním počítači</b> zvol „Použít jen pro relaci“ — klíč se po zavření prohlížeče sám zapomene. Trvalé uložení používej jen na vlastním zařízení.</div>' },
+    h:'<p>Aplikace používá připojení z horního panelu <b>„Připojení k AI“</b>. V serverless režimu zadáš Gemini klíč; ve školním režimu se osobní klíč skryje.</p><div class="tour-line">Na <b>sdíleném nebo školním počítači</b> zvol „Použít jen pro relaci“ — klíč se po zavření prohlížeče sám zapomene. Trvalé uložení používej jen na vlastním zařízení.</div>' },
   { t:"2 · Dvě zóny",
-    h:'<p>Aplikace jasně odděluje, co zůstává u tebe a co by teprve odešlo modelu.</p><div class="tour-zones"><div class="tour-zone desk"><b>Tvůj stůl</b>Vložený text i klíč náhrad zůstávají jen v prohlížeči. Nikam se neposílají.</div><div class="tour-zone out"><b>Za hranicí bezpečnosti</b>Teprve náhled pod přerušovanou čarou by se po tvém potvrzení poslal do Gemini.</div></div>' },
+    h:'<p>Aplikace jasně odděluje, co zůstává u tebe a co by teprve odešlo modelu.</p><div class="tour-zones"><div class="tour-zone desk"><b>Tvůj stůl</b>Vložený text i klíč náhrad zůstávají jen v prohlížeči. Nikam se neposílají.</div><div class="tour-zone out"><b>Za hranicí bezpečnosti</b>Teprve náhled pod přerušovanou čarou by se po tvém potvrzení poslal do aktivní AI služby.</div></div>' },
   { t:"3 · Ťukni na jména",
     h:'<p>E-maily a telefony aplikace skryje sama. <b>Jména a vlastní názvy ale musíš skrýt ťuknutím</b> — klikni na slovo v textu a změní se na značku „osoba A“. Dalším ťuknutím ho zase odkryješ.</p><div class="tour-line">Semafor a povinný náhled pod čarou ukážou, co ještě zkontrolovat. Odeslat jde teprve po zaškrtnutí kontroly náhledu.</div>' }
 ];

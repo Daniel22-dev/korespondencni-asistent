@@ -1,4 +1,4 @@
-const APP_VERSION = "5.7.2";
+const APP_VERSION = "5.9.0";
 const CACHE_NAME = `korespondencni-asistent-${APP_VERSION}`;
 const CORE_ASSETS = [
   "./",
@@ -69,6 +69,10 @@ self.addEventListener("fetch", (event) => {
   // browser/network and must never be frozen in this application's PWA cache.
   const scopePath = new URL("./", self.location.href).pathname;
   if (!url.pathname.startsWith(scopePath) || request.cache === "no-store") return;
+
+  // Runtime konfigurace, autentizace a školní API se nikdy nesmí zmrazit v PWA cache.
+  const relativePath=url.pathname.slice(scopePath.length);
+  if (relativePath==="runtime-config.js" || /^(?:api|auth|session|health)(?:\/|$)/.test(relativePath)) return;
 
   if (request.mode === "navigate") {
     event.respondWith(networkFirst(request));

@@ -104,8 +104,8 @@ function confirmActionModal(opts){
 
 function openSafetyRulesModal(){
   const html='<div class="safety-rules-modal">'+
-    '<p><b>Do Gemini smí odejít jen anonymizovaný text.</b> Skutečná jména, kontakty, adresy, data narození a další identifikátory nahraď značkami.</p>'+
-    '<div class="safety-rules-grid"><div><b>Bezpečný postup</b><ol><li>Označ jména a citlivé údaje.</li><li>Vyřeš všechny návrhy v pravém panelu.</li><li>Pročti přesný obsah pro Gemini.</li><li>V poznámce používej místní štítky osob.</li></ol></div><div><b>Raději bez AI</b><p>Zdravotní stav, sebepoškozování, OSPOD, závažné kázeňské případy a právní spory řeš obecně nebo mimo model.</p></div></div>'+
+    '<p><b>Do AI služby smí odejít jen anonymizovaný text.</b> Skutečná jména, kontakty, adresy, data narození a další identifikátory nahraď značkami.</p>'+
+    '<div class="safety-rules-grid"><div><b>Bezpečný postup</b><ol><li>Označ jména a citlivé údaje.</li><li>Vyřeš všechny návrhy v pravém panelu.</li><li>Pročti přesný obsah pro AI model.</li><li>V poznámce používej místní štítky osob.</li></ol></div><div><b>Raději bez AI</b><p>Zdravotní stav, sebepoškozování, OSPOD, závažné kázeňské případy a právní spory řeš obecně nebo mimo model.</p></div></div>'+
     '<p class="field-safety-note">Toto okno je součástí aplikace. Jeho otevření nesmaže rozpracovanou anonymizaci.</p>'+
     '<div class="dialog-actions"><a class="btn ghost" href="./manual/#bezpecnost" target="_blank" rel="noopener">Otevřít celý manuál v nové kartě</a><button class="btn safety-close" type="button">Rozumím, pokračovat</button></div></div>';
   return openModal("Bezpečná práce s údaji",html,{className:"safety-rules-dialog",onMount(body,close){body.querySelector(".safety-close").onclick=close;}});

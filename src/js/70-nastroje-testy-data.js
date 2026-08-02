@@ -62,12 +62,12 @@ function restoreAppStorage(snap){
   const put=(store,bucket)=>{ try{Object.keys(store).filter(k=>/^(rozbor_|ks5_)|^ghrab\.(?:handoff\.v1|pilot\.events\.v2)$/.test(k)).forEach(k=>{try{store.removeItem(k);}catch(_){}});}catch(_){} try{Object.keys(bucket||{}).forEach(k=>{try{store.setItem(k,bucket[k]);}catch(_){}});}catch(_){} };
   put(localStorage,snap&&snap.local); put(sessionStorage,snap&&snap.session);
 }
-function snapshotTestState(){ return {storage:snapshotAppStorage(),st:JSON.parse(JSON.stringify(ST)),inRaw:E("in","raw").value,myRaw:E("my","raw").value,key:geminiApiKey,scope:geminiKeyScope,model:geminiModel,mock:window.__TEST_MOCK_GEMINI}; }
+function snapshotTestState(){ return {storage:snapshotAppStorage(),st:JSON.parse(JSON.stringify(ST)),inRaw:E("in","raw").value,myRaw:E("my","raw").value,key:geminiApiKey,scope:geminiKeyScope,model:geminiModel,mock:window.__TEST_MOCK_GEMINI,gatewayMock:window.__TEST_MOCK_GATEWAY,runtime:GHRABRuntime.getConfig()}; }
 function restoreTestState(snap){
   restoreAppStorage(snap.storage);
-  ST.in=snap.st.in; ST.my=snap.st.my; E("in","raw").value=snap.inRaw; E("my","raw").value=snap.myRaw; geminiApiKey=snap.key; geminiKeyScope=snap.scope; geminiModel=snap.model; window.__TEST_MOCK_GEMINI=snap.mock;
+  ST.in=snap.st.in; ST.my=snap.st.my; E("in","raw").value=snap.inRaw; E("my","raw").value=snap.myRaw; geminiApiKey=snap.key; geminiKeyScope=snap.scope; geminiModel=snap.model; window.__TEST_MOCK_GEMINI=snap.mock; window.__TEST_MOCK_GATEWAY=snap.gatewayMock; GHRABRuntime.replaceForTesting(snap.runtime);
   publishActiveKeyReals("in"); publishActiveKeyReals("my");
-  try{renderView("in");renderView("my");renderKeyTable("in");renderKeyTable("my");renderPreview("in");renderPreview("my");renderTemplates();renderMyProfileContext();renderWritingStyleControls();refreshDeskStatus();updateKeyStatus();updateModelUI();}catch(_){}
+  try{renderView("in");renderView("my");renderKeyTable("in");renderKeyTable("my");renderPreview("in");renderPreview("my");renderTemplates();renderMyProfileContext();renderWritingStyleControls();refreshDeskStatus();applyAiRuntimeUi();updateKeyStatus();updateModelUI();}catch(_){}
 }
 async function runKorespTests(){
   const out=$("testOut"); if(out) out.innerHTML='<div class="loading"><span class="spin"></span>Spouštím testy…</div>';
@@ -77,6 +77,54 @@ async function runKorespTests(){
   window.__setTestRunActive(true);
   const test=async(name, fn)=>{ const t0=performance.now(); try{ await fn(); results.push({name,ok:true,ms:Math.round(performance.now()-t0)}); }catch(e){ results.push({name,ok:false,msg:e.message||String(e),ms:Math.round(performance.now()-t0)}); } };
   try{
+    await test("Server-ready runtime má bezpečný výchozí režim", async()=>{
+      const cfg=GHRABRuntime.getConfig();
+      assertTest(cfg.schema==="ghrab-runtime-config-v1"&&cfg.ai.mode==="direct-gemini","výchozí runtime není direct-gemini");
+      assertTest(cfg.ai.allowDirectFallback===false,"skrytý fallback není zakázaný");
+      assertTest(cfg.ai.directGemini.useResponseSchema===false,"serverless režim nemá zachovat kompatibilní Gemini payload");
+    });
+    await test("Společný AI klient registruje oba transporty", async()=>{
+      const modes=GHRAB_AI.getState().transports;
+      assertTest(GHRAB_AI.requestSchema==="ghrab-ai-request-v1"&&GHRAB_AI.responseSchema==="ghrab-ai-response-v1","chybí jednotný AI kontrakt");
+      assertTest(modes.includes("direct-gemini")&&modes.includes("school-gateway"),"chybí Direct Gemini nebo School Gateway adaptér: "+modes.join(", "));
+    });
+    await test("Direct Gemini adaptér měří operaci a provider request", async()=>{
+      const previous=GHRABRuntime.getConfig(),oldMock=window.__TEST_MOCK_GEMINI;let captured=null;
+      try{
+        GHRABRuntime.replaceForTesting(Object.assign({},previous,{ai:Object.assign({},previous.ai,{mode:"direct-gemini"})}));
+        window.__TEST_MOCK_GEMINI=async input=>{captured=input;return {text:"Hotovo",synonyma:{}};};
+        ST.in.km=[];publishActiveKeyReals("in");
+        const result=await callGemini("Bezpečný text.","Vrať JSON {\"text\":\"…\"}.","text",{pane:"in",texts:["Bezpečný text."]},{operation:"outgoing-proofread",modelProfile:"balanced"});
+        const usage=GHRAB_AI.getLastUsage();
+        assertTest(result.text==="Hotovo"&&captured.operation==="outgoing-proofread"&&captured.modelProfile==="balanced","operace nebo profil se nepropsaly do adaptéru");
+        assertTest(usage&&usage.providerRequests===1&&usage.operation==="outgoing-proofread","provider request se neměří odděleně");
+      }finally{window.__TEST_MOCK_GEMINI=oldMock;GHRABRuntime.replaceForTesting(previous);}
+    });
+    await test("School Gateway používá neutrální kontrakt bez API klíče", async()=>{
+      const previous=GHRABRuntime.getConfig(),oldGateway=window.__TEST_MOCK_GATEWAY;let captured=null;
+      try{
+        GHRABRuntime.replaceForTesting(Object.assign({},previous,{ai:Object.assign({},previous.ai,{mode:"school-gateway",allowDirectFallback:false})}));
+        window.__TEST_MOCK_GATEWAY=async payload=>{captured=payload;return {schema:"ghrab-ai-response-v1",requestId:"srv-1",clientRequestId:payload.clientRequestId,result:{text:"Ze serveru",synonyma:{}},usage:{providerRequests:2,retryRequests:1,inputTokens:25,outputTokens:8,totalTokens:33},meta:{provider:"openai",modelProfile:payload.modelProfile,latencyMs:12,attempts:2}};};
+        ST.in.km=[];publishActiveKeyReals("in");
+        const result=await callGemini("Bezpečný text.","Vrať JSON {\"text\":\"…\"}.","text",{pane:"in",texts:["Bezpečný text."]},{operation:"outgoing-proofread",modelProfile:"balanced"});
+        const serialized=JSON.stringify(captured),usage=GHRAB_AI.getLastUsage();
+        assertTest(result.text==="Ze serveru"&&captured.schema==="ghrab-ai-request-v1"&&captured.operation==="outgoing-proofread","gateway nedostal jednotný požadavek");
+        assertTest(!serialized.includes("localContext")&&!serialized.includes("requestedGeminiModel")&&!serialized.includes(geminiApiKey||"__never__"),"gateway payload obsahuje lokální kontext nebo API klíč");
+        assertTest($("directGeminiSettings").hidden&&!$("schoolGatewayStatus").hidden,"UI se nepřepnulo do školního režimu");
+        assertTest(usage.providerRequests===2&&usage.retryRequests===1&&usage.totalTokens===33,"serverová usage metadata se nepropsala");
+      }finally{window.__TEST_MOCK_GATEWAY=oldGateway;GHRABRuntime.replaceForTesting(previous);}
+    });
+    await test("Nedostupný School Gateway se skrytě nepřepne na Gemini", async()=>{
+      const previous=GHRABRuntime.getConfig(),oldGateway=window.__TEST_MOCK_GATEWAY,oldGemini=window.__TEST_MOCK_GEMINI;let geminiCalls=0,code="";
+      try{
+        GHRABRuntime.replaceForTesting(Object.assign({},previous,{ai:Object.assign({},previous.ai,{mode:"school-gateway",allowDirectFallback:false})}));
+        window.__TEST_MOCK_GATEWAY=async()=>{throw GHRAB_AI.createError("SERVER_UNAVAILABLE",{providerRequests:0});};
+        window.__TEST_MOCK_GEMINI=async()=>{geminiCalls++;return {};};
+        ST.in.km=[];publishActiveKeyReals("in");
+        try{await callGemini("Bezpečný text.","Vrať JSON {\"text\":\"…\"}.","text",{pane:"in",texts:["Bezpečný text."]},{operation:"outgoing-proofread",modelProfile:"balanced"});}catch(e){code=e.code;}
+        assertTest(code==="SERVER_UNAVAILABLE"&&geminiCalls===0,"gateway chyba spustila skrytý Gemini fallback");
+      }finally{window.__TEST_MOCK_GATEWAY=oldGateway;window.__TEST_MOCK_GEMINI=oldGemini;GHRABRuntime.replaceForTesting(previous);}
+    });
     await test("Úvodní obrazovka nabízí dvě hlavní pracovní cesty", async()=>{
       const choices=[...document.querySelectorAll('#teacherDesk [data-start]')];
       assertTest(choices.length===2,"úvodní obrazovka nemá přesně dvě hlavní volby");
@@ -673,7 +721,7 @@ async function runKorespTests(){
     });
     await test("Chybějící API klíč", async()=>{
       window.__TEST_MOCK_GEMINI=null; geminiApiKey=""; let ok=false;
-      try{ await callGemini("x","{}","object"); }catch(e){ ok=e.code==="MISSING_KEY"; }
+      try{ await callGemini("x","{}","object"); }catch(e){ ok=e.code==="API_KEY_MISSING"; }
       assertTest(ok,"chybějící klíč nebyl zachycen");
     });
     await test("Slovník jmen bez kolizí značek", async()=>{
@@ -1151,6 +1199,11 @@ function openDataManager(){
 }
 
 
+function openAiRuntimeDiagnostics(){
+  const config=GHRABRuntime.getConfig(),usage=GHRAB_AI.getLastUsage();
+  const safe={schema:config.schema,app:config.app,ai:{mode:config.ai.mode,gatewayUrl:config.ai.gatewayUrl,healthUrl:config.ai.healthUrl,allowDirectMode:config.ai.allowDirectMode,allowDirectFallback:config.ai.allowDirectFallback,defaultModelProfile:config.ai.defaultModelProfile,requestTimeoutMs:config.ai.requestTimeoutMs,directGemini:config.ai.directGemini},transports:GHRAB_AI.getState().transports,lastUsage:usage||null};
+  return openModal("Diagnostika AI připojení",'<p class="hint">Zobrazuje pouze veřejnou konfiguraci a provozní metadata. API klíče, prompty ani odpovědi se zde nevypisují.</p><pre class="mono" style="white-space:pre-wrap;max-height:420px;overflow:auto">'+esc(JSON.stringify(safe,null,2))+'</pre>',{label:"Diagnostika AI připojení"});
+}
 function openOpsLog(){
   const rows=loadOpsLog();
   const list=rows.length?rows.map(r=>{
@@ -1167,12 +1220,13 @@ function openDeveloperTools(){
     '<div class="dev-tools-grid">'+
     '<button class="dev-tool-card" id="devTests"><b>Automatické testy</b><span>Lokální smoke testy bez volání API.</span></button>'+
     '<button class="dev-tool-card" id="devDebug"><b>Debug prompt</b><span>Poslední anonymizovaný prompt, pokud není vypnutý citlivým režimem.</span></button>'+
-    '<button class="dev-tool-card" id="devOps"><b>Technický log</b><span>Stavy, chyby a timeouty bez textů e-mailů.</span></button>'+
+    '<button class="dev-tool-card" id="devOps"><b>Technický log</b><span>Stavy, chyby a timeouty bez textů e-mailů.</span></button>'+    '<button class="dev-tool-card" id="devAiRuntime"><b>AI runtime</b><span>Aktivní transport, kontrakt, adaptéry a poslední usage metadata.</span></button>'+
     '</div>';
   const m=openModal("Vývojářské nástroje", html, {label:"Vývojářské nástroje"});
   m.body.querySelector("#devTests").onclick=()=>{ m.close(); openTestRunner(true); };
   m.body.querySelector("#devDebug").onclick=()=>{ m.close(); openLastPromptDebug(); };
   m.body.querySelector("#devOps").onclick=()=>{ m.close(); openOpsLog(); };
+  m.body.querySelector("#devAiRuntime").onclick=()=>{ m.close(); openAiRuntimeDiagnostics(); };
   return m;
 }
 function makeParamFold(title, nodes, openByDefault, tip){

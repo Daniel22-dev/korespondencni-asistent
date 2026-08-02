@@ -834,7 +834,7 @@ function openPersonFormsEditor(p,idx,forceReview){
   const entry=ST[p]&&ST[p].km&&ST[p].km[idx];if(!entry||!/^osoba\b/.test(entry.token||""))return;
   const forms=personFormsForEntry(entry),rows=[];
   for(let c=1;c<=7;c++)rows.push('<label class="case-form-row"><span>'+esc(PERSON_CASE_LABELS[c])+'</span><input data-case="'+c+'" value="'+escAttr(forms[c]||entry.real)+'"></label>');
-  openModal("Skloňování: "+entry.real,'<p class="dialog-text">'+(entry.caseUnresolved?'<b>Automatické rozpoznání si nebylo jisté. Oprav zejména 1. pád; bez uložení kontrola nepovolí pokračovat.</b><br>':'')+'Tvary zůstávají pouze v tomto prohlížeči a nikdy se neposílají Gemini. U běžných jmen jsou doplněné automaticky; neobvyklé jméno můžeš jednou opravit.</p><div class="case-form-grid">'+rows.join("")+'</div><div class="dialog-actions"><button class="btn ghost case-reset" type="button">Vrátit automatický návrh</button><button class="btn case-save" type="button">Uložit tvary</button></div>',{className:"case-editor-modal",onMount(body,close){
+  openModal("Skloňování: "+entry.real,'<p class="dialog-text">'+(entry.caseUnresolved?'<b>Automatické rozpoznání si nebylo jisté. Oprav zejména 1. pád; bez uložení kontrola nepovolí pokračovat.</b><br>':'')+'Tvary zůstávají pouze v tomto prohlížeči a nikdy se neposílají AI modelu. U běžných jmen jsou doplněné automaticky; neobvyklé jméno můžeš jednou opravit.</p><div class="case-form-grid">'+rows.join("")+'</div><div class="dialog-actions"><button class="btn ghost case-reset" type="button">Vrátit automatický návrh</button><button class="btn case-save" type="button">Uložit tvary</button></div>',{className:"case-editor-modal",onMount(body,close){
     body.querySelector(".case-reset").onclick=()=>{const auto=generatedPersonForms(entry.real);body.querySelectorAll("[data-case]").forEach(i=>i.value=auto[+i.dataset.case]||entry.real);};
     body.querySelector(".case-save").onclick=()=>{const custom={};body.querySelectorAll("[data-case]").forEach(i=>custom[i.dataset.case]=i.value.trim()||entry.real);entry.forms=custom;entry.real=custom[1]||entry.real;entry.caseUnresolved=false;clearAnalysisCache();afterKeyChange(p);scheduleWorkingSessionSave();toast("Skloňování bylo uloženo jen lokálně.");close();};
   }});
@@ -849,7 +849,7 @@ function renderPersonReferenceChips(p){
   const id=p+"_personRefs";let box=$(id);if(!box){box=document.createElement("div");box.id=id;box.className="person-reference-box";input.insertAdjacentElement("afterend",box);}
   const people=(ST[p].km||[]).filter(k=>k.real&&/^osoba\b/.test(k.token||""));
   if(!people.length){box.hidden=true;box.innerHTML="";return;}
-  box.hidden=false;box.innerHTML='<span class="person-reference-title">Vložit bezpečně osobu:</span><div class="person-reference-chips">'+people.map((k,i)=>'<button type="button" class="person-reference-chip" data-person="'+i+'"><b>'+esc(k.token)+'</b><span>'+esc(k.real)+'</span></button>').join("")+'</div><small>Jméno vidíš jen lokálně. Do Gemini se vloží pouze anonymní značka.</small>';
+  box.hidden=false;box.innerHTML='<span class="person-reference-title">Vložit bezpečně osobu:</span><div class="person-reference-chips">'+people.map((k,i)=>'<button type="button" class="person-reference-chip" data-person="'+i+'"><b>'+esc(k.token)+'</b><span>'+esc(k.real)+'</span></button>').join("")+'</div><small>Jméno vidíš jen lokálně. Do AI služby se vloží pouze anonymní značka.</small>';
   box.querySelectorAll("[data-person]").forEach((btn,i)=>btn.onclick=()=>insertAtCursor(input,people[i].token));
 }
 function keySummaryItems(arr){ return arr.map(k=>k.token||k.real).filter(Boolean).slice(0,3).join(" · ") || "—"; }
@@ -1094,7 +1094,7 @@ function renderSafeFallback(p, audit){
   const documentCandidate=likelyDocumentNumber(ST[p].clean||"");
   const numericOnly=danger.length>0 && danger.every(x=>/(?:telefon|rodné číslo)/.test(x)) && !!documentCandidate;
   el.className="safe-fallback show";
-  el.innerHTML='<div class="sf-head"><b>Další bezpečný krok bez AI:</b> můžeš si vytvořit obecnou odpověď, která neobsahuje konkrétní citlivé údaje.</div><div class="sf-note">Tlačítko níže pouze lokálně zobrazí šablonu. Nevolá Gemini, neodesílá text a nemění původní náhled.</div><div class="sf-actions"><button type="button" class="btn ghost small" data-safe-fallback="'+escAttr(p)+'"><span class="action-icon" data-ic="life"></span>Vytvořit bezpečnou obecnou verzi</button>'+(onlyTermHeuristic?'<button type="button" class="btn ghost small" data-ack-sensitive="'+escAttr(p)+'">Posoudil(a) jsem to — nejde o citlivý údaj, pokračovat</button>':'')+(numericOnly?'<button type="button" class="btn ghost small" data-docnum="'+escAttr(p)+'">Není to telefon, je to číslo dokladu</button>':'')+'</div><div class="sf-output" id="'+escAttr(p)+'_safeFallbackOutput"></div>';
+  el.innerHTML='<div class="sf-head"><b>Další bezpečný krok bez AI:</b> můžeš si vytvořit obecnou odpověď, která neobsahuje konkrétní citlivé údaje.</div><div class="sf-note">Tlačítko níže pouze lokálně zobrazí šablonu. Nevolá AI službu, neodesílá text a nemění původní náhled.</div><div class="sf-actions"><button type="button" class="btn ghost small" data-safe-fallback="'+escAttr(p)+'"><span class="action-icon" data-ic="life"></span>Vytvořit bezpečnou obecnou verzi</button>'+(onlyTermHeuristic?'<button type="button" class="btn ghost small" data-ack-sensitive="'+escAttr(p)+'">Posoudil(a) jsem to — nejde o citlivý údaj, pokračovat</button>':'')+(numericOnly?'<button type="button" class="btn ghost small" data-docnum="'+escAttr(p)+'">Není to telefon, je to číslo dokladu</button>':'')+'</div><div class="sf-output" id="'+escAttr(p)+'_safeFallbackOutput"></div>';
   const btn=el.querySelector("[data-safe-fallback]"); if(btn) btn.onclick=()=>showSafeFallback(p);
   const docBtn=el.querySelector("[data-docnum]");
   if(docBtn)docBtn.onclick=()=>{
@@ -1261,7 +1261,7 @@ function tokenizeHTML(p, text){
   });
   html=html.replace(/\[podpis\]|\[učitel\]|\(\s*učitel\s*\)/gi, m=>{
     const signature=typeof signatureText==="function"?signatureText():m;
-    return '<span class="token t-sign visible-signature" contenteditable="false" data-sign-token="[podpis]" title="Podpis se doplňuje lokálně z profilu a neposílá se Gemini.">'+esc(signature)+'</span>';
+    return '<span class="token t-sign visible-signature" contenteditable="false" data-sign-token="[podpis]" title="Podpis se doplňuje lokálně z profilu a neposílá se AI modelu.">'+esc(signature)+'</span>';
   });
   return html;
 }

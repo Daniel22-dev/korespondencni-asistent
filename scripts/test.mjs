@@ -5,6 +5,7 @@ import {fileURLToPath} from "node:url";
 import {spawn,execSync} from "node:child_process";
 import {setTimeout as sleep} from "node:timers/promises";
 const ROOT=join(dirname(fileURLToPath(import.meta.url)),".."),BASE=join(ROOT,"dist");
+const CORE_VERSION="1.0.0",CORE_DIR=join(ROOT,"vendor",`ghrab-ai-core-${CORE_VERSION}`),CONFORMANCE_SOURCE=readFileSync(join(CORE_DIR,`ghrab-ai-conformance-${CORE_VERSION}.js`),"utf-8");
 const REPO="korespondencni-asistent",APP_ID="correspondence",SUITE="openTestRunner(false); runKorespTests()",ITEM="#testOut .test-result",FAIL="#testOut .test-result.fail",CACHE_PREFIX="korespondencni-asistent-";
 let failures=0;const ok=m=>console.log("  ✓ "+m),bad=m=>{console.error("  ✗ "+m);failures++};
 if(!existsSync(join(BASE,"index.html"))){console.error("Chybí dist. Spusť nejdřív npm run build.");process.exit(1)}
@@ -15,17 +16,19 @@ async function runWithJsdom(raw){
   const dom=new JSDOM(testHtml(raw),{runScripts:"dangerously",pretendToBeVisual:true,virtualConsole:vc,url:`https://daniel22-dev.github.io/${REPO}/`});
   const w=dom.window;w.matchMedia=w.matchMedia||((q)=>({matches:false,media:q,addListener(){},removeListener(){},addEventListener(){},removeEventListener(){}}));w.HTMLElement.prototype.scrollIntoView=w.HTMLElement.prototype.scrollIntoView||function(){};w.scrollTo=w.scrollTo||function(){};
   await sleep(800);const doc=w.document;
-  let fatal="";try{const r=w.eval(SUITE);if(r&&typeof r.then==="function")await r}catch(e){fatal=e.message||String(e)}
+  let fatal="",conformance=null;try{const r=w.eval(SUITE);if(r&&typeof r.then==="function")await r;w.eval(CONFORMANCE_SOURCE);conformance=await w.GHRAB_AI_CONFORMANCE.run();}catch(e){fatal=e.message||String(e)}
   await sleep(300);
   const ids=[...doc.querySelectorAll('[id]')].map(x=>x.id),dup=[...new Set(ids.filter((v,i,a)=>a.indexOf(v)!==i))];
   const items=[...doc.querySelectorAll(ITEM)],fails=[...doc.querySelectorAll(FAIL)];
-  const result={errors,dup,fatal,count:items.length,fails:fails.map(x=>x.textContent.replace(/\s+/g," ").slice(0,180))};dom.window.close();return result;
+  const result={errors,dup,fatal,conformance,count:items.length,fails:fails.map(x=>x.textContent.replace(/\s+/g," ").slice(0,180))};dom.window.close();return result;
 }
 function storageShim(){return `<script>(function(){function makeStore(){const m=new Map(),api={get length(){return m.size},key(i){return [...m.keys()][i]??null},getItem(k){k=String(k);return m.has(k)?m.get(k):null},setItem(k,v){m.set(String(k),String(v))},removeItem(k){m.delete(String(k))},clear(){m.clear()}};return new Proxy(api,{ownKeys(){return [...m.keys()]},getOwnPropertyDescriptor(t,k){if(m.has(String(k)))return {enumerable:true,configurable:true};return Object.getOwnPropertyDescriptor(t,k)},get(t,k,r){if(typeof k==="string"&&m.has(k))return m.get(k);return Reflect.get(t,k,r)}})}try{Object.defineProperty(window,"localStorage",{value:makeStore(),configurable:true});Object.defineProperty(window,"sessionStorage",{value:makeStore(),configurable:true});}catch(e){window.__storageShimError=String(e)}})();<\/script>`}
 async function runWithChromium(raw){
   const chromePath=process.env.CHROMIUM_PATH||"/usr/bin/chromium";if(!existsSync(chromePath))throw new Error("jsdom není nainstalován a Chromium není dostupné");
   let html=testHtml(raw).replace("<head>","<head>"+storageShim());
-  const inject=`<script>window.__testRuntimeErrors=[];window.addEventListener("error",e=>window.__testRuntimeErrors.push(String(e.message||e.error||e)));setTimeout(async()=>{let report={};try{openTestRunner(false);const results=await runKorespTests();const ids=[...document.querySelectorAll("[id]")].map(x=>x.id),dup=[...new Set(ids.filter((v,i,a)=>a.indexOf(v)!==i))];report={results,dup,errors:window.__testRuntimeErrors};}catch(e){report={fatal:String(e&&e.stack||e),errors:window.__testRuntimeErrors};}const pre=document.createElement("pre");pre.id="__TEST_REPORT__";pre.textContent=JSON.stringify(report);document.body.appendChild(pre);},500);<\/script>`;
+  const conformanceScript=`<script>${CONFORMANCE_SOURCE}<\/script>`;
+  html=html.replace("</body>",conformanceScript+"</body>");
+  const inject=`<script>window.__testRuntimeErrors=[];window.addEventListener("error",e=>window.__testRuntimeErrors.push(String(e.message||e.error||e)));setTimeout(async()=>{let report={};try{openTestRunner(false);const results=await runKorespTests();const conformance=await GHRAB_AI_CONFORMANCE.run();const ids=[...document.querySelectorAll("[id]")].map(x=>x.id),dup=[...new Set(ids.filter((v,i,a)=>a.indexOf(v)!==i))];report={results,conformance,dup,errors:window.__testRuntimeErrors};}catch(e){report={fatal:String(e&&e.stack||e),errors:window.__testRuntimeErrors};}const pre=document.createElement("pre");pre.id="__TEST_REPORT__";pre.textContent=JSON.stringify(report);document.body.appendChild(pre);},500);<\/script>`;
   html=html.replace("</body>",inject+"</body>");
   const port=9300+(process.pid%500),profile=join("/tmp","ks-chromium-"+process.pid);
   const chrome=spawn(chromePath,["--headless","--no-sandbox","--disable-gpu","--disable-dev-shm-usage",`--remote-debugging-port=${port}`,`--user-data-dir=${profile}`,"about:blank"],{stdio:["ignore","ignore","ignore"]});
@@ -37,7 +40,7 @@ async function runWithChromium(raw){
     const call=(method,params={})=>new Promise((resolve,reject)=>{const id=++seq;pending.set(id,{resolve,reject});ws.send(JSON.stringify({id,method,params}))});
     await call("Runtime.enable");await call("Page.enable");const tree=await call("Page.getFrameTree");await call("Page.setDocumentContent",{frameId:tree.frameTree.frame.id,html});
     let report="";for(let i=0;i<300;i++){const r=await call("Runtime.evaluate",{expression:'document.querySelector("#__TEST_REPORT__")?.textContent||""',returnByValue:true});report=r.result?.value||"";if(report)break;await sleep(100)}ws.close();if(!report)throw new Error("Chromium test report timeout");
-    const parsed=JSON.parse(report),results=parsed.results||[];return {errors:parsed.errors||[],dup:parsed.dup||[],fatal:parsed.fatal||"",count:results.length,fails:results.filter(x=>!x.ok).map(x=>`${x.name} · ${x.msg||"selhalo"}`)};
+    const parsed=JSON.parse(report),results=parsed.results||[];return {errors:parsed.errors||[],dup:parsed.dup||[],fatal:parsed.fatal||"",conformance:parsed.conformance||null,count:results.length,fails:results.filter(x=>!x.ok).map(x=>`${x.name} · ${x.msg||"selhalo"}`)};
   }finally{chrome.kill("SIGKILL");try{rmSync(profile,{recursive:true,force:true})}catch(_){}}
 }
 const raw=readFileSync(join(BASE,"index.html"),"utf-8");
@@ -49,12 +52,17 @@ if(!raw.includes('data-ghrab-access-bootstrap')||!raw.includes('application/ghra
 if(/\b(?:prompt|confirm)\s*\(/.test(raw))bad("obsahuje nativní prompt/confirm");else ok("bez nativních blokujících dialogů");
 if(runtime.errors.length)bad("runtime chyby: "+runtime.errors.join(" | "));else ok("start bez runtime chyb");
 if(runtime.dup.length)bad("duplicitní ID: "+runtime.dup.join(", "));else ok("žádná duplicitní ID");
-const MIN_INTERNAL_TESTS=113;
+const MIN_INTERNAL_TESTS=118;
 if(runtime.fatal)bad("interní testy nešly spustit: "+runtime.fatal);else if(!runtime.count)bad("interní testy nic nevrátily");else if(runtime.count<MIN_INTERNAL_TESTS)bad(`počet interních testů klesl na ${runtime.count}, minimum je ${MIN_INTERNAL_TESTS}`);else if(runtime.fails.length){bad(`${runtime.fails.length}/${runtime.count} interních testů selhalo`);runtime.fails.forEach(x=>console.error("      "+x))}else ok(`${runtime.count}/${runtime.count} interních testů prošlo`);
+if(!runtime.conformance)bad("Core conformance suite nevrátila výsledek");else if(runtime.conformance.failed){bad(`${runtime.conformance.failed}/${runtime.conformance.results.length} Core conformance testů selhalo`);runtime.conformance.results.filter(x=>!x.ok).forEach(x=>console.error("      "+x.name+" · "+x.message));}else ok(`${runtime.conformance.passed}/${runtime.conformance.results.length} Core conformance testů prošlo`);
 if(raw.includes('thinkingLevel:"low"'))bad("Gemini stále používá thinkingLevel low");else ok("Gemini nepoužívá thinkingLevel low");
 if(!raw.includes("GEMINI_MAX_OUTPUT_TOKENS=32768"))bad("Gemini nemá výstupní limit 32768");else ok("Gemini má výstupní limit 32768");
+if(!raw.includes('ghrab-ai-request-v1')||!raw.includes('GHRAB AI Core 1.0.0')||!raw.includes('school-gateway')||!raw.includes('direct-gemini'))bad("chybí vydaný GHRAB AI Core nebo oba transporty");else ok("vydaný GHRAB AI Core a oba transporty");
+if(!raw.includes('automaticFallback: false')&&!raw.includes('automaticFallback:false'))bad("runtime konfigurace neblokuje automatický fallback");else ok("automatický fallback je zakázaný");
+if(!raw.includes('src="./runtime-config.js"'))bad("aplikace nenačítá veřejnou runtime konfiguraci");else ok("veřejná runtime konfigurace je načítaná");
 const manifest=JSON.parse(readFileSync(join(BASE,"manifest.webmanifest"),"utf-8")),resolved=new URL(manifest.id,"https://daniel22-dev.github.io/").href,expected=`https://daniel22-dev.github.io/${REPO}/`;if(resolved!==expected)bad(`PWA id ${resolved}, očekáváno ${expected}`);else ok("jednoznačná PWA identita");
 const sw=readFileSync(join(BASE,"sw.js"),"utf-8");if(!sw.includes(`key.startsWith("${CACHE_PREFIX}")`))bad("service worker nemá vlastní cache prefix");else ok("service worker spravuje jen vlastní cache");
+if(!sw.includes('relativePath==="runtime-config.js"')||!sw.includes('(?:api|auth|session|health)'))bad("service worker může cachovat runtime nebo školní API");else ok("runtime konfigurace a školní API jsou mimo PWA cache");
 if(!manualHtml)bad("chybí manuál");else{if(!manualHtml.includes(`const APP_ID="${APP_ID}"`)||!manualHtml.includes('data-ghrab-access-bootstrap'))bad("manuál nedědí oprávnění AI Studia");else ok("manuál dědí oprávnění AI Studia");if(!manualHtml.includes('class="chipbtn manual-back"'))bad("manuál nemá návrat do aplikace");else ok("manuál má návrat do aplikace")}
 
 // Statické regresní pojistky nad skutečně nasazovanými artefakty.

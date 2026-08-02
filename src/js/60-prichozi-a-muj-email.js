@@ -35,9 +35,9 @@ $("in_analyzeBtn").onclick=async()=>{
   if(!text){ state.innerHTML='<div class="error">Není co rozebrat — nejdřív vlož a anonymizuj e-mail.</div>'; return; }
   if(!$("in_reviewOk").checked){ state.innerHTML='<div class="error">Nejdřív potvrď finální kontrolu náhledu pod semaforem anonymizace.</div>'; flashPreview("in"); return; }
   if(!enforcePreflight("in", state)) return;
-  if(!geminiApiKey && !testMockAvailable()){ $("apiPanel").classList.add("open"); state.innerHTML='<div class="error">Chybí klíč k API. Vlož ho nahoře a zvol „Použít jen pro relaci“.</div>'; return; }
+  if(!isAiServiceReady()){ $("apiPanel").classList.add("open"); state.innerHTML='<div class="error">Chybí klíč k API. Vlož ho nahoře a zvol „Použít jen pro relaci“.</div>'; return; }
   const done=setBusy($("in_analyzeBtn"),"Rozebírám…");
-  try{ const d=await callGemini(text, SYS_ANALYZE, "analyze", {pane:"in",texts:[text],ackSensitive:!!(ST.in&&ST.in.sensitiveAck)}); ST.in.clean=text; ST.in.pozadavky=Array.isArray(d.pozadavky)?d.pozadavky:[]; ST.in.outputReady=true; state.innerHTML=""; renderAnalysis(d); recordCorrespondenceTelemetry('incoming-analysis',1,1,0); updateProgress("in"); $("in_results").scrollIntoView({behavior:"smooth",block:"start"}); }
+  try{ const d=await callGemini(text, SYS_ANALYZE, "analyze", {pane:"in",texts:[text],ackSensitive:!!(ST.in&&ST.in.sensitiveAck)}, {operation:"incoming-analysis",modelProfile:"balanced"}); ST.in.clean=text; ST.in.pozadavky=Array.isArray(d.pozadavky)?d.pozadavky:[]; ST.in.outputReady=true; state.innerHTML=""; renderAnalysis(d); recordCorrespondenceTelemetry('incoming-analysis',1,1,0); updateProgress("in"); $("in_results").scrollIntoView({behavior:"smooth",block:"start"}); }
   catch(err){ recordCorrespondenceTelemetry('incoming-analysis',1,0,1); setApiError(state, err, ()=>$("in_analyzeBtn").click()); }
   finally{ done(); updateSendGate("in"); }
 };
@@ -45,7 +45,7 @@ const MOOD={klid:"Klid",neutral:"Neutrální",napeti:"Napětí"};
 function renderAnalysis(d){
   const wrap=$("in_results"); wrap.innerHTML=""; wrap.className="ai-results-stage"; ST.in.analysis=d||{};
   const stageHead=document.createElement("div"); stageHead.className="ai-stage-divider reveal";
-  stageHead.innerHTML='<span class="ai-stage-kicker">1 request dokončen</span><div><p class="eyebrow">Nový pracovní blok</p><h2>Výsledek z Gemini: rozbor e-mailu</h2><p>Anonymizovaný text už byl odeslán a níže vidíš pouze jeho analýzu. Teď vyber, co má budoucí odpověď skutečně vyřídit.</p></div>';
+  stageHead.innerHTML='<span class="ai-stage-kicker">1 request dokončen</span><div><p class="eyebrow">Nový pracovní blok</p><h2>Výsledek z AI služby: rozbor e-mailu</h2><p>Anonymizovaný text už byl odeslán a níže vidíš pouze jeho analýzu. Teď vyber, co má budoucí odpověď skutečně vyřídit.</p></div>';
   wrap.appendChild(stageHead);
   const st=(d.naladeni&&d.naladeni.stupen)||"neutral";
   const priority=(d.priorita||"tyden").toLowerCase();
@@ -97,7 +97,7 @@ function renderAnalysis(d){
     '<div class="pgroup advanced-only"><div class="plabel">Orientační délka standardní varianty</div>'+chipGroup("in_delka",DELKA,"stredni")+'</div>'+    '<div class="pgroup advanced-only writing-style-use">'+writingStyleControlHtml("in")+'</div>'+
     '<div class="pgroup simple-hide"><div class="plabel" title="Vykání nebo tykání ve výsledné odpovědi.">Oslovení</div>'+chipGroup("in_oslov",OSLOV,"vykani")+'</div>'+
     '<div class="pgroup advanced-only"><div class="plabel" title="V jakém jazyce má být odpověď.">Jazyk odpovědi</div>'+chipGroup("in_lang",LANG,(readChip("outlang")||"cs"))+'</div>'+
-    '<div class="pgroup advanced-only note-field"><div class="plabel" title="Cokoli navíc — třeba na co nereagovat nebo co zmínit.">Poznámka pro odpověď</div><input id="in_note" type="text" title="Poznámka je součástí promptu. Osobu vlož nejlépe místním štítkem pod polem; do Gemini odejde pouze anonymní značka." placeholder="např. napiš, že danou žákyni neučím; navrhni telefonickou domluvu"><p class="field-safety-note">Poznámka se skutečně promítne do návrhu. Známé tvary jmen se skryjí; nevyřešené možné jméno nebo citlivý údaj odeslání zastaví.</p></div>'+
+    '<div class="pgroup advanced-only note-field"><div class="plabel" title="Cokoli navíc — třeba na co nereagovat nebo co zmínit.">Poznámka pro odpověď</div><input id="in_note" type="text" title="Poznámka je součástí promptu. Osobu vlož nejlépe místním štítkem pod polem; do AI služby odejde pouze anonymní značka." placeholder="např. napiš, že danou žákyni neučím; navrhni telefonickou domluvu"><p class="field-safety-note">Poznámka se skutečně promítne do návrhu. Známé tvary jmen se skryjí; nevyřešené možné jméno nebo citlivý údaj odeslání zastaví.</p></div>'+
     '<div class="simple-action-note simple-only"><b>Jednoduchý režim:</b> použije doporučený záměr a bezpečné výchozí nastavení.</div>'+
     '<div class="choice-summary advanced-only" id="in_choiceSummary"></div>'+
     '<div class="row actsticky"><button class="btn primary" id="in_replyBtn" title="Vytvoří stručnou, standardní a diplomatickou variantu."><span class="action-icon">✉️</span>Vytvořit 3 varianty <span class="req">1 ⚡</span></button></div>'+
@@ -137,7 +137,7 @@ async function genReplies(){
   if(isBusy($("in_replyBtn"))) return;
   const state=$("in_replyState"); state.innerHTML="";
   if(!$("in_reviewOk").checked){ state.innerHTML='<div class="error">Nejdřív potvrď finální kontrolu náhledu pod semaforem anonymizace.</div>'; flashPreview("in"); return; }
-  if(!geminiApiKey && !testMockAvailable()){ $("apiPanel").classList.add("open"); state.innerHTML='<div class="error">Chybí klíč k API. Vlož ho nahoře.</div>'; return; }
+  if(!isAiServiceReady()){ $("apiPanel").classList.add("open"); state.innerHTML='<div class="error">Chybí klíč k API. Vlož ho nahoře.</div>'; return; }
   const zamer=readChip("in_zamer"),ton=readChip("in_ton"),delka=readChip("in_delka"),oslov=readChip("in_oslov"),adr=readChip("in_adresat"),pisuJako=readChip("in_pisujako")||"jednotlivec";
   ST.in.replySenderMode=pisuJako;
   if(adr==="jiny"&&!customRecipientValue("in")){ state.innerHTML='<div class="error"><b>Upřesni adresáta.</b> Do pole „Komu odpovídáte?“ napiš například nakladatelství nebo externí partner.</div>'; $("in_adresatJiny")?.focus(); return; }
@@ -159,7 +159,7 @@ async function genReplies(){
     threadLine+profileLine()+styleCtx.line+langLine();
   const done=setBusy($("in_replyBtn"),"Skládám tři varianty…");
   try{
-    const d=await callGemini(prompt,SYS_REPLY+langSystem(),"reply", {pane:"in",texts:[ST.in.clean,note,...styleCtx.texts,...checked,...unchecked],ackSensitive:!!(ST.in&&ST.in.sensitiveAck)}); mergeSyn("in",d.synonyma);
+    const d=await callGemini(prompt,SYS_REPLY+langSystem(),"reply", {pane:"in",texts:[ST.in.clean,note,...styleCtx.texts,...checked,...unchecked],ackSensitive:!!(ST.in&&ST.in.sensitiveAck)}, {operation:"reply-draft",modelProfile:"balanced"}); mergeSyn("in",d.synonyma);
     state.innerHTML=""; const box=$("in_replies"); box.innerHTML="";
     let navrhy=Array.isArray(d&&d.navrhy)?d.navrhy:[];
     if(!navrhy.length){ recordCorrespondenceTelemetry('reply-draft',3,0,3); box.innerHTML='<p class="empty">Model nevrátil návrh — zkus to znovu.</p>'; return; }
@@ -513,7 +513,7 @@ $("my_goBtn").onclick=async()=>{
   const text=(ST.my.clean||"").trim(); const state=$("my_apiState"); state.innerHTML="";
   if(!text){ state.innerHTML='<div class="error">Není co zpracovat — nejdřív vlož text a dej Pokračovat.</div>'; return; }
   if(!$("my_reviewOk").checked){ state.innerHTML='<div class="error">Nejdřív potvrď finální kontrolu náhledu pod semaforem anonymizace.</div>'; flashPreview("my"); return; }
-  if(!geminiApiKey && !testMockAvailable()){ $("apiPanel").classList.add("open"); state.innerHTML='<div class="error">Chybí klíč k API. Vlož ho nahoře.</div>'; return; }
+  if(!isAiServiceReady()){ $("apiPanel").classList.add("open"); state.innerHTML='<div class="error">Chybí klíč k API. Vlož ho nahoře.</div>'; return; }
   const mode=readChip("my_mode"), flow=readChip("my_flow")||"quick";
   let inferred=null;
   if(mode==="sestavit" && flow==="quick") inferred=inferQuickComposeSettings(text,true);
@@ -531,20 +531,23 @@ $("my_goBtn").onclick=async()=>{
   const subj=readChip("my_subj")==="ano";
   const senderMode=readChip("my_pisujako")||"jednotlivec"; ST.my.replySenderMode=senderMode;
   const common="\nAdresát: "+recipientLabel("my")+"\n"+audiencePrompt()+"\nOslovení: "+oslovTxt+"\n"+senderPerspectivePrompt(senderMode)+(note?"\nDalší pokyn: "+note:"")+(subj?"\nNa první řádek napiš předmět zprávy ve tvaru Předmět: / Subject: / Asunto: podle jazyka výstupu a pod něj samotný e-mail.":"")+scenarioLine+profileLine()+styleCtx.line+myLangLine();
-  let sys, prompt, styl;
+  let sys, prompt, styl, operation;
   if(mode==="prepsat"){
+    operation="outgoing-rewrite";
     const s=readChip("my_prepis"), u=readChip("my_ucel"); styl="Přepsáno: "+(PREPIS[s]||s); sys=SYS_PREPIS;
     prompt="Přepiš tento e-mail jako: "+(PREPIS[s]||s)+".\nÚčel: "+(UCEL[u]||u)+"."+common+"\n\n\"\"\"\n"+text+"\n\"\"\"";
   } else if(mode==="sestavit"){
+    operation="outgoing-compose";
     const ton=readChip("my_cton"), delka=readChip("my_cdelka"), u=readChip("my_ucel"); styl="Sestaveno z bodů"; sys=SYS_COMPOSE;
     prompt="Sestav e-mail z těchto bodů (se značkami místo jmen):\n\"\"\"\n"+text+"\n\"\"\"\n\nÚčel: "+(UCEL[u]||u)+"\nTón: "+(TON[ton]||ton)+"\nDélka: "+(DELKA[delka]||delka)+common;
   } else {
+    operation="outgoing-proofread";
     const fix=readChip("my_fix"); styl="Opravená verze"; sys=SYS_KOREKTURA;
     prompt="Oprav tento e-mail. Míra zásahu: "+(fix==="sloh"?"oprav chyby a vylepši i sloh a formulace":"oprav jen pravopis, gramatiku a interpunkci, sloh a formulace neměň")+"."+common+"\n\n\"\"\"\n"+text+"\n\"\"\"";
   }
   const done=setBusy($("my_goBtn"),"Pracuji…");
   try{
-    const d=await callGemini(prompt, sys+myLangSystem(), "text", {pane:"my",texts:[text,note,...styleCtx.texts],ackSensitive:!!(ST.my&&ST.my.sensitiveAck)}); mergeSyn("my", d.synonyma);
+    const d=await callGemini(prompt, sys+myLangSystem(), "text", {pane:"my",texts:[text,note,...styleCtx.texts],ackSensitive:!!(ST.my&&ST.my.sensitiveAck)}, {operation,modelProfile:"balanced"}); mergeSyn("my", d.synonyma);
     state.innerHTML=""; const wrap=$("my_results"); wrap.innerHTML="";
     const cleanedOutput=replyAllowsEmoji(note)?(d.text||""):stripReplyEmoji(d.text||"");
     const card=draftCard("my",{ styl, text:cleanedOutput, sourceText:text, hint:"Dvojklik na slovo nabídne synonyma. Označenou formulaci můžeš uzamknout a zbytek dále upravovat.", usePersonalStyle:styleCtx.enabled });

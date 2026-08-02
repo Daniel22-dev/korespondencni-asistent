@@ -38,14 +38,19 @@
     </div>
 
     <div class="api-toggle-row">
-      <button class="api-toggle" id="apiToggle" aria-expanded="false" aria-controls="apiPanel">Klíč k API ▾</button>
+      <button class="api-toggle" id="apiToggle" aria-expanded="false" aria-controls="apiPanel">Připojení k AI ▾</button>
       <span class="key-badge none" id="keyBadge">klíč: nezadán</span>
     </div>
     <div class="api" id="apiPanel">
       <div class="api-head">
-        <span class="api-title">⚡ Generování přes Gemini</span>
+        <span class="api-title" id="apiTitle">⚡ Generování přes Gemini</span>
         <span class="api-status" id="keyStatus">Klíč není nastaven</span>
       </div>
+      <div class="school-ai-status" id="schoolGatewayStatus" hidden>
+        <strong>✓ Připojeno ke školní AI službě</strong>
+        <span>API klíč je uložen pouze na školním serveru. Aplikace odesílá jen zkontrolovaný anonymizovaný obsah.</span>
+      </div>
+      <div id="directGeminiSettings">
       <input id="keyInput" type="password" placeholder="Gemini API klíč (AIza…)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" title="Klíč se posílá jen Googlu. Nikdy ho nevkládej do HTML na GitHubu.">
       <div class="key-actions">
         <button class="btn small" id="btnSession" title="Klíč se po zavření prohlížeče sám zapomene — nejbezpečnější, vhodné i na sdíleném počítači.">Použít jen pro relaci</button>
@@ -68,6 +73,7 @@
           <button class="qm" id="qmLite" title="Rychlejší a šetrnější k limitu. Pro jednoduché úkoly.">🪶 Úsporný<span class="sub">gemini-3.5-flash-lite</span></button>
         </div>
         <p class="hint">Oba přednastavené modely fungují v bezplatné úrovni API. Při vyčerpání kvóty se jednou automaticky zkusí úsporný model. Model Pro zde záměrně není, protože vyžaduje placenou úroveň API. <strong>Podmínky práce s daty se liší podle regionu a fakturace.</strong> U neplacených služeb mimo EHP, Švýcarsko a Spojené království může Google odeslaný obsah a odpovědi použít ke zlepšování produktů a mohou je kontrolovat lidští hodnotitelé. V EHP, Švýcarsku a Spojeném království se podle aktuálních podmínek na data vztahují pravidla placených služeb i u neplacené kvóty; aplikace zpřístupněná uživatelům v těchto regionech má používat projekt s aktivní fakturací. Vždy posílej jen ručně zkontrolovaný anonymizovaný náhled.</p>
+      </div>
       </div>
 
       <div class="model-row advanced-only">
@@ -149,7 +155,7 @@
           <p>E-maily a telefony aplikace skryje automaticky. V jednom velkém poli označíš jména a vlastní názvy a zároveň vidíš hlavní anonymizovaný obsah. Před odesláním aplikace zkontroluje i poznámku, volby a celý sestavený prompt.</p>
         </div>
         <div class="card privacy-local-panel">
-          <div class="step-head"><span class="step-no">2</span><span class="step-title">Anonymizace a hlavní obsah pro Gemini</span></div>
+          <div class="step-head"><span class="step-no">2</span><span class="step-title">Anonymizace a hlavní obsah pro AI model</span></div>
           <p class="tap-hint">Klikni přímo na slovo nebo označ více slov. V pevném panelu napravo zvolíš osobu, instituci, místo, název / dílo, kontakt, jiný citlivý údaj nebo ponechání. Bezpečné zbývající návrhy lze po přečtení ponechat hromadně. Žlutá značka už je anonymizovaná; kliknutím ji znovu odkryješ.</p>
           <div class="privacy-warning" role="alert"><strong>Před odesláním pročti celý text.</strong><span>Ověř, že neobsahuje skutečná jména, kontakty ani jiné osobní nebo citlivé údaje. Zobrazený text je hlavní částí zadání. Před API se znovu prověří také poznámka, zvolené parametry a celý sestavený prompt.</span></div>
           <div class="tap-cue"><span class="arrow action-icon" data-ic="down" aria-hidden="true"></span><span>Klikni na výraz v textu, kategorii zvol napravo a potom text ještě jednou celý přečti.</span></div>
@@ -183,11 +189,11 @@
             <div class="safety" id="in_safety">Semafor anonymizace se zobrazí po vložení textu.</div>
             <div class="safe-fallback" id="in_safeFallback" aria-live="polite"></div>
             <div class="preview-summary" id="in_previewSummary" aria-live="polite"></div>
-            <label class="review-check"><input type="checkbox" id="in_reviewOk" aria-label="Potvrzuji kontrolu anonymizace přijatého e-mailu"><span><strong>Zkontrolováno.</strong> Pročetl(a) jsem celý přesný obsah pro Gemini, vyřešil(a) návrhy jednotlivě nebo vědomě hromadně a nevidím v něm skutečná jména, kontakty ani jiné citlivé údaje.</span></label>
+            <label class="review-check"><input type="checkbox" id="in_reviewOk" aria-label="Potvrzuji kontrolu anonymizace přijatého e-mailu"><span><strong>Zkontrolováno.</strong> Pročetl(a) jsem celý přesný obsah pro AI model, vyřešil(a) návrhy jednotlivě nebo vědomě hromadně a nevidím v něm skutečná jména, kontakty ani jiné citlivé údaje.</span></label>
             <button class="manual-context-link" type="button" data-open-safety-rules aria-label="Otevřít pravidla bezpečné práce s údaji bez opuštění aplikace">📖 Nejste si jistí? Otevřít pravidla bezpečné práce s údaji</button>
             <p class="gate-reason" id="in_gateReason" aria-live="polite"></p>
             <div class="row actsticky">
-              <button class="btn primary" id="in_analyzeBtn" title="Odešle očištěný text Gemini a vrátí rozbor." disabled><span class="action-icon">🔎</span>Rozebrat <span class="req">1 ⚡</span></button>
+              <button class="btn primary" id="in_analyzeBtn" title="Odešle očištěný text aktivní AI službě a vrátí rozbor." disabled><span class="action-icon">🔎</span>Rozebrat <span class="req">1 ⚡</span></button>
             </div>
             <div id="in_apiState"></div>
           </div>
@@ -239,7 +245,7 @@
           <p>E-maily a telefony aplikace skryje automaticky. V jednom velkém poli označíš jména a vlastní názvy a zároveň vidíš hlavní anonymizovaný obsah. Před odesláním aplikace zkontroluje i poznámku, volby a celý sestavený prompt.</p>
         </div>
         <div class="card privacy-local-panel">
-          <div class="step-head"><span class="step-no">2</span><span class="step-title">Anonymizace a hlavní obsah pro Gemini</span></div>
+          <div class="step-head"><span class="step-no">2</span><span class="step-title">Anonymizace a hlavní obsah pro AI model</span></div>
           <p class="tap-hint">Klikni přímo na slovo nebo označ více slov. V pevném panelu napravo zvolíš osobu, instituci, místo, název / dílo, kontakt, jiný citlivý údaj nebo ponechání. Bezpečné zbývající návrhy lze po přečtení ponechat hromadně. Žlutá značka už je anonymizovaná; kliknutím ji znovu odkryješ.</p>
           <div class="privacy-warning" role="alert"><strong>Před odesláním pročti celý text.</strong><span>Ověř, že neobsahuje skutečná jména, kontakty ani jiné osobní nebo citlivé údaje. Zobrazený text je hlavní částí zadání. Před API se znovu prověří také poznámka, zvolené parametry a celý sestavený prompt.</span></div>
           <div class="tap-cue"><span class="arrow action-icon" data-ic="down" aria-hidden="true"></span><span>Klikni na výraz v textu, kategorii zvol napravo a potom text ještě jednou celý přečti.</span></div>
@@ -273,7 +279,7 @@
             <div class="safety" id="my_safety">Semafor anonymizace se zobrazí po vložení textu.</div>
             <div class="safe-fallback" id="my_safeFallback" aria-live="polite"></div>
             <div class="preview-summary" id="my_previewSummary" aria-live="polite"></div>
-            <label class="review-check"><input type="checkbox" id="my_reviewOk" aria-label="Potvrzuji kontrolu anonymizace vlastního e-mailu"><span><strong>Zkontrolováno.</strong> Pročetl(a) jsem celý přesný obsah pro Gemini, vyřešil(a) návrhy jednotlivě nebo vědomě hromadně a nevidím v něm skutečná jména, kontakty ani jiné citlivé údaje.</span></label>
+            <label class="review-check"><input type="checkbox" id="my_reviewOk" aria-label="Potvrzuji kontrolu anonymizace vlastního e-mailu"><span><strong>Zkontrolováno.</strong> Pročetl(a) jsem celý přesný obsah pro AI model, vyřešil(a) návrhy jednotlivě nebo vědomě hromadně a nevidím v něm skutečná jména, kontakty ani jiné citlivé údaje.</span></label>
             <button class="manual-context-link" type="button" data-open-safety-rules aria-label="Otevřít pravidla bezpečné práce s údaji bez opuštění aplikace">📖 Nejste si jistí? Otevřít pravidla bezpečné práce s údaji</button>
             <p class="gate-reason" id="my_gateReason" aria-live="polite"></p>
 
@@ -442,7 +448,7 @@
               </div>
               <div class="pgroup advanced-only note-field" id="my_noteGroup">
                 <div class="plabel">Doplňující pokyn k výsledku (nepovinné) <button class="help-tip" type="button" aria-label="Nápověda k doplňujícímu pokynu" data-tip="Sem napiš jen zvláštní požadavek, který není pokrytý ostatními volbami, například doplnit termín nebo zmírnit závěr.">i</button></div>
-                <input id="my_note" type="text" title="Poznámka se před odesláním kontroluje. Osobu vlož nejlépe místním štítkem pod polem; do Gemini odejde pouze anonymní značka." placeholder="např. navrhni termín ve čtvrtek; ať to nezní podrážděně" style="width:100%;font:13px var(--sans);padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink)">
+                <input id="my_note" type="text" title="Poznámka se před odesláním kontroluje. Osobu vlož nejlépe místním štítkem pod polem; do AI služby odejde pouze anonymní značka." placeholder="např. navrhni termín ve čtvrtek; ať to nezní podrážděně" style="width:100%;font:13px var(--sans);padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink)">
               </div>
               <div class="simple-action-note simple-only"><b>Jednoduchý režim:</b> aplikace použije bezpečné výchozí volby a nechá vidět jen hlavní akci. Tón, délku, jazyk, školní scénáře a další parametry upravíš v pokročilém režimu.</div>
               <div class="choice-summary advanced-only" id="my_choiceSummary"></div>

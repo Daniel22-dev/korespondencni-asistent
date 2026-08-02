@@ -54,6 +54,10 @@
   .api-status{ font:600 12px var(--sans); color:var(--ink-soft); }
   .api-status.ok{ color:var(--calm); }
   .api-status.perm{ color:var(--accent-text); }
+  .school-ai-status{display:grid;gap:4px;margin:2px 0 12px;padding:12px 14px;border:1px solid rgba(31,122,105,.25);border-radius:10px;background:rgba(31,122,105,.08);font:13px var(--sans);color:var(--ink-soft)}
+  .school-ai-status strong{color:var(--calm);font-size:13px}
+  .school-ai-status span{line-height:1.45}
+
   .api input[type=password], .api input[type=text]{ width:100%; font:13px var(--mono); padding:9px 11px; border:1px solid var(--line); border-radius:8px; background:var(--paper); color:var(--ink); }
   .key-actions{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
   .api details{ margin-top:10px; }

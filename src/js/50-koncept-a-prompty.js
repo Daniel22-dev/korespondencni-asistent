@@ -50,7 +50,7 @@ async function fetchSyn(){
     if(safeSentence===null)return;
     const d=await callGemini(
       "Slovo: \""+synCtx.word+"\"\nOkolí: \""+safeSentence+"\"\nVrať 4 vhodná "+lang+" synonyma ve STEJNÉM gramatickém tvaru jako slovo v okolí.",
-      "Jsi "+helper+" jazykový pomocník. Vracíš jen synonyma ve správném tvaru a stejném jazyce jako zadané slovo. Odpověz VÝHRADNĚ platným JSON: {\"synonyma\":[\"…\",\"…\"]}", "synonyms", {pane:synCtx.p,texts:[safeSentence],ackSensitive:!!(ST[synCtx.p]&&ST[synCtx.p].sensitiveAck)}, {thinking:"minimal"}
+      "Jsi "+helper+" jazykový pomocník. Vracíš jen synonyma ve správném tvaru a stejném jazyce jako zadané slovo. Odpověz VÝHRADNĚ platným JSON: {\"synonyma\":[\"…\",\"…\"]}", "synonyms", {pane:synCtx.p,texts:[safeSentence],ackSensitive:!!(ST[synCtx.p]&&ST[synCtx.p].sensitiveAck)}, {thinking:"minimal",operation:"synonym-suggestions",modelProfile:"economy"}
     );
     const opts=(d&&d.synonyma)||[];
     if(synCtx) ST[synCtx.p].syn[synCtx.word.toLowerCase()]=opts;
@@ -377,7 +377,7 @@ function senderPerspectivePrompt(mode){
   return "Píšu jako jednotlivec. DŮSLEDNĚ používej 1. osobu jednotného čísla (děkuji, vážím si, projednám, ozvu se, budu Vás kontaktovat). Pouhá zmínka o kolezích, komisi nebo škole NENÍ důvod přejít na ‚my‘; napiš například ‚projednám s kolegy‘, nikoli ‚projednáme‘."+writerGenderPrompt("jednotlivec");
 }
 async function refineDraft(p, card, srcText, instruction){
-  if(!geminiApiKey && !testMockAvailable()){ $("apiPanel").classList.add("open"); toast("Chybí klíč k API."); return; }
+  if(!isAiServiceReady()){ $("apiPanel").classList.add("open"); toast("Chybí připojení k AI službě."); return; }
   const safeInstruction=safeAuxiliaryText(p,instruction,null,"Pokyn k úpravě");
   const safeDraft=safeAuxiliaryText(p,ensureSignaturePlaceholder(srcText),null,"Koncept");
   if(safeInstruction===null || safeDraft===null) return;
@@ -392,21 +392,21 @@ async function refineDraft(p, card, srcText, instruction){
     if(styleCtx===null)return;
     const d=await callGemini(
       "Uprav tento koncept e-mailu podle pokynu, zachovej značky a podpis [podpis].\n"+senderPerspectivePrompt(senderMode)+profileLine()+styleCtx.line+"\nPokyn: "+safeInstruction+lockedLine+"\n\nKoncept:\n\"\"\"\n"+safeDraft+"\n\"\"\""+lLine,
-      SYS_REFINE+lSystem, "text", {pane:p,texts:[safeDraft,safeInstruction,...styleCtx.texts],ackSensitive:!!(ST[p]&&ST[p].sensitiveAck)}
+      SYS_REFINE+lSystem, "text", {pane:p,texts:[safeDraft,safeInstruction,...styleCtx.texts],ackSensitive:!!(ST[p]&&ST[p].sensitiveAck)}, {operation:"draft-refinement",modelProfile:"balanced"}
     );
     if(d&&d.text){ if(card.__setSrc) card.__setSrc(d.text,"AI úprava"); mergeSyn(p,d.synonyma); toast("Upraveno ✓"); }
   }catch(e){ toast("Úprava se nepovedla: "+friendlyApiMessage(e)); }
   finally{ card.style.opacity="1"; }
 }
 async function toneCheck(p, srcText, wrap, btn){
-  if(!geminiApiKey && !testMockAvailable()){ $("apiPanel").classList.add("open"); toast("Chybí klíč k API."); return; }
+  if(!isAiServiceReady()){ $("apiPanel").classList.add("open"); toast("Chybí připojení k AI službě."); return; }
   if(!wrap) return;
   const text=(srcText||"").trim(); if(!text){ toast("Není co posoudit."); return; }
   const safeText=safeAuxiliaryText(p,text,null,"Koncept"); if(safeText===null)return;
   if(btn) btn.disabled=true;
   wrap.innerHTML='<div class="loading"><span class="spin"></span>Čtu, jak text působí…</div>';
   try{
-    const d=await callGemini("Koncept:\n\"\"\"\n"+safeText+"\n\"\"\"", SYS_TONECHECK, "tone", {pane:p,texts:[safeText],ackSensitive:!!(ST[p]&&ST[p].sensitiveAck)}, {thinking:"minimal"});
+    const d=await callGemini("Koncept:\n\"\"\"\n"+safeText+"\n\"\"\"", SYS_TONECHECK, "tone", {pane:p,texts:[safeText],ackSensitive:!!(ST[p]&&ST[p].sensitiveAck)}, {thinking:"minimal",operation:"tone-check",modelProfile:"economy"});
     const st=(d.naladeni&&d.naladeni.stupen)||"neutral";
     const rizika=Array.isArray(d.rizika)?d.rizika.filter(Boolean):[];
     const natural=(d.prirozenost&&d.prirozenost.stupen)||"prirozeny";
