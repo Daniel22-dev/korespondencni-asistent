@@ -6,7 +6,7 @@ import {spawn,execSync} from "node:child_process";
 import {setTimeout as sleep} from "node:timers/promises";
 const ROOT=join(dirname(fileURLToPath(import.meta.url)),".."),BASE=join(ROOT,"dist");
 const CORE_VERSION="1.0.0",CORE_DIR=join(ROOT,"vendor",`ghrab-ai-core-${CORE_VERSION}`),CONFORMANCE_SOURCE=readFileSync(join(CORE_DIR,`ghrab-ai-conformance-${CORE_VERSION}.js`),"utf-8");
-const REPO="korespondencni-asistent",APP_ID="correspondence",APP_VERSION="5.9.8",SUITE="openTestRunner(false); runKorespTests()",ITEM="#testOut .test-result",FAIL="#testOut .test-result.fail",CACHE_PREFIX="korespondencni-asistent-";
+const REPO="korespondencni-asistent",APP_ID="correspondence",APP_VERSION="5.9.10",SUITE="openTestRunner(false); runKorespTests()",ITEM="#testOut .test-result",FAIL="#testOut .test-result.fail",CACHE_PREFIX="korespondencni-asistent-";
 let failures=0;const ok=m=>console.log("  ✓ "+m),bad=m=>{console.error("  ✗ "+m);failures++};
 if(!existsSync(join(BASE,"index.html"))){console.error("Chybí dist. Spusť nejdřív npm run build.");process.exit(1)}
 function testHtml(raw){return raw.replace('type="application/ghrab-protected" data-ghrab-protected','type="text/javascript" data-ghrab-test-executable').replace(/<script type="module" data-ghrab-access-bootstrap>[\s\S]*?<\/script>/,'')}
@@ -65,11 +65,15 @@ const reporterJsPath=join(BASE,"access","error-reporter-ks.js"),reporterCssPath=
 if(!existsSync(reporterJsPath)||!existsSync(reporterCssPath))bad("v dist chybí lokální reportér KS");else{
   const reporterJs=readFileSync(reporterJsPath,"utf-8"),reporterCss=readFileSync(reporterCssPath,"utf-8");
   if(!raw.includes("errorReporter: false")||!raw.includes("./access/error-reporter-ks.js")||!raw.includes("balaz@ghrabuvka.cz"))bad("bootstrap nevypíná centrální reportér nebo nenastavuje lokální KS reportér");else ok("KS používá jediný lokální reportér s pracovním e-mailem");
-  if(/location\.href\s*=\s*mailto/i.test(reporterJs)||!reporterJs.includes('host.open(draft.gmailUrl, "_blank")')||!reporterJs.includes("gmailUrl")||!reporterJs.includes("Otevřít Gmail")||!reporterJs.includes("Otevřít poštovní aplikaci")||!reporterJs.includes("Zkopírovat údaje e-mailu"))bad("otevření Gmailu není připraveno v nové kartě nebo chybí záložní akce");else ok("Gmail se otevírá mimo iframe a má záložní akce");
+  if(/location\.href\s*=\s*mailto/i.test(reporterJs)||/\bwindow\.open\s*\(/.test(reporterJs)||!reporterJs.includes('document.createElement("a")')||!reporterJs.includes('prepareLink.target = "_blank"')||!reporterJs.includes("gmailUrl")||!reporterJs.includes("Otevřít Gmail")||!reporterJs.includes("Otevřít poštovní aplikaci")||!reporterJs.includes("Zkopírovat údaje e-mailu"))bad("hlavní otevření Gmailu není nativní odkaz nebo chybí záložní akce");else ok("Gmail používá nativní odkaz do nové karty a má záložní akce");
   if(!reporterJs.includes("Smazat hlášení a zavřít")||!reporterJs.includes("Ponechat rozepsané a zavřít")||!reporterJs.includes("resetDraft()")||!reporterJs.includes("state.screenshots.forEach(revokeScreenshot)"))bad("zavření reportu neumí bezpečně smazat nebo ponechat rozepsaný koncept");else ok("zavření reportu nabízí smazání nebo ponechání konceptu");
-  if(!reporterJs.includes("supportsFileShare")||!reporterJs.includes("Sdílet ZIP přes nabídku zařízení")||!reporterJs.includes("state.preparedFile"))bad("přímé sdílení není omezeno na připravený ZIP a podporovaná zařízení");else ok("přímé sdílení je dostupné jen pro připravený ZIP na podporovaném zařízení");
+  if(reporterJs.includes("supportsFileShare")||reporterJs.includes("Sdílet ZIP přes nabídku zařízení")||reporterJs.includes("navigator.share"))bad("v reportéru zůstalo nespolehlivé přímé sdílení ZIP");else ok("nespolehlivé přímé sdílení ZIP bylo odstraněno");
   if(!reporterCss.includes(".ghrab-report-button.launcher"))bad("lokální reportér nemá vlastní základní styl");else ok("lokální reportér obsahuje úplný styl");
   try{execSync(`node --check "${reporterJsPath}"`,{stdio:"ignore"});ok("lokální reportér je syntakticky platný")}catch{bad("lokální reportér má syntaktickou chybu")}
+  try{execSync(`node "${join(ROOT,"scripts","test-reporter-mail.mjs")}"`,{stdio:"pipe"});ok("skutečné kliknutí v Chromiu otevře kartu Gmailu")}catch(e){bad("prohlížečový test Gmailu selhal: "+String(e.stderr||e.message||e))}
+  const reporterCompat=readFileSync(join(ROOT,"src","js","26-error-reporter-compat.js"),"utf-8");
+  if(reporterCompat.includes("interceptClose")||reporterCompat.includes("stopImmediatePropagation"))bad("vrstva snímání stále přebírá skutečné zavření reportu");else ok("zavření reportu nepřebírá vrstva snímání");
+  try{execSync(`node "${join(ROOT,"scripts","test-reporter-draft.mjs")}"`,{stdio:"pipe"});ok("Chromium ověřil smazání i ponechání konceptu během aktivního snímání")}catch(e){bad("prohlížečový test životního cyklu konceptu selhal: "+String(e.stderr||e.message||e))}
 }
 if(!raw.includes("top:auto;right:18px;left:auto;bottom:max(18px")||!raw.includes("width:min(360px")||!raw.includes("safe-area-inset-bottom"))bad("panel snímání není bezpečně ukotvený vpravo dole");else ok("panel snímání je kompaktní a ukotvený vpravo dole");
 if(!raw.includes('automaticFallback: false')&&!raw.includes('automaticFallback:false'))bad("runtime konfigurace neblokuje automatický fallback");else ok("automatický fallback je zakázaný");

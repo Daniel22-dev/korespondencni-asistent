@@ -28,14 +28,15 @@
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
   transition: 0.2s;
 }
-.ghrab-report-button:hover:not(:disabled) {
+.ghrab-report-button:hover:not(:disabled):not([aria-disabled="true"]) {
   transform: translateY(-1px);
   border-color: rgba(111, 226, 255, 0.65);
   background: rgba(14, 44, 70, 0.96);
 }
-.ghrab-report-button:disabled {
+.ghrab-report-button:disabled,
+.ghrab-report-button[aria-disabled="true"] {
   opacity: 0.45;
-  cursor: not-allowed;
+  cursor: wait;
 }
 .ghrab-report-button.primary {
   border-color: transparent;

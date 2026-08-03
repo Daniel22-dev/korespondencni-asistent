@@ -2,26 +2,26 @@
 
 Samostatná PWA aplikace ekosystému AI Studio Gymnázia Ostrava-Hrabůvka.
 
-- **Verze aplikace:** 5.9.8
+- **Verze aplikace:** 5.9.10
 - **GHRAB AI Core:** 1.0.0
 - **Doporučený repozitář:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
-- **Interaktivní manuál:** 1.3.5 (manuál 1.3.5)
+- **Interaktivní manuál:** 1.3.7 (manuál 1.3.7)
 
-## Co přináší verze 5.9.8
+## Co přináší verze 5.9.10
 
-Verze 5.9.8 dokončuje praktický tok hlášení technické chyby a sjednocuje jej s návodem AI Studia.
+Verze 5.9.10 opravuje záměnu mezi **opuštěním dialogu kvůli snímání** a skutečným **zavřením hlášení**.
 
-- při zavření rozepsaného hlášení se zobrazí vlastní dialog se třemi srozumitelnými volbami; **Smazat hlášení a zavřít** odstraní text, screenshoty, připravený ZIP i poslední stav, zatímco **Ponechat rozepsané a zavřít** zachová koncept;
-- tlačítko **Stáhnout ZIP a otevřít Gmail** otevře předvyplněný Gmail přímo v okamžiku kliknutí a současně připraví ZIP; tím se nová karta neztratí během asynchronního sestavování balíčku ani uvnitř iframe;
-- po přípravě zůstávají viditelné záložní akce **Otevřít Gmail**, **Otevřít poštovní aplikaci** a **Zkopírovat údaje e-mailu**;
-- volba **Sdílet ZIP přes nabídku zařízení** se zobrazí až po vytvoření souboru a jen na podporovaném mobilu či tabletu; otevře systémovou nabídku aplikací a sama e-mail neodesílá;
-- plovoucí panel snímání zůstává kompaktně vpravo dole a umožňuje pořídit až pět snímků, vrátit se k hlášení nebo snímání ukončit;
-- pracovní e-mail správce je předvyplněn jako `balaz@ghrabuvka.cz`;
-- krátký návod **Jak poslat správci srozumitelné hlášení bez focení monitoru** je aktualizován v AI Studiu a odpovídá tomuto workflow.
+- zavírací křížek, spodní tlačítko **Zavřít**, kliknutí mimo dialog a klávesa Escape vždy otevřou volbu **Ponechat rozepsané** nebo **Smazat hlášení**;
+- volba **Smazat hlášení a zavřít** odstraní text, screenshoty, připravený ZIP i poslední stav a při novém otevření začne čistý report;
+- volba **Ponechat rozepsané a zavřít** koncept skutečně zachová;
+- během aktivního snímání se do aplikace přechází pouze výslovným tlačítkem **Přejít do aplikace** — zavření už se za tento přechod nevydává;
+- nový Chromium regresní test simuluje aktivní snímání, přidá skutečný testovací screenshot a ověří obě volby po zavření.
 
-Technický popis změny je v `docs/WORKFLOW-UPDATE-5.9.8.md`.
+Zůstává také oprava 5.9.9: Gmail se otevírá nativním odkazem v nové kartě a ZIP se připraví na původní kartě.
+
+Technický popis změny je v `docs/WORKFLOW-UPDATE-5.9.10.md`.
 
 ## GHRAB AI Core
 
@@ -51,7 +51,7 @@ prohlížeč
 → Gemini API
 ```
 
-Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže nasazení verze 5.9.8 samo o sobě nezapíná školní server.
+Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže nasazení verze 5.9.10 samo o sobě nezapíná školní server.
 
 ### Budoucí migrační režim
 

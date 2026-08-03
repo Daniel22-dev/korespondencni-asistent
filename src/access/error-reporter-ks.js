@@ -52,17 +52,6 @@ function reportId() {
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
-function supportsFileShare() {
-  if (!navigator.share || !navigator.canShare || typeof File === "undefined")
-    return false;
-  try {
-    return navigator.canShare({
-      files: [new File(["ghrab"], "ghrab-report.txt", { type: "text/plain" })],
-    });
-  } catch {
-    return false;
-  }
-}
 function twoFrames() {
   return new Promise((resolve) =>
     requestAnimationFrame(() => requestAnimationFrame(resolve)),
@@ -634,7 +623,7 @@ export function setupErrorReporter(options = {}) {
 
   const root = element("div", "ghrab-error-reporter");
   root.id = REPORTER_ID;
-  root.dataset.reporterVariant = "ks-5.9.8";
+  root.dataset.reporterVariant = "ks-5.9.10";
   const launcher = button(t("Nahlásit chybu", "Report an issue"), "launcher");
   launcher.setAttribute("aria-haspopup", "dialog");
   launcher.innerHTML = `<span aria-hidden="true">!</span><strong>${t("Nahlásit chybu", "Report an issue")}</strong>`;
@@ -787,34 +776,19 @@ export function setupErrorReporter(options = {}) {
     ),
   );
   const sendActions = element("div", "ghrab-report-actions");
-  const prepareButton = button(
-    t("Stáhnout ZIP a otevřít Gmail", "Download ZIP and open Gmail"),
-    "primary",
+  const prepareLink = document.createElement("a");
+  prepareLink.className = "ghrab-report-button primary";
+  prepareLink.href = "https://mail.google.com/mail/?view=cm&fs=1";
+  prepareLink.target = "_blank";
+  prepareLink.rel = "noopener";
+  prepareLink.textContent = t(
+    "Stáhnout ZIP a otevřít Gmail",
+    "Download ZIP and open Gmail",
   );
-  const shareFileButton = button(
-    t("Sdílet ZIP přes nabídku zařízení", "Share ZIP using the device menu"),
-    "secondary",
-  );
-  const fileShareSupported = supportsFileShare();
-  shareFileButton.hidden = true;
-  shareFileButton.disabled = true;
-  sendActions.append(prepareButton, shareFileButton);
-  const shareHelp = element(
-    "p",
-    "ghrab-report-help ghrab-report-share-help",
-    fileShareSupported
-      ? t(
-          "Volba „Sdílet ZIP přes nabídku zařízení“ se objeví až po vytvoření balíčku a jen na podporovaném mobilu či tabletu. Otevře systémovou nabídku aplikací; e-mail sama neodešle.",
-          "“Share ZIP using the device menu” appears only after the package is created and only on a supported phone or tablet. It opens the system app menu; it does not send an email by itself.",
-        )
-      : t(
-          "Tento prohlížeč neumí přímo sdílet ZIP soubor. Použijte stažení a předvyplněný Gmail nebo poštovní aplikaci.",
-          "This browser cannot directly share ZIP files. Use the download and the prefilled Gmail or mail app instead.",
-        ),
-  );
+  sendActions.append(prepareLink);
   const finalStatus = element("div", "ghrab-report-final");
   finalStatus.hidden = true;
-  sendSection.append(sendHelp, sendActions, shareHelp, finalStatus);
+  sendSection.append(sendHelp, sendActions, finalStatus);
 
   const footer = element("footer", "ghrab-report-footer");
   const cancelButton = button(t("Zavřít", "Close"), "ghost");
@@ -980,8 +954,6 @@ export function setupErrorReporter(options = {}) {
     uploadInput.value = "";
     finalStatus.replaceChildren();
     finalStatus.hidden = true;
-    shareFileButton.hidden = true;
-    shareFileButton.disabled = true;
     renderScreenshots();
     setStatus(
       t("Snímání zatím není aktivní.", "Screen capture is not active yet."),
@@ -1002,8 +974,6 @@ export function setupErrorReporter(options = {}) {
   function invalidatePreparedPackage() {
     state.preparedFile = null;
     state.preparedBlob = null;
-    shareFileButton.hidden = true;
-    shareFileButton.disabled = true;
     finalStatus.replaceChildren();
     finalStatus.hidden = true;
   }
@@ -1528,24 +1498,6 @@ export function setupErrorReporter(options = {}) {
     link.rel = "noopener";
     return link;
   }
-  function openGmailDraft(draft) {
-    const hosts = [];
-    try {
-      if (window.top && window.top !== window) hosts.push(window.top);
-    } catch {}
-    hosts.push(window);
-    for (const host of hosts) {
-      try {
-        const popup = host.open(draft.gmailUrl, "_blank");
-        if (!popup || popup.closed) continue;
-        try {
-          popup.opener = null;
-        } catch {}
-        return popup;
-      } catch {}
-    }
-    return null;
-  }
   async function copyMailDraft(draft) {
     const text = `Komu: ${draft.to}\nPředmět: ${draft.subject}\n\n${draft.body}`;
     if (navigator.clipboard?.writeText) {
@@ -1605,19 +1557,20 @@ export function setupErrorReporter(options = {}) {
     });
     actions.append(gmail, mailApp, copy);
     finalStatus.append(actions);
-    if (fileShareSupported && state.preparedFile) {
-      shareFileButton.hidden = false;
-      shareFileButton.disabled = false;
-    }
   }
-  async function prepareAndEmail() {
+  async function prepareAndEmail(event) {
     if (comment.value.trim().length < 8) {
+      event.preventDefault();
       comment.focus();
       finalStatus.hidden = false;
       finalStatus.textContent = t(
         "Doplňte prosím krátký popis chyby (alespoň 8 znaků).",
         "Please add a short issue description (at least 8 characters).",
       );
+      return;
+    }
+    if (prepareLink.getAttribute("aria-busy") === "true") {
+      event.preventDefault();
       return;
     }
     const createdAt = new Date();
@@ -1627,27 +1580,21 @@ export function setupErrorReporter(options = {}) {
       false,
       initialEmail,
     );
-    // Gmail se otevírá přímo v uživatelském kliknutí. Tím se nečeká na
-    // asynchronní tvorbu ZIP a prohlížeč novou kartu nevyhodnotí jako popup.
-    const composeWindow = openGmailDraft(initialDraft);
-    prepareButton.disabled = true;
-    prepareButton.textContent = t("Připravuji ZIP…", "Preparing ZIP…");
+    // Gmail is opened by the browser as a normal user-activated link. This is
+    // more reliable than a scripted popup, which Chrome can block in PWAs and
+    // protected application contexts even when the ZIP download succeeds.
+    prepareLink.href = initialDraft.gmailUrl;
+    prepareLink.setAttribute("aria-busy", "true");
+    prepareLink.setAttribute("aria-disabled", "true");
+    prepareLink.textContent = t("Připravuji ZIP…", "Preparing ZIP…");
     try {
       const info = await buildPackage(createdAt);
       const supportEmail = state.supportEmail || initialEmail;
       const screenshotCopied = await copyPrimaryScreenshot();
       const draft = mailDraft(info, screenshotCopied, supportEmail);
       downloadBlob(info.blob, info.file.name);
-      showPreparedMailActions(
-        info,
-        screenshotCopied,
-        draft,
-        Boolean(composeWindow),
-      );
+      showPreparedMailActions(info, screenshotCopied, draft, true);
     } catch (error) {
-      try {
-        composeWindow?.close();
-      } catch {}
       finalStatus.hidden = false;
       finalStatus.textContent =
         error?.message ||
@@ -1656,42 +1603,12 @@ export function setupErrorReporter(options = {}) {
           "The package could not be prepared.",
         );
     } finally {
-      prepareButton.disabled = false;
-      prepareButton.textContent = t(
+      prepareLink.removeAttribute("aria-busy");
+      prepareLink.removeAttribute("aria-disabled");
+      prepareLink.textContent = t(
         "Stáhnout ZIP a otevřít Gmail",
         "Download ZIP and open Gmail",
       );
-    }
-  }
-  async function sharePrepared() {
-    if (!fileShareSupported || !state.preparedFile) {
-      finalStatus.hidden = false;
-      finalStatus.textContent = t(
-        "Nejprve vytvořte ZIP. Přímé sdílení je dostupné jen na podporovaných zařízeních.",
-        "Create the ZIP first. Direct sharing is available only on supported devices.",
-      );
-      return;
-    }
-    try {
-      await navigator.share({
-        files: [state.preparedFile],
-        title: t(
-          `Hlášení chyby – ${state.appMeta.name}`,
-          `Issue report – ${state.appMeta.name}`,
-        ),
-        text: t(
-          `Prosím odešlete správci na ${state.supportEmail || DEFAULT_SUPPORT_EMAIL}.`,
-          `Please send this to the administrator at ${state.supportEmail || DEFAULT_SUPPORT_EMAIL}.`,
-        ),
-      });
-    } catch (error) {
-      if (error?.name !== "AbortError") {
-        finalStatus.hidden = false;
-        finalStatus.textContent = t(
-          "Systémové sdílení se nepodařilo. ZIP už je stažený; použijte Gmail nebo poštovní aplikaci.",
-          "System sharing failed. The ZIP is already downloaded; use Gmail or the mail app.",
-        );
-      }
     }
   }
 
@@ -1725,7 +1642,6 @@ export function setupErrorReporter(options = {}) {
   });
   comment.addEventListener("input", invalidatePreparedPackage);
   steps.addEventListener("input", invalidatePreparedPackage);
-  prepareButton.addEventListener("click", prepareAndEmail);
-  shareFileButton.addEventListener("click", sharePrepared);
+  prepareLink.addEventListener("click", prepareAndEmail);
   renderScreenshots();
 }

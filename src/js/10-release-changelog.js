@@ -3,11 +3,13 @@ const IS_TEST_MODE=new URLSearchParams(window.location.search).get("test")==="1"
 "use strict";
 
 const RELEASE = {
-  version: "5.9.8",
+  version: "5.9.10",
   date: "2026-08-03",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.9.10: oprava životního cyklu rozepsaného hlášení — doplňková vrstva snímání už nepřebírá zavírací křížek, spodní tlačítko Zavřít, kliknutí mimo dialog ani Escape. Tyto akce vždy zastaví snímání a otevřou skutečnou volbu Ponechat nebo Smazat. Přechod do aplikace během snímání zůstává pouze na výslovném tlačítku Přejít do aplikace. Nový Chromium regresní test ověřuje smazání textu i screenshotu po zavření, zachování konceptu při volbě Ponechat a chování během aktivního snímání.",
+    "5.9.9: definitivní oprava otevírání e-mailu — hlavní akce je nyní skutečný odkaz do nové karty, nikoli JavaScriptové window.open, které mohl Chrome v PWA nebo chráněném kontextu zablokovat. Kliknutí otevře předvyplněný Gmail a na původní kartě současně vytvoří a stáhne ZIP. Nejasné přímé sdílení ZIP bylo odstraněno. Nový prohlížečový regresní test fyzickým kliknutím ověřuje vznik karty Gmailu s adresou správce.",
     "5.9.8: dokončení workflow hlášení chyby — při zavření rozepsaného reportu se zobrazí vlastní bezpečná volba smazat nebo ponechat koncept; smazání odstraní text, screenshoty, připravený ZIP i poslední stav. Tlačítko nově stahuje ZIP a otevírá předvyplněný Gmail v nové kartě s viditelnými záložními odkazy pro Gmail, poštovní aplikaci a kopírování údajů. Přímé sdílení se nabízí až po vytvoření ZIP a pouze na zařízeních s podporou sdílení souborů. Návod v AI Studiu byl sjednocen s plovoucím snímáním, mazáním konceptu a novým e-mailovým postupem.",
     "5.9.7: drobná úprava hlášení chyby — plovoucí ovládání snímání obrazovky je nově ukotveno vpravo dole. Zachovává kompaktní rozměry, respektuje bezpečný okraj zařízení a na menších displejích zůstává celé dostupné bez roztažení přes šířku aplikace.",
     "5.9.6: stabilizace hlášení chyby v AI Studiu — reportér je pro KS načítán lokálně, aby se e-mail z vložené aplikace otevíral v horním okně AI Studia místo zablokovaného iframe. Příjemce je předvyplněn na balaz@ghrabuvka.cz, ZIP se stáhne jako dosud a po přípravě zůstává záložní tlačítko pro opětovné otevření e-mailu i zkopírování jeho údajů. Ovládací panel snímání je kompaktní, umístěný vpravo pod systémovou lištou Chromu a nepřekrývá její ovládání.",

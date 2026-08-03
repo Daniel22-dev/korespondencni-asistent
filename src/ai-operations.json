@@ -1,7 +1,7 @@
 {
   "schema": "ghrab-ai-operations-v1",
   "appId": "correspondence",
-  "appVersion": "5.9.8",
+  "appVersion": "5.9.10",
   "registryVersion": "1.0.0",
   "coreVersion": "1.0.0",
   "contractVersion": "1",

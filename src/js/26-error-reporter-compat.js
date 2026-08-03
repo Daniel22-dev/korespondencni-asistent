@@ -16,8 +16,6 @@ function enhanceGhrabErrorReporter(root){
   const shareButton=reporterButtonByText(root,/Povolit snímání|Allow screen capture/i);
   const snapButton=reporterButtonByText(root,/^Pořídit snímek$|^Capture screenshot$/i);
   const stopButton=reporterButtonByText(root,/^Ukončit snímání$|^Stop capture$/i);
-  const closeButton=root.querySelector(".ghrab-report-header .ghrab-report-button.icon");
-  const footerClose=reporterButtonByText(root,/^Zavřít$|^Close$/i);
   const screenshotList=root.querySelector(".ghrab-screenshot-list");
   if(!backdrop||!captureSection||!shareButton||!snapButton||!stopButton||!screenshotList)return false;
   root.dataset.ksWorkflowEnhanced="1";
@@ -78,18 +76,11 @@ function enhanceGhrabErrorReporter(root){
   floatBack.addEventListener("click",showReport);
   floatStop.addEventListener("click",()=>{if(!stopButton.disabled)stopButton.click();showReport();});
 
-  const interceptClose=event=>{
-    if(!isCaptureActive())return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    hideForCapture();
-  };
-  closeButton?.addEventListener("click",interceptClose,true);
-  footerClose?.addEventListener("click",interceptClose,true);
-  backdrop.addEventListener("click",event=>{if(event.target===backdrop)interceptClose(event);},true);
-  document.addEventListener("keydown",event=>{
-    if(event.key==="Escape"&&!backdrop.hidden&&isCaptureActive())interceptClose(event);
-  },true);
+  // Zavírací křížek, spodní tlačítko Zavřít, kliknutí mimo dialog a Escape
+  // záměrně nepřebíráme. Musí vždy projít do základního reportéru, který
+  // zastaví snímání a nabídne skutečnou volbu Ponechat / Smazat.
+  // Přechod do aplikace během snímání má jedinou explicitní cestu:
+  // tlačítko „Přejít do aplikace“. Tím se nezamění skrytí dialogu za zavření.
 
   let wasActive=isCaptureActive();
   const observer=new MutationObserver(()=>{
