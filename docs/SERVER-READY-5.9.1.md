@@ -1,8 +1,8 @@
-# Korespondenční asistent 5.9.0 — referenční integrace GHRAB AI Core 1.0.0
+# Korespondenční asistent 5.9.1 — referenční integrace GHRAB AI Core 1.0.0
 
 ## Stav
 
-KS 5.9.0 je první aplikace, která nepoužívá vlastní implementaci společného AI klienta. Integruje přesný vydaný artefakt GHRAB AI Core 1.0.0 a doplňuje pouze aplikační manifest operací, lokální schémata, credential hook a kompatibilní wrapper původní funkce `callGemini()`.
+KS 5.9.1 je první aplikace, která nepoužívá vlastní implementaci společného AI klienta. Integruje přesný vydaný artefakt GHRAB AI Core 1.0.0 a doplňuje pouze aplikační manifest operací, lokální schémata, credential hook a kompatibilní wrapper původní funkce `callGemini()`.
 
 Výchozí produkční režim zůstává `direct-gemini` s osobním Gemini API klíčem. School Gateway není nasazením této verze automaticky aktivována.
 
@@ -67,7 +67,7 @@ KS odesílá pouze registrovaný kontrakt:
   "clientRequestId": "logical-request-id",
   "attemptId": "network-attempt-id",
   "appId": "correspondence",
-  "appVersion": "5.9.0",
+  "appVersion": "5.9.1",
   "operation": "reply-draft",
   "modelProfile": "balanced",
   "input": {
@@ -148,3 +148,8 @@ Release gate musí projít:
 8. po stabilizaci jej lze odebrat z `allowedModes`.
 
 Automatický fallback mezi režimy zůstává zakázán.
+
+
+## Metadata pro AI Studio 0.20.0
+
+Nasazený `studio-manifest.json` obsahuje blok `aiCore` a odkaz na `ai-operations.json`. AI Studio rozpozná aplikaci jako živě server-ready až po skutečném nasazení této verze.

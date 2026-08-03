@@ -2,14 +2,14 @@
 
 Samostatná PWA aplikace ekosystému AI Studio Gymnázia Ostrava-Hrabůvka.
 
-- **Verze aplikace:** 5.9.0
+- **Verze aplikace:** 5.9.1
 - **GHRAB AI Core:** 1.0.0
 - **Doporučený repozitář:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
 - **Interaktivní manuál:** 1.3.1 (manuál 1.3.1)
 
-## Co přináší verze 5.9.0
+## Co přináší verze 5.9.1
 
 KS je první referenční aplikace napojená na vydaný **GHRAB AI Core 1.0.0**.
 
@@ -26,7 +26,7 @@ KS je první referenční aplikace napojená na vydaný **GHRAB AI Core 1.0.0**.
 - lokální anonymizace, preflight, prompty, workflow a stávající Gemini klíče zůstaly zachovány;
 - release gate spouští **118 aplikačních testů** a **17 společných Core conformance testů**.
 
-Technický popis je v `docs/SERVER-READY-5.9.0.md`.
+Technický popis je v `docs/SERVER-READY-5.9.1.md`.
 
 ## Provozní režimy
 
@@ -39,7 +39,7 @@ prohlížeč
 → Gemini API
 ```
 
-Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže nasazení verze 5.9.0 samo o sobě nezapíná školní server.
+Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže nasazení verze 5.9.1 samo o sobě nezapíná školní server.
 
 ### Budoucí migrační režim
 

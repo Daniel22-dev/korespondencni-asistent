@@ -3,11 +3,12 @@ const IS_TEST_MODE=new URLSearchParams(window.location.search).get("test")==="1"
 "use strict";
 
 const RELEASE = {
-  version: "5.9.0",
+  version: "5.9.1",
   date: "2026-08-02",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.9.1: metadata pro centrální správu AI Studia — veřejný manifest deklaruje integraci GHRAB AI Core 1.0.0, úspěšnou konformitu a URL registru osmi AI operací. Přidán ai-operations.json; build a release gate ověřují shodu appId, verze, kontraktu, schemaId a operací. Běžný provoz zůstává v direct-gemini režimu bez automatického fallbacku.",
     "5.9.0: referenční integrace GHRAB AI Core 1.0.0 — lokální prototyp společného klienta a adaptérů byl nahrazen bitově ověřovaným vydaným Core. KS používá registrované operace appId + operation, schemaId, input.parts, clientRequestId a nový attemptId; runtime odděluje defaultMode a allowedModes a umožňuje vědomý rollback bez automatického fallbacku. Gateway už nepřebírá serverový text chyby do UI, klientský tokenový limit je pouze hint a usage metadata školního režimu jsou autoritativně převzata ze serveru. Build ověřuje SHA-256 Core artefaktů a release gate spouští 118 aplikačních a 17 společných konformitních testů.",
     "5.8.0: server-ready architektura — přidán poskytovatelsky neutrální GHRAB AI Client, veřejná runtime konfigurace, samostatný Direct Gemini Adapter a připravený School Gateway Adapter. Výchozí serverless provoz přes osobní Gemini klíč zůstává beze změny; budoucí školní server lze zapnout konfigurací bez přímého OpenAI klíče v prohlížeči. Operace mají stabilní názvy a modelové profily, skutečná provider volání, retry, tokeny, latence a počet výstupů se měří odděleně. Interní sada má 118 testů.",
     "5.7.2: hloubkový audit anonymizace a přísného režimu — opraveny české dativy a lokály ženských jmen, zpětná kanonizace Šárka/Monika/Lenka/Olga, pohyblivé -e- u Pavel/Karel/Havel, oddělení mužských a ženských nominativů, automatické skrytí samostatného příjmení víceslovné osoby, falešné aktivace přes SPU/spustit, drogerii, školní psychologii a rozvody technických sítí, větná detekce závislosti, kontrola cizích jmen, přesnější rozlišení telefonu a rodného čísla a zákaz ukládání citlivého rozepsaného textu do pracovní relace. Interní sada má 113 testů.",

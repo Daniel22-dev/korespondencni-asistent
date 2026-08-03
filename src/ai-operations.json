@@ -1,0 +1,131 @@
+{
+  "schema": "ghrab-ai-operations-v1",
+  "appId": "correspondence",
+  "appVersion": "5.9.1",
+  "registryVersion": "1.0.0",
+  "coreVersion": "1.0.0",
+  "contractVersion": "1",
+  "defaultStreaming": false,
+  "operations": [
+    {
+      "operation": "incoming-analysis",
+      "schemaId": "correspondence.analysis.v1",
+      "defaultModelProfile": "balanced",
+      "allowedModelProfiles": [
+        "balanced",
+        "quality"
+      ],
+      "inputTypes": [
+        "text"
+      ],
+      "streaming": false,
+      "expectedOutputs": 1,
+      "maxOutputTokensHint": 32768
+    },
+    {
+      "operation": "reply-draft",
+      "schemaId": "correspondence.reply.v1",
+      "defaultModelProfile": "balanced",
+      "allowedModelProfiles": [
+        "balanced",
+        "quality"
+      ],
+      "inputTypes": [
+        "text"
+      ],
+      "streaming": false,
+      "expectedOutputs": 3,
+      "maxOutputTokensHint": 32768
+    },
+    {
+      "operation": "outgoing-rewrite",
+      "schemaId": "correspondence.text.v1",
+      "defaultModelProfile": "balanced",
+      "allowedModelProfiles": [
+        "balanced",
+        "quality"
+      ],
+      "inputTypes": [
+        "text"
+      ],
+      "streaming": false,
+      "expectedOutputs": 1,
+      "maxOutputTokensHint": 32768
+    },
+    {
+      "operation": "outgoing-compose",
+      "schemaId": "correspondence.text.v1",
+      "defaultModelProfile": "balanced",
+      "allowedModelProfiles": [
+        "balanced",
+        "quality"
+      ],
+      "inputTypes": [
+        "text"
+      ],
+      "streaming": false,
+      "expectedOutputs": 1,
+      "maxOutputTokensHint": 32768
+    },
+    {
+      "operation": "outgoing-proofread",
+      "schemaId": "correspondence.text.v1",
+      "defaultModelProfile": "balanced",
+      "allowedModelProfiles": [
+        "balanced",
+        "quality"
+      ],
+      "inputTypes": [
+        "text"
+      ],
+      "streaming": false,
+      "expectedOutputs": 1,
+      "maxOutputTokensHint": 32768
+    },
+    {
+      "operation": "draft-refinement",
+      "schemaId": "correspondence.text.v1",
+      "defaultModelProfile": "balanced",
+      "allowedModelProfiles": [
+        "balanced",
+        "quality"
+      ],
+      "inputTypes": [
+        "text"
+      ],
+      "streaming": false,
+      "expectedOutputs": 1,
+      "maxOutputTokensHint": 32768
+    },
+    {
+      "operation": "tone-check",
+      "schemaId": "correspondence.tone.v1",
+      "defaultModelProfile": "economy",
+      "allowedModelProfiles": [
+        "economy",
+        "balanced"
+      ],
+      "inputTypes": [
+        "text"
+      ],
+      "streaming": false,
+      "expectedOutputs": 1,
+      "maxOutputTokensHint": 8192
+    },
+    {
+      "operation": "synonym-suggestions",
+      "schemaId": "correspondence.synonyms.v1",
+      "defaultModelProfile": "economy",
+      "allowedModelProfiles": [
+        "economy",
+        "balanced"
+      ],
+      "inputTypes": [
+        "text"
+      ],
+      "streaming": false,
+      "expectedOutputs": 1,
+      "maxOutputTokensHint": 4096
+    }
+  ]
+}
