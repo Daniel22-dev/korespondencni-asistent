@@ -2,31 +2,45 @@
 
 Samostatná PWA aplikace ekosystému AI Studio Gymnázia Ostrava-Hrabůvka.
 
-- **Verze aplikace:** 5.9.1
+- **Verze aplikace:** 5.9.3
 - **GHRAB AI Core:** 1.0.0
 - **Doporučený repozitář:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
-- **Interaktivní manuál:** 1.3.1 (manuál 1.3.1)
+- **Interaktivní manuál:** 1.3.2 (manuál 1.3.2)
 
-## Co přináší verze 5.9.1
+## Co přináší verze 5.9.3
 
-KS je první referenční aplikace napojená na vydaný **GHRAB AI Core 1.0.0**.
+Verze 5.9.3 nahrazuje dílčí pravidla a oddělené výjimky jediným lokálním systémem pro české skloňování osobních jmen.
 
-- lokální prototyp `GHRAB_AI` a vlastních transportních adaptérů byl odstraněn;
+- všechny cesty používají společný engine `src/js/35-czech-person-grammar.js`;
+- běžná česká jména a celé spojení jména s příjmením se skloňují v kontextu, například `Daniel Baláž → Danieli Baláži`;
+- stejný zdroj tvarů používá vrácení anonymizovaných osob, oslovení i následné úpravy návrhu;
+- známé problematické skupiny se neřeší tichým odhadem: cizí, rodově nejednoznačná nebo rodinně proměnlivá jména vyžádají kontrolu všech sedmi pádů;
+- nevyřešené skloňování je blokující stav a před potvrzením uživatelem nelze obsah odeslat do AI;
+- potvrzené tvary platí pro aktuální práci; do trvalého lokálního slovníku se uloží jen výslovnou akcí **Uložit jména**;
+- skutečná jména ani jejich pádové tvary se neposílají modelu — AI pracuje pouze se značkou osoby a požadovaným pádem;
+- zpětné rozpoznání pádového tvaru je konzervativní: při nejednoznačnosti zachová bezpečný stav místo vymyšleného nominativu;
+- regresní sada byla rozšířena na **135 aplikačních testů** a nadále spouští **17 společných Core conformance testů**.
+
+Technický popis změny je v `docs/WORKFLOW-UPDATE-5.9.3.md`.
+
+## GHRAB AI Core
+
+KS je referenční aplikace napojená na vydaný **GHRAB AI Core 1.0.0**.
+
 - aplikace integruje bitově shodné vydané Core artefakty ze složky `vendor/ghrab-ai-core-1.0.0/`;
 - build před sestavením ověřuje SHA-256 Core i konformitní sady proti release manifestu;
 - všech osm AI operací je registrováno dvojicí `appId + operation`;
-- gateway request používá `input.parts`, registrované `schemaId`, `clientRequestId` a nový `attemptId`;
+- gateway request používá `input.parts`, registrované `schemaId`, `clientRequestId` a `attemptId`;
 - runtime rozlišuje `defaultMode` a `allowedModes`;
 - přechod a rollback mezi režimy mohou být pouze vědomé, nikdy automatické;
 - serverové chyby se zobrazují pomocí jednotných českých textů z Core, nikoli libovolným textem ze serveru;
-- `maxOutputTokensHint` je pouze návrh klienta; skutečný strop bude vynucovat gateway;
+- `maxOutputTokensHint` je pouze návrh klienta; skutečný strop vynucuje gateway;
 - v režimu School Gateway jsou provider requesty, retry a tokeny autoritativně převzaty ze serveru;
-- lokální anonymizace, preflight, prompty, workflow a stávající Gemini klíče zůstaly zachovány;
-- release gate spouští **118 aplikačních testů** a **17 společných Core conformance testů**.
+- lokální anonymizace, skloňování a preflight zůstávají nezávislé na zvoleném AI provideru.
 
-Technický popis je v `docs/SERVER-READY-5.9.1.md`.
+Server-ready integrace je popsána v `docs/SERVER-READY-5.9.1.md`.
 
 ## Provozní režimy
 
@@ -39,7 +53,7 @@ prohlížeč
 → Gemini API
 ```
 
-Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže nasazení verze 5.9.1 samo o sobě nezapíná školní server.
+Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže nasazení verze 5.9.3 samo o sobě nezapíná školní server.
 
 ### Budoucí migrační režim
 
@@ -93,6 +107,8 @@ vendor/ghrab-ai-core-1.0.0/
 src/runtime-config.js                 veřejná volba režimů, bez tajných údajů
 src/js/28-ai-integration.js           operace, schema a aplikační hooky KS
 src/js/30-api-gemini.js               UI osobního klíče a kompatibilní callGemini wrapper
+src/js/35-czech-person-grammar.js     jediný engine pádových tvarů osob
+src/js/40-anonymizace.js              anonymizace, kanonizace, editor a lokální návrat jmen
 scripts/build.mjs                     ověření hashů a sestavení jednosouborové PWA
 scripts/test.mjs                      app testy + vydaná Core conformance suite
 ```
@@ -114,13 +130,14 @@ npm ci
 npm test
 ```
 
-`npm test` nejprve sestaví `dist/`, ověří přesnou Core verzi a SHA-256, spustí aplikační regresní testy a poté společnou konformitní sadu.
+`npm test` nejprve sestaví `dist/`, ověří přesnou Core verzi a SHA-256, spustí 135 aplikačních regresních testů a poté společnou konformitní sadu.
 
 ## Bezpečnost
 
 - OpenAI ani jiný školní serverový klíč nesmí být v klientském kódu.
 - Osobní Gemini klíč se nikdy neposílá School Gateway.
 - Runtime konfigurace neobsahuje tajné údaje.
+- Skutečná jména, jejich pády a anonymizační mapa zůstávají lokálně; model dostává pouze bezpečné značky.
 - Klientské `privacy` příznaky jsou pouze diagnostická tvrzení, nikoli serverové oprávnění.
 - Prompty, odpovědi, osobní údaje a anonymizační mapy se neukládají do provozní telemetrie.
 - Citlivé údaje studentů je nutné před vložením anonymizovat.

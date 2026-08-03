@@ -1,4 +1,4 @@
-const APP_VERSION = "5.9.1";
+const APP_VERSION = "5.9.3";
 const CACHE_NAME = `korespondencni-asistent-${APP_VERSION}`;
 const CORE_ASSETS = [
   "./",

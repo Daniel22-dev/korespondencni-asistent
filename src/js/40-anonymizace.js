@@ -1,34 +1,36 @@
 /* ===================== TRVALÝ SLOVNÍK JMEN ===================== */
+function cleanStoredPersonForms(forms){
+  if(!forms||typeof forms!=="object")return null;
+  const clean={};let count=0;
+  for(let c=1;c<=7;c++){const value=String(forms[c]||"").trim();if(value){clean[c]=value;count++;}}
+  return count===7?clean:null;
+}
+function cleanDictionaryEntry(item){
+  const real=String(item&&item.real||"").trim();if(real.length<2)return null;
+  const out={real},forms=cleanStoredPersonForms(item&&item.forms);if(forms)out.forms=forms;return out;
+}
 function loadDict(){
   try{
     const raw=JSON.parse(localStorage.getItem("rozbor_dict")||"[]");
-    if(!Array.isArray(raw)) return [];
-    const seen=new Set(), clean=[];
-    raw.forEach(item=>{
-      const real=String(item&&item.real||"").trim();
-      const key=real.toLocaleLowerCase("cs-CZ");
-      if(real.length>=2 && !seen.has(key)){ seen.add(key); clean.push({real}); }
-    });
+    if(!Array.isArray(raw))return [];
+    const seen=new Set(),clean=[];
+    raw.forEach(item=>{const entry=cleanDictionaryEntry(item);if(!entry)return;const key=entry.real.toLocaleLowerCase("cs-CZ");if(!seen.has(key)){seen.add(key);clean.push(entry);}});
     return clean;
-  }catch(_){ return []; }
+  }catch(_){return [];}
 }
 function saveDict(arr){
   try{
-    const seen=new Set(), clean=[];
-    (Array.isArray(arr)?arr:[]).forEach(item=>{
-      const real=String(item&&item.real||"").trim();
-      const key=real.toLocaleLowerCase("cs-CZ");
-      if(real.length>=2 && !seen.has(key)){ seen.add(key); clean.push({real}); }
-    });
-    localStorage.setItem("rozbor_dict", JSON.stringify(clean));
+    const seen=new Set(),clean=[];
+    (Array.isArray(arr)?arr:[]).forEach(item=>{const entry=cleanDictionaryEntry(item);if(!entry)return;const key=entry.real.toLocaleLowerCase("cs-CZ");if(!seen.has(key)){seen.add(key);clean.push(entry);}});
+    localStorage.setItem("rozbor_dict",JSON.stringify(clean));
   }catch(_){}
 }
 function rememberNames(km){
   const candidates=(km||[]).filter(k=>k.real&&k.token&&!/^\[/.test(k.token));
   if(!candidates.length){toast("V klíči nejsou žádná jména k uložení.");return;}
-  confirmActionModal({title:"Uložit skutečná jména na zařízení?",message:"Slovník bude obsahovat skutečná jména a zůstane v tomto prohlížeči. Použij tuto funkci jen na vlastním zabezpečeném zařízení, nikdy na sdíleném školním počítači. Slovník lze kdykoli smazat ve Správě lokálních dat.",confirmText:"Uložit jména",onConfirm(){
+  confirmActionModal({title:"Uložit skutečná jména na zařízení?",message:"Slovník bude obsahovat skutečná jména a případně ručně potvrzené pádové tvary. Vše zůstane v tomto prohlížeči. Použij tuto funkci jen na vlastním zabezpečeném zařízení, nikdy na sdíleném školním počítači. Slovník lze kdykoli smazat ve Správě lokálních dat.",confirmText:"Uložit jména",onConfirm(){
     const dict=loadDict();
-    candidates.forEach(k=>{if(!dict.some(d=>d.real.toLocaleLowerCase("cs-CZ")===k.real.toLocaleLowerCase("cs-CZ")))dict.push({real:k.real});});
+    candidates.forEach(candidate=>{const entry=cleanDictionaryEntry(candidate);if(!entry)return;const key=entry.real.toLocaleLowerCase("cs-CZ"),index=dict.findIndex(d=>d.real.toLocaleLowerCase("cs-CZ")===key);if(index<0)dict.push(entry);else if(entry.forms)dict[index].forms=entry.forms;});
     saveDict(dict);toast("Uloženo "+loadDict().length+" jmen na tomto zařízení.");
   }});
 }
@@ -86,7 +88,8 @@ function restoreWorkingSession(){
   try{
     ["in","my"].forEach(p=>{
       const saved=rec[p]||{},base=ST[p],state=saved.state||{};
-      ST[p]=Object.assign(base,state,{syn:base.syn||{},km:Array.isArray(state.km)?state.km:[],reviewedSuggestions:state.reviewedSuggestions||{},outputReady:false});
+      const restoredKm=Array.isArray(state.km)?state.km.map(item=>{const entry=Object.assign({},item);return applyGeneratedCaseReview(entry,{force:!!entry.caseUnresolved,reasons:entry.reviewReasons||[]});}):[];
+      ST[p]=Object.assign(base,state,{syn:base.syn||{},km:restoredKm,reviewedSuggestions:state.reviewedSuggestions||{},outputReady:false});
       const raw=E(p,"raw");if(raw)raw.value=String(saved.raw!=null?saved.raw:state.raw||"");ST[p].raw=raw?raw.value:String(state.raw||"");
       publishActiveKeyReals(p);clearAnalysisCache();
       renderView(p);renderKeyTable(p);renderPreview(p);
@@ -110,6 +113,9 @@ const PUNCT_RE=/^([<>\[\]{}(),.;:!?„“”"'…»«]*)([\s\S]*?)([<>\[\]{}(),.
 function splitPunc(w){ const m=w.match(PUNCT_RE); return m?{pre:m[1],core:m[2],post:m[3]}:{pre:"",core:w,post:""}; }
 
 const KNOWN_PROPER_WORDS=new Set(("Petr Pavel Karel Marek Jan Jana Anna Tereza Petra Pavla Barbora Daniel Šárka Eva Monika Lenka Radka Jitka Olga Alena Denisa Ondřej Vojtěch Zdeněk Jiří Tomáš Lukáš Michal Martin Jakub Filip Radek Havel Ostrava Brno Praha Olomouc Opava").split(/\s+/));
+try{CZ_PERSON_GRAMMAR.knownGivenNames().forEach(name=>KNOWN_PROPER_WORDS.add(name));}catch(_){}
+const KNOWN_GIVEN_SPELLINGS=new Set((()=>{try{return CZ_PERSON_GRAMMAR.knownGivenNames().map(name=>String(name).normalize("NFC").toLocaleLowerCase("cs-CZ"));}catch(_){return [];}})());
+const KNOWN_SURNAME_SPELLINGS=new Set((()=>{try{return CZ_PERSON_GRAMMAR.knownSurnames().map(name=>String(name).normalize("NFC").toLocaleLowerCase("cs-CZ"));}catch(_){return [];}})());
 const STOP=new Set(("Dobrý Dobré Dobrou Dobré Pěkný Pěkné Krásný Krásné Hezký Hezké Milý Milá Milé Vážený Vážená Vážené Vážení "+
   "Děkuji Děkujeme Děkuji Zdravím Zdraví Mává Mávám Mávejte Ahoj Nazdar Čau Nashledanou Sbohem Těším Přeji Přejeme Mějte Omlouvám Omlouváme Bohužel "+
   "Rád Ráda Také Toto Tento Tato Tyto Pokud Když Protože Jelikož Chtěl Chtěla Chtěli Mám Máme Máte Je Jsou Byl Byla Byly Bylo "+
@@ -152,24 +158,28 @@ function tokenFor(st, real){
   if(/\d{3}/.test(real) && real.replace(/\D/g,"").length>=6) return "[telefon "+(++st.phoneN)+"]";
   return nextPersonToken(st.km);
 }
-function dictionaryNameAppears(text, real){
-  const probe={real:String(real||"").trim(),token:"osoba Z"};
-  if(!probe.real) return false;
+function dictionaryNameAppears(text,stored){
+  const source=stored&&typeof stored==="object"?stored:{real:stored};
+  const probe={real:String(source.real||"").trim(),token:"osoba Z"};
+  const forms=cleanStoredPersonForms(source.forms);if(forms)probe.forms=forms;
+  if(!probe.real)return false;
   const parsed=wordObjs(text);
-  return matchWordArray(buildMatchers([probe]), parsed.words).some(Boolean);
+  return matchWordArray(buildMatchers([probe]),parsed.words).some(Boolean);
 }
 function buildKey(st, detected){
   loadDict().forEach(d=>{
-    if(st.km.some(k=>k.real.toLocaleLowerCase("cs-CZ")===d.real.toLocaleLowerCase("cs-CZ"))) return;
-    if(dictionaryNameAppears(st.raw,d.real)) st.km.push({real:d.real,token:tokenFor(st,d.real),auto:true});
+    if(st.km.some(k=>k.real.toLocaleLowerCase("cs-CZ")===d.real.toLocaleLowerCase("cs-CZ")))return;
+    if(dictionaryNameAppears(st.raw,d)){
+      const entry={real:d.real,token:tokenFor(st,d.real),auto:true},forms=cleanStoredPersonForms(d.forms);
+      if(forms)entry.forms=forms;applyGeneratedCaseReview(entry);st.km.push(entry);
+    }
   });
-  detected.forEach(real=>{ if(st.km.some(k=>k.real.toLowerCase()===real.toLowerCase())) return; st.km.push({real,token:tokenFor(st,real),auto:true}); });
-  // strukturované identifikátory (rodné číslo, datum narození) — automaticky, vysoká jistota
+  detected.forEach(real=>{if(st.km.some(k=>k.real.toLowerCase()===real.toLowerCase()))return;const entry={real,token:tokenFor(st,real),auto:true};applyGeneratedCaseReview(entry);st.km.push(entry);});
   autoStructured(st.raw).forEach(it=>{
-    if(st.km.some(k=>k.real.toLowerCase()===it.real.toLowerCase())) return;
+    if(st.km.some(k=>k.real.toLowerCase()===it.real.toLowerCase()))return;
     const base=it.kind==="rc"?"rodné číslo":it.kind==="ucet"?"číslo účtu":"datum narození";
     const cnt=st.km.filter(k=>(k.token||"").indexOf("["+base)===0).length;
-    st.km.push({real:it.real, token:"["+base+" "+(cnt+1)+"]", auto:true});
+    st.km.push({real:it.real,token:"["+base+" "+(cnt+1)+"]",auto:true});
   });
 }
 // České pádové tvary jmen a bezpečný protokol značek osob.
@@ -194,44 +204,30 @@ function preserveWholeCase(source,value){
   if(src[0]===src[0].toLocaleUpperCase("cs-CZ"))return v[0].toLocaleUpperCase("cs-CZ")+v.slice(1);
   return v.toLocaleLowerCase("cs-CZ");
 }
-function declineNameWord(word){
-  const src=String(word||"").trim(),lo=src.toLocaleLowerCase("cs-CZ");
-  const same=()=>({1:src,2:src,3:src,4:src,5:src,6:src,7:src,confidence:"low"});
-  if(!lo||lo.length<2)return same();
-  const make=(o,confidence="medium")=>{const out={confidence};for(let i=1;i<=7;i++)out[i]=preserveWholeCase(src,o[i]||o[1]||src);return out;};
-  if(/^(?:mgr|ing|bc|mudr|rndr|phdr|judr|doc|prof)\.?$/i.test(lo))return same();
-  if(/ová$/.test(lo)){const st=lo.slice(0,-1);return make({1:lo,2:st+"é",3:st+"é",4:st+"ou",5:lo,6:st+"é",7:st+"ou"},"high");}
-  if(/á$/.test(lo)){const st=lo.slice(0,-1);return make({1:lo,2:st+"é",3:st+"é",4:st+"ou",5:lo,6:st+"é",7:st+"ou"},"high");}
-  if(/ia$/.test(lo)){const st=lo.slice(0,-1);return make({1:lo,2:st+"e",3:st+"i",4:st+"i",5:st+"e",6:st+"i",7:st+"í"},"high");}
-  if(/ie$/.test(lo)){const st=lo.slice(0,-1);return make({1:lo,2:lo,3:st+"i",4:st+"i",5:lo,6:st+"i",7:st+"í"},"high");}
-  if(/a$/.test(lo)){const st=lo.slice(0,-1),dat=femaleDative(st);return make({1:lo,2:st+"y",3:dat,4:st+"u",5:st+"o",6:dat,7:st+"ou"},"high");}
-  if(/ý$/.test(lo)){const st=lo.slice(0,-1);return make({1:lo,2:st+"ého",3:st+"ému",4:st+"ého",5:lo,6:st+"ém",7:st+"ým"},"high");}
-  if(/í$/.test(lo)){const st=lo.slice(0,-1);return make({1:lo,2:st+"ího",3:st+"ímu",4:st+"ího",5:lo,6:st+"ím",7:st+"ím"},"high");}
-  if(/[eě]k$/.test(lo)&&lo.length>=4){const prefix=lo.slice(0,-2),st=/ěk$/.test(lo)?(prefix.replace(/n$/,"ň")+"k"):(prefix+"k");return make({1:lo,2:st+"a",3:st+"ovi",4:st+"a",5:st+"u",6:st+"ovi",7:st+"em"},"high");}
-  if(/ec$/.test(lo)&&lo.length>=4){const st=lo.slice(0,-2)+"c";return make({1:lo,2:st+"e",3:st+"ovi",4:st+"e",5:st+"i",6:st+"ovi",7:st+"em"},"high");}
-  if(/[^aeiouyáéíóúůý]el$/u.test(lo)&&lo.length>=4){const st=lo.slice(0,-2)+"l";return make({1:lo,2:st+"a",3:st+"ovi",4:st+"a",5:st+"e",6:st+"ovi",7:st+"em"},"medium");}
-  if(/[eéy]$/.test(lo))return same();
-  if(/[bcčdďfghjklmnňpqrřsštťvwxzž]$/.test(lo)){
-    const gen=lo+(/[šžčřcj]$/.test(lo)?"e":"a"),voc=lo.endsWith("r")?lo.slice(0,-1)+"ře":(/(?:ch|[kgh])$/.test(lo)?lo+"u":(/[šžčřcj]$/.test(lo)?lo+"i":lo+"e"));
-    return make({1:lo,2:gen,3:lo+"ovi",4:gen,5:voc,6:lo+"ovi",7:lo+"em"},"medium");
-  }
-  return same();
-}
-function wordCaseForms(base,caseNo){
-  const src=String(base||"").trim(),lo=src.toLocaleLowerCase("cs-CZ"),forms=declineNameWord(src),out=new Set([normName(forms[caseNo]||src)]);
+function declineNameWord(word,options){return CZ_PERSON_GRAMMAR.declineWord(word,options||{});}
+function wordCaseForms(base,caseNo,options,prepared){
+  const src=String(base||"").trim(),lo=src.toLocaleLowerCase("cs-CZ"),forms=prepared||declineNameWord(src,options||{}),out=new Set([normName(forms[caseNo]||src)]);
   if((caseNo===3||caseNo===6)&&/[bcčdďfghjklmnňpqrřsštťvwxzž]$/u.test(lo)){
     out.add(normName(lo+"u"));
     if(/[jřšžčc]$/u.test(lo))out.add(normName(lo+"i"));
   }
-  if((caseNo===3||caseNo===6)&&/[^aeiouyáéíóúůý]el$/u.test(lo))out.add(normName(lo.slice(0,-2)+"lu"));
+  if((caseNo===3||caseNo===6)&&/^(?:pavel|karel|havel)$/u.test(lo))out.add(normName(lo.slice(0,-2)+"lu"));
   if(caseNo===4&&/ia$/u.test(lo)&&lo.length<=4)out.add(normName(lo.slice(0,-1)+"u"));
   return out;
 }
-function generatedPersonForms(real){
-  const parts=String(real||"").replace(/[<>]/g," ").trim().split(/\s+/).filter(Boolean);
-  const wordForms=parts.map(declineNameWord),out={confidence:wordForms.every(x=>x.confidence==="high")?"high":wordForms.some(x=>x.confidence==="low")?"low":"medium"};
-  for(let c=1;c<=7;c++)out[c]=wordForms.map(x=>x[c]).join(" ");
-  return out;
+function generatedPersonForms(real){return CZ_PERSON_GRAMMAR.declinePerson(real);}
+function applyGeneratedCaseReview(entry,options={}){
+  if(!entry)return entry;
+  if(!/^osoba\b/.test(entry.token||"")||!String(entry.real||"").trim()){
+    delete entry.caseUnresolved;delete entry.reviewReasons;return entry;
+  }
+  const custom=cleanStoredPersonForms(entry.forms);
+  if(custom){entry.forms=custom;entry.caseUnresolved=false;entry.reviewReasons=[];return entry;}
+  delete entry.forms;
+  const generated=generatedPersonForms(entry.real),reasons=[...new Set([].concat(options.reasons||[],generated.reviewReasons||[]).filter(Boolean))];
+  entry.caseUnresolved=!!options.force||!!generated.requiresReview;
+  entry.reviewReasons=entry.caseUnresolved?reasons:[];
+  return entry;
 }
 const PERSON_CASE_PREPOSITIONS={
   2:new Set(["bez","během","dle","do","kolem","kromě","místo","od","podle","u","vedle","včetně","z","ze"]),
@@ -272,9 +268,11 @@ function reverseNameCandidates(word,caseNo){
     else if(/[^aeiouyáéíóúůý]k$/u.test(st))add(st.slice(0,-1)+"ek");
     if(/[^aeiouyáéíóúůý]c$/u.test(st))add(st.slice(0,-1)+"ec");
     addMobileEl(st);
-    add(st);
+    add(st);     // Dvořákovi -> Dvořák; neznámé kmeny zůstanou nízko
+    add(st+"a"); // Honzovi / Nikolovi -> Honza / Nikola
+    add(st+"o"); // Ivovi / Mariovi -> Ivo / Mario
   }
-  if(/em$/.test(lo)){const st=lo.slice(0,-2);addMobileEl(st);add(st);add(st+"ek");add(st+"ec");if(/ňk$/.test(st))add(st.slice(0,-2)+"něk");}
+  if(/em$/.test(lo)){const st=lo.slice(0,-2);addMobileEl(st);if(/ňk$/.test(st))add(st.slice(0,-2)+"něk");else if(/[^aeiouyáéíóúůý]k$/u.test(st))add(st.slice(0,-1)+"ek");if(/[^aeiouyáéíóúůý]c$/u.test(st))add(st.slice(0,-1)+"ec");add(st);add(st+"o");}
   if(/u$/.test(lo)){const st=lo.slice(0,-1);addMobileEl(st);add(st);add(st+"a");}
   if(/ii$/.test(lo)){add(lo.slice(0,-2)+"ie");add(lo.slice(0,-2)+"ia");}
   if(/i$/.test(lo)){
@@ -295,63 +293,98 @@ function reverseNameCandidates(word,caseNo){
   }
   if(/a$/.test(lo)){const st=lo.slice(0,-1);if(/ňk$/.test(st))add(st.slice(0,-2)+"něk");else if(/[^aeiouyáéíóúůý]k$/u.test(st))add(st.slice(0,-1)+"ek");if(/[^aeiouyáéíóúůý]c$/u.test(st))add(st.slice(0,-1)+"ec");addMobileEl(st);add(st+"el");add(st);}
   add(lo);
-  const rank={high:3,medium:2,low:1};
-  return cands
-    .filter(c=>wordCaseForms(c,caseNo).has(normName(lo)) && !(caseNo!==1&&normName(c)===normName(lo)&&declineNameWord(c).confidence==="low"))
-    .sort((a,b)=>(rank[declineNameWord(b).confidence]||0)-(rank[declineNameWord(a).confidence]||0))
-    .map(c=>preserveWholeCase(src,c));
+  // Kandidáty nefiltrujeme jen podle samostatného slova. U rodově
+  // nejednoznačných jmen (Andrea, Nikola) může správný rod určit až celé
+  // jméno a příjmení. Definitivní ověření proto provede phraseMatchesCase().
+  const scored=cands.map((candidate,index)=>{
+    const contexts=[{}, {gender:"male",role:"given"},{gender:"male",role:"surname"},{gender:"female",role:"given"},{gender:"female",role:"surname"}];
+    const analyses=contexts.map(context=>declineNameWord(candidate,context)),matching=analyses.filter(forms=>wordCaseForms(candidate,caseNo,null,forms).has(normName(lo)));
+    matching.sort((a,b)=>Number(a.requiresReview)-Number(b.requiresReview)||({high:3,medium:2,low:1}[b.confidence]||0)-({high:3,medium:2,low:1}[a.confidence]||0));
+    const best=matching[0]||analyses[0],direct=matching.length>0;
+    const exactGiven=knownGivenSpelling(candidate),exactSurname=knownSurnameSpelling(candidate),known=knownCanonicalPerson(candidate),exact=caseNo===1&&normName(candidate)===normName(lo);
+    const score=(exactGiven?120:0)+(exactSurname?100:0)+(known?20:0)+(direct?(best.requiresReview?45:80):0)+(!best.requiresReview?20:0)+(exact?5:0)-index/1000;
+    return {candidate,score};
+  });
+  return scored.sort((a,b)=>b.score-a.score).map(x=>preserveWholeCase(src,x.candidate));
 }
 function cartesianCandidateRows(rows,limit=180){
   let out=[[]];
-  for(const row of rows){const next=[];for(const base of out){for(const x of row.slice(0,6)){next.push(base.concat(x));if(next.length>=limit)break;}if(next.length>=limit)break;}out=next;if(!out.length)break;}
+  for(const row of rows){const next=[];for(const base of out){for(const x of row.slice(0,8)){next.push(base.concat(x));if(next.length>=limit)break;}if(next.length>=limit)break;}out=next;if(!out.length)break;}
   return out;
 }
 function phraseMatchesCase(base,observed,caseNo){
   const bases=coreWords(base),seen=coreWords(observed);if(bases.length!==seen.length)return false;
-  return bases.every((b,i)=>wordCaseForms(b,caseNo).has(normName(seen[i])));
+  const analysis=generatedPersonForms(base);
+  if(normName(analysis[caseNo])===normName(observed))return true;
+  return bases.every((word,i)=>wordCaseForms(word,caseNo,analysis.contexts&&analysis.contexts[i],analysis.wordForms&&analysis.wordForms[i]).has(normName(seen[i])));
+}
+function rawContainsExactPerson(raw,real,observed){
+  const target=coreWords(real).map(normName),seen=wordObjs(raw||"").words.map(word=>normName(word.core));
+  if(!target.length||seen.length<target.length)return false;
+  let count=0;for(let i=0;i<=seen.length-target.length;i++)if(target.every((word,index)=>seen[i+index]===word))count++;
+  // Přesně označený úsek není sám o sobě důkazem, že jde o nominativ.
+  // U nezměněného kandidáta požadujeme další výskyt téhož tvaru v textu.
+  return normName(real)===normName(observed)?count>1:count>0;
+}
+function canonicalSurnameCandidate(real){
+  const parts=coreWords(real);if(parts.length<2)return false;
+  const last=parts[parts.length-1];return knownSurnameSpelling(last)||/(?:ová|á|ý|í)$/u.test(String(last).toLocaleLowerCase("cs-CZ"));
 }
 function canonicalizePersonPhrase(raw,phrase){
   const observed=String(phrase||"").replace(/\s+/g," ").trim(),parts=coreWords(observed);
-  if(!observed||!parts.length)return {real:observed,observed,caseNo:1,changed:false,confidence:"unresolved"};
+  if(!observed||!parts.length)return {real:observed,observed,caseNo:1,changed:false,confidence:"unresolved",reviewReasons:["Základní tvar jména se nepodařilo určit."]};
   const hints=nameCaseHints(raw,observed),order=[...hints,2,3,4,7,6,5,1].filter((x,i,a)=>a.indexOf(x)===i),matches=[],rank={high:3,medium:2,low:1,unresolved:0};
+  const storedExact=new Set(loadDict().map(item=>normName(item.real)));
   for(const caseNo of order){
     const rows=parts.map(w=>reverseNameCandidates(w,caseNo));if(rows.some(x=>!x.length))continue;
     for(const bases of cartesianCandidateRows(rows)){
       const real=bases.join(" ");
       if(!phraseMatchesCase(real,observed,caseNo))continue;
       const changed=normName(real)!==normName(observed);
-      const confidence=generatedPersonForms(real).confidence;
-      matches.push({real,observed,caseNo,changed,confidence,hinted:hints.includes(caseNo),order:order.indexOf(caseNo),score:rank[confidence]||0});
+      const generated=generatedPersonForms(real),confidence=generated.requiresReview?"unresolved":generated.confidence;
+      matches.push({real,observed,caseNo,changed,confidence,hinted:hints.includes(caseNo),order:order.indexOf(caseNo),score:rank[confidence]||0,known:knownCanonicalPerson(real),givenKnown:knownGivenPerson(real),surnameCanonical:canonicalSurnameCandidate(real),storedExact:storedExact.has(normName(real)),contextExact:rawContainsExactPerson(raw,real,observed)});
     }
   }
   if(matches.length){
-    const firstHinted=matches.find(x=>x.hinted),first=firstHinted||matches[0];
-    const exactNominative=!firstHinted&&matches.find(x=>x.caseNo===1&&!x.changed&&x.score>=3);
-    // Jednoslovný tvar typu „Petra/Jana“ může být zároveň ženský nominativ i pád
-    // mužského jména. Bez pádové nápovědy jej raději ponecháme a vyžádáme kontrolu,
-    // než abychom tiše změnili identitu osoby na Petr/Jan.
-    if(exactNominative&&first.changed&&genderedNominativeCounterparts(first.real,exactNominative.real)){
-      return {real:exactNominative.real,observed,caseNo:1,changed:false,confidence:"unresolved"};
+    const hinted=matches.filter(x=>x.hinted),pool=hinted.length?hinted:matches;
+    const compare=(a,b)=>Number(b.storedExact)-Number(a.storedExact)||b.score-a.score||Number(b.contextExact)-Number(a.contextExact)||Number(b.givenKnown)-Number(a.givenKnown)||Number(b.surnameCanonical)-Number(a.surnameCanonical)||Number(b.known)-Number(a.known)||a.order-b.order||Number(a.changed)-Number(b.changed);
+    pool.sort(compare);
+    let best=pool[0];
+    const exactNominatives=matches.filter(x=>x.caseNo===1&&!x.changed).sort(compare),exactNominative=exactNominatives[0];
+
+    if(!hinted.length&&exactNominative){
+      // Samostatné Petra/Jana může být ženský nominativ i pád Petr/Jan.
+      // Zachováme přesně označený tvar, ale vyžádáme potvrzení identity.
+      const counterpart=parts.length===1?matches.find(x=>x.changed&&x.score>=exactNominative.score&&genderedNominativeCounterparts(x.real,exactNominative.real)):null;
+      if(counterpart){
+        const alternatives=[...new Set([exactNominative.real,counterpart.real])];
+        return {real:exactNominative.real,observed,caseNo:1,changed:false,confidence:"unresolved",alternatives,reviewReasons:["Tvar „"+observed+"“ může být samostatný nominativ i pád jiného jména ("+alternatives.join(" / ")+"). Zkontrolujte 1. pád."]};
+      }
+      // Je-li přesný tvar stejně nebo více spolehlivý, je bezpečnější jej
+      // nepřepisovat domnělým základním tvarem. Neplatí to pro zjevně
+      // nevyřešený tvar (Petrovi/Pavlu), proti němuž stojí známý kandidát.
+      if(exactNominative.score>best.score||(exactNominative.score===0&&best.score===0))best=exactNominative;
     }
-    const baseWords=coreWords(first.real),observedWords=coreWords(observed);
-    const suspiciousBareStem=baseWords.some((base,i)=>{
-      const b=normName(base),o=normName(observedWords[i]||"");
-      return /[cz]$/u.test(b)&&(o===b+"e"||o===b+"i");
-    });
-    const best=(!firstHinted&&suspiciousBareStem)?(matches.find(x=>x.score>first.score&&knownCanonicalPerson(x.real))||first):first;
+
+    // Některé pády jsou společné více skutečným jménům (např. Markem může
+    // být Marek i Marko). Bez nominativu v textu nebo přesného lokálního
+    // slovníku nesmíme zvolit jedno jméno potichu.
+    if(!best.contextExact&&!best.storedExact&&best.confidence!=="unresolved"){
+      const alternatives=[...new Map(pool.filter(x=>x.caseNo===best.caseNo&&x.confidence===best.confidence&&x.score===best.score&&x.givenKnown===best.givenKnown&&x.surnameCanonical===best.surnameCanonical&&x.known===best.known).map(x=>[normName(x.real),x.real])).values()];
+      if(alternatives.length>1)return {real:best.real,observed:best.observed,caseNo:best.caseNo,changed:best.changed,confidence:"unresolved",alternatives,reviewReasons:["Tvar „"+observed+"“ odpovídá více základním podobám ("+alternatives.slice(0,4).join(" / ")+"). Zkontrolujte 1. pád."]};
+    }
     return {real:best.real,observed:best.observed,caseNo:best.caseNo,changed:best.changed,confidence:best.confidence};
   }
-  return {real:observed,observed,caseNo:0,changed:false,confidence:"unresolved",aliases:[observed]};
+  return {real:observed,observed,caseNo:0,changed:false,confidence:"unresolved",aliases:[observed],reviewReasons:["Základní tvar ani skloňovací vzor se nepodařilo spolehlivě určit."]};
 }
 function personFormsForEntry(entry){
-  const generated=generatedPersonForms(entry&&entry.real||"");
-  const custom=entry&&entry.forms&&typeof entry.forms==="object"?entry.forms:{};
-  for(let c=1;c<=7;c++)if(String(custom[c]||"").trim())generated[c]=String(custom[c]).trim();
+  const generated=generatedPersonForms(entry&&entry.real||""),custom=cleanStoredPersonForms(entry&&entry.forms);
+  if(custom){for(let c=1;c<=7;c++)generated[c]=custom[c];generated.requiresReview=false;generated.reviewReasons=[];generated.confidence="high";generated.source="custom";}
   return generated;
 }
 function czechCaseForms(name){
   const f=declineNameWord(name),out=new Set();for(let c=1;c<=7;c++)if(f[c])out.add(String(f[c]).toLocaleLowerCase("cs-CZ"));
-  const lo=String(name||"").toLocaleLowerCase("cs-CZ");if(/[^aeiouyáéíóúůý]el$/u.test(lo))out.add(lo.slice(0,-2)+"lu");
+  const lo=String(name||"").toLocaleLowerCase("cs-CZ");if(/^(?:pavel|karel|havel)$/u.test(lo))out.add(lo.slice(0,-2)+"lu");
   return out;
 }
 function addReverseNameBase(variants,lo,base){
@@ -363,7 +396,7 @@ function nameVariants(real){
   // U spolehlivého základního tvaru nerozebírej koncovku znovu. Ze jména Petra/Jana
   // by se jinak odvodilo celé mužské paradigma Petr/Jan. Zpětné heuristiky zůstávají
   // jen pro starší nebo ručně vložené položky, které nevypadají jako jistý nominativ.
-  if(direct.confidence!=="high"){
+  if(direct.confidence!=="high"||direct.requiresReview){
     CZ_SUFFIXES.forEach(suf=>{if(lo.endsWith(suf)&&lo.length-suf.length>=3){const base=lo.slice(0,lo.length-suf.length);czechCaseForms(base).forEach(v=>variants.add(v));}});
     [["ovi",3],["em",2],["a",1],["u",1]].forEach(([suf,n])=>{if(!lo.endsWith(suf))return;const st=lo.slice(0,-n);if(st.endsWith("k")){let base=st.slice(0,-1)+"ek";if(st.endsWith("ňk"))base=st.slice(0,-2)+"něk";addReverseNameBase(variants,lo,base);}});
     [["ovi",3],["em",2],["e",1],["i",1]].forEach(([suf,n])=>{if(!lo.endsWith(suf))return;const st=lo.slice(0,-n);if(st.endsWith("c"))addReverseNameBase(variants,lo,st.slice(0,-1)+"ec");});
@@ -371,8 +404,11 @@ function nameVariants(real){
   return [...variants].filter(v=>v.length>=2);
 }
 function genderedNominativeCounterparts(a,b){
-  const x=normName(a),y=normName(b);if(!x||!y||x===y)return false;
-  return x+"a"===y||y+"a"===x||x+"ova"===y||y+"ova"===x;
+  const aw=coreWords(a).map(normName),bw=coreWords(b).map(normName);
+  if(!aw.length||aw.length!==bw.length)return false;
+  if(aw.slice(1).some((word,index)=>word!==bw[index+1]))return false;
+  const x=aw[0],y=bw[0];
+  return !!(x&&y&&x!==y&&(x+"a"===y||y+"a"===x||x+"ova"===y||y+"ova"===x));
 }
 function nameMatchWord(variants,coreL){return variants.has(coreL);}
 function parsePersonToken(token){const m=String(token||"").match(/^osoba\s+([A-Z]+)$/);return m?m[1]:"";}
@@ -388,21 +424,26 @@ function fromModelPersonTokens(text){
 const _isUpper=c=>!!c&&c!==c.toLowerCase()&&c===c.toUpperCase();
 function buildMatchers(km){
   const out=[],seen=new Set();
-  const pushMatcher=(k,value,isPerson,partOnly,expandPersonForms=true)=>{
+  const pushMatcher=(k,value,isPerson,partOnly,variantRows)=>{
     const words=String(value||"").split(/\s+/).map(w=>splitPunc(w).core).filter(Boolean);if(!words.length)return;
-    const signature=[k.token,words.map(normName).join(" "),partOnly?"part":"full",expandPersonForms?"forms":"exact"].join("|");if(seen.has(signature))return;seen.add(signature);
-    out.push({token:k.token,isPerson,partOnly:!!partOnly,n:words.length,entry:k,words:words.map(w=>({lo:w.toLocaleLowerCase("cs-CZ"),origLen:w.length,variants:isPerson?new Set(expandPersonForms?nameVariants(w):[normName(w)]):null})),weight:words.reduce((sum,w)=>sum+w.length,0)});
+    const signature=[k.token,words.map(normName).join(" "),partOnly?"part":"full",(variantRows||[]).map(row=>[...row].sort().join("/")).join("|")].join("|");if(seen.has(signature))return;seen.add(signature);
+    out.push({token:k.token,isPerson,partOnly:!!partOnly,n:words.length,entry:k,words:words.map((w,index)=>({lo:w.toLocaleLowerCase("cs-CZ"),origLen:w.length,variants:isPerson?new Set(variantRows&&variantRows[index]?variantRows[index]:[normName(w)]):null})),weight:words.reduce((sum,w)=>sum+w.length,0)});
   };
   km.filter(k=>k.real&&k.token).forEach(k=>{
-    const isPerson=/^osoba\b/.test(k.token),real=String(k.real||"").trim();
-    pushMatcher(k,real,isPerson,false,true);
-    const realWords=real.split(/\s+/).map(w=>splitPunc(w).core).filter(Boolean);
-    if(isPerson&&realWords.length>1)realWords.forEach(word=>{
-      if(word.length>=3&&!/^(?:mgr|ing|bc|mudr|rndr|phdr|judr|doc|prof)\.?$/i.test(word))pushMatcher(k,word,true,true,true);
+    const isPerson=/^osoba\b/.test(k.token),real=String(k.real||"").trim(),realWords=coreWords(real);
+    if(!isPerson){pushMatcher(k,real,false,false,null);return;}
+    const forms=personFormsForEntry(k),variantRows=realWords.map(word=>new Set([String(word).toLocaleLowerCase("cs-CZ")]));
+    for(let c=1;c<=7;c++){
+      const row=coreWords(forms[c]);if(row.length!==realWords.length)continue;
+      row.forEach((word,index)=>variantRows[index].add(String(word).toLocaleLowerCase("cs-CZ")));
+    }
+    pushMatcher(k,real,true,false,variantRows);
+    if(realWords.length>1)realWords.forEach((word,index)=>{
+      if(word.length>=3&&!/^(?:mgr|ing|bc|mudr|rndr|phdr|judr|doc|prof)\.?$/i.test(word))pushMatcher(k,word,true,true,[variantRows[index]]);
     });
-    // Alias je pouze přesně pozorovaný tvar. Jeho další skloňování by mohlo vytvořit
-    // nové, věcně nesouvisející jméno; celé paradigma už zajišťuje kanonický `real`.
-    [...new Set((Array.isArray(k.aliases)?k.aliases:[]).map(v=>String(v).trim()).filter(Boolean))].forEach(alias=>pushMatcher(k,alias,isPerson,false,false));
+    // Alias is an exact observed form. Expanding it again could create an
+    // unrelated name; the canonical full-name paradigm is handled above.
+    [...new Set((Array.isArray(k.aliases)?k.aliases:[]).map(v=>String(v).trim()).filter(Boolean))].forEach(alias=>pushMatcher(k,alias,true,false,coreWords(alias).map(word=>new Set([String(word).toLocaleLowerCase("cs-CZ")]))));
   });
   return out.filter(m=>m.n>0).sort((a,b)=>(b.n-a.n)||(b.weight-a.weight));
 }
@@ -601,58 +642,72 @@ function mergeOverlappingPersonEntries(st){
   for(let i=0;i<st.km.length;i++)for(let j=i+1;j<st.km.length;j++){
     const a=st.km[i],b=st.km[j];if(!/^osoba\b/.test(a.token||"")||!/^osoba\b/.test(b.token||"")||!personEntriesOverlap(a,b))continue;
     const keep=a.caseUnresolved&&!b.caseUnresolved?b:a,drop=keep===a?b:a;
+    const forceReview=!!a.caseUnresolved||!!b.caseUnresolved,reasons=[...new Set([].concat(a.reviewReasons||[],b.reviewReasons||[]).filter(Boolean))];
     keep.aliases=[...new Set([].concat(keep.aliases||[],drop.real||[],drop.aliases||[]).filter(Boolean))];
     if(!keep.forms&&drop.forms)keep.forms=drop.forms;
+    applyGeneratedCaseReview(keep,{force:forceReview,reasons});
     const keepIndex=st.km.indexOf(keep),dropIndex=st.km.indexOf(drop);st.km.splice(dropIndex,1);if(dropIndex<keepIndex)i--;
     j=i;
   }
 }
+function knownGivenSpelling(value){return KNOWN_GIVEN_SPELLINGS.has(String(value||"").normalize("NFC").toLocaleLowerCase("cs-CZ"));}
+function knownSurnameSpelling(value){return KNOWN_SURNAME_SPELLINGS.has(String(value||"").normalize("NFC").toLocaleLowerCase("cs-CZ"));}
+function knownGivenPerson(real){const first=coreWords(real)[0];return !!first&&knownGivenSpelling(first);}
 function knownCanonicalPerson(real){
   const parts=coreWords(real),known=new Set([...KNOWN_PROPER_WORDS].map(normName));if(!parts.length)return false;
   const dict=loadDict(),dictExact=new Set(dict.map(x=>normName(x.real))),dictParts=new Set();
   dict.forEach(x=>coreWords(x.real).forEach(part=>dictParts.add(normName(part))));
   if(dictExact.has(normName(real)))return true;
-  return parts.every(part=>known.has(normName(part))||dictParts.has(normName(part)));
+  return parts.every((part,index)=>known.has(normName(part))||dictParts.has(normName(part))||(index>0&&knownSurnameSpelling(part)));
 }
 function personCaseNeedsReview(raw,observed,normalized){
   return !!(normalized&&normalized.changed&&normalized.confidence!=="unresolved"&&!nameCaseHints(raw,observed).length&&!knownCanonicalPerson(normalized.real));
 }
 function normalizePersonSelection(raw,observed){
-  const normalized=canonicalizePersonPhrase(raw,observed);
-  if(personCaseNeedsReview(raw,observed,normalized))normalized.confidence="unresolved";
+  const normalized=canonicalizePersonPhrase(raw,observed),generated=generatedPersonForms(normalized.real||observed);
+  const reasons=[...new Set([].concat(normalized.reviewReasons||[],generated.reviewReasons||[]).filter(Boolean))];
+  if(generated.requiresReview)normalized.confidence="unresolved";
+  if(personCaseNeedsReview(raw,observed,normalized)){
+    normalized.confidence="unresolved";
+    reasons.push("Základní tvar byl odvozen bez jednoznačné pádové nápovědy; potvrď, že patří správné osobě.");
+  }
+  if(normalized.confidence==="unresolved")normalized.reviewReasons=[...new Set(reasons)];
   return normalized;
 }
 function addPhraseAs(p, phrase, kind){
-  const st=ST[p]; const cleaned=String(phrase).replace(/\s+/g," ").trim().replace(/^[<>\[\]{}(),.;:!?„“”"'…»«\s]+|[<>\[\]{}(),.;:!?„“”"'…»«\s]+$/g,"");
-  if(!cleaned || cleaned.length<1) return;
+  const st=ST[p];const cleaned=String(phrase).replace(/\s+/g," ").trim().replace(/^[<>\[\]{}(),.;:!?„“”"'…»«\s]+|[<>\[\]{}(),.;:!?„“”"'…»«\s]+$/g,"");
+  if(!cleaned||cleaned.length<1)return;
   let normalized={real:cleaned,observed:cleaned,caseNo:1,changed:false};
   if(kind==="person")normalized=normalizePersonSelection(st.raw,cleaned);
   const storedReal=normalized.real||cleaned;
   const duplicate=st.km.some(k=>[k.real].concat(Array.isArray(k.aliases)?k.aliases:[]).some(v=>normName(v)===normName(cleaned)||normName(v)===normName(storedReal)));
-  if(duplicate) return;
-  let token="", related="";
-  if(["institution","place","title","contact","sensitive","docnum"].includes(kind)) token=categoryToken(st,kind);
-  else {
+  if(duplicate)return;
+  let token="",related="";
+  if(["institution","place","title","contact","sensitive","docnum"].includes(kind))token=categoryToken(st,kind);
+  else{
     const merged=adjacentPersonMerge(st,cleaned);
     if(merged){
-      const previous=merged.entry.real,base=canonicalizePersonPhrase(st.raw,merged.phrase);
-      merged.entry.real=base.real||merged.phrase; merged.entry.auto=false;
-      const aliases=new Set([].concat(merged.entry.aliases||[],base.changed?[merged.phrase]:[]).filter(Boolean)); merged.entry.aliases=[...aliases];
-      if(st.reviewedSuggestions){ delete st.reviewedSuggestions[suggestionKey(previous)]; delete st.reviewedSuggestions[suggestionKey(cleaned)]; delete st.reviewedSuggestions[suggestionKey(merged.phrase)]; }
-      afterKeyChange(p); toast(base.changed?"Jméno bylo sloučeno a uloženo v základním tvaru „"+merged.entry.real+"“.":"Sousední části jména byly sloučeny do "+merged.entry.token+"."); return;
+      const previous=merged.entry.real,base=normalizePersonSelection(st.raw,merged.phrase);
+      merged.entry.real=base.real||merged.phrase;merged.entry.auto=false;delete merged.entry.forms;
+      const aliases=new Set([].concat(merged.entry.aliases||[],base.changed?[merged.phrase]:[]).filter(Boolean));merged.entry.aliases=[...aliases];
+      applyGeneratedCaseReview(merged.entry,{force:base.confidence==="unresolved",reasons:base.reviewReasons||[]});
+      if(st.reviewedSuggestions){delete st.reviewedSuggestions[suggestionKey(previous)];delete st.reviewedSuggestions[suggestionKey(cleaned)];delete st.reviewedSuggestions[suggestionKey(merged.phrase)];}
+      afterKeyChange(p);const mergedIndex=st.km.indexOf(merged.entry);
+      if(merged.entry.caseUnresolved&&mergedIndex>=0){toast("Skloňování sloučeného jména vyžaduje kontrolu.");setTimeout(()=>openPersonFormsEditor(p,mergedIndex,true),40);}
+      else toast(base.changed?"Jméno bylo sloučeno a uloženo v základním tvaru „"+merged.entry.real+"“.":"Sousední části jména byly sloučeny do "+merged.entry.token+".");
+      return;
     }
-    related=tokenForRelatedPerson(st,storedReal); token=related||nextPersonToken(st.km);
+    related=tokenForRelatedPerson(st,storedReal);token=related||nextPersonToken(st.km);
   }
   const entry={real:storedReal,token,auto:false};
   if(normalized.changed||normalized.confidence==="unresolved")entry.aliases=[cleaned];
-  if(normalized.confidence==="unresolved")entry.caseUnresolved=true;
+  if(kind==="person")applyGeneratedCaseReview(entry,{force:normalized.confidence==="unresolved",reasons:normalized.reviewReasons||[]});
   st.km.push(entry);if(kind==="person")mergeOverlappingPersonEntries(st);
-  if(st.reviewedSuggestions) delete st.reviewedSuggestions[suggestionKey(cleaned)];
-  afterKeyChange(p);
-  const idx=st.km.indexOf(entry);
-  if(entry.caseUnresolved&&idx>=0){toast("Skloňování nebylo rozpoznáno. Zkontroluj prosím základní tvar a pády.");setTimeout(()=>openPersonFormsEditor(p,idx,true),40);}
-  else if(related) toast("Přidáno ke stejné osobě ("+token+").");
-  else if(normalized.changed) toast("Jméno bylo uloženo v základním tvaru „"+storedReal+"“. Označený pád zůstává rozpoznatelný.");
+  if(st.reviewedSuggestions)delete st.reviewedSuggestions[suggestionKey(cleaned)];
+  afterKeyChange(p);const finalEntry=st.km.includes(entry)?entry:st.km.find(k=>/^osoba\b/.test(k.token||"")&&personEntriesOverlap(k,entry)),idx=st.km.indexOf(finalEntry);
+  if(finalEntry&&finalEntry.caseUnresolved&&idx>=0){toast("Skloňování nebylo spolehlivě rozpoznáno. Zkontroluj základní tvar a pády.");setTimeout(()=>openPersonFormsEditor(p,idx,true),40);}
+  else if(related)toast("Přidáno ke stejné osobě ("+token+").");
+  else if(normalized.changed)toast("Jméno bylo uloženo v základním tvaru „"+storedReal+"“. Označený pád zůstává rozpoznatelný.");
 }
 function addPhrase(p, phrase){ addPhraseAs(p,phrase,"person"); }
 function keepSuggestion(p,phrase){
@@ -813,30 +868,45 @@ function doAnon(p){
   updateProgress(p);
   if(p==="my" && typeof updateMyMode==="function") updateMyMode();
 }
+function caseReviewTooltip(entry){
+  const reasons=[...new Set([].concat(entry&&entry.reviewReasons||[]).filter(Boolean))];
+  return reasons.length?"Odeslání je pozastavené. "+reasons.join(" "):"Odeslání je pozastavené, dokud nepotvrdíš pádové tvary.";
+}
+function caseWarningHtml(entry){return entry&&entry.caseUnresolved?'<small class="case-warning" title="'+escAttr(caseReviewTooltip(entry))+'">&#9888; Zkontroluj skloňování</small>':'';}
 function renderKeyTable(p){
-  const st=ST[p], body=E(p,"keyBody"); body.innerHTML="";
-  st.km.forEach((k,idx)=>{ const tr=document.createElement("tr");
-    const uses=k.token?(String(st.clean||"").match(new RegExp(escRe(k.token),"g"))||[]).length:0;
-    const person=/^osoba\b/.test(k.token||"");
-    tr.classList.toggle('case-unresolved',!!k.caseUnresolved); tr.innerHTML='<td><input value="'+escAttr(k.real)+'" data-i="'+idx+'" data-f="real">'+(k.caseUnresolved?'<small class="case-warning">⚠ Zkontroluj skloňování</small>':'')+'</td><td class="tok"><input value="'+escAttr(k.token)+'" data-i="'+idx+'" data-f="token"><small title="Počet výskytů značky v odesílaném náhledu">'+uses+'× v náhledu</small></td><td class="key-actions">'+(person?'<button class="case-row" data-cases="'+idx+'" title="Zkontrolovat nebo upravit skloňování jména">1–7</button>':'')+'<button class="del-row" data-del="'+idx+'" title="Smazat">×</button></td>';
-    body.appendChild(tr); });
-  renderKeySummary(p);
-  E(p,"keyEmpty").style.display=st.km.length?"none":"block";
-  body.querySelectorAll("input").forEach(inp=>{ let timer=null; inp.addEventListener("input",(e)=>{
-    const row=st.km[+e.target.dataset.i];row[e.target.dataset.f]=e.target.value;if(e.target.dataset.f==="real")delete row.forms;clearAnalysisCache();resetReview(p);
-    clearTimeout(timer);timer=setTimeout(()=>{publishActiveKeyReals(p);ST[p].clean=cleanFromKey(p);renderView(p);renderPreview(p);renderKeySummary(p);renderPersonReferenceChips(p);scheduleWorkingSessionSave();},280);
-  }); });
+  const st=ST[p],body=E(p,"keyBody");body.innerHTML="";
+  st.km.forEach((k,idx)=>{const tr=document.createElement("tr");
+    const uses=k.token?(String(st.clean||"").match(new RegExp(escRe(k.token),"g"))||[]).length:0,person=/^osoba\b/.test(k.token||"");
+    tr.classList.toggle("case-unresolved",!!k.caseUnresolved);tr.innerHTML='<td><input value="'+escAttr(k.real)+'" data-i="'+idx+'" data-f="real">'+caseWarningHtml(k)+'</td><td class="tok"><input value="'+escAttr(k.token)+'" data-i="'+idx+'" data-f="token"><small title="Počet výskytů značky v odesílaném náhledu">'+uses+'× v náhledu</small></td><td class="key-actions">'+(person?'<button class="case-row" data-cases="'+idx+'" title="Zkontrolovat nebo upravit skloňování jména">1–7</button>':'')+'<button class="del-row" data-del="'+idx+'" title="Smazat">×</button></td>';
+    body.appendChild(tr);
+  });
+  renderKeySummary(p);E(p,"keyEmpty").style.display=st.km.length?"none":"block";
+  body.querySelectorAll("input").forEach(inp=>{let timer=null;inp.addEventListener("input",e=>{
+    const row=st.km[+e.target.dataset.i];row[e.target.dataset.f]=e.target.value;
+    if(e.target.dataset.f==="real"){
+      delete row.forms;applyGeneratedCaseReview(row);
+      const tr=e.target.closest("tr"),old=tr&&tr.querySelector(".case-warning");
+      if(row.caseUnresolved){if(!old)e.target.insertAdjacentHTML("afterend",caseWarningHtml(row));else old.title=caseReviewTooltip(row);}else if(old)old.remove();
+      if(tr)tr.classList.toggle("case-unresolved",!!row.caseUnresolved);
+    }
+    clearAnalysisCache();resetReview(p);clearTimeout(timer);timer=setTimeout(()=>{publishActiveKeyReals(p);ST[p].clean=cleanFromKey(p);renderView(p);renderPreview(p);renderKeySummary(p);renderPersonReferenceChips(p);scheduleWorkingSessionSave();updateSendGate(p);},280);
+  });});
   body.querySelectorAll("[data-cases]").forEach(b=>b.onclick=()=>openPersonFormsEditor(p,+b.dataset.cases));
-  body.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{st.km.splice(+b.dataset.del,1);afterKeyChange(p);});
-  renderPersonReferenceChips(p);
+  body.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{st.km.splice(+b.dataset.del,1);afterKeyChange(p);});renderPersonReferenceChips(p);
 }
 function openPersonFormsEditor(p,idx,forceReview){
   const entry=ST[p]&&ST[p].km&&ST[p].km[idx];if(!entry||!/^osoba\b/.test(entry.token||""))return;
-  const forms=personFormsForEntry(entry),rows=[];
+  const auto=generatedPersonForms(entry.real),forms=personFormsForEntry(entry),rows=[];
   for(let c=1;c<=7;c++)rows.push('<label class="case-form-row"><span>'+esc(PERSON_CASE_LABELS[c])+'</span><input data-case="'+c+'" value="'+escAttr(forms[c]||entry.real)+'"></label>');
-  openModal("Skloňování: "+entry.real,'<p class="dialog-text">'+(entry.caseUnresolved?'<b>Automatické rozpoznání si nebylo jisté. Oprav zejména 1. pád; bez uložení kontrola nepovolí pokračovat.</b><br>':'')+'Tvary zůstávají pouze v tomto prohlížeči a nikdy se neposílají AI modelu. U běžných jmen jsou doplněné automaticky; neobvyklé jméno můžeš jednou opravit.</p><div class="case-form-grid">'+rows.join("")+'</div><div class="dialog-actions"><button class="btn ghost case-reset" type="button">Vrátit automatický návrh</button><button class="btn case-save" type="button">Uložit tvary</button></div>',{className:"case-editor-modal",onMount(body,close){
-    body.querySelector(".case-reset").onclick=()=>{const auto=generatedPersonForms(entry.real);body.querySelectorAll("[data-case]").forEach(i=>i.value=auto[+i.dataset.case]||entry.real);};
-    body.querySelector(".case-save").onclick=()=>{const custom={};body.querySelectorAll("[data-case]").forEach(i=>custom[i.dataset.case]=i.value.trim()||entry.real);entry.forms=custom;entry.real=custom[1]||entry.real;entry.caseUnresolved=false;clearAnalysisCache();afterKeyChange(p);scheduleWorkingSessionSave();toast("Skloňování bylo uloženo jen lokálně.");close();};
+  const reasons=[...new Set([].concat(entry.reviewReasons||[],auto.reviewReasons||[]).filter(Boolean))],reasonHtml=reasons.length?'<small class="case-review-reason"><b>Důvod kontroly:</b> '+esc(reasons.join(" "))+'</small><br>':'';
+  const blocked=entry.caseUnresolved||forceReview;
+  openModal("Skloňování: "+entry.real,'<p class="dialog-text">'+(blocked?'<b>Automatika si u tohoto jména není dostatečně jistá. Odeslání je pozastavené, dokud nepotvrdíš všech sedm tvarů.</b><br>'+reasonHtml:'')+'Tvary se použijí pouze lokálně při anonymizaci a vrácení jména; AI model je nikdy nedostane. Potvrzení je součástí této rozpracované práce. Do trvalého slovníku se tvary uloží pouze pozdější výslovnou akcí <b>Uložit jména</b>.</p><div class="case-form-grid">'+rows.join("")+'</div><div class="dialog-actions"><button class="btn ghost case-reset" type="button">Vrátit automatický návrh</button><button class="btn case-save" type="button">Potvrdit tvary</button></div>',{className:"case-editor-modal",onMount(body,close){
+    body.querySelector(".case-reset").onclick=()=>{const proposal=generatedPersonForms(entry.real);body.querySelectorAll("[data-case]").forEach(input=>input.value=proposal[+input.dataset.case]||entry.real);};
+    body.querySelector(".case-save").onclick=()=>{
+      const custom={},inputs=[...body.querySelectorAll("[data-case]")],empty=inputs.find(input=>!input.value.trim());
+      if(empty){empty.focus();toast("Vyplň všech sedm pádových tvarů.");return;}
+      inputs.forEach(input=>custom[input.dataset.case]=input.value.trim());entry.forms=custom;entry.real=custom[1];applyGeneratedCaseReview(entry);clearAnalysisCache();afterKeyChange(p);scheduleWorkingSessionSave();toast("Tvary byly potvrzeny pro tuto práci. Trvale se uloží až přes Uložit jména.");close();
+    };
   }});
 }
 function insertAtCursor(input,text){
@@ -1165,33 +1235,20 @@ function flashPreview(p){
 });
 
 /* ===================== SKLÁDÁNÍ / ZNAČKY ===================== */
-const VOCATIVE_EXACT={
-  "dan":"Dane","daniel":"Danieli","jan":"Jane","petr":"Petře","pavel":"Pavle","karel":"Karle","marek":"Marku","jiří":"Jiří","jiri":"Jiří","ondřej":"Ondřeji","ondrej":"Ondřeji","matěj":"Matěji","matej":"Matěji","tadeáš":"Tadeáši","tadeas":"Tadeáši","lukáš":"Lukáši","lukas":"Lukáši","tomáš":"Tomáši","tomas":"Tomáši","michal":"Michale","martin":"Martine","jakub":"Jakube","filip":"Filipe","radek":"Radku","vojtěch":"Vojtěchu","vojtech":"Vojtěchu","aleš":"Aleši","ales":"Aleši","miloš":"Miloši","milos":"Miloši"
-};
 function preserveInitialCase(source,value){
   if(!source)return value;
   return source[0]===source[0].toLocaleUpperCase("cs-CZ")?value[0].toLocaleUpperCase("cs-CZ")+value.slice(1):value.toLocaleLowerCase("cs-CZ");
 }
-function czechVocativeWord(word){
-  const src=String(word||"").trim(),lo=src.toLocaleLowerCase("cs-CZ"); if(!lo)return src;
-  if(VOCATIVE_EXACT[lo])return preserveInitialCase(src,VOCATIVE_EXACT[lo]);
-  let out=lo;
-  if(/a$/.test(lo))out=lo.slice(0,-1)+"o";
-  else if(/(?:š|ž|č|ř|c|j)$/.test(lo))out=lo+"i";
-  else if(/(?:k|g|ch)$/.test(lo))out=lo+"u";
-  else if(/(?:n|m|b|p|v|f|s|z|t|d|l|r)$/.test(lo))out=lo+"e";
-  return preserveInitialCase(src,out);
-}
+function czechVocativeWord(word,context){const forms=declineNameWord(word,context||{});return forms[5]||String(word||"");}
 function nameParts(real){
   const titles=/^(?:mgr|ing|bc|mudr|rndr|phdr|judr|doc|prof)\.?$/i;
   return String(real||"").replace(/[<>]/g," ").split(/\s+/).map(x=>x.replace(/^[,.;:]+|[,.;:]+$/g,"")).filter(x=>x&&!titles.test(x));
 }
 function salutationName(reals,lead){
   const one=(reals||[]).map(String).filter(x=>nameParts(x).length===1).sort((a,b)=>a.length-b.length)[0];
-  const canonical=(reals||[]).map(String).sort((a,b)=>b.length-a.length)[0]||"";
-  const parts=nameParts(one||canonical); if(!parts.length)return canonical;
-  const useLast=/\b(?:pane|paní)\s*$/i.test(String(lead||""));
-  return czechVocativeWord(useLast?parts[parts.length-1]:parts[0]);
+  const canonical=(reals||[]).map(String).sort((a,b)=>b.length-a.length)[0]||"",selected=one||canonical,parts=nameParts(selected);if(!parts.length)return canonical;
+  const useLast=/\b(?:pane|paní)\s*$/i.test(String(lead||"")),analysis=generatedPersonForms(selected),word=useLast?parts[parts.length-1]:parts[0];
+  return czechVocativeWord(word,{gender:analysis.gender,role:useLast?"surname":"given"});
 }
 function genericPersonCase(word){
   const lo=String(word||"").toLocaleLowerCase("cs-CZ");
@@ -1207,7 +1264,7 @@ function recompose(p,text){
     if(/^osoba\b/.test(token)){
       const label=parsePersonToken(token),forms=personFormsForEntry(canonicalEntry||{real:canonical});
       const salRe=new RegExp("((?:(?:Ahoj|Milý|Milá|Vážený|Vážená|Pane|Paní)\\s+|(?:Dobrý den|Dobrý večer)\\s*,?\\s*))"+escRe(token)+"(?=\\s*[,!?.]|\\s|$)","gi");
-      t=t.replace(salRe,(m,lead)=>lead+(forms[5]||salutationName(entries.map(x=>x.real),lead)));
+      t=t.replace(salRe,(m,lead)=>lead+(/\b(?:pane|paní)\s*$/i.test(String(lead||""))?salutationName(entries.map(x=>x.real),lead):(forms[5]||salutationName(entries.map(x=>x.real),lead))));
       const genericRe=new RegExp("\\b(osoba|osoby|osobě|osobu|osobo|osobou)\\s+"+escRe(label)+"\\b","gi");
       t=t.replace(genericRe,(m,word)=>forms[genericPersonCase(word)]||canonical);
     }

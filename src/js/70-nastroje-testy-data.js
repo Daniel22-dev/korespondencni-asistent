@@ -176,11 +176,119 @@ async function runKorespTests(){
       assertTest(r.includes("777 123 456"),"telefon se nevrátil");
     });
     await test("České oslovení při vrácení jména", async()=>{
-      ST.in.km=[{real:"Dan",token:"osoba A",auto:false},{real:"Šárka",token:"osoba B",auto:false}];
-      const r=recompose("in","Ahoj osoba A,\nMilá osoba B,\n[podpis]");
+      ST.in.km=[{real:"Dan",token:"osoba A",auto:false},{real:"Šárka",token:"osoba B",auto:false},{real:"Daniel",token:"osoba C",auto:false}];
+      const r=recompose("in","Ahoj osoba A,\nMilá osoba B,\nDobrý den, osoba C,\n[podpis]");
       assertTest(r.includes("Ahoj Dane"),"jméno Dan se nevrátilo ve vokativu: "+r);
       assertTest(r.includes("Milá Šárko"),"jméno Šárka se nevrátilo ve vokativu: "+r);
+      assertTest(r.includes("Dobrý den, Danieli"),"jméno Daniel se nevrátilo ve vokativu: "+r);
       assertTest(!r.includes("(učitel)"),"zůstal nevyplněný zástupný podpis");
+    });
+    await test("Systémová matice českého 5. pádu", async()=>{
+      const rows=[["Daniel","Danieli"],["Viktor","Viktore"],["Igor","Igore"],["Alois","Aloisi"],["Klaus","Klausi"],["Asterix","Asterixi"],["Petr","Petře"],["Marek","Marku"]];
+      rows.forEach(([name,expected])=>{const forms=generatedPersonForms(name);assertTest(forms[5]===expected&&!forms.requiresReview,name+" má chybný nebo nejistý vokativ: "+JSON.stringify(forms));});
+    });
+    await test("Vokativ používá jediný gramatický engine", async()=>{
+      ["Daniel","Viktor","Igor","Alois","Klaus","Asterix","Petr","Marek"].forEach(name=>{
+        const context={gender:"male",role:"given"},word=declineNameWord(name,context),person=generatedPersonForms(name);
+        assertTest(czechVocativeWord(name,context)===word[5]&&word[5]===person[5],name+" se rozchází mezi cestami skloňování");
+      });
+    });
+    await test("Ženská jména na souhlásku zůstávají nesklonná", async()=>{
+      ["Karin","Ingrid","Dagmar"].forEach(name=>{const forms=generatedPersonForms(name);for(let c=1;c<=7;c++)assertTest(forms[c]===name,name+" se chybně skloňuje v "+c+". pádě: "+JSON.stringify(forms));assertTest(!forms.requiresReview,name+" se zbytečně blokuje");});
+    });
+    await test("Rod celého jména řídí paradigma a konflikt se zastaví", async()=>{
+      const rows=[
+        ["Andrea Nováková","female",{3:"Andree Novákové",5:"Andreo Nováková"}],
+        ["Nikola Novotný","male",{3:"Nikolovi Novotnému",5:"Nikolo Novotný"}],
+        ["Lucie Krejčí","female",{3:"Lucii Krejčí",5:"Lucie Krejčí"}],
+        ["Marek Krejčí","male",{3:"Markovi Krejčímu",5:"Marku Krejčí"}]
+      ];
+      rows.forEach(([name,gender,expected])=>{const forms=generatedPersonForms(name);assertTest(forms.gender===gender&&!forms.requiresReview,name+" má chybný rod nebo zbytečnou blokaci: "+JSON.stringify(forms));Object.entries(expected).forEach(([c,value])=>assertTest(forms[c]===value,name+" má chybný "+c+". pád: "+JSON.stringify(forms)));});
+      const conflict=generatedPersonForms("Petr Nováková");
+      assertTest(conflict.requiresReview&&conflict.reviewReasons.some(x=>/odporuje/.test(x)),"konfliktní rod prošel bez kontroly: "+JSON.stringify(conflict));
+    });
+    await test("Mužská jména na -a a -o mají vlastní paradigma", async()=>{
+      const rows=[
+        ["Honza",{2:"Honzy",3:"Honzovi",5:"Honzo",7:"Honzou"}],
+        ["Ondra",{2:"Ondry",3:"Ondrovi",5:"Ondro",7:"Ondrou"}],
+        ["Ivo",{2:"Iva",3:"Ivovi",5:"Ivo",7:"Ivem"}],
+        ["Oto",{2:"Ota",3:"Otovi",5:"Oto",7:"Otem"}],
+        ["Mario",{2:"Maria",3:"Mariovi",5:"Mario",7:"Mariem"}]
+      ];
+      rows.forEach(([name,expected])=>{const forms=generatedPersonForms(name);assertTest(!forms.requiresReview,name+" se zbytečně blokuje");Object.entries(expected).forEach(([c,value])=>assertTest(forms[c]===value,name+" má chybný "+c+". pád: "+JSON.stringify(forms)));});
+    });
+    await test("Složený, apostrofovaný a vnitřně verzálkový zápis se nehádané", async()=>{
+      ["Jean-Paul","O'Connor","O’Connor"].forEach(name=>{const forms=generatedPersonForms(name);assertTest(forms.requiresReview&&forms.reviewReasons.length,name+" prošlo bez kontroly");for(let c=1;c<=7;c++)assertTest(forms[c]===name,name+" se před potvrzením změnilo v "+c+". pádě: "+JSON.stringify(forms));});
+      const mixed=generatedPersonForms("Petr McDonald");
+      assertTest(mixed.requiresReview&&mixed[1]==="Petr McDonald"&&mixed[5]==="Petře McDonald"&&mixed[5].includes("McDonald"),"vnitřní verzála se ztratila nebo jméno prošlo bez kontroly: "+JSON.stringify(mixed));
+    });
+    await test("Výslovnostně citlivá ženská jména vyžadují potvrzení", async()=>{
+      ["Mia","Maya","Mia Nováková","Maya Nováková"].forEach(name=>{const forms=generatedPersonForms(name);assertTest(forms.requiresReview&&forms.reviewReasons.some(x=>/výslovnosti|úzu/.test(x)),name+" prošlo bez kontroly: "+JSON.stringify(forms));const first=name.split(/\s+/)[0];for(let c=1;c<=7;c++)assertTest(forms[c].split(/\s+/)[0]===first,name+" dostalo před potvrzením domnělý tvar: "+JSON.stringify(forms));});
+    });
+    await test("Kanonizace využívá rod a paradigma celého jména", async()=>{
+      const rows=[
+        ["Napsal jsem Andree Novákové.","Andree Novákové","Andrea Nováková",3],
+        ["Mluvil jsem s Andreou Novákovou.","Andreou Novákovou","Andrea Nováková",7],
+        ["Napsal jsem Nikolovi Novotnému.","Nikolovi Novotnému","Nikola Novotný",3],
+        ["Mluvil jsem s Nikolou Novotným.","Nikolou Novotným","Nikola Novotný",7],
+        ["Mluvil jsem s Ivem Novákem.","Ivem Novákem","Ivo Novák",7],
+        ["Píšu Ivovi Novákovi.","Ivovi Novákovi","Ivo Novák",3]
+      ];
+      rows.forEach(([raw,phrase,base,caseNo])=>{const result=canonicalizePersonPhrase(raw,phrase);assertTest(result.real===base&&result.caseNo===caseNo&&result.confidence!=="unresolved",phrase+" → "+JSON.stringify(result));});
+      const ambiguous=canonicalizePersonPhrase("Mluvil jsem s Markem Krejčím.","Markem Krejčím");
+      assertTest(ambiguous.real==="Marek Krejčí"&&ambiguous.confidence==="unresolved"&&ambiguous.alternatives&&ambiguous.alternatives.includes("Marko Krejčí"),"nejednoznačný základ byl přijat potichu: "+JSON.stringify(ambiguous));
+    });
+    await test("Plná jména se skloňují po částech v jednom kontextu", async()=>{
+      const rows=[
+        ["Daniel Baláž",{3:"Danielovi Balážovi",5:"Danieli Baláži",7:"Danielem Balážem"}],
+        ["Viktor Novák",{3:"Viktorovi Novákovi",5:"Viktore Nováku",7:"Viktorem Novákem"}],
+        ["Petr Svoboda",{3:"Petrovi Svobodovi",5:"Petře Svobodo",7:"Petrem Svobodou"}]
+      ];
+      rows.forEach(([name,expected])=>{const forms=generatedPersonForms(name);Object.entries(expected).forEach(([c,value])=>assertTest(forms[c]===value,name+" má chybný "+c+". pád: "+JSON.stringify(forms)));assertTest(!forms.requiresReview,name+" se zbytečně blokuje");});
+    });
+    await test("Daniel má správné úplné paradigma", async()=>{
+      const forms=generatedPersonForms("Daniel"),expected={1:"Daniel",2:"Daniela",3:"Danielovi",4:"Daniela",5:"Danieli",6:"Danielovi",7:"Danielem"};
+      for(let c=1;c<=7;c++)assertTest(forms[c]===expected[c],"Daniel má chybný "+c+". pád: "+JSON.stringify(forms));
+    });
+    await test("Mužské příjmení na -a se vrací ze skloňovaného tvaru", async()=>{
+      const forms=generatedPersonForms("Petr Svoboda"),expected={1:"Petr Svoboda",2:"Petra Svobody",3:"Petrovi Svobodovi",4:"Petra Svobodu",5:"Petře Svobodo",6:"Petrovi Svobodovi",7:"Petrem Svobodou"};
+      for(let c=1;c<=7;c++)assertTest(forms[c]===expected[c],"Petr Svoboda má chybný "+c+". pád: "+JSON.stringify(forms));
+      const normalized=canonicalizePersonPhrase("Píšu Petrovi Svobodovi.","Petrovi Svobodovi");
+      assertTest(normalized.real==="Petr Svoboda"&&normalized.caseNo===3&&normalized.confidence!=="unresolved","dativ se nevrátil do základního tvaru: "+JSON.stringify(normalized));
+    });
+    await test("Výslovnostní a rodinné varianty vyžadují kontrolu", async()=>{
+      ["Michael","Julius","Petr Švec","Petr Němec","Derek Smith"].forEach(name=>{const forms=generatedPersonForms(name);assertTest(forms.requiresReview&&forms.reviewReasons.length,name+" prošel bez lidské kontroly: "+JSON.stringify(forms));});
+    });
+    await test("Cizí jméno se nepřepisuje domnělým nominativem", async()=>{
+      const foreign=normalizePersonSelection("Prosím vyřiďte to Xiu.","Xiu");
+      assertTest(foreign.real==="Xiu"&&foreign.confidence==="unresolved"&&foreign.reviewReasons.length,"cizí jméno bylo potichu změněno nebo přijato: "+JSON.stringify(foreign));
+    });
+    await test("Nové položky klíče vždy převezmou stav kontroly pádů", async()=>{
+      let old=null;try{old=localStorage.getItem("rozbor_dict");localStorage.setItem("rozbor_dict","[]");}catch(_){}
+      try{
+        const uncertain={km:[],raw:"Michael Smith píše.",emailN:0,phoneN:0};buildKey(uncertain,["Michael Smith"]);
+        assertTest(uncertain.km.length===1&&uncertain.km[0].caseUnresolved&&uncertain.km[0].reviewReasons.length,"nejisté jméno v klíči nemá stopku: "+JSON.stringify(uncertain.km));
+        const common={km:[],raw:"Daniel píše.",emailN:0,phoneN:0};buildKey(common,["Daniel"]);
+        assertTest(common.km.length===1&&!common.km[0].caseUnresolved,"běžné jméno se zbytečně blokuje: "+JSON.stringify(common.km));
+      }finally{try{if(old===null)localStorage.removeItem("rozbor_dict");else localStorage.setItem("rozbor_dict",old);}catch(_){}}
+    });
+    await test("Nejisté pády blokují preflight, potvrzené jej odblokují", async()=>{
+      const entry={real:"Michael",token:"osoba A",auto:false};applyGeneratedCaseReview(entry);ST.in.raw="Michael píše.";ST.in.clean="osoba A píše.";ST.in.km=[entry];publishActiveKeyReals("in");clearAnalysisCache();
+      assertTest(preflightIssues(ST.in.clean,"in").danger.some(x=>/nezkontrolované skloňování/.test(x)),"nejisté skloňování nevyvolalo stopku");
+      entry.forms={1:"Michael",2:"Michaela",3:"Michaelovi",4:"Michaela",5:"Michaele",6:"Michaelovi",7:"Michaelem"};applyGeneratedCaseReview(entry);clearAnalysisCache();
+      assertTest(!entry.caseUnresolved&&!preflightIssues(ST.in.clean,"in").danger.some(x=>/nezkontrolované skloňování/.test(x)),"ručně potvrzené tvary zůstaly blokované");
+    });
+    await test("Ručně potvrzený vokativ má přednost při lokálním vrácení", async()=>{
+      const entry={real:"Michael",token:"osoba A",auto:false,forms:{1:"Michael",2:"Michaela",3:"Michaelovi",4:"Michaela",5:"Michaele",6:"Michaelovi",7:"Michaelem"}};applyGeneratedCaseReview(entry);ST.in.km=[entry];
+      const result=recompose("in","Dobrý den, osoba A,");
+      assertTest(result.includes("Dobrý den, Michaele")&&!result.includes("osoba A"),"potvrzený vokativ se nepoužil: "+result);
+    });
+    await test("Slovník ukládá sedm potvrzených tvarů, nikoli značku", async()=>{
+      let old=null;try{old=localStorage.getItem("rozbor_dict");localStorage.setItem("rozbor_dict","[]");}catch(_){}
+      try{
+        const forms={1:"Michael",2:"Michaela",3:"Michaelovi",4:"Michaela",5:"Michaele",6:"Michaelovi",7:"Michaelem"};saveDict([{real:"Michael",token:"osoba Z",forms,caseUnresolved:false,reviewReasons:["test"]}]);
+        const loaded=loadDict();assertTest(loaded.length===1&&loaded[0].forms&&loaded[0].forms[5]==="Michaele"&&!loaded[0].token&&!loaded[0].caseUnresolved,"slovník neuchoval čisté potvrzené tvary: "+JSON.stringify(loaded));
+      }finally{try{if(old===null)localStorage.removeItem("rozbor_dict");else localStorage.setItem("rozbor_dict",old);}catch(_){}}
     });
     await test("Kontrola konceptu posuzuje finální text, ne bezpečné značky", async()=>{
       ST.in.km=[{real:"Jan Novák",token:"osoba A",auto:false}];
@@ -327,7 +435,7 @@ async function runKorespTests(){
     });
     await test("Neznámý cizí tvar vyžádá kontrolu skloňování", async()=>{
       const foreign=normalizePersonSelection("Prosím vyřiďte to Xiu.","Xiu");
-      assertTest(foreign.real==="Xia"&&foreign.confidence==="unresolved","Xiu se přijalo bez kontroly: "+JSON.stringify(foreign));
+      assertTest(foreign.real==="Xiu"&&foreign.confidence==="unresolved","Cizí jméno se nemá potichu přepisovat ani přijmout bez kontroly: "+JSON.stringify(foreign));
       const known=normalizePersonSelection("Bez Marka to nezvládneme.","Marka");
       assertTest(known.real==="Marek"&&known.confidence!=="unresolved","známý tvar s předložkou se zbytečně zablokoval: "+JSON.stringify(known));
       const czech=normalizePersonSelection("Děkuji Šárce.","Šárce");

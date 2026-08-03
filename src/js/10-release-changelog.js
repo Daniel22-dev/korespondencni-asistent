@@ -3,11 +3,13 @@ const IS_TEST_MODE=new URLSearchParams(window.location.search).get("test")==="1"
 "use strict";
 
 const RELEASE = {
-  version: "5.9.1",
-  date: "2026-08-02",
+  version: "5.9.3",
+  date: "2026-08-03",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.9.3: systémové sjednocení českého skloňování osobních jmen — všechny cesty používají jediný lokální gramatický engine. Běžná česká jména i víceslovná jména se skloňují v kontextu; nejasná, cizí a rodinně proměnlivá jména odeslání zastaví a vyžádají potvrzení 1.–7. pádu. Potvrzené tvary zůstávají lokálně a do trvalého slovníku se uloží jen výslovnou akcí Uložit jména. Regresní sada byla rozšířena na 135 interních testů.",
+    "5.9.2: opravena jediná gramatická chyba v lokálním vrácení jména — 5. pád jména Daniel je nyní správně Danieli místo Daniele. Doplněn regresní test oslovení; určování adresáta, anonymizace, prompty i ostatní workflow zůstávají beze změny.",
     "5.9.1: metadata pro centrální správu AI Studia — veřejný manifest deklaruje integraci GHRAB AI Core 1.0.0, úspěšnou konformitu a URL registru osmi AI operací. Přidán ai-operations.json; build a release gate ověřují shodu appId, verze, kontraktu, schemaId a operací. Běžný provoz zůstává v direct-gemini režimu bez automatického fallbacku.",
     "5.9.0: referenční integrace GHRAB AI Core 1.0.0 — lokální prototyp společného klienta a adaptérů byl nahrazen bitově ověřovaným vydaným Core. KS používá registrované operace appId + operation, schemaId, input.parts, clientRequestId a nový attemptId; runtime odděluje defaultMode a allowedModes a umožňuje vědomý rollback bez automatického fallbacku. Gateway už nepřebírá serverový text chyby do UI, klientský tokenový limit je pouze hint a usage metadata školního režimu jsou autoritativně převzata ze serveru. Build ověřuje SHA-256 Core artefaktů a release gate spouští 118 aplikačních a 17 společných konformitních testů.",
     "5.8.0: server-ready architektura — přidán poskytovatelsky neutrální GHRAB AI Client, veřejná runtime konfigurace, samostatný Direct Gemini Adapter a připravený School Gateway Adapter. Výchozí serverless provoz přes osobní Gemini klíč zůstává beze změny; budoucí školní server lze zapnout konfigurací bez přímého OpenAI klíče v prohlížeči. Operace mají stabilní názvy a modelové profily, skutečná provider volání, retry, tokeny, latence a počet výstupů se měří odděleně. Interní sada má 118 testů.",
