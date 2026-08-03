@@ -513,6 +513,7 @@ export function setupErrorReporter(options = {}) {
   };
   supportEmailPromise.then((email) => {
     state.supportEmail = email;
+    refreshPrepareLinkHref();
   }).catch(() => {});
   loadAppMeta(options.appId, studioUrl).then((meta) => {
     state.appMeta = {
@@ -521,6 +522,7 @@ export function setupErrorReporter(options = {}) {
       version: options.appVersion || meta.version,
     };
     updateLabels();
+    refreshPrepareLinkHref();
   });
 
   const pushTechnicalError = (raw) => {
@@ -623,7 +625,7 @@ export function setupErrorReporter(options = {}) {
 
   const root = element("div", "ghrab-error-reporter");
   root.id = REPORTER_ID;
-  root.dataset.reporterVariant = "ks-5.9.10";
+  root.dataset.reporterVariant = "ks-5.9.11";
   const launcher = button(t("Nahlásit chybu", "Report an issue"), "launcher");
   launcher.setAttribute("aria-haspopup", "dialog");
   launcher.innerHTML = `<span aria-hidden="true">!</span><strong>${t("Nahlásit chybu", "Report an issue")}</strong>`;
@@ -892,6 +894,7 @@ export function setupErrorReporter(options = {}) {
   }
   updateLabels();
   function open() {
+    refreshPrepareLinkHref();
     backdrop.hidden = false;
     discardBackdrop.hidden = true;
     document.documentElement.classList.add("ghrab-report-open");
@@ -976,6 +979,7 @@ export function setupErrorReporter(options = {}) {
     state.preparedBlob = null;
     finalStatus.replaceChildren();
     finalStatus.hidden = true;
+    refreshPrepareLinkHref();
   }
 
   async function addScreenshot(blob) {
@@ -1489,6 +1493,16 @@ export function setupErrorReporter(options = {}) {
       gmailUrl: `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(supportEmail)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(clippedBody)}`,
     };
   }
+  function refreshPrepareLinkHref() {
+    if (typeof prepareLink === "undefined" || !prepareLink) return;
+    const draft = mailDraft(
+      draftPackageInfo(new Date()),
+      false,
+      state.supportEmail || DEFAULT_SUPPORT_EMAIL,
+    );
+    prepareLink.href = draft.gmailUrl;
+  }
+
   function actionLink(label, href, className, target = "_blank") {
     const link = document.createElement("a");
     link.className = `ghrab-report-button ${className}`.trim();
@@ -1575,15 +1589,9 @@ export function setupErrorReporter(options = {}) {
     }
     const createdAt = new Date();
     const initialEmail = state.supportEmail || DEFAULT_SUPPORT_EMAIL;
-    const initialDraft = mailDraft(
-      draftPackageInfo(createdAt),
-      false,
-      initialEmail,
-    );
-    // Gmail is opened by the browser as a normal user-activated link. This is
-    // more reliable than a scripted popup, which Chrome can block in PWAs and
-    // protected application contexts even when the ZIP download succeeds.
-    prepareLink.href = initialDraft.gmailUrl;
+    // The complete Gmail URL is already present before the click. The handler
+    // must not rewrite href during the click because some embedded/PWA browser
+    // contexts resolve the navigation target before the listener finishes.
     prepareLink.setAttribute("aria-busy", "true");
     prepareLink.setAttribute("aria-disabled", "true");
     prepareLink.textContent = t("Připravuji ZIP…", "Preparing ZIP…");
@@ -1644,4 +1652,5 @@ export function setupErrorReporter(options = {}) {
   steps.addEventListener("input", invalidatePreparedPackage);
   prepareLink.addEventListener("click", prepareAndEmail);
   renderScreenshots();
+  refreshPrepareLinkHref();
 }

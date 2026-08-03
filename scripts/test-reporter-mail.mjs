@@ -114,6 +114,16 @@ try {
   if (box.tag !== "A" || box.target !== "_blank") {
     throw new Error("Primary Gmail action is not a native target=_blank link");
   }
+  if (!box.href.startsWith("https://mail.google.com/mail/") ||
+      !box.href.includes("to=balaz%40ghrabuvka.cz")) {
+    throw new Error("Prepared Gmail link does not contain the support recipient");
+  }
+  const beforeTargets = await fetch(`http://127.0.0.1:${port}/json`).then((response) => response.json());
+  const beforeIds = new Set(beforeTargets.filter((item) => item.type === "page").map((item) => item.id));
+  // Verify native target=_blank behaviour without depending on live Gmail
+  // networking, redirects or bot protection in the GitHub-hosted runner. The
+  // real Gmail URL was validated immediately above.
+  await evaluate('document.querySelector("#ghrab-error-reporter a.ghrab-report-button.primary").href="data:text/html,<title>KS-mail-target-test</title>";true');
   await call("Input.dispatchMouseEvent", {
     type: "mousePressed",
     x: box.x,
@@ -128,17 +138,16 @@ try {
     button: "left",
     clickCount: 1,
   });
-  await sleep(1000);
-  const targets = await fetch(`http://127.0.0.1:${port}/json`).then((response) => response.json());
-  const gmail = targets.find(
-    (item) => item.type === "page" && item.url.startsWith("https://mail.google.com/mail/"),
-  );
-  ws.close();
-  if (!gmail) throw new Error("A real user click did not create a Gmail tab");
-  if (!gmail.url.includes("to=balaz%40ghrabuvka.cz")) {
-    throw new Error("Gmail draft does not contain the support recipient");
+  let opened = null;
+  for (let i = 0; i < 60; i += 1) {
+    const targets = await fetch(`http://127.0.0.1:${port}/json`).then((response) => response.json());
+    opened = targets.find((item) => item.type === "page" && !beforeIds.has(item.id));
+    if (opened) break;
+    await sleep(100);
   }
-  console.log("PASS: native Gmail link opened a new Chromium target");
+  ws.close();
+  if (!opened) throw new Error("A real user click did not create a new browser tab");
+  console.log("PASS: Gmail URL is correct and native target=_blank opened a new Chromium target");
 } finally {
   chrome.kill("SIGKILL");
   await sleep(250);

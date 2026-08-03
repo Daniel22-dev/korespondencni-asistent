@@ -1075,7 +1075,7 @@ body.workspace-open #appProgress{display:none!important}
 .case-unresolved td{background:color-mix(in srgb,var(--warning,#d97706) 7%,transparent)}
 .case-warning{display:block;margin-top:4px;color:var(--warning,#b45309);font-weight:750;font-size:11px}
 
-/* ===================== HLÁŠENÍ CHYBY AI STUDIA · KS 5.9.10 ===================== */
+/* ===================== HLÁŠENÍ CHYBY AI STUDIA · KS 5.9.11 ===================== */
 /* Reportér se načítá z AI Studia až po stylu aplikace, proto jsou selektory
    záměrně přesnější. Barevnost vždy vychází z aktuálního režimu KS. */
 body:not(.dark) #ghrab-error-reporter.ghrab-error-reporter .ghrab-report-backdrop,

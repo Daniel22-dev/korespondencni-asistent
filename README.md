@@ -2,26 +2,24 @@
 
 Samostatná PWA aplikace ekosystému AI Studio Gymnázia Ostrava-Hrabůvka.
 
-- **Verze aplikace:** 5.9.10
+- **Verze aplikace:** 5.9.11
 - **GHRAB AI Core:** 1.0.0
 - **Doporučený repozitář:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
-- **Interaktivní manuál:** 1.3.7 (manuál 1.3.7)
+- **Interaktivní manuál:** 1.3.8 (manuál 1.3.8)
 
-## Co přináší verze 5.9.10
+## Co přináší verze 5.9.11
 
-Verze 5.9.10 opravuje záměnu mezi **opuštěním dialogu kvůli snímání** a skutečným **zavřením hlášení**.
+Verze 5.9.11 opravuje release stopku z GitHub Actions a současně zpřesňuje otevírání Gmailu.
 
-- zavírací křížek, spodní tlačítko **Zavřít**, kliknutí mimo dialog a klávesa Escape vždy otevřou volbu **Ponechat rozepsané** nebo **Smazat hlášení**;
-- volba **Smazat hlášení a zavřít** odstraní text, screenshoty, připravený ZIP i poslední stav a při novém otevření začne čistý report;
-- volba **Ponechat rozepsané a zavřít** koncept skutečně zachová;
-- během aktivního snímání se do aplikace přechází pouze výslovným tlačítkem **Přejít do aplikace** — zavření už se za tento přechod nevydává;
-- nový Chromium regresní test simuluje aktivní snímání, přidá skutečný testovací screenshot a ověří obě volby po zavření.
+- odkaz na Gmail je kompletně připravený ještě před kliknutím uživatele; click handler už během kliknutí nemění cílovou adresu;
+- změna popisu, postupu, screenshotů, aplikace nebo adresy správce průběžně aktualizuje předvyplněný Gmail odkaz;
+- prohlížečový test už nezávisí na živém načtení `mail.google.com`, které se v GitHub runneru může přesměrovat nebo skončit chybovou stránkou;
+- test nejprve ověří skutečnou Gmail adresu a příjemce, potom pro spolehlivou kontrolu nové karty použije lokální testovací cíl;
+- životní cyklus konceptu ze 5.9.10 zůstává beze změny.
 
-Zůstává také oprava 5.9.9: Gmail se otevírá nativním odkazem v nové kartě a ZIP se připraví na původní kartě.
-
-Technický popis změny je v `docs/WORKFLOW-UPDATE-5.9.10.md`.
+Technický popis změny je v `docs/WORKFLOW-UPDATE-5.9.11.md`.
 
 ## GHRAB AI Core
 
@@ -51,7 +49,7 @@ prohlížeč
 → Gemini API
 ```
 
-Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže nasazení verze 5.9.10 samo o sobě nezapíná školní server.
+Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže nasazení verze 5.9.11 samo o sobě nezapíná školní server.
 
 ### Budoucí migrační režim
 
