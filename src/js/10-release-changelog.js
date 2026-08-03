@@ -3,11 +3,13 @@ const IS_TEST_MODE=new URLSearchParams(window.location.search).get("test")==="1"
 "use strict";
 
 const RELEASE = {
-  version: "5.9.6",
+  version: "5.9.8",
   date: "2026-08-03",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.9.8: dokončení workflow hlášení chyby — při zavření rozepsaného reportu se zobrazí vlastní bezpečná volba smazat nebo ponechat koncept; smazání odstraní text, screenshoty, připravený ZIP i poslední stav. Tlačítko nově stahuje ZIP a otevírá předvyplněný Gmail v nové kartě s viditelnými záložními odkazy pro Gmail, poštovní aplikaci a kopírování údajů. Přímé sdílení se nabízí až po vytvoření ZIP a pouze na zařízeních s podporou sdílení souborů. Návod v AI Studiu byl sjednocen s plovoucím snímáním, mazáním konceptu a novým e-mailovým postupem.",
+    "5.9.7: drobná úprava hlášení chyby — plovoucí ovládání snímání obrazovky je nově ukotveno vpravo dole. Zachovává kompaktní rozměry, respektuje bezpečný okraj zařízení a na menších displejích zůstává celé dostupné bez roztažení přes šířku aplikace.",
     "5.9.6: stabilizace hlášení chyby v AI Studiu — reportér je pro KS načítán lokálně, aby se e-mail z vložené aplikace otevíral v horním okně AI Studia místo zablokovaného iframe. Příjemce je předvyplněn na balaz@ghrabuvka.cz, ZIP se stáhne jako dosud a po přípravě zůstává záložní tlačítko pro opětovné otevření e-mailu i zkopírování jeho údajů. Ovládací panel snímání je kompaktní, umístěný vpravo pod systémovou lištou Chromu a nepřekrývá její ovládání.",
     "5.9.5: adresát a hlášení chyb — přímý adresát se v těle odpovědi oslovuje ve 2. osobě, kolega při tykání pouze křestním jménem a formální české oslovení používá pane/paní s příjmením nebo titul. Lokální rekompozice opravuje i častou chybu typu ‚dám osobě A vědět‘ na ‚dám ti/Vám vědět‘. Centrální reportér AI Studia v KS přebírá světlý či tmavý režim aplikace a po povolení sdílení automaticky nabídne plovoucí panel pro pořízení až pěti snímků, návrat k hlášení a ukončení snímání bez ztráty rozpracovaného formuláře. Regresní sada má 143 interních testů.",
     "5.9.4: opravy testování anonymizace a workflow — návrhy jmen už nepřekračují konec řádku, hodnoty typu School name lze vybrat a skrýt jako celý dlouhý název instituce, školní režim netvrdí připojení bez ověření a serverless panel nabízí tři aktuální modelové volby s opravenými symboly. Body odpovědi jsou podrobnými, předvybranými volbami přímo v nastavení odpovědi a volitelná poznámka je dostupná hned nad ostatními parametry. Regresní sada má 139 interních testů.",

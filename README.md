@@ -2,26 +2,26 @@
 
 Samostatná PWA aplikace ekosystému AI Studio Gymnázia Ostrava-Hrabůvka.
 
-- **Verze aplikace:** 5.9.6
+- **Verze aplikace:** 5.9.8
 - **GHRAB AI Core:** 1.0.0
 - **Doporučený repozitář:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
 - **Interaktivní manuál:** 1.3.5 (manuál 1.3.5)
 
-## Co přináší verze 5.9.6
+## Co přináší verze 5.9.8
 
-Verze 5.9.6 stabilizuje celý závěr hlášení technické chyby při spuštění KS uvnitř AI Studia.
+Verze 5.9.8 dokončuje praktický tok hlášení technické chyby a sjednocuje jej s návodem AI Studia.
 
-- ZIP balíček se stáhne jako dosud, ale následný e-mail se otevírá v horním okně AI Studia, nikoli uvnitř vloženého rámce, kde jej Chrome blokoval;
-- adresát je předvyplněn na pracovní e-mail správce `balaz@ghrabuvka.cz`;
-- předmět a tělo e-mailu zůstávají automaticky vyplněné názvem aplikace, verzí, ID hlášení, popisem a diagnostikou;
-- po přípravě zůstává dostupné tlačítko pro opětovné otevření e-mailu a záložní kopírování všech e-mailových údajů;
-- panel pro pořízení až pěti snímků je kompaktní a ukotvený vpravo pod systémovým oznámením Chromu, takže se oba ovládací prvky nepřekrývají;
-- KS používá vlastní vydanou kopii reportéru odpovídající centrální verzi AI Studia; centrální reportér se pro tuto aplikaci vypne, aby nevznikaly dvě instance;
-- opravy adresování příjemce a českého oslovení z verze 5.9.5 zůstávají zachované.
+- při zavření rozepsaného hlášení se zobrazí vlastní dialog se třemi srozumitelnými volbami; **Smazat hlášení a zavřít** odstraní text, screenshoty, připravený ZIP i poslední stav, zatímco **Ponechat rozepsané a zavřít** zachová koncept;
+- tlačítko **Stáhnout ZIP a otevřít Gmail** otevře předvyplněný Gmail přímo v okamžiku kliknutí a současně připraví ZIP; tím se nová karta neztratí během asynchronního sestavování balíčku ani uvnitř iframe;
+- po přípravě zůstávají viditelné záložní akce **Otevřít Gmail**, **Otevřít poštovní aplikaci** a **Zkopírovat údaje e-mailu**;
+- volba **Sdílet ZIP přes nabídku zařízení** se zobrazí až po vytvoření souboru a jen na podporovaném mobilu či tabletu; otevře systémovou nabídku aplikací a sama e-mail neodesílá;
+- plovoucí panel snímání zůstává kompaktně vpravo dole a umožňuje pořídit až pět snímků, vrátit se k hlášení nebo snímání ukončit;
+- pracovní e-mail správce je předvyplněn jako `balaz@ghrabuvka.cz`;
+- krátký návod **Jak poslat správci srozumitelné hlášení bez focení monitoru** je aktualizován v AI Studiu a odpovídá tomuto workflow.
 
-Technický popis změny je v `docs/WORKFLOW-UPDATE-5.9.6.md`.
+Technický popis změny je v `docs/WORKFLOW-UPDATE-5.9.8.md`.
 
 ## GHRAB AI Core
 
@@ -51,7 +51,7 @@ prohlížeč
 → Gemini API
 ```
 
-Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže nasazení verze 5.9.6 samo o sobě nezapíná školní server.
+Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže nasazení verze 5.9.8 samo o sobě nezapíná školní server.
 
 ### Budoucí migrační režim
 

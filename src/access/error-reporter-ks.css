@@ -14,6 +14,10 @@
 }
 .ghrab-report-button {
   appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
   border: 1px solid rgba(111, 226, 255, 0.34);
   border-radius: 12px;
   padding: 10px 14px;
@@ -90,7 +94,8 @@
   font-weight: 1000;
 }
 .ghrab-report-backdrop,
-.ghrab-redaction-backdrop {
+.ghrab-redaction-backdrop,
+.ghrab-discard-backdrop {
   position: fixed;
   inset: 0;
   z-index: 2147483002;
@@ -101,7 +106,9 @@
   backdrop-filter: blur(9px);
 }
 .ghrab-report-backdrop[hidden],
-.ghrab-redaction-backdrop[hidden] {
+.ghrab-redaction-backdrop[hidden],
+.ghrab-discard-backdrop[hidden],
+.ghrab-capture-bar[hidden] {
   display: none;
 }
 .ghrab-report-panel {
@@ -293,6 +300,78 @@
 .ghrab-capture-hidden .ghrab-report-button.launcher {
   visibility: hidden !important;
 }
+.ghrab-discard-backdrop {
+  z-index: 2147483005;
+}
+.ghrab-discard-dialog {
+  width: min(560px, 100%);
+  display: grid;
+  gap: 14px;
+  padding: 22px;
+  border: 1px solid rgba(255, 190, 102, 0.35);
+  border-radius: 20px;
+  background: linear-gradient(155deg, #0b1b2a, #06111e);
+  color: #effaff;
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.68);
+}
+.ghrab-discard-dialog h3,
+.ghrab-discard-dialog p {
+  margin: 0;
+}
+.ghrab-discard-dialog p {
+  color: #bfd4df;
+  line-height: 1.5;
+}
+.ghrab-report-share-help {
+  margin-top: 10px;
+}
+.ghrab-mail-fallback-actions {
+  margin-top: 8px;
+}
+.ghrab-capture-bar {
+  position: fixed;
+  right: 18px;
+  bottom: max(18px, calc(env(safe-area-inset-bottom) + 18px));
+  z-index: 2147483004;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  width: min(360px, calc(100vw - 36px));
+  padding: 10px;
+  border: 1px solid rgba(111, 226, 255, 0.34);
+  border-radius: 18px;
+  background: rgba(5, 19, 32, 0.96);
+  color: #eefaff;
+  box-shadow: 0 18px 56px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(14px);
+}
+.ghrab-capture-bar-state {
+  grid-column: 1/-1;
+  display: grid;
+  gap: 2px;
+  padding: 0 8px;
+  text-align: center;
+}
+.ghrab-capture-bar-state strong {
+  font-size: 12px;
+}
+.ghrab-capture-bar-state small {
+  color: #aac4d2;
+  font-size: 11px;
+}
+.ghrab-capture-bar .ghrab-report-button {
+  width: 100%;
+  padding: 9px 8px;
+}
+.ghrab-capture-bar .ghrab-report-button:last-child {
+  grid-column: 1/-1;
+}
+.ghrab-capture-mode .ghrab-report-button.launcher {
+  display: none !important;
+}
+.ghrab-capture-hidden .ghrab-capture-bar {
+  visibility: hidden !important;
+}
 .ghrab-redaction-panel {
   width: min(1100px, 100%);
   max-height: calc(100vh - 28px);
@@ -338,7 +417,14 @@
   .ghrab-report-button.launcher {
     padding: 9px;
   }
-  .ghrab-report-backdrop {
+  .ghrab-report-backdrop,
+  .ghrab-discard-backdrop {
+    padding: 8px;
+  }
+  .ghrab-capture-bar {
+    right: 8px;
+    bottom: max(8px, calc(env(safe-area-inset-bottom) + 8px));
+    width: min(340px, calc(100vw - 16px));
     padding: 8px;
   }
   .ghrab-report-panel {

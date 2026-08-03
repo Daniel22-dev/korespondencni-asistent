@@ -1075,7 +1075,7 @@ body.workspace-open #appProgress{display:none!important}
 .case-unresolved td{background:color-mix(in srgb,var(--warning,#d97706) 7%,transparent)}
 .case-warning{display:block;margin-top:4px;color:var(--warning,#b45309);font-weight:750;font-size:11px}
 
-/* ===================== HLÁŠENÍ CHYBY AI STUDIA · KS 5.9.6 ===================== */
+/* ===================== HLÁŠENÍ CHYBY AI STUDIA · KS 5.9.8 ===================== */
 /* Reportér se načítá z AI Studia až po stylu aplikace, proto jsou selektory
    záměrně přesnější. Barevnost vždy vychází z aktuálního režimu KS. */
 body:not(.dark) #ghrab-error-reporter.ghrab-error-reporter .ghrab-report-backdrop,
@@ -1159,7 +1159,7 @@ body.dark #ghrab-error-reporter.ghrab-error-reporter .ghrab-report-button.launch
   background:var(--desk);color:var(--ink)
 }
 #ghrab-error-reporter.ghrab-error-reporter .ghrab-ks-capture-bar{
-  position:fixed;top:max(96px,calc(env(safe-area-inset-top) + 16px));right:18px;left:auto;bottom:auto;transform:none;
+  position:fixed;top:auto;right:18px;left:auto;bottom:max(18px,calc(env(safe-area-inset-bottom) + 18px));transform:none;
   z-index:2147483004;display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:8px;width:min(360px,calc(100vw - 36px));
   padding:10px;border:1px solid var(--outside-edge);border-radius:16px;background:var(--paper);color:var(--ink);
   box-shadow:0 18px 56px rgba(0,0,0,.28);font-family:var(--sans)
@@ -1174,5 +1174,5 @@ body.dark #ghrab-error-reporter.ghrab-error-reporter .ghrab-report-button.launch
 #ghrab-error-reporter.ghrab-error-reporter .ghrab-ks-capture-bar [data-ks-capture-stop]{grid-column:1/-1}
 #ghrab-error-reporter.ghrab-error-reporter .ghrab-mail-fallback-actions{margin-top:8px}
 @media(max-width:720px){
-  #ghrab-error-reporter.ghrab-error-reporter .ghrab-ks-capture-bar{top:max(72px,calc(env(safe-area-inset-top) + 8px));right:8px;left:8px;bottom:auto;width:auto;transform:none;padding:8px}
+  #ghrab-error-reporter.ghrab-error-reporter .ghrab-ks-capture-bar{top:auto;right:8px;left:auto;bottom:max(8px,calc(env(safe-area-inset-bottom) + 8px));width:min(340px,calc(100vw - 16px));transform:none;padding:8px}
 }
