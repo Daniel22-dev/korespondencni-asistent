@@ -2,27 +2,26 @@
 
 Samostatná PWA aplikace ekosystému AI Studio Gymnázia Ostrava-Hrabůvka.
 
-- **Verze aplikace:** 5.9.5
+- **Verze aplikace:** 5.9.6
 - **GHRAB AI Core:** 1.0.0
 - **Doporučený repozitář:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
-- **Interaktivní manuál:** 1.3.4 (manuál 1.3.4)
+- **Interaktivní manuál:** 1.3.5 (manuál 1.3.5)
 
-## Co přináší verze 5.9.5
+## Co přináší verze 5.9.6
 
-Verze 5.9.5 opravuje adresování příjemce a umožňuje skutečně použitelně pořizovat snímky při hlášení chyby.
+Verze 5.9.6 stabilizuje celý závěr hlášení technické chyby při spuštění KS uvnitř AI Studia.
 
-- osoba, které se odpovídá, je v těle e-mailu vždy přímý adresát ve 2. osobě; běžná chyba „dám Pavle Tlolkové vědět“ se mění na „dám ti vědět“;
-- při tykání kolegovi se používá pouze křestní jméno, například `Ahoj Pavlo,`, nikoli celé jméno;
-- formální české oslovení používá `Vážený pane Baláži`, `Vážená paní Navrátilová`, vhodný titul nebo neutrální `Dobrý den`;
-- lokální vrácení anonymizovaných jmen už v oslovení nepřipojuje příjmení ke křestnímu jménu;
-- dialog **Nahlásit chybu** přebírá aktuální světlý nebo tmavý režim KS a má čitelný kontrast;
-- po povolení sdílení se dialog automaticky skryje a zůstane plovoucí panel pro pořízení snímku, návrat k hlášení a ukončení snímání;
-- lze pořídit až pět snímků a rozpracovaný popis ani již přiložené snímky se při návratu neztratí;
-- regresní sada byla rozšířena na **143 aplikačních testů** a nadále spouští **17 společných Core conformance testů**.
+- ZIP balíček se stáhne jako dosud, ale následný e-mail se otevírá v horním okně AI Studia, nikoli uvnitř vloženého rámce, kde jej Chrome blokoval;
+- adresát je předvyplněn na pracovní e-mail správce `balaz@ghrabuvka.cz`;
+- předmět a tělo e-mailu zůstávají automaticky vyplněné názvem aplikace, verzí, ID hlášení, popisem a diagnostikou;
+- po přípravě zůstává dostupné tlačítko pro opětovné otevření e-mailu a záložní kopírování všech e-mailových údajů;
+- panel pro pořízení až pěti snímků je kompaktní a ukotvený vpravo pod systémovým oznámením Chromu, takže se oba ovládací prvky nepřekrývají;
+- KS používá vlastní vydanou kopii reportéru odpovídající centrální verzi AI Studia; centrální reportér se pro tuto aplikaci vypne, aby nevznikaly dvě instance;
+- opravy adresování příjemce a českého oslovení z verze 5.9.5 zůstávají zachované.
 
-Technický popis změny je v `docs/WORKFLOW-UPDATE-5.9.5.md`.
+Technický popis změny je v `docs/WORKFLOW-UPDATE-5.9.6.md`.
 
 ## GHRAB AI Core
 
@@ -52,7 +51,7 @@ prohlížeč
 → Gemini API
 ```
 
-Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže nasazení verze 5.9.5 samo o sobě nezapíná školní server.
+Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže nasazení verze 5.9.6 samo o sobě nezapíná školní server.
 
 ### Budoucí migrační režim
 

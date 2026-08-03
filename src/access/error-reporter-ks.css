@@ -1,0 +1,370 @@
+.ghrab-error-reporter {
+  position: relative;
+  z-index: 2147483000;
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+.ghrab-error-reporter * {
+  box-sizing: border-box;
+}
+.ghrab-report-button {
+  appearance: none;
+  border: 1px solid rgba(111, 226, 255, 0.34);
+  border-radius: 12px;
+  padding: 10px 14px;
+  background: rgba(8, 27, 45, 0.92);
+  color: #eefaff;
+  font: 800 13px/1.2 inherit;
+  cursor: pointer;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
+  transition: 0.2s;
+}
+.ghrab-report-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(111, 226, 255, 0.65);
+  background: rgba(14, 44, 70, 0.96);
+}
+.ghrab-report-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.ghrab-report-button.primary {
+  border-color: transparent;
+  background: linear-gradient(135deg, #55e5ff, #2e91da);
+  color: #02111f;
+}
+.ghrab-report-button.ghost {
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: none;
+}
+.ghrab-report-button.icon {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 24px;
+}
+.ghrab-report-button.small {
+  padding: 7px 9px;
+  font-size: 11px;
+  box-shadow: none;
+}
+.ghrab-report-button.danger {
+  border-color: rgba(255, 120, 130, 0.35);
+  color: #ffc2c7;
+}
+.ghrab-report-button.launcher {
+  position: fixed;
+  right: 18px;
+  bottom: max(18px, env(safe-area-inset-bottom));
+  z-index: 2147483001;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border-radius: 999px;
+  padding: 10px 15px 10px 10px;
+  background: linear-gradient(
+    135deg,
+    rgba(3, 15, 28, 0.96),
+    rgba(12, 44, 66, 0.96)
+  );
+  backdrop-filter: blur(14px);
+  box-shadow:
+    0 14px 42px rgba(0, 0, 0, 0.42),
+    0 0 30px rgba(70, 221, 255, 0.12);
+}
+.ghrab-report-button.launcher span {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ffb44d, #ff6d72);
+  color: #111;
+  font-size: 17px;
+  font-weight: 1000;
+}
+.ghrab-report-backdrop,
+.ghrab-redaction-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483002;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0, 5, 12, 0.78);
+  backdrop-filter: blur(9px);
+}
+.ghrab-report-backdrop[hidden],
+.ghrab-redaction-backdrop[hidden] {
+  display: none;
+}
+.ghrab-report-panel {
+  width: min(880px, 100%);
+  max-height: calc(100vh - 40px);
+  overflow: auto;
+  border: 1px solid rgba(104, 228, 255, 0.27);
+  border-radius: 24px;
+  background: linear-gradient(155deg, #071727 0%, #03101d 62%, #071a2b 100%);
+  color: #effaff;
+  box-shadow:
+    0 34px 110px rgba(0, 0, 0, 0.64),
+    inset 0 0 60px rgba(56, 211, 255, 0.035);
+  padding: 24px;
+}
+.ghrab-report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 16px;
+  border-bottom: 1px solid rgba(117, 225, 255, 0.16);
+  padding-bottom: 16px;
+}
+.ghrab-report-header h2 {
+  margin: 4px 0 0;
+  font-size: clamp(22px, 4vw, 32px);
+  letter-spacing: -0.03em;
+}
+.ghrab-report-eyebrow {
+  margin: 0;
+  color: #6de9ff;
+  font-size: 11px;
+  font-weight: 1000;
+  letter-spacing: 0.2em;
+}
+.ghrab-report-app-line {
+  margin: 14px 0;
+  color: #bfeffc;
+  font-weight: 800;
+}
+.ghrab-report-privacy {
+  display: grid;
+  gap: 4px;
+  margin: 12px 0 0;
+  padding: 13px 15px;
+  border-left: 4px solid #ffbd57;
+  border-radius: 0 12px 12px 0;
+  background: rgba(255, 181, 72, 0.09);
+  color: #fff3d8;
+  font-size: 13px;
+  line-height: 1.42;
+}
+.ghrab-report-section {
+  margin-top: 20px;
+  padding: 18px;
+  border: 1px solid rgba(116, 225, 255, 0.15);
+  border-radius: 17px;
+  background: rgba(255, 255, 255, 0.025);
+}
+.ghrab-report-section h3 {
+  margin: 0 0 8px;
+  font-size: 17px;
+}
+.ghrab-report-help,
+.ghrab-report-status {
+  margin: 6px 0 12px;
+  color: #aac4d2;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.ghrab-report-status[data-type="ok"] {
+  color: #8ef0c1;
+}
+.ghrab-report-status[data-type="warn"] {
+  color: #ffd18d;
+}
+.ghrab-report-status[data-type="error"] {
+  color: #ff9ea6;
+}
+.ghrab-report-actions {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.ghrab-report-actions label {
+  display: inline-flex;
+}
+.ghrab-report-field {
+  display: grid;
+  gap: 7px;
+  margin-top: 13px;
+  color: #d9edf7;
+  font-size: 13px;
+  font-weight: 800;
+}
+.ghrab-report-field textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 88px;
+  border: 1px solid rgba(107, 220, 255, 0.23);
+  border-radius: 12px;
+  background: #030d18;
+  color: #f1fbff;
+  padding: 12px;
+  font: 14px/1.5 inherit;
+  outline: none;
+}
+.ghrab-report-field textarea:focus {
+  border-color: #61ddf7;
+  box-shadow: 0 0 0 3px rgba(97, 221, 247, 0.1);
+}
+.ghrab-screenshot-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+.ghrab-screenshot-card {
+  overflow: hidden;
+  border: 1px solid rgba(113, 222, 255, 0.17);
+  border-radius: 13px;
+  background: rgba(1, 9, 16, 0.8);
+}
+.ghrab-screenshot-card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16/9;
+  object-fit: contain;
+  background: #01060a;
+}
+.ghrab-screenshot-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  padding: 9px;
+}
+.ghrab-screenshot-meta strong {
+  font-size: 12px;
+}
+.ghrab-screenshot-tools {
+  display: flex;
+  gap: 6px;
+}
+.ghrab-screenshot-empty {
+  grid-column: 1/-1;
+  margin: 0;
+  padding: 18px;
+  border: 1px dashed rgba(115, 222, 255, 0.18);
+  border-radius: 12px;
+  text-align: center;
+  color: #8eabb9;
+  font-size: 13px;
+}
+.ghrab-report-final {
+  display: grid;
+  gap: 5px;
+  margin-top: 13px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(80, 224, 167, 0.09);
+  border: 1px solid rgba(80, 224, 167, 0.22);
+  color: #d9ffef;
+  font-size: 13px;
+}
+.ghrab-report-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+.ghrab-report-guide {
+  color: #69e3fa;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+}
+.ghrab-capture-video {
+  position: fixed !important;
+  left: -9999px !important;
+  top: -9999px !important;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0 !important;
+}
+.ghrab-capture-hidden .ghrab-report-backdrop,
+.ghrab-capture-hidden .ghrab-report-button.launcher {
+  visibility: hidden !important;
+}
+.ghrab-redaction-panel {
+  width: min(1100px, 100%);
+  max-height: calc(100vh - 28px);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid rgba(114, 228, 255, 0.28);
+  border-radius: 20px;
+  background: #03101d;
+  color: #f2fbff;
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.7);
+}
+.ghrab-redaction-head {
+  font-size: 18px;
+  font-weight: 900;
+}
+.ghrab-redaction-canvas-wrap {
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: #000;
+  padding: 8px;
+}
+.ghrab-redaction-canvas-wrap canvas {
+  display: block;
+  max-width: 100%;
+  max-height: 68vh;
+  width: auto;
+  height: auto;
+  touch-action: none;
+  cursor: crosshair;
+}
+.ghrab-report-open {
+  overflow: hidden !important;
+}
+@media (max-width: 720px) {
+  .ghrab-report-button.launcher strong {
+    display: none;
+  }
+  .ghrab-report-button.launcher {
+    padding: 9px;
+  }
+  .ghrab-report-backdrop {
+    padding: 8px;
+  }
+  .ghrab-report-panel {
+    padding: 16px;
+    border-radius: 18px;
+    max-height: calc(100vh - 16px);
+  }
+  .ghrab-screenshot-list {
+    grid-template-columns: 1fr;
+  }
+  .ghrab-report-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .ghrab-report-actions {
+    align-items: stretch;
+  }
+  .ghrab-report-actions > .ghrab-report-button,
+  .ghrab-report-actions > label {
+    flex: 1 1 45%;
+    justify-content: center;
+    text-align: center;
+  }
+}
+@media print {
+  .ghrab-error-reporter {
+    display: none !important;
+  }
+}

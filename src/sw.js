@@ -1,4 +1,4 @@
-const APP_VERSION = "5.9.5";
+const APP_VERSION = "5.9.6";
 const CACHE_NAME = `korespondencni-asistent-${APP_VERSION}`;
 const CORE_ASSETS = [
   "./",
@@ -6,6 +6,8 @@ const CORE_ASSETS = [
   "./manifest.webmanifest",
   "./manual/",
   "./manual/index.html",
+  "./access/error-reporter-ks.js",
+  "./access/error-reporter-ks.css",
   "./icons/icon-32.png",
   "./icons/icon-48.png",
   "./icons/icon-72.png",

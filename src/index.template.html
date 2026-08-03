@@ -35,9 +35,21 @@ try {
   document.addEventListener('ghrab:app-access-granted', event => {
     grantedPermit = event.detail?.permit || null;
   }, { once: true });
-  const allowed = await protectApp(APP_ID, { studioUrl: '/AI-Studio-GHRAB/' });
+  const allowed = await protectApp(APP_ID, { studioUrl: '/AI-Studio-GHRAB/', errorReporter: false });
   if (allowed) {
     window.__GHRAB_STUDIO_ACCESS__ = Object.freeze({ appId: APP_ID, permit: grantedPermit });
+    try {
+      const { setupErrorReporter } = await import('./access/error-reporter-ks.js');
+      setupErrorReporter({
+        appId: APP_ID,
+        appName: 'Korespondenční asistent',
+        appVersion: '5.9.6',
+        studioUrl: '/AI-Studio-GHRAB/',
+        supportEmail: 'balaz@ghrabuvka.cz'
+      });
+    } catch (reporterError) {
+      console.error('KS error reporter bootstrap failed', reporterError);
+    }
     const sources = [...document.querySelectorAll('script[type="application/ghrab-protected"]')];
     for (const source of sources) {
       const executable = document.createElement('script');
