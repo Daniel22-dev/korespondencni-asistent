@@ -47,8 +47,8 @@
         <span class="api-status" id="keyStatus">Klíč není nastaven</span>
       </div>
       <div class="school-ai-status" id="schoolGatewayStatus" hidden>
-        <strong>✓ Připojeno ke školní AI službě</strong>
-        <span>API klíč je uložen pouze na školním serveru. Aplikace odesílá jen zkontrolovaný anonymizovaný obsah.</span>
+        <strong>Režim školní AI služby</strong>
+        <span>Generování zajišťuje školní server. Přístupové údaje k modelu nejsou uloženy v prohlížeči ani v této aplikaci. Odesílá se pouze zkontrolovaný anonymizovaný obsah.</span>
       </div>
       <div id="directGeminiSettings">
       <input id="keyInput" type="password" placeholder="Gemini API klíč (AIza…)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" title="Klíč se posílá jen Googlu. Nikdy ho nevkládej do HTML na GitHubu.">
@@ -69,10 +69,12 @@
         <label for="modelInput" title="Měň jen když generování přestane fungovat s chybou o modelu.">Model</label>
         <input id="modelInput" type="text" placeholder="gemini-3.6-flash" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
         <div class="model-quick">
-          <button class="qm" id="qmStrong" title="Silnější model — lepší čeština a úsudek. Doporučeno.">⚡ Doporučený<span class="sub">gemini-3.6-flash</span></button>
-          <button class="qm" id="qmLite" title="Rychlejší a šetrnější k limitu. Pro jednoduché úkoly.">🪶 Úsporný<span class="sub">gemini-3.5-flash-lite</span></button>
+          <button class="qm" id="qmLite" title="Nejnižší spotřeba. Pro jednoduché jazykové úkoly.">◇ Úsporný<span class="sub">gemini-3.5-flash-lite</span></button>
+          <button class="qm" id="qmStrong" title="Vyvážená rychlost a kvalita. Výchozí volba.">⚡ Doporučený<span class="sub">gemini-3.6-flash</span></button>
+          <button class="qm" id="qmQuality" title="Důkladnější model pro náročnější rozbor a formulace.">★ Důkladný<span class="sub">gemini-3.5-flash</span></button>
         </div>
-        <p class="hint">Oba přednastavené modely fungují v bezplatné úrovni API. Při vyčerpání kvóty se jednou automaticky zkusí úsporný model. Model Pro zde záměrně není, protože vyžaduje placenou úroveň API. <strong>Podmínky práce s daty se liší podle regionu a fakturace.</strong> U neplacených služeb mimo EHP, Švýcarsko a Spojené království může Google odeslaný obsah a odpovědi použít ke zlepšování produktů a mohou je kontrolovat lidští hodnotitelé. V EHP, Švýcarsku a Spojeném království se podle aktuálních podmínek na data vztahují pravidla placených služeb i u neplacené kvóty; aplikace zpřístupněná uživatelům v těchto regionech má používat projekt s aktivní fakturací. Vždy posílej jen ručně zkontrolovaný anonymizovaný náhled.</p>
+        <p class="hint"><strong>Serverless režim:</strong> používá tvůj Gemini API klíč přímo v prohlížeči. Při nedostupnosti zvoleného modelu se jednou zkusí úsporný model.</p>
+        <details class="model-terms"><summary>Fakturace a práce s daty</summary><p class="hint">Pro aplikaci zpřístupněnou uživatelům v ČR/EHP používej projekt s aktivní fakturací, i když může být část provozu pokryta bezplatnou kvótou. Do AI vždy posílej pouze ručně zkontrolovaný anonymizovaný náhled.</p></details>
       </div>
       </div>
 

@@ -2,28 +2,27 @@
 
 Samostatná PWA aplikace ekosystému AI Studio Gymnázia Ostrava-Hrabůvka.
 
-- **Verze aplikace:** 5.9.3
+- **Verze aplikace:** 5.9.5
 - **GHRAB AI Core:** 1.0.0
 - **Doporučený repozitář:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
-- **Interaktivní manuál:** 1.3.2 (manuál 1.3.2)
+- **Interaktivní manuál:** 1.3.4 (manuál 1.3.4)
 
-## Co přináší verze 5.9.3
+## Co přináší verze 5.9.5
 
-Verze 5.9.3 nahrazuje dílčí pravidla a oddělené výjimky jediným lokálním systémem pro české skloňování osobních jmen.
+Verze 5.9.5 opravuje adresování příjemce a umožňuje skutečně použitelně pořizovat snímky při hlášení chyby.
 
-- všechny cesty používají společný engine `src/js/35-czech-person-grammar.js`;
-- běžná česká jména a celé spojení jména s příjmením se skloňují v kontextu, například `Daniel Baláž → Danieli Baláži`;
-- stejný zdroj tvarů používá vrácení anonymizovaných osob, oslovení i následné úpravy návrhu;
-- známé problematické skupiny se neřeší tichým odhadem: cizí, rodově nejednoznačná nebo rodinně proměnlivá jména vyžádají kontrolu všech sedmi pádů;
-- nevyřešené skloňování je blokující stav a před potvrzením uživatelem nelze obsah odeslat do AI;
-- potvrzené tvary platí pro aktuální práci; do trvalého lokálního slovníku se uloží jen výslovnou akcí **Uložit jména**;
-- skutečná jména ani jejich pádové tvary se neposílají modelu — AI pracuje pouze se značkou osoby a požadovaným pádem;
-- zpětné rozpoznání pádového tvaru je konzervativní: při nejednoznačnosti zachová bezpečný stav místo vymyšleného nominativu;
-- regresní sada byla rozšířena na **135 aplikačních testů** a nadále spouští **17 společných Core conformance testů**.
+- osoba, které se odpovídá, je v těle e-mailu vždy přímý adresát ve 2. osobě; běžná chyba „dám Pavle Tlolkové vědět“ se mění na „dám ti vědět“;
+- při tykání kolegovi se používá pouze křestní jméno, například `Ahoj Pavlo,`, nikoli celé jméno;
+- formální české oslovení používá `Vážený pane Baláži`, `Vážená paní Navrátilová`, vhodný titul nebo neutrální `Dobrý den`;
+- lokální vrácení anonymizovaných jmen už v oslovení nepřipojuje příjmení ke křestnímu jménu;
+- dialog **Nahlásit chybu** přebírá aktuální světlý nebo tmavý režim KS a má čitelný kontrast;
+- po povolení sdílení se dialog automaticky skryje a zůstane plovoucí panel pro pořízení snímku, návrat k hlášení a ukončení snímání;
+- lze pořídit až pět snímků a rozpracovaný popis ani již přiložené snímky se při návratu neztratí;
+- regresní sada byla rozšířena na **143 aplikačních testů** a nadále spouští **17 společných Core conformance testů**.
 
-Technický popis změny je v `docs/WORKFLOW-UPDATE-5.9.3.md`.
+Technický popis změny je v `docs/WORKFLOW-UPDATE-5.9.5.md`.
 
 ## GHRAB AI Core
 
@@ -53,7 +52,7 @@ prohlížeč
 → Gemini API
 ```
 
-Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže nasazení verze 5.9.3 samo o sobě nezapíná školní server.
+Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže nasazení verze 5.9.5 samo o sobě nezapíná školní server.
 
 ### Budoucí migrační režim
 

@@ -1,6 +1,6 @@
 /* ===================== KLÍČ + MODEL ===================== */
 const KEY_SK="rozbor_gemini_key", KEY_SESSION_SK="rozbor_gemini_key_session", MODEL_SK="rozbor_gemini_model";
-const MODEL_DEFAULT="gemini-3.6-flash", FALLBACK_MODELS=["gemini-3.5-flash-lite"];
+const MODEL_DEFAULT="gemini-3.6-flash", QUALITY_MODEL="gemini-3.5-flash", FALLBACK_MODELS=["gemini-3.5-flash-lite"];
 let geminiApiKey="", geminiKeyScope="", geminiModel=MODEL_DEFAULT;
 let TEST_RUN_ACTIVE=false;
 window.__setTestRunActive=v=>{ TEST_RUN_ACTIVE=!!v; };
@@ -39,8 +39,8 @@ function updateKeyStatus(){
   const el=$("keyStatus"),badge=$("keyBadge"); if(!el)return;
   el.className="api-status";
   if(currentAiMode()==="school-gateway"){
-    el.textContent="✓ Školní AI služba";el.classList.add("ok");
-    if(badge){badge.className="key-badge ok";badge.textContent="školní server";}
+    el.textContent="Školní režim aktivní";el.classList.add("ok");
+    if(badge){badge.className="key-badge ok";badge.textContent="školní režim";}
     return;
   }
   let bCls="none",bTxt="klíč: nezadán";
@@ -72,18 +72,19 @@ function setBusy(btn, label){
   return ()=>{ btn.classList.remove("is-busy"); btn.disabled=false; btn.removeAttribute("aria-busy"); if(btn.dataset.prevHtml!=null) btn.innerHTML=btn.dataset.prevHtml; delete btn.dataset.busy; delete btn.dataset.prevHtml; };
 }
 
-function migrateStoredModel(n){const v=String(n||"").trim().toLowerCase();if(v==="gemini-2.5-flash"||v==="gemini-3.5-flash")return MODEL_DEFAULT;if(v==="gemini-2.5-flash-lite"||v==="gemini-3.1-flash-lite")return FALLBACK_MODELS[0];return v;}
+function migrateStoredModel(n){const v=String(n||"").trim().toLowerCase();if(v==="gemini-2.5-flash")return MODEL_DEFAULT;if(v==="gemini-2.5-flash-lite"||v==="gemini-3.1-flash-lite")return FALLBACK_MODELS[0];return v;}
 function isValidModel(n){ return /^gemini[-a-z0-9.]+$/i.test(String(n||"").trim()); }
 function setModel(n){ const v=String(n||"").trim().toLowerCase(); geminiModel=isValidModel(v)?v:MODEL_DEFAULT; $("modelInput").value=geminiModel; try{localStorage.setItem(MODEL_SK,geminiModel);}catch(_){} updateModelUI(); }
 function loadModel(){ let s=""; try{s=localStorage.getItem(MODEL_SK)||"";}catch(_){} s=migrateStoredModel(s); geminiModel=isValidModel(s)?s:MODEL_DEFAULT; $("modelInput").value=geminiModel; updateModelUI(); }
 function updateModelUI(){
-  $("qmStrong").classList.toggle("active",geminiModel===MODEL_DEFAULT); $("qmLite").classList.toggle("active",geminiModel===FALLBACK_MODELS[0]);
+  $("qmStrong").classList.toggle("active",geminiModel===MODEL_DEFAULT); $("qmQuality").classList.toggle("active",geminiModel===QUALITY_MODEL); $("qmLite").classList.toggle("active",geminiModel===FALLBACK_MODELS[0]);
   const ph=$("modelInput"); if(ph) ph.placeholder=MODEL_DEFAULT;
   const s=$("qmStrong")&&$("qmStrong").querySelector(".sub"); if(s) s.textContent=MODEL_DEFAULT;
+  const q=$("qmQuality")&&$("qmQuality").querySelector(".sub"); if(q) q.textContent=QUALITY_MODEL;
   const l=$("qmLite")&&$("qmLite").querySelector(".sub"); if(l) l.textContent=FALLBACK_MODELS[0];
 }
 $("modelInput").addEventListener("change",(e)=>setModel(e.target.value));
-$("qmStrong").onclick=()=>setModel(MODEL_DEFAULT); $("qmLite").onclick=()=>setModel(FALLBACK_MODELS[0]);
+$("qmStrong").onclick=()=>setModel(MODEL_DEFAULT); $("qmQuality").onclick=()=>setModel(QUALITY_MODEL); $("qmLite").onclick=()=>setModel(FALLBACK_MODELS[0]);
 
 const GEMINI_TIMEOUT_MS=45000;
 const LAST_PROMPT_SK="rozbor_last_prompt_debug";

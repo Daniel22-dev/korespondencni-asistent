@@ -57,6 +57,7 @@
   .school-ai-status{display:grid;gap:4px;margin:2px 0 12px;padding:12px 14px;border:1px solid rgba(31,122,105,.25);border-radius:10px;background:rgba(31,122,105,.08);font:13px var(--sans);color:var(--ink-soft)}
   .school-ai-status strong{color:var(--calm);font-size:13px}
   .school-ai-status span{line-height:1.45}
+  .school-ai-status[hidden],#directGeminiSettings[hidden]{display:none!important}
 
   .api input[type=password], .api input[type=text]{ width:100%; font:13px var(--mono); padding:9px 11px; border:1px solid var(--line); border-radius:8px; background:var(--paper); color:var(--ink); }
   .key-actions{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
@@ -71,6 +72,21 @@
   .qm{ flex:1; min-width:130px; text-align:left; font:600 12.5px var(--sans); padding:9px 12px; border:1px solid var(--line); border-radius:9px; background:var(--paper); color:var(--ink); cursor:pointer; }
   .qm .sub{ display:block; font:400 11px var(--mono); color:var(--ink-soft); margin-top:2px; }
   .qm.active{ border-color:var(--accent); background:var(--token-bg); color:var(--accent-text); }
+  .model-terms{margin-top:8px}
+  .model-terms summary{font-weight:700}
+  .reply-scope{margin:14px 0 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);overflow:hidden}
+  .reply-scope>summary{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 14px;cursor:pointer;list-style:none}
+  .reply-scope>summary::-webkit-details-marker{display:none}
+  .reply-scope>summary span:first-child{display:grid;gap:2px}
+  .reply-scope>summary small{font-size:12px;font-weight:400;color:var(--ink-soft)}
+  .reply-scope-count{font:700 12px var(--mono);color:var(--accent-text);background:var(--token-bg);padding:4px 8px;border-radius:999px;white-space:nowrap}
+  .reply-scope[open]>summary{border-bottom:1px solid var(--line)}
+  #in_asks{padding:2px 14px}
+  .reply-scope-item{display:flex;gap:9px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px;cursor:pointer}
+  .reply-scope-item:last-child{border-bottom:0}
+  .reply-scope-item input{margin-top:4px;flex:0 0 auto}
+  .reply-scope>.hintline{margin:0;padding:9px 14px 12px;border-top:1px solid var(--line)}
+  .optional-label{font-size:11px;font-weight:500;color:var(--ink-soft)}
   .quota{ margin-top:12px; padding-top:12px; border-top:1px solid var(--line); font:600 12px var(--sans); color:var(--ink-soft); }
   .quota b{ color:var(--ink); }
 
@@ -1058,3 +1074,105 @@ body.workspace-open #appProgress{display:none!important}
 
 .case-unresolved td{background:color-mix(in srgb,var(--warning,#d97706) 7%,transparent)}
 .case-warning{display:block;margin-top:4px;color:var(--warning,#b45309);font-weight:750;font-size:11px}
+
+/* ===================== HLÁŠENÍ CHYBY AI STUDIA · KS 5.9.5 ===================== */
+/* Reportér se načítá z AI Studia až po stylu aplikace, proto jsou selektory
+   záměrně přesnější. Barevnost vždy vychází z aktuálního režimu KS. */
+body:not(.dark) #ghrab-error-reporter.ghrab-error-reporter .ghrab-report-backdrop,
+body:not(.dark) #ghrab-error-reporter.ghrab-error-reporter .ghrab-redaction-backdrop{
+  background:rgba(28,38,46,.38);backdrop-filter:blur(8px)
+}
+body:not(.dark) #ghrab-error-reporter.ghrab-error-reporter .ghrab-report-panel,
+body:not(.dark) #ghrab-error-reporter.ghrab-error-reporter .ghrab-redaction-panel{
+  border-color:var(--outside-edge);background:var(--paper);color:var(--ink);
+  box-shadow:0 28px 86px rgba(28,38,46,.24)
+}
+body:not(.dark) #ghrab-error-reporter.ghrab-error-reporter .ghrab-report-header{
+  border-bottom-color:var(--line)
+}
+body:not(.dark) #ghrab-error-reporter.ghrab-error-reporter .ghrab-report-eyebrow,
+body:not(.dark) #ghrab-error-reporter.ghrab-error-reporter .ghrab-report-guide{
+  color:var(--accent-text)
+}
+body:not(.dark) #ghrab-error-reporter.ghrab-error-reporter .ghrab-report-app-line,
+body:not(.dark) #ghrab-error-reporter.ghrab-error-reporter .ghrab-report-field{
+  color:var(--ink)
+}
+body:not(.dark) #ghrab-error-reporter.ghrab-error-reporter .ghrab-report-help,
+body:not(.dark) #ghrab-error-reporter.ghrab-error-reporter .ghrab-report-status{
+  color:var(--ink-soft)
+}
+body:not(.dark) #ghrab-error-reporter.ghrab-error-reporter .ghrab-report-section{
+  border-color:var(--line);background:var(--desk)
+}
+body:not(.dark) #ghrab-error-reporter.ghrab-error-reporter .ghrab-report-privacy{
+  border-left-color:var(--tense);background:var(--warn-bg);color:var(--warn-ink)
+}
+body:not(.dark) #ghrab-error-reporter.ghrab-error-reporter .ghrab-report-field textarea{
+  border-color:var(--line);background:var(--paper);color:var(--ink)
+}
+body:not(.dark) #ghrab-error-reporter.ghrab-error-reporter .ghrab-report-field textarea:focus{
+  border-color:var(--accent);box-shadow:0 0 0 3px rgba(44,110,107,.13)
+}
+body:not(.dark) #ghrab-error-reporter.ghrab-error-reporter .ghrab-screenshot-card{
+  border-color:var(--line);background:var(--paper)
+}
+body:not(.dark) #ghrab-error-reporter.ghrab-error-reporter .ghrab-screenshot-card img{
+  background:var(--outside)
+}
+body:not(.dark) #ghrab-error-reporter.ghrab-error-reporter .ghrab-screenshot-empty{
+  border-color:var(--outside-edge);color:var(--ink-soft)
+}
+body:not(.dark) #ghrab-error-reporter.ghrab-error-reporter .ghrab-report-final{
+  border-color:rgba(52,122,93,.35);background:rgba(52,122,93,.10);color:var(--calm)
+}
+body:not(.dark) #ghrab-error-reporter.ghrab-error-reporter .ghrab-report-button{
+  border-color:var(--outside-edge);background:var(--paper);color:var(--ink);box-shadow:0 8px 22px rgba(28,38,46,.12)
+}
+body:not(.dark) #ghrab-error-reporter.ghrab-error-reporter .ghrab-report-button:hover:not(:disabled){
+  border-color:var(--accent);background:var(--token-bg)
+}
+body:not(.dark) #ghrab-error-reporter.ghrab-error-reporter .ghrab-report-button.primary{
+  border-color:var(--accent);background:var(--accent);color:#fff
+}
+body:not(.dark) #ghrab-error-reporter.ghrab-error-reporter .ghrab-report-button.danger{
+  color:var(--tense);border-color:rgba(176,88,40,.45)
+}
+body:not(.dark) #ghrab-error-reporter.ghrab-error-reporter .ghrab-report-button.launcher{
+  border-color:var(--outside-edge);background:var(--paper);color:var(--ink);
+  box-shadow:0 12px 34px rgba(28,38,46,.20)
+}
+body.dark #ghrab-error-reporter.ghrab-error-reporter .ghrab-report-panel,
+body.dark #ghrab-error-reporter.ghrab-error-reporter .ghrab-redaction-panel{
+  border-color:var(--outside-edge);background:var(--paper);color:var(--ink)
+}
+body.dark #ghrab-error-reporter.ghrab-error-reporter .ghrab-report-section{
+  border-color:var(--line);background:var(--desk)
+}
+body.dark #ghrab-error-reporter.ghrab-error-reporter .ghrab-report-field textarea{
+  border-color:var(--line);background:var(--page);color:var(--ink)
+}
+body.dark #ghrab-error-reporter.ghrab-error-reporter .ghrab-report-button:not(.primary){
+  border-color:var(--outside-edge);background:var(--desk);color:var(--ink)
+}
+body.dark #ghrab-error-reporter.ghrab-error-reporter .ghrab-report-button.launcher{
+  background:var(--desk);color:var(--ink)
+}
+#ghrab-error-reporter.ghrab-error-reporter .ghrab-ks-capture-bar{
+  position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);
+  z-index:2147483004;display:flex;align-items:center;gap:9px;max-width:calc(100vw - 24px);
+  padding:10px;border:1px solid var(--outside-edge);border-radius:16px;background:var(--paper);color:var(--ink);
+  box-shadow:0 18px 56px rgba(0,0,0,.28);font-family:var(--sans)
+}
+#ghrab-error-reporter.ghrab-error-reporter .ghrab-ks-capture-bar[hidden]{display:none!important}
+#ghrab-error-reporter.ghrab-error-reporter .ghrab-ks-capture-state{display:grid;gap:1px;padding:0 8px;white-space:nowrap}
+#ghrab-error-reporter.ghrab-error-reporter .ghrab-ks-capture-state strong{font-size:12px}
+#ghrab-error-reporter.ghrab-error-reporter .ghrab-ks-capture-state small{color:var(--ink-soft);font-size:11px}
+#ghrab-error-reporter.ghrab-error-reporter.ghrab-ks-capture-mode .ghrab-report-button.launcher{display:none!important}
+#ghrab-error-reporter.ghrab-error-reporter.ghrab-capture-hidden .ghrab-ks-capture-bar{visibility:hidden!important}
+@media(max-width:720px){
+  #ghrab-error-reporter.ghrab-error-reporter .ghrab-ks-capture-bar{right:8px;left:8px;bottom:max(8px,env(safe-area-inset-bottom));transform:none;display:grid;grid-template-columns:1fr 1fr;padding:8px}
+  #ghrab-error-reporter.ghrab-error-reporter .ghrab-ks-capture-state{grid-column:1/-1;text-align:center}
+  #ghrab-error-reporter.ghrab-error-reporter .ghrab-ks-capture-bar .ghrab-report-button{width:100%;padding:9px 8px}
+  #ghrab-error-reporter.ghrab-error-reporter .ghrab-ks-capture-bar [data-ks-capture-stop]{grid-column:1/-1}
+}

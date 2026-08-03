@@ -25,7 +25,7 @@ window.__GHRAB_RUNTIME_CONFIG__ = {
       profileModels: {
         economy: "gemini-3.5-flash-lite",
         balanced: "gemini-3.6-flash",
-        quality: "gemini-3.6-flash"
+        quality: "gemini-3.5-flash"
       },
       fallbackModels: ["gemini-3.5-flash-lite"],
       useResponseSchema: false,

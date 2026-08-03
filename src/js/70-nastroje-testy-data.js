@@ -183,6 +183,33 @@ async function runKorespTests(){
       assertTest(r.includes("Dobrý den, Danieli"),"jméno Daniel se nevrátilo ve vokativu: "+r);
       assertTest(!r.includes("(učitel)"),"zůstal nevyplněný zástupný podpis");
     });
+    await test("Kolega se osloví pouze křestním jménem", async()=>{
+      ST.in.km=[{real:"Pavla Tlolková",token:"osoba A",auto:false}];ST.in.replyAddressingMode="tykani";
+      const r=recompose("in","Ahoj osoba A,\n\nkdybych se nemohl zúčastnit, dám osobě A včas vědět.\n\n[podpis]");
+      assertTest(r.includes("Ahoj Pavlo,")&&!r.includes("Ahoj Pavlo Tlolková"),"neformální oslovení stále obsahuje příjmení: "+r);
+      assertTest(r.includes("dám ti včas vědět")&&!r.includes("dám Pavle Tlolkové"),"adresát zůstal v těle třetí osobou: "+r);
+    });
+    await test("Formální oslovení používá pane nebo paní a příjmení", async()=>{
+      ST.in.km=[{real:"Pavla Tlolková",token:"osoba A",auto:false},{real:"Daniel Baláž",token:"osoba B",auto:false}];
+      const r=recompose("in","Vážená paní osoba A,\nVážený pane osoba B,\n[podpis]");
+      assertTest(r.includes("Vážená paní Tlolková,")&&!r.includes("paní Pavlo Tlolková"),"ženské formální oslovení je chybné: "+r);
+      assertTest(r.includes("Vážený pane Baláži,")&&!r.includes("pane Danieli Baláži"),"mužské formální oslovení je chybné: "+r);
+    });
+    await test("Prompt chápe adresáta jako druhou osobu", async()=>{
+      const informal=recipientAddressingPrompt("kolega","tykani"),formal=recipientAddressingPrompt("jiny","vykani");
+      assertTest(informal.includes("2. osobě")&&informal.includes("pouze křestní jméno")&&informal.includes("dám ti vědět"),"pravidlo pro kolegu není úplné: "+informal);
+      assertTest(formal.includes("Vážený pane + příjmení")&&formal.includes("Vážený pane Danieli Baláži"),"formální pravidlo není úplné: "+formal);
+    });
+    await test("Hlášení chyby dostane plovoucí ovládání snímků", async()=>{
+      const root=document.createElement("div");root.id="ghrab-error-reporter";root.className="ghrab-error-reporter";
+      root.innerHTML='<button class="ghrab-report-button launcher">Nahlásit chybu</button><div class="ghrab-report-backdrop" hidden><section class="ghrab-report-panel"><header class="ghrab-report-header"><button class="ghrab-report-button icon">×</button></header><section class="ghrab-report-section"><div class="ghrab-report-actions"><button>Povolit snímání obrazovky</button><button disabled>Pořídit snímek</button><button disabled>Ukončit snímání</button></div><div class="ghrab-screenshot-list"><p class="ghrab-screenshot-empty">Bez snímku</p></div></section><footer class="ghrab-report-footer"><button>Zavřít</button></footer></section></div>';
+      document.body.append(root);
+      try{
+        assertTest(enhanceGhrabErrorReporter(root),"reportér se nepodařilo rozšířit");
+        assertTest(!!root.querySelector(".ghrab-ks-capture-bar")&&!!root.querySelector(".ghrab-ks-leave-report"),"chybí plovoucí panel nebo přechod do aplikace");
+        assertTest(root.querySelector("[data-ks-shot-count]").textContent.includes("0 / 5"),"panel neukazuje limit pěti snímků");
+      }finally{root.remove();}
+    });
     await test("Systémová matice českého 5. pádu", async()=>{
       const rows=[["Daniel","Danieli"],["Viktor","Viktore"],["Igor","Igore"],["Alois","Aloisi"],["Klaus","Klausi"],["Asterix","Asterixi"],["Petr","Petře"],["Marek","Marku"]];
       rows.forEach(([name,expected])=>{const forms=generatedPersonForms(name);assertTest(forms[5]===expected&&!forms.requiresReview,name+" má chybný nebo nejistý vokativ: "+JSON.stringify(forms));});
@@ -687,6 +714,19 @@ async function runKorespTests(){
       assertTest(clickedNamePhrase(parsed.words,0)==="Jan Novák","kliknutí na křestní jméno nespojilo celé jméno");
       assertTest(clickedNamePhrase(parsed.words,1)==="Jan Novák","kliknutí na příjmení nespojilo celé jméno");
     });
+    await test("Jméno se nespojí s nadpisem na dalším řádku", async()=>{
+      ST.in.raw="Pavla Tlolková\nDůležité informace:"; ST.in.km=[]; ST.in.reviewedSuggestions={}; clearAnalysisCache();
+      const phrases=suggestionData("in").suggestions.map(x=>x.phrase);
+      assertTest(phrases.includes("Pavla Tlolková"),"celé jméno se přestalo nabízet: "+phrases.join(" | "));
+      assertTest(!phrases.some(x=>/Tlolková Důležité/.test(x)),"návrh překročil konec řádku: "+phrases.join(" | "));
+    });
+    await test("Název školy za štítkem se vybírá celý", async()=>{
+      ST.in.raw="School ID: 6H1M5HU4\nSchool name: Gymnázium, Ostrava-Hrabůvka, p.o."; ST.in.km=[]; ST.in.reviewedSuggestions={}; clearAnalysisCache();
+      const item=suggestionData("in").suggestions.find(x=>x.phrase==="Gymnázium, Ostrava-Hrabůvka, p.o.");
+      assertTest(item&&item.kind==="institution","celý název školy není jeden návrh: "+suggestionData("in").suggestions.map(x=>x.phrase).join(" | "));
+      addPhraseAs("in",item.phrase,"institution");
+      assertTest(ST.in.clean.includes("School name: [instituce 1]")&&!ST.in.clean.includes("Ostrava-Hrabůvka"),"celý název školy nebyl skryt: "+ST.in.clean);
+    });
     await test("Podpis Petr H. se skryje jako jedna osoba bez slova Mává", async()=>{
       const parsed=wordObjs("Mává Petr H.");
       assertTest(clickedNamePhrase(parsed.words,1)==="Petr H","kliknutí na Petr nespojilo iniciálu: "+clickedNamePhrase(parsed.words,1));
@@ -1003,6 +1043,22 @@ async function runKorespTests(){
       assertTest(!E("my","reviewOk").checked,"potvrzení náhledu nebylo zrušeno");
       assertTest($("my_results").textContent.trim()==="","starý výsledek nebyl odstraněn");
       assertTest(E("my","step2").hidden===true,"stará anonymizační část zůstala otevřená");
+    });
+    await test("Připojení a modely mají správné režimy", async()=>{
+      assertTest(!!$("qmLite")&&!!$("qmStrong")&&!!$("qmQuality"),"serverless režim nemá tři modelové volby");
+      assertTest($("qmLite").textContent.includes("◇")&&!$("qmLite").textContent.includes("🪶"),"úsporný model má rozbitý symbol");
+      const css=[...document.querySelectorAll("style")].map(x=>x.textContent).join("\n");
+      assertTest(css.includes('.school-ai-status[hidden],#directGeminiSettings[hidden]'),"hidden atribut režimů může být přebit CSS");
+      assertTest($("schoolGatewayStatus").textContent.includes("Režim školní AI služby")&&!$("schoolGatewayStatus").textContent.includes("Připojeno"),"školní režim nepravdivě tvrdí aktivní připojení");
+    });
+    await test("Rozsah odpovědi je předvybraný a poznámka je nahoře", async()=>{
+      ST.in.pozadavky=["Potvrdit termín","Zkontrolovat zařízení"];
+      renderAnalysis({shrnuti:"Test",naladeni:{stupen:"neutral",popis:""},pozadavky:ST.in.pozadavky,upozorneni:[],doporucenyZamer:"potvrdit"});
+      const scope=$("in_scopeDetails"),note=$("in_note"),recipient=document.querySelector('.chips[data-group="in_adresat"]');
+      assertTest(scope&&scope.open&&scope.textContent.includes("Nemusíš nic měnit"),"rozsah odpovědi není volitelně a srozumitelně předvybraný");
+      assertTest([...scope.querySelectorAll('input[data-ask]')].every(x=>x.checked),"některý bod není výchozí zaškrtnutý");
+      assertTest(note&&note.closest(".note-field")&&!note.closest(".advanced-only"),"poznámka není dostupná v jednoduchém režimu");
+      assertTest(note.compareDocumentPosition(recipient)&Node.DOCUMENT_POSITION_FOLLOWING,"poznámka není před nastavením adresáta");
     });
     await test("Mobilní zobrazení a jednoduchý průvodce", async()=>{
       const css=[...document.querySelectorAll("style")].map(x=>x.textContent).join("\n");
