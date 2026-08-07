@@ -313,32 +313,32 @@ loadHistory();
   function render(){
     const p=loadProfile();
     overlay.innerHTML='<div class="modal-card" role="dialog" aria-modal="true" aria-label="Profil odesílatele">'+
-      '<div class="modal-head"><b>Profil odesílatele</b><button id="profClose" class="modal-close" title="Zavřít" aria-label="Zavřít">×</button></div>'+ 
-      '<p class="hint" style="margin:0 0 6px"><b>Jméno zůstává pouze v prohlížeči</b> a doplní se lokálně místo značky [podpis]. Pracovní kontext a způsob psaní se použijí jen při tvorbě textu. Konkrétní tón, délka a účel zprávy mají vždy přednost.</p>'+ 
-      '<section class="profile-modal-section"><p class="profile-modal-kicker">Identita a pracovní kontext</p>'+ 
-        '<label style="'+lbl+'">Jméno (a příjmení) · pouze pro místní podpis</label><input id="pf_name" type="text" style="'+inS+'" value="'+escAttr(p.name||"")+'" placeholder="Jan Novák">'+ 
-        '<label style="'+lbl+'">Role / funkce</label><input id="pf_role" type="text" style="'+inS+'" value="'+escAttr(p.role||"")+'" placeholder="středoškolský učitel">'+ 
-        '<label style="'+lbl+'">Gramatický rod pisatele</label><div class="chips" data-group="pf_gender" style="margin-top:6px">'+ 
-          '<button class="chip" data-v="male">Mužský</button><button class="chip" data-v="female">Ženský</button><button class="chip" data-v="neutral">Bezrodové formulace</button></div>'+ 
-        '<p class="hintline">Určuje tvary jako „předal/předala jsem“ nebo „rád/ráda bych“. U bezrodové volby se mají věty přeformulovat.</p>'+ 
-        '<label style="'+lbl+'">Vyučované předměty</label><input id="pf_subjects" type="text" style="'+inS+'" value="'+escAttr(p.subjects||"")+'" placeholder="angličtina a španělština">'+ 
-        '<label style="'+lbl+'">Škola / pracoviště</label><input id="pf_school" type="text" style="'+inS+'" value="'+escAttr(p.school||"")+'" placeholder="Gymnázium …">'+ 
-      '</section>'+ 
-      '<section class="profile-modal-section profile-writing-section"><p class="profile-modal-kicker">Můj způsob psaní</p>'+ 
-        '<p class="hintline">Dlouhodobý základ formulací. Není to tón konkrétního e-mailu: volba „vstřícný“, „věcný“ nebo „důraznější“ jej pro danou zprávu přebije.</p>'+ 
-        '<label style="'+lbl+'">Výchozí způsob formulace</label><div class="chips profile-style-chips" data-group="pf_wstyle" style="margin-top:6px">'+ 
-          '<button class="chip" data-v="civilni">Civilní profesionální</button><button class="chip" data-v="usporny">Úsporný a přímý</button><button class="chip" data-v="vysvetlujici">Vysvětlující a přehledný</button><button class="chip" data-v="formalni">Formální a přesný</button></div>'+ 
-        '<p class="writing-style-description" id="pf_wstyleDesc"></p>'+ 
-        '<label style="'+lbl+'">Obraty, kterým se vyhýbat · nepovinné</label><textarea id="pf_styleAvoid" maxlength="500" style="'+inS+';min-height:66px;font-family:var(--sans)" placeholder="touto cestou; dovolte mi, abych; věřím, že společně">'+esc(p.styleAvoid||"")+'</textarea>'+ 
-        '<label style="'+lbl+'">Další preference formulace · nepovinné</label><textarea id="pf_styleCustom" maxlength="500" style="'+inS+';min-height:76px;font-family:var(--sans)" placeholder="Začni rovnou věcí. Používej kratší odstavce. U žádostí napiš jasně, co potřebuji.">'+esc(p.styleCustom||"")+'</textarea>'+ 
-        '<p class="profile-style-privacy"><b>Bez citlivých údajů:</b> tyto dvě preference se při zapnutém osobním stylu přidají k zadání pro model. Neuváděj jména, třídy, diagnózy ani konkrétní případy.</p>'+ 
-      '</section>'+ 
-      '<section class="profile-modal-section"><p class="profile-modal-kicker">Podpis</p>'+ 
-        '<label style="'+lbl+'">Styl podpisu</label><div class="chips" data-group="pf_sign" style="margin-top:6px">'+ 
-          '<button class="chip" data-v="jmeno">Jen jméno</button><button class="chip" data-v="pozdrav">S pozdravem + jméno</button><button class="chip" data-v="funkce">Funkce + jméno</button><button class="chip" data-v="vlastni">Vlastní</button></div>'+ 
-        '<div id="pf_customWrap" style="display:none"><label style="'+lbl+'">Vlastní podpis</label><textarea id="pf_custom" style="'+inS+';min-height:70px;font-family:var(--sans)" placeholder="S pozdravem\nJan Novák\nučitel angličtiny">'+esc(p.custom||"")+'</textarea></div>'+ 
-      '</section>'+ 
-      '<div style="margin-top:16px;display:flex;gap:8px"><button class="btn" id="pf_save">Uložit profil</button><button class="btn ghost" id="pf_clear">Smazat profil</button></div>'+ 
+      '<div class="modal-head"><b>Profil odesílatele</b><button id="profClose" class="modal-close" title="Zavřít" aria-label="Zavřít">×</button></div>'+
+      '<p class="hint" style="margin:0 0 6px"><b>Jméno zůstává pouze v prohlížeči</b> a doplní se lokálně místo značky [podpis]. Pracovní kontext a způsob psaní se použijí jen při tvorbě textu. Konkrétní tón, délka a účel zprávy mají vždy přednost.</p>'+
+      '<section class="profile-modal-section"><p class="profile-modal-kicker">Identita a pracovní kontext</p>'+
+        '<label style="'+lbl+'">Jméno (a příjmení) · pouze pro místní podpis</label><input id="pf_name" type="text" style="'+inS+'" value="'+escAttr(p.name||"")+'" placeholder="Jan Novák">'+
+        '<label style="'+lbl+'">Role / funkce</label><input id="pf_role" type="text" style="'+inS+'" value="'+escAttr(p.role||"")+'" placeholder="středoškolský učitel">'+
+        '<label style="'+lbl+'">Gramatický rod pisatele</label><div class="chips" data-group="pf_gender" style="margin-top:6px">'+
+          '<button class="chip" data-v="male">Mužský</button><button class="chip" data-v="female">Ženský</button><button class="chip" data-v="neutral">Bezrodové formulace</button></div>'+
+        '<p class="hintline">Určuje tvary jako „předal/předala jsem“ nebo „rád/ráda bych“. U bezrodové volby se mají věty přeformulovat.</p>'+
+        '<label style="'+lbl+'">Vyučované předměty</label><input id="pf_subjects" type="text" style="'+inS+'" value="'+escAttr(p.subjects||"")+'" placeholder="angličtina a španělština">'+
+        '<label style="'+lbl+'">Škola / pracoviště</label><input id="pf_school" type="text" style="'+inS+'" value="'+escAttr(p.school||"")+'" placeholder="Gymnázium …">'+
+      '</section>'+
+      '<section class="profile-modal-section profile-writing-section"><p class="profile-modal-kicker">Můj způsob psaní</p>'+
+        '<p class="hintline">Dlouhodobý základ formulací. Není to tón konkrétního e-mailu: volba „vstřícný“, „věcný“ nebo „důraznější“ jej pro danou zprávu přebije.</p>'+
+        '<label style="'+lbl+'">Výchozí způsob formulace</label><div class="chips profile-style-chips" data-group="pf_wstyle" style="margin-top:6px">'+
+          '<button class="chip" data-v="civilni">Civilní profesionální</button><button class="chip" data-v="usporny">Úsporný a přímý</button><button class="chip" data-v="vysvetlujici">Vysvětlující a přehledný</button><button class="chip" data-v="formalni">Formální a přesný</button></div>'+
+        '<p class="writing-style-description" id="pf_wstyleDesc"></p>'+
+        '<label style="'+lbl+'">Obraty, kterým se vyhýbat · nepovinné</label><textarea id="pf_styleAvoid" maxlength="500" style="'+inS+';min-height:66px;font-family:var(--sans)" placeholder="touto cestou; dovolte mi, abych; věřím, že společně">'+esc(p.styleAvoid||"")+'</textarea>'+
+        '<label style="'+lbl+'">Další preference formulace · nepovinné</label><textarea id="pf_styleCustom" maxlength="500" style="'+inS+';min-height:76px;font-family:var(--sans)" placeholder="Začni rovnou věcí. Používej kratší odstavce. U žádostí napiš jasně, co potřebuji.">'+esc(p.styleCustom||"")+'</textarea>'+
+        '<p class="profile-style-privacy"><b>Bez citlivých údajů:</b> tyto dvě preference se při zapnutém osobním stylu přidají k zadání pro model. Neuváděj jména, třídy, diagnózy ani konkrétní případy.</p>'+
+      '</section>'+
+      '<section class="profile-modal-section"><p class="profile-modal-kicker">Podpis</p>'+
+        '<label style="'+lbl+'">Styl podpisu</label><div class="chips" data-group="pf_sign" style="margin-top:6px">'+
+          '<button class="chip" data-v="jmeno">Jen jméno</button><button class="chip" data-v="pozdrav">S pozdravem + jméno</button><button class="chip" data-v="funkce">Funkce + jméno</button><button class="chip" data-v="vlastni">Vlastní</button></div>'+
+        '<div id="pf_customWrap" style="display:none"><label style="'+lbl+'">Vlastní podpis</label><textarea id="pf_custom" style="'+inS+';min-height:70px;font-family:var(--sans)" placeholder="S pozdravem\nJan Novák\nučitel angličtiny">'+esc(p.custom||"")+'</textarea></div>'+
+      '</section>'+
+      '<div style="margin-top:16px;display:flex;gap:8px"><button class="btn" id="pf_save">Uložit profil</button><button class="btn ghost" id="pf_clear">Smazat profil</button></div>'+
       '</div>';
     wireChips(overlay);
     setChip("pf_sign",p.sign||"pozdrav");

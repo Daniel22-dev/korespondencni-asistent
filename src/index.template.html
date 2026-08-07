@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="cs" data-ghrab-access="checking">
+<html lang="cs" data-ghrab-access="checking" data-ghrab-app-id="correspondence" data-ghrab-app-version="5.9.19">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -38,29 +38,12 @@ try {
   const allowed = await protectApp(APP_ID, { studioUrl: '/AI-Studio-GHRAB/', errorReporter: false });
   if (allowed) {
     window.__GHRAB_STUDIO_ACCESS__ = Object.freeze({ appId: APP_ID, permit: grantedPermit });
-    try {
-      const { setupErrorReporter } = await import('./access/error-reporter-ks.js');
-      setupErrorReporter({
-        appId: APP_ID,
-        appName: 'Korespondenční asistent',
-        appVersion: '5.9.11',
-        studioUrl: '/AI-Studio-GHRAB/',
-        supportEmail: 'balaz@ghrabuvka.cz'
-      });
-    } catch (reporterError) {
-      console.error('KS error reporter bootstrap failed', reporterError);
-    }
-    const sources = [...document.querySelectorAll('script[type="application/ghrab-protected"]')];
-    for (const source of sources) {
-      const executable = document.createElement('script');
-      for (const attr of source.attributes) {
-        if (!['type','data-ghrab-protected','data-ghrab-original-type'].includes(attr.name)) executable.setAttribute(attr.name, attr.value);
-      }
-      const originalType = source.getAttribute('data-ghrab-original-type');
-      if (originalType) executable.type = originalType;
-      executable.textContent = source.textContent;
-      source.replaceWith(executable);
-    }
+    void import('./access/error-reporter-adapter.js').catch((reporterError) => {
+      console.warn('KS error reporter bootstrap failed; aplikace pokračuje bez diagnostického panelu.', reporterError);
+    });
+    const unlock = window.GHRAB_PLATFORM?.unlockProtectedScripts;
+    if (typeof unlock !== 'function') throw new Error('GHRAB platform unlock helper is unavailable.');
+    unlock();
   } else {
     showAccessBootstrapFailure('Přístup nebyl povolen', 'Tato aplikace nebyla pro tento účet nebo zařízení odemčena. Vraťte se do AI Studia a zkontrolujte oprávnění.');
   }

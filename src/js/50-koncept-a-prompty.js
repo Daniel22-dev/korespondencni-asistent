@@ -289,8 +289,8 @@ function renderWritingStyleControls(){
 }
 function writingStyleControlHtml(p){
   const profile=loadProfile(),configured=hasPersonalWritingStyle(profile);
-  return '<div class="plabel">Můj způsob psaní <button class="help-tip" type="button" aria-label="Nápověda k osobnímu způsobu psaní" data-tip="Dlouhodobá preference z profilu upravuje formulace. Konkrétní tón, délka, účel a bezpečnost této odpovědi mají vždy přednost.">i</button></div>'+ 
-    '<label class="writing-style-toggle" for="'+p+'_useWritingStyle"><input id="'+p+'_useWritingStyle" type="checkbox" '+(configured?'checked':'disabled')+'><span><strong id="'+p+'_writingStyleLabel">'+esc(configured?profileWritingStyleLabel(profile):"Nenastavený")+'</strong><small id="'+p+'_writingStyleHint">'+esc(configured?profileWritingStyleDescription(profile)+" Tón a délka konkrétní zprávy mají přednost.":"V profilu zatím není uložen osobní způsob psaní.")+'</small></span></label>'+ 
+  return '<div class="plabel">Můj způsob psaní <button class="help-tip" type="button" aria-label="Nápověda k osobnímu způsobu psaní" data-tip="Dlouhodobá preference z profilu upravuje formulace. Konkrétní tón, délka, účel a bezpečnost této odpovědi mají vždy přednost.">i</button></div>'+
+    '<label class="writing-style-toggle" for="'+p+'_useWritingStyle"><input id="'+p+'_useWritingStyle" type="checkbox" '+(configured?'checked':'disabled')+'><span><strong id="'+p+'_writingStyleLabel">'+esc(configured?profileWritingStyleLabel(profile):"Nenastavený")+'</strong><small id="'+p+'_writingStyleHint">'+esc(configured?profileWritingStyleDescription(profile)+" Tón a délka konkrétní zprávy mají přednost.":"V profilu zatím není uložen osobní způsob psaní.")+'</small></span></label>'+
     '<button class="link-btn writing-style-edit" id="'+p+'_writingStyleEdit" type="button">Upravit v profilu</button>';
 }
 function signatureText(){

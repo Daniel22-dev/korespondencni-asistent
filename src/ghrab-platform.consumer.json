@@ -1,0 +1,207 @@
+{
+  "schema": "ghrab-platform-consumer-v1",
+  "appId": "correspondence",
+  "appName": "Korespondenční asistent",
+  "appVersion": "5.9.19",
+  "platform": {
+    "version": "1.1.0",
+    "contract": "ghrab-platform-v1",
+    "requiredRange": ">=1.1.0 <2.0.0",
+    "compatibilityWindow": [
+      "1.1.x",
+      "1.2.x"
+    ]
+  },
+  "brand": {
+    "version": "1.0.0",
+    "logo": "assets/brand/school-logo.png",
+    "footerContract": "ghrab-footer-v1"
+  },
+  "theme": {
+    "supported": [
+      "light",
+      "dark",
+      "system"
+    ],
+    "default": "system",
+    "systemFallback": "light"
+  },
+  "storageMigration": {
+    "id": "p2-storage-namespace-v1",
+    "backup": "full",
+    "mappings": [
+      {
+        "legacy": "rozbor_profile",
+        "canonical": "ghrab.correspondence.profile.v1"
+      },
+      {
+        "legacy": "rozbor_dict",
+        "canonical": "ghrab.correspondence.dictionary.v1"
+      },
+      {
+        "legacy": "rozbor_history",
+        "canonical": "ghrab.correspondence.history.v1"
+      },
+      {
+        "legacy": "rozbor_name_hints",
+        "canonical": "ghrab.correspondence.name-hints.v1"
+      },
+      {
+        "legacy": "rozbor_templates",
+        "canonical": "ghrab.correspondence.templates.v1"
+      },
+      {
+        "legacy": "rozbor_mode",
+        "canonical": "ghrab.correspondence.theme.v1"
+      },
+      {
+        "legacy": "rozbor_work_session_v2",
+        "canonical": "ghrab.correspondence.work-session.v2"
+      },
+      {
+        "legacy": "ks5_workbench_drafts",
+        "canonical": "ghrab.correspondence.workbench-drafts.v1"
+      },
+      {
+        "legacy": "ks5_signatures",
+        "canonical": "ghrab.correspondence.signatures.v1"
+      },
+      {
+        "legacy": "ks5_followups",
+        "canonical": "ghrab.correspondence.followups.v1"
+      },
+      {
+        "legacy": "ks5_blocks",
+        "canonical": "ghrab.correspondence.blocks.v1"
+      },
+      {
+        "legacy": "ks5_desk_collapsed",
+        "canonical": "ghrab.correspondence.desk-collapsed.v1"
+      },
+      {
+        "legacy": "ks5_recent_scenarios",
+        "canonical": "ghrab.correspondence.recent-scenarios.v1"
+      },
+      {
+        "legacy": "ks5_selected_signature",
+        "canonical": "ghrab.correspondence.selected-signature.v1"
+      },
+      {
+        "legacy": "rozbor_ui_mode",
+        "canonical": "ghrab.correspondence.ui-mode.v1"
+      },
+      {
+        "legacy": "rozbor_gemini_model",
+        "canonical": "ghrab.correspondence.ai.model.v1"
+      },
+      {
+        "legacy": "rozbor_gemini_key",
+        "canonical": "ghrab.correspondence.ai.key.local.v1"
+      },
+      {
+        "legacy": "rozbor_gemini_key_session",
+        "canonical": "ghrab.correspondence.ai.key.session.v1",
+        "store": "session"
+      },
+      {
+        "legacy": "rozbor_security_guide_seen_v1",
+        "canonical": "ghrab.correspondence.security-guide-seen.v1"
+      },
+      {
+        "legacy": "rozbor_tour_seen_v1",
+        "canonical": "ghrab.correspondence.tour-seen.v1"
+      },
+      {
+        "legacyPrefix": "rozbor_",
+        "canonicalPrefix": "ghrab.correspondence.legacy.rozbor."
+      },
+      {
+        "legacyPrefix": "ks5_",
+        "canonicalPrefix": "ghrab.correspondence.legacy.ks5."
+      }
+    ]
+  },
+  "bridge": {
+    "contract": "ghrab-studio-handoff-v2",
+    "acceptsLegacy": "ghrab-handoff-v1",
+    "maxBytes": 500000
+  },
+  "artifact": {
+    "schema": "ghrab-artifact-envelope-v1",
+    "checksum": "SHA-256",
+    "exports": [
+      "correspondence-settings",
+      "correspondence-library"
+    ],
+    "imports": [
+      "correspondence-settings",
+      "correspondence-library"
+    ],
+    "acceptsLegacyJson": true,
+    "nativeFormats": [
+      "docx",
+      "html",
+      "txt"
+    ]
+  },
+  "cache": {
+    "name": "ghrab-correspondence-v5.9.19",
+    "updateMessage": "GHRAB_SKIP_WAITING"
+  },
+  "html": {
+    "exclude": [],
+    "noFooter": [
+      "tests/"
+    ]
+  },
+  "quality": {
+    "schema": "ghrab-quality-consumer-v1",
+    "accessibilityContract": "ghrab-a11y-v1",
+    "performanceContract": "ghrab-performance-v1",
+    "moduleContract": "ghrab-lazy-modules-v1",
+    "requireBudget": true,
+    "performanceBudget": {
+      "distBytes": 1200000,
+      "entryHtmlBytes": 720000,
+      "entryCriticalBytes": 870000,
+      "largestInlineScriptBytes": 560000,
+      "precacheBytes": 1180000,
+      "largestFileBytes": 720000,
+      "duplicateLargeBytes": 20000
+    },
+    "modules": {
+      "required": []
+    },
+    "referenceProfile": {
+      "cpuSlowdown": 4,
+      "viewport": "1366x768",
+      "memoryClassGb": 4,
+      "viewportWidths": [
+        1280,
+        390,
+        320
+      ]
+    },
+    "stage": "P4",
+    "a11yContract": "ghrab-a11y-v1",
+    "requireRuntimeBudget": true,
+    "runtimeBudget": {
+      "maxDomNodes": 1000,
+      "maxRenderReadyMs": 4000,
+      "maxJsHeapUsedBytes": 8000000,
+      "maxLayoutDurationMs": 3000,
+      "maxTaskDurationMs": 4000
+    },
+    "finalRelease": true,
+    "cleanInstallRequired": true,
+    "a11yGate": "ghrab-p4-a11y-v1",
+    "releaseGate": "ghrab-p4-release-v1"
+  },
+  "performance": {
+    "stage": "P5",
+    "a11yGate": "ghrab-p5-accessibility-acceptance-v1",
+    "releaseGate": "ghrab-p5-acceptance-v1",
+    "finalRelease": false,
+    "preProductionAccepted": true
+  }
+}

@@ -1,0 +1,87 @@
+name: Sync GHRAB AI Core safely
+
+on:
+  repository_dispatch:
+    types: [ghrab-ai-core-released]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  TRUSTED_STUDIO_ORIGIN: https://daniel22-dev.github.io
+  TRUSTED_MANIFEST_PREFIX: /AI-Studio-GHRAB/ai-core/releases/
+
+jobs:
+  sync-core:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Validate trusted dispatch payload
+        env:
+          MANIFEST_URL: ${{ github.event.client_payload.manifestUrl }}
+          CORE_VERSION: ${{ github.event.client_payload.coreVersion }}
+          CONTRACT_VERSION: ${{ github.event.client_payload.contractVersion }}
+          BUILD_ID: ${{ github.event.client_payload.buildId }}
+        run: |
+          node <<'NODE'
+          const { MANIFEST_URL, CORE_VERSION, CONTRACT_VERSION, BUILD_ID, TRUSTED_STUDIO_ORIGIN, TRUSTED_MANIFEST_PREFIX } = process.env;
+          if (!MANIFEST_URL || !CORE_VERSION || !CONTRACT_VERSION || !BUILD_ID) throw new Error('Dispatch payload is incomplete.');
+          const url = new URL(MANIFEST_URL);
+          if (url.protocol !== 'https:' || url.origin !== TRUSTED_STUDIO_ORIGIN) throw new Error('Untrusted manifest origin.');
+          if (!url.pathname.startsWith(TRUSTED_MANIFEST_PREFIX)) throw new Error('Untrusted manifest path.');
+          if (!url.pathname.endsWith(`/ghrab-ai-core-manifest-${CORE_VERSION}.json`)) throw new Error('Manifest filename mismatch.');
+          if (!/^\d+\.\d+\.\d+$/.test(CORE_VERSION) || !/^\d+$/.test(CONTRACT_VERSION) || !/^[a-z0-9._-]+$/i.test(BUILD_ID)) throw new Error('Invalid dispatch metadata.');
+          NODE
+
+      - name: Download release manifest
+        env:
+          MANIFEST_URL: ${{ github.event.client_payload.manifestUrl }}
+        run: |
+          curl --proto '=https' --tlsv1.2 --fail --silent --show-error --location --max-time 30 \
+            "$MANIFEST_URL" -o /tmp/core-manifest.json
+
+      - name: Install dependencies from lockfile
+        run: npm ci --registry=https://registry.npmjs.org
+
+      - name: Synchronize signed artifacts
+        env:
+          MANIFEST_URL: ${{ github.event.client_payload.manifestUrl }}
+          CORE_VERSION: ${{ github.event.client_payload.coreVersion }}
+          CONTRACT_VERSION: ${{ github.event.client_payload.contractVersion }}
+          BUILD_ID: ${{ github.event.client_payload.buildId }}
+        run: node scripts/sync-ghrab-ai-core.mjs /tmp/core-manifest.json
+
+      - name: Conformance and application release gate
+        run: npm test
+
+      - name: Create review branch and draft pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CORE_VERSION: ${{ github.event.client_payload.coreVersion }}
+        run: |
+          if git diff --quiet; then
+            echo 'No changes to publish.'
+            exit 0
+          fi
+          branch="chore/ghrab-ai-core-${CORE_VERSION}-${GITHUB_RUN_ID}"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git switch -c "$branch"
+          git add vendor ghrab-ai-core.consumer.json scripts/sync-ghrab-ai-core.mjs
+          git commit -m "chore: sync GHRAB AI Core ${CORE_VERSION}"
+          git push --set-upstream origin "$branch"
+          gh pr create --draft \
+            --title "chore: sync GHRAB AI Core ${CORE_VERSION}" \
+            --body "Automaticky stažené artefakty prošly kontrolou důvěryhodné URL, SHA-256 a celou aplikační testovací sadou. Před sloučením zkontrolujte změny integrace." \
+            --base "${{ github.event.repository.default_branch }}" \
+            --head "$branch"

@@ -1,10 +1,12 @@
 const REPORTER_ID = "ghrab-error-reporter";
+const REPORTER_VERSION = "1.1.0";
+const MAX_COMPOSE_URL_LENGTH = 7000;
+const LOCAL_REPORTER_STYLE_URL = new URL("./error-reporter.css", import.meta.url);
 const MAX_SCREENSHOTS = 5;
 const MAX_CAPTURE_WIDTH = 1800;
 const MAX_CAPTURE_HEIGHT = 1200;
 const JPEG_QUALITY = 0.9;
 const DEFAULT_SUPPORT_EMAIL = "balaz@ghrabuvka.cz";
-const LOCAL_REPORTER_STYLE_URL = new URL("./error-reporter-ks.css", import.meta.url);
 
 function validEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
@@ -235,14 +237,94 @@ async function loadAppMeta(appId, studioUrl) {
   }
 }
 
-function injectStyles() {
+function injectStyles(styleUrl = LOCAL_REPORTER_STYLE_URL) {
   const id = "ghrab-error-reporter-css";
   if (document.getElementById(id)) return;
   const link = document.createElement("link");
   link.id = id;
   link.rel = "stylesheet";
-  link.href = LOCAL_REPORTER_STYLE_URL.href;
+  link.href = new URL(styleUrl, location.href).href;
   document.head.append(link);
+}
+
+function normaliseTheme(value) {
+  const theme = String(value || "").trim().toLowerCase();
+  if (["light", "svetly", "světlý"].includes(theme)) return "light";
+  if (["dark", "tmavy", "tmavý"].includes(theme)) return "dark";
+  return "";
+}
+
+function reporterTheme(options = {}) {
+  try {
+    if (typeof options.themeResolver === "function") {
+      const resolved = normaliseTheme(
+        options.themeResolver({
+          document,
+          window,
+          html: document.documentElement,
+          body: document.body,
+        }),
+      );
+      if (resolved) return resolved;
+    }
+  } catch {}
+  const fixed = normaliseTheme(options.theme);
+  if (fixed) return fixed;
+  const html = document.documentElement;
+  const body = document.body;
+  for (const candidate of [
+    html?.dataset?.theme,
+    html?.dataset?.colorScheme,
+    body?.dataset?.theme,
+    body?.dataset?.colorScheme,
+  ]) {
+    const resolved = normaliseTheme(candidate);
+    if (resolved) return resolved;
+  }
+  if (html?.classList.contains("light") || body?.classList.contains("light"))
+    return "light";
+  if (html?.classList.contains("dark") || body?.classList.contains("dark"))
+    return "dark";
+  const declared = normaliseTheme(
+    getComputedStyle(html).colorScheme || getComputedStyle(body).colorScheme,
+  );
+  if (declared) return declared;
+  return window.matchMedia?.("(prefers-color-scheme: light)")?.matches
+    ? "light"
+    : "dark";
+}
+
+function installThemeSync(root, options = {}) {
+  const apply = () => {
+    const theme = reporterTheme(options);
+    root.dataset.theme = theme;
+    root.style.colorScheme = theme;
+  };
+  apply();
+  const observer = new MutationObserver(apply);
+  for (const node of [document.documentElement, document.body]) {
+    if (node)
+      observer.observe(node, {
+        attributes: true,
+        attributeFilter: ["class", "data-theme", "data-color-scheme", "style"],
+      });
+  }
+  const media = window.matchMedia?.("(prefers-color-scheme: light)");
+  media?.addEventListener?.("change", apply);
+  document.addEventListener("ghrab:theme-changed", apply);
+  document.addEventListener("themechange", apply);
+  return apply;
+}
+
+function sanitizeTechnicalText(value, max = 420) {
+  let text = clipText(value, max * 2);
+  text = text
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "[e-mail odstraněn]")
+    .replace(/(?:bearer\s+)[A-Z0-9._~+\/-]+/gi, "Bearer [token odstraněn]")
+    .replace(/((?:api[_ -]?key|authorization|access[_ -]?token|refresh[_ -]?token|password|heslo)\s*[:=]\s*)[^,;\s]+/gi, "$1[odstraněno]")
+    .replace(/((?:prompt|puvodni text|původní text|original text|working text|pracovni text|pracovní text|model response|odpoved modelu|odpověď modelu|document content|obsah dokumentu|student data|data zaka|data žáka)\s*[:=]\s*)(?:["'`][^"'`\n]*["'`]|[^,;\n]+)/gi, "$1[obsah odstraněn]")
+    .replace(/(["'`])[^\n]{120,}\1/g, "[dlouhý obsah odstraněn]");
+  return clipText(text, max);
 }
 
 function button(label, className = "secondary") {
@@ -265,14 +347,107 @@ function browserLabel() {
     .join(", ");
   return brands || navigator.userAgent || "unknown";
 }
+function safeUrlPath(value) {
+  return String(value || "")
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "[e-mail-odstranen]")
+    .replace(/(?:%40|@)/gi, "[at]")
+    .replace(/\b[A-Za-z0-9_-]{32,}\b/g, "[dlouhy-identifikator-odstranen]");
+}
 function safePageUrl() {
-  return `${location.origin}${location.pathname}`;
+  return `${location.origin}${safeUrlPath(location.pathname)}`;
 }
 function clipText(value, max = 2200) {
   const text = String(value ?? "")
     .replace(/\u0000/g, "")
     .trim();
-  return text.length > max ? `${text.slice(0, max - 1)}…` : text;
+  const characters = Array.from(text);
+  return characters.length > max
+    ? `${characters.slice(0, Math.max(0, max - 1)).join("")}…`
+    : text;
+}
+function composeMailUrls(to, subject, body) {
+  const encodedTo = encodeURIComponent(to);
+  const encodedSubject = encodeURIComponent(subject);
+  const encodedBody = encodeURIComponent(body);
+  return {
+    mailtoUrl: `mailto:${to}?subject=${encodedSubject}&body=${encodedBody}`,
+    gmailUrl: `https://mail.google.com/mail/?view=cm&fs=1&to=${encodedTo}&su=${encodedSubject}&body=${encodedBody}`,
+  };
+}
+
+export function fitMailBodyToComposeUrl({
+  to,
+  subject,
+  description,
+  stepsText,
+  diagnostics = [],
+  environmentLines = [],
+  closingLines = [],
+  maxUrlLength = MAX_COMPOSE_URL_LENGTH,
+}) {
+  const makeBody = (currentDescription, currentSteps, currentDiagnostics) => [
+    "Dobrý den,",
+    "",
+    ...environmentLines,
+    "",
+    "CO SE STALO:",
+    currentDescription || "Neuvedeno.",
+    "",
+    "JAK LZE CHYBU ZOPAKOVAT:",
+    currentSteps || "Neuvedeno.",
+    "",
+    "AUTOMATICKY ZACHYCENÉ TECHNICKÉ ÚDAJE:",
+    ...(currentDiagnostics.length ? currentDiagnostics : ["Podrobné technické údaje jsou v ZIP balíčku."]),
+    "",
+    ...closingLines,
+  ].join("\n");
+
+  const fullBody = makeBody(description, stepsText, diagnostics);
+  let currentDescription = String(description || "");
+  let currentSteps = String(stepsText || "");
+  let currentDiagnostics = diagnostics.map((line) => clipText(line, 360));
+  const fits = (body) => {
+    const urls = composeMailUrls(to, subject, body);
+    return Math.max(urls.gmailUrl.length, urls.mailtoUrl.length) <= maxUrlLength;
+  };
+  let body = makeBody(currentDescription, currentSteps, currentDiagnostics);
+  if (!fits(body)) {
+    currentDiagnostics = currentDiagnostics.slice(0, 3).map((line) => clipText(line, 220));
+    body = makeBody(currentDescription, currentSteps, currentDiagnostics);
+  }
+  if (!fits(body)) {
+    currentDiagnostics = [];
+    body = makeBody(currentDescription, currentSteps, currentDiagnostics);
+  }
+  if (!fits(body)) {
+    currentSteps = clipText(currentSteps, 700);
+    body = makeBody(currentDescription, currentSteps, currentDiagnostics);
+  }
+  if (!fits(body)) {
+    currentSteps = clipText(currentSteps, 320);
+    body = makeBody(currentDescription, currentSteps, currentDiagnostics);
+  }
+  if (!fits(body)) {
+    let low = 120;
+    let high = Math.max(low, currentDescription.length);
+    let best = clipText(currentDescription, low);
+    while (low <= high) {
+      const mid = Math.floor((low + high) / 2);
+      const candidate = clipText(currentDescription, mid);
+      const candidateBody = makeBody(candidate, currentSteps, currentDiagnostics);
+      if (fits(candidateBody)) {
+        best = candidate;
+        low = mid + 1;
+      } else high = mid - 1;
+    }
+    currentDescription = best;
+    body = makeBody(currentDescription, currentSteps, currentDiagnostics);
+  }
+  if (!fits(body)) {
+    body = clipText(body, 900);
+  }
+  const urls = composeMailUrls(to, subject, body);
+  return { body, fullBody, ...urls };
 }
 function escapeHtml(value) {
   return String(value ?? "").replace(
@@ -290,7 +465,7 @@ function escapeHtml(value) {
 function safeTechnicalUrl(value) {
   try {
     const url = new URL(String(value || ""), location.href);
-    return `${url.origin}${url.pathname}`;
+    return `${url.origin}${safeUrlPath(url.pathname)}`;
   } catch {
     return clipText(value, 280);
   }
@@ -365,7 +540,7 @@ async function buildOverviewHtml({
   studioUrl,
 }) {
   const [schoolLogo, portalImage] = await Promise.all([
-    fetchDataUrl(new URL("assets/brand/school-logo.jpg", studioUrl)),
+    fetchDataUrl(new URL("assets/brand/school-logo.png", studioUrl)),
     fetchDataUrl(new URL("assets/brand/portal-gateway.webp", studioUrl)),
   ]);
   const shots = [];
@@ -485,12 +660,13 @@ async function buildOverviewHtml({
 }
 
 export function setupErrorReporter(options = {}) {
-  if (!options.appId || document.getElementById(REPORTER_ID)) return;
+  if (!options.appId || document.getElementById(REPORTER_ID))
+    return window.GHRABErrorReporter || null;
   const studioUrl = new URL(
     options.studioUrl || "/AI-Studio-GHRAB/",
     location.href,
   );
-  injectStyles();
+  injectStyles(options.styleUrl || LOCAL_REPORTER_STYLE_URL);
   const supportEmailPromise = loadSupportEmail(
     studioUrl,
     options.supportEmail || DEFAULT_SUPPORT_EMAIL,
@@ -510,11 +686,14 @@ export function setupErrorReporter(options = {}) {
     preparedBlob: null,
     supportEmail: options.supportEmail || DEFAULT_SUPPORT_EMAIL,
     technicalErrors: [],
+    completed: false,
   };
-  supportEmailPromise.then((email) => {
-    state.supportEmail = email;
-    refreshPrepareLinkHref();
-  }).catch(() => {});
+  supportEmailPromise
+    .then((email) => {
+      state.supportEmail = email;
+      refreshPrepareLink();
+    })
+    .catch(() => {});
   loadAppMeta(options.appId, studioUrl).then((meta) => {
     state.appMeta = {
       ...meta,
@@ -522,17 +701,20 @@ export function setupErrorReporter(options = {}) {
       version: options.appVersion || meta.version,
     };
     updateLabels();
-    refreshPrepareLinkHref();
+    refreshPrepareLink();
   });
 
   const pushTechnicalError = (raw) => {
     const item = {
       at: new Date().toISOString(),
-      type: clipText(raw?.type || "error", 40),
-      message: clipText(raw?.message || "Neznámá technická chyba", 420),
+      type: sanitizeTechnicalText(raw?.type || "error", 40),
+      message: sanitizeTechnicalText(
+        raw?.message || "Neznámá technická chyba",
+        420,
+      ),
       status: raw?.status ? Number(raw.status) : null,
-      code: clipText(raw?.code || "", 80) || null,
-      phase: clipText(raw?.phase || "", 120) || null,
+      code: sanitizeTechnicalText(raw?.code || "", 80) || null,
+      phase: sanitizeTechnicalText(raw?.phase || "", 120) || null,
       source: raw?.source ? safeTechnicalUrl(raw.source) : null,
       line: raw?.line ? Number(raw.line) : null,
       column: raw?.column ? Number(raw.column) : null,
@@ -540,7 +722,9 @@ export function setupErrorReporter(options = {}) {
         raw?.durationMs != null
           ? Math.max(0, Math.round(Number(raw.durationMs)))
           : null,
-      stack: raw?.stack ? safeStack(raw.stack) : null,
+      stack: raw?.stack
+        ? sanitizeTechnicalText(safeStack(raw.stack), 1800)
+        : null,
     };
     const fingerprint = [
       item.type,
@@ -620,14 +804,26 @@ export function setupErrorReporter(options = {}) {
   }
   window.GHRABErrorReporter = {
     ...(window.GHRABErrorReporter || {}),
+    version: REPORTER_VERSION,
+    appId: options.appId,
     recordTechnicalError: (payload) => pushTechnicalError(payload || {}),
   };
 
   const root = element("div", "ghrab-error-reporter");
   root.id = REPORTER_ID;
-  root.dataset.reporterVariant = "ks-5.9.11";
+  root.dataset.reporterVersion = REPORTER_VERSION;
+  for (const [name, value] of [
+    ["--ghrab-reporter-right", options.launcherRight],
+    ["--ghrab-reporter-bottom", options.launcherBottom],
+    ["--ghrab-capture-right", options.captureRight],
+    ["--ghrab-capture-bottom", options.captureBottom],
+  ]) {
+    if (value != null && String(value).trim())
+      root.style.setProperty(name, String(value).trim());
+  }
   const launcher = button(t("Nahlásit chybu", "Report an issue"), "launcher");
   launcher.setAttribute("aria-haspopup", "dialog");
+  launcher.setAttribute("aria-label", t("Nahlásit chybu", "Report an issue"));
   launcher.innerHTML = `<span aria-hidden="true">!</span><strong>${t("Nahlásit chybu", "Report an issue")}</strong>`;
   const backdrop = element("div", "ghrab-report-backdrop");
   backdrop.hidden = true;
@@ -653,7 +849,10 @@ export function setupErrorReporter(options = {}) {
 
   const guide = document.createElement("a");
   guide.className = "ghrab-report-guide";
-  guide.href = new URL("manualy/error-report.html", studioUrl).href;
+  guide.href = new URL(
+    options.guideUrl || "manualy/error-report.html",
+    studioUrl,
+  ).href;
   guide.target = "_blank";
   guide.rel = "noopener";
   guide.textContent = t(
@@ -692,6 +891,11 @@ export function setupErrorReporter(options = {}) {
   snapButton.disabled = true;
   const stopButton = button(t("Ukončit snímání", "Stop capture"), "ghost");
   stopButton.disabled = true;
+  const leaveCaptureButton = button(
+    t("Přejít do aplikace", "Go to application"),
+    "secondary",
+  );
+  leaveCaptureButton.disabled = true;
   const uploadLabel = element(
     "label",
     "ghrab-report-button secondary",
@@ -703,7 +907,13 @@ export function setupErrorReporter(options = {}) {
   uploadInput.multiple = true;
   uploadInput.hidden = true;
   uploadLabel.append(uploadInput);
-  captureActions.append(shareButton, snapButton, stopButton, uploadLabel);
+  captureActions.append(
+    shareButton,
+    snapButton,
+    leaveCaptureButton,
+    stopButton,
+    uploadLabel,
+  );
   const captureStatus = element(
     "p",
     "ghrab-report-status",
@@ -806,11 +1016,50 @@ export function setupErrorReporter(options = {}) {
   );
   backdrop.append(panel);
   root.append(launcher, backdrop);
+
+  const captureBar = element("div", "ghrab-capture-bar");
+  captureBar.hidden = true;
+  captureBar.setAttribute("role", "region");
+  captureBar.setAttribute(
+    "aria-label",
+    t("Ovládání snímání obrazovky", "Screen capture controls"),
+  );
+  const captureBarState = element("span", "ghrab-capture-bar-state");
+  const captureBarTitle = element(
+    "strong",
+    "",
+    t("Snímání obrazovky", "Screen capture"),
+  );
+  const captureBarCount = element("small", "", `0 / ${MAX_SCREENSHOTS}`);
+  captureBarState.append(captureBarTitle, captureBarCount);
+  const captureBarSnap = button(
+    t("Pořídit snímek", "Capture screenshot"),
+    "primary",
+  );
+  const captureBarBack = button(
+    t("Zpět k hlášení", "Back to report"),
+    "secondary",
+  );
+  const captureBarStop = button(
+    t("Ukončit snímání", "Stop capture"),
+    "ghost",
+  );
+  captureBar.append(
+    captureBarState,
+    captureBarSnap,
+    captureBarBack,
+    captureBarStop,
+  );
+  root.append(captureBar);
   document.body.append(root);
+  installThemeSync(root, options);
 
   const editor = element("div", "ghrab-redaction-backdrop");
   editor.hidden = true;
   const editorPanel = element("section", "ghrab-redaction-panel");
+  editorPanel.setAttribute("role", "dialog");
+  editorPanel.setAttribute("aria-modal", "true");
+  editorPanel.setAttribute("aria-label", t("Volitelné začernění osobních údajů", "Optional personal-data redaction"));
   const editorHead = element("header", "ghrab-redaction-head");
   editorHead.append(
     element(
@@ -888,17 +1137,52 @@ export function setupErrorReporter(options = {}) {
   let redactions = [];
   let dragStart = null;
   let dragCurrent = null;
+  let draftCreatedAt = null;
+  let draftUpdatedAt = null;
+  let packageCreatedAt = null;
+  let previousFocus = null;
 
   function updateLabels() {
     appLine.textContent = `${t("Aplikace", "Application")}: ${state.appMeta.name} · v${state.appMeta.version}`;
   }
   updateLabels();
   function open() {
-    refreshPrepareLinkHref();
+    if (state.completed) resetDraft();
+    previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : launcher;
+    ensureDraftCreatedAt();
+    refreshPrepareLink();
     backdrop.hidden = false;
     discardBackdrop.hidden = true;
     document.documentElement.classList.add("ghrab-report-open");
     setTimeout(() => comment.focus({ preventScroll: true }), 40);
+  }
+  function captureIsActive() {
+    return Boolean(state.stream && state.video && !snapButton.disabled);
+  }
+  function updateCaptureControls() {
+    const active = captureIsActive();
+    const count = state.screenshots.length;
+    leaveCaptureButton.disabled = !active;
+    captureBarSnap.disabled = !active || count >= MAX_SCREENSHOTS;
+    captureBarStop.disabled = !active;
+    captureBarCount.textContent = `${count} / ${MAX_SCREENSHOTS} ${t("snímků", "screenshots")}`;
+  }
+  function showApplicationForCapture() {
+    if (!captureIsActive()) return;
+    backdrop.hidden = true;
+    root.classList.add("ghrab-capture-mode");
+    captureBar.hidden = false;
+    document.documentElement.classList.remove("ghrab-report-open");
+    updateCaptureControls();
+    captureBarSnap.focus({ preventScroll: true });
+  }
+  function showReportFromCapture() {
+    root.classList.remove("ghrab-capture-mode");
+    captureBar.hidden = true;
+    backdrop.hidden = false;
+    document.documentElement.classList.add("ghrab-report-open");
+    updateCaptureControls();
+    leaveCaptureButton.focus({ preventScroll: true });
   }
   function stopCapture() {
     state.stream?.getTracks().forEach((track) => track.stop());
@@ -915,6 +1199,10 @@ export function setupErrorReporter(options = {}) {
       "Snímání není aktivní. Již pořízené snímky zůstávají zachované.",
       "Capture is inactive. Existing screenshots remain available.",
     );
+    leaveCaptureButton.disabled = true;
+    captureBar.hidden = true;
+    root.classList.remove("ghrab-capture-mode");
+    updateCaptureControls();
   }
   function hasDraft() {
     return Boolean(
@@ -932,7 +1220,9 @@ export function setupErrorReporter(options = {}) {
     discardBackdrop.hidden = true;
     panel.removeAttribute("aria-hidden");
     document.documentElement.classList.remove("ghrab-report-open");
-    launcher.focus();
+    const target = previousFocus && previousFocus.isConnected ? previousFocus : launcher;
+    target.focus?.({ preventScroll: true });
+    previousFocus = null;
   }
   function showDiscardPrompt() {
     discardBackdrop.hidden = false;
@@ -952,19 +1242,26 @@ export function setupErrorReporter(options = {}) {
     state.preparedBlob = null;
     state.reportId = reportId();
     state.technicalErrors = [];
+    state.completed = false;
+    draftCreatedAt = null;
+    draftUpdatedAt = null;
+    packageCreatedAt = null;
     comment.value = "";
     steps.value = "";
     uploadInput.value = "";
     finalStatus.replaceChildren();
     finalStatus.hidden = true;
     renderScreenshots();
+    updateCaptureControls();
     setStatus(
       t("Snímání zatím není aktivní.", "Screen capture is not active yet."),
     );
+    refreshPrepareLink();
   }
   function requestClose() {
     stopCapture();
-    if (hasDraft()) showDiscardPrompt();
+    if (state.completed) closeNow();
+    else if (hasDraft()) showDiscardPrompt();
     else closeNow();
   }
   function revokeScreenshot(item) {
@@ -974,12 +1271,16 @@ export function setupErrorReporter(options = {}) {
     captureStatus.textContent = message;
     captureStatus.dataset.type = type;
   }
-  function invalidatePreparedPackage() {
+  function invalidatePreparedPackage({ touch = true } = {}) {
+    ensureDraftCreatedAt();
+    if (touch) draftUpdatedAt = new Date();
     state.preparedFile = null;
     state.preparedBlob = null;
+    state.completed = false;
+    packageCreatedAt = null;
     finalStatus.replaceChildren();
     finalStatus.hidden = true;
-    refreshPrepareLinkHref();
+    refreshPrepareLink();
   }
 
   async function addScreenshot(blob) {
@@ -1002,6 +1303,7 @@ export function setupErrorReporter(options = {}) {
       };
       state.screenshots.push(item);
       renderScreenshots();
+      updateCaptureControls();
       setStatus(
         t(
           `Snímek ${state.screenshots.length}/${MAX_SCREENSHOTS} je připraven. Chybové hlášení ponechte viditelné; začernění je pouze volitelné pro nesouvisející osobní údaje.`,
@@ -1049,6 +1351,7 @@ export function setupErrorReporter(options = {}) {
         );
         invalidatePreparedPackage();
         renderScreenshots();
+        updateCaptureControls();
       });
       tools.append(redact, remove);
       meta.append(tools);
@@ -1061,8 +1364,8 @@ export function setupErrorReporter(options = {}) {
           "p",
           "ghrab-screenshot-empty",
           t(
-            "Zatím nebyl přidán žádný snímek. Hlášení lze odeslat i bez snímku, ale screenshot obvykle výrazně pomůže.",
-            "No screenshot has been added yet. A report can be sent without one, but a screenshot usually helps considerably.",
+            "Zatím nebyl přidán žádný snímek. Pro vytvoření diagnostického ZIPu přiložte alespoň jeden screenshot s viditelnou chybou.",
+            "No screenshot has been added yet. Attach at least one screenshot with the visible issue before creating the diagnostic ZIP.",
           ),
         ),
       );
@@ -1103,14 +1406,21 @@ export function setupErrorReporter(options = {}) {
       stopButton.disabled = false;
       setStatus(
         t(
-          "Snímání je aktivní. Zobrazte chybu a klikněte na „Pořídit snímek“.",
-          "Capture is active. Display the issue and click “Capture screenshot”.",
+          "Snímání je aktivní. Hlášení zůstává otevřené; pokračujte tlačítkem „Přejít do aplikace“.",
+          "Capture is active. The report remains open; continue with “Go to application”.",
         ),
         "ok",
       );
-      stream
-        .getVideoTracks()[0]
-        ?.addEventListener("ended", stopCapture, { once: true });
+      updateCaptureControls();
+      leaveCaptureButton.focus({ preventScroll: true });
+      stream.getVideoTracks()[0]?.addEventListener(
+        "ended",
+        () => {
+          stopCapture();
+          showReportFromCapture();
+        },
+        { once: true },
+      );
     } catch (error) {
       const denied = error?.name === "NotAllowedError";
       setStatus(
@@ -1295,15 +1605,29 @@ export function setupErrorReporter(options = {}) {
   function packageFilename(createdAt) {
     return `ghrab-hlaseni-chyby-${safeName(state.appMeta.appId)}-${nowFileStamp(createdAt)}.zip`;
   }
-  function draftPackageInfo(createdAt) {
+  function ensureDraftCreatedAt() {
+    if (!draftCreatedAt) {
+      draftCreatedAt = new Date();
+      draftUpdatedAt = new Date(draftCreatedAt);
+    }
+    return draftCreatedAt;
+  }
+  function currentUpdatedAt() {
+    ensureDraftCreatedAt();
+    return draftUpdatedAt || draftCreatedAt;
+  }
+  function draftPackageInfo(packageAt = packageCreatedAt || new Date()) {
     const technicalErrors = state.technicalErrors
       .slice(-12)
       .map(({ fingerprint, ...item }) => item);
+    const createdAt = ensureDraftCreatedAt();
     return {
-      file: { name: packageFilename(createdAt) },
+      file: { name: packageFilename(packageAt) },
       metadata: {
         reportId: state.reportId,
         createdAt: createdAt.toISOString(),
+        updatedAt: currentUpdatedAt().toISOString(),
+        packageCreatedAt: packageAt.toISOString(),
         page: safePageUrl(),
         browser: browserLabel(),
         platform:
@@ -1318,7 +1642,7 @@ export function setupErrorReporter(options = {}) {
     };
   }
 
-  async function buildPackage(createdAt = new Date()) {
+  async function buildPackage(packageAt = new Date()) {
     const description = comment.value.trim();
     const stepsText = steps.value.trim();
     if (description.length < 8) {
@@ -1330,13 +1654,25 @@ export function setupErrorReporter(options = {}) {
         ),
       );
     }
+    if (!state.screenshots.length) {
+      throw new Error(
+        t(
+          "Přiložte prosím alespoň jeden screenshot s viditelnou chybou.",
+          "Please attach at least one screenshot with the visible issue.",
+        ),
+      );
+    }
     const technicalErrors = state.technicalErrors
       .slice(-12)
       .map(({ fingerprint, ...item }) => item);
+    const createdAt = ensureDraftCreatedAt();
+    packageCreatedAt = packageAt;
     const metadata = {
-      schema: "ghrab-error-report-v2",
+      schema: "ghrab-error-report-v3",
       reportId: state.reportId,
       createdAt: createdAt.toISOString(),
+      updatedAt: currentUpdatedAt().toISOString(),
+      packageCreatedAt: packageAt.toISOString(),
       appId: state.appMeta.appId,
       appName: state.appMeta.name,
       appVersion: state.appMeta.version,
@@ -1361,7 +1697,9 @@ export function setupErrorReporter(options = {}) {
       `ID hlášení: ${metadata.reportId}`,
       `Aplikace: ${metadata.appName} (${metadata.appId})`,
       `Verze aplikace: ${metadata.appVersion}`,
-      `Datum a čas: ${createdAt.toLocaleString("cs-CZ")}`,
+      `Hlášení založeno: ${createdAt.toLocaleString("cs-CZ")}`,
+      `Naposledy upraveno: ${currentUpdatedAt().toLocaleString("cs-CZ")}`,
+      `ZIP vytvořen: ${packageAt.toLocaleString("cs-CZ")}`,
       `Stránka: ${metadata.page}`,
       "",
       "POPIS PROBLÉMU",
@@ -1406,10 +1744,10 @@ export function setupErrorReporter(options = {}) {
       }),
     );
     const blob = await makeZip(entries);
-    const filename = packageFilename(createdAt);
+    const filename = packageFilename(packageAt);
     const file = new File([blob], filename, {
       type: "application/zip",
-      lastModified: createdAt.getTime(),
+      lastModified: packageAt.getTime(),
     });
     state.preparedBlob = blob;
     state.preparedFile = file;
@@ -1452,26 +1790,18 @@ export function setupErrorReporter(options = {}) {
   }
   function mailDraft(packageInfo, screenshotCopied, supportEmail) {
     const subject = `[AI GHRAB] Chyba – ${state.appMeta.name} ${state.appMeta.version} – ${packageInfo.metadata.reportId}`;
-    const body = [
-      "Dobrý den,",
-      "",
+    const environmentLines = [
       `posílám hlášení technické chyby v aplikaci ${state.appMeta.name}.`,
       "",
       `Aplikace: ${state.appMeta.name}`,
       `Verze: ${state.appMeta.version}`,
-      `Datum a čas: ${new Date(packageInfo.metadata.createdAt).toLocaleString("cs-CZ")}`,
+      `Hlášení založeno: ${new Date(packageInfo.metadata.createdAt).toLocaleString("cs-CZ")}`,
+      `Naposledy upraveno: ${new Date(packageInfo.metadata.updatedAt || packageInfo.metadata.createdAt).toLocaleString("cs-CZ")}`,
+      `ZIP vytvořen: ${new Date(packageInfo.metadata.packageCreatedAt || packageInfo.metadata.createdAt).toLocaleString("cs-CZ")}`,
       `ID hlášení: ${packageInfo.metadata.reportId}`,
       `Stránka: ${packageInfo.metadata.page}`,
-      "",
-      "CO SE STALO:",
-      clipText(packageInfo.description, 1600),
-      "",
-      "JAK LZE CHYBU ZOPAKOVAT:",
-      clipText(packageInfo.stepsText || "Neuvedeno.", 1400),
-      "",
-      "AUTOMATICKY ZACHYCENÉ TECHNICKÉ ÚDAJE:",
-      ...packageInfo.diagnostics.slice(0, 5),
-      "",
+    ];
+    const closingLines = [
       `Prohlížeč / systém: ${clipText(packageInfo.metadata.browser, 420)} / ${packageInfo.metadata.platform}`,
       `Okno: ${packageInfo.metadata.viewport.width} × ${packageInfo.metadata.viewport.height}px`,
       `Online: ${packageInfo.metadata.online ? "ano" : "ne"}`,
@@ -1483,24 +1813,32 @@ export function setupErrorReporter(options = {}) {
       `PŘILOŽTE SOUBOR: ${packageInfo.file.name}`,
       "",
       "Děkuji.",
-    ].join("\n");
-    const clippedBody = clipText(body, 6500);
+    ];
+    const fitted = fitMailBodyToComposeUrl({
+      to: supportEmail,
+      subject,
+      description: packageInfo.description,
+      stepsText: packageInfo.stepsText || "Neuvedeno.",
+      diagnostics: packageInfo.diagnostics.slice(0, 5),
+      environmentLines,
+      closingLines,
+    });
     return {
       to: supportEmail,
       subject,
-      body: clippedBody,
-      mailtoUrl: `mailto:${supportEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(clippedBody)}`,
-      gmailUrl: `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(supportEmail)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(clippedBody)}`,
+      body: fitted.body,
+      fullBody: fitted.fullBody,
+      mailtoUrl: fitted.mailtoUrl,
+      gmailUrl: fitted.gmailUrl,
     };
   }
-  function refreshPrepareLinkHref() {
-    if (typeof prepareLink === "undefined" || !prepareLink) return;
-    const draft = mailDraft(
-      draftPackageInfo(new Date()),
-      false,
-      state.supportEmail || DEFAULT_SUPPORT_EMAIL,
-    );
+  function refreshPrepareLink() {
+    if (!prepareLink) return;
+    const packageAt = packageCreatedAt || new Date();
+    const supportEmail = state.supportEmail || DEFAULT_SUPPORT_EMAIL;
+    const draft = mailDraft(draftPackageInfo(packageAt), false, supportEmail);
     prepareLink.href = draft.gmailUrl;
+    prepareLink.dataset.reportId = state.reportId;
   }
 
   function actionLink(label, href, className, target = "_blank") {
@@ -1513,7 +1851,7 @@ export function setupErrorReporter(options = {}) {
     return link;
   }
   async function copyMailDraft(draft) {
-    const text = `Komu: ${draft.to}\nPředmět: ${draft.subject}\n\n${draft.body}`;
+    const text = `Komu: ${draft.to}\nPředmět: ${draft.subject}\n\n${draft.fullBody || draft.body}`;
     if (navigator.clipboard?.writeText) {
       await navigator.clipboard.writeText(text);
       return true;
@@ -1529,7 +1867,7 @@ export function setupErrorReporter(options = {}) {
     area.remove();
     return copied;
   }
-  function showPreparedMailActions(info, screenshotCopied, draft, autoOpened) {
+  function showPreparedMailActions(info, screenshotCopied, draft) {
     finalStatus.hidden = false;
     finalStatus.replaceChildren();
     finalStatus.append(
@@ -1538,8 +1876,8 @@ export function setupErrorReporter(options = {}) {
         "span",
         "",
         t(
-          `${autoOpened ? "Předvyplněný Gmail se otevřel v nové kartě. " : "Kartu s Gmailem prohlížeč neotevřel; použijte tlačítko níže. "}${screenshotCopied ? "Hlavní snímek je ve schránce – v e-mailu použijte Ctrl+V. " : ""}Přiložte soubor „${info.file.name}“. Příjemce je ${draft.to}.`,
-          `${autoOpened ? "A prefilled Gmail draft opened in a new tab. " : "The browser did not open Gmail; use the button below. "}${screenshotCopied ? "The main screenshot is in the clipboard – paste it into the email. " : ""}Attach “${info.file.name}”. The recipient is ${draft.to}.`,
+          `Prohlížeč dostal odkaz na předvyplněný Gmail. Pokud se nová karta neotevřela nebo ji prohlížeč zablokoval, použijte tlačítko níže. ${screenshotCopied ? "Hlavní snímek je ve schránce – v e-mailu použijte Ctrl+V. " : ""}Přiložte soubor „${info.file.name}“. Příjemce je ${draft.to}.`,
+          `The browser received a link to a prefilled Gmail draft. If the new tab did not open or was blocked, use the button below. ${screenshotCopied ? "The main screenshot is in the clipboard – paste it into the email. " : ""}Attach “${info.file.name}”. The recipient is ${draft.to}.`,
         ),
       ),
     );
@@ -1583,25 +1921,39 @@ export function setupErrorReporter(options = {}) {
       );
       return;
     }
+    if (!state.screenshots.length) {
+      event.preventDefault();
+      finalStatus.hidden = false;
+      finalStatus.textContent = t(
+        "Přiložte prosím alespoň jeden screenshot s viditelnou chybou.",
+        "Please attach at least one screenshot with the visible issue.",
+      );
+      return;
+    }
     if (prepareLink.getAttribute("aria-busy") === "true") {
       event.preventDefault();
       return;
     }
-    const createdAt = new Date();
+    ensureDraftCreatedAt();
+    const packageAt = new Date();
+    packageCreatedAt = packageAt;
     const initialEmail = state.supportEmail || DEFAULT_SUPPORT_EMAIL;
-    // The complete Gmail URL is already present before the click. The handler
-    // must not rewrite href during the click because some embedded/PWA browser
-    // contexts resolve the navigation target before the listener finishes.
+    const navigationDraft = mailDraft(draftPackageInfo(packageAt), false, initialEmail);
+    prepareLink.href = navigationDraft.gmailUrl;
+    // The complete Gmail URL is set synchronously before the first await. The
+    // browser therefore performs a native target=_blank navigation without a
+    // scripted popup or a last-moment href rewrite.
     prepareLink.setAttribute("aria-busy", "true");
     prepareLink.setAttribute("aria-disabled", "true");
     prepareLink.textContent = t("Připravuji ZIP…", "Preparing ZIP…");
     try {
-      const info = await buildPackage(createdAt);
+      const info = await buildPackage(packageAt);
       const supportEmail = state.supportEmail || initialEmail;
       const screenshotCopied = await copyPrimaryScreenshot();
       const draft = mailDraft(info, screenshotCopied, supportEmail);
       downloadBlob(info.blob, info.file.name);
-      showPreparedMailActions(info, screenshotCopied, draft, true);
+      state.completed = true;
+      showPreparedMailActions(info, screenshotCopied, draft);
     } catch (error) {
       finalStatus.hidden = false;
       finalStatus.textContent =
@@ -1632,7 +1984,46 @@ export function setupErrorReporter(options = {}) {
     resetDraft();
     closeNow();
   });
+  function visibleDialog() {
+    if (!discardBackdrop.hidden) return discardDialog;
+    if (!editor.hidden) return editorPanel;
+    if (!backdrop.hidden) return panel;
+    return null;
+  }
+  function trapDialogFocus(event) {
+    if (event.key !== "Tab") return false;
+    const dialog = visibleDialog();
+    if (!dialog) return false;
+    const focusable = [...dialog.querySelectorAll(
+      'a[href],button:not([disabled]),input:not([disabled]),textarea:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])',
+    )].filter((item) => !item.hidden && item.getClientRects().length);
+    if (!focusable.length) {
+      event.preventDefault();
+      dialog.setAttribute("tabindex", "-1");
+      dialog.focus({ preventScroll: true });
+      return true;
+    }
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+      return true;
+    }
+    if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+      return true;
+    }
+    if (!dialog.contains(document.activeElement)) {
+      event.preventDefault();
+      first.focus();
+      return true;
+    }
+    return false;
+  }
   document.addEventListener("keydown", (event) => {
+    if (trapDialogFocus(event)) return;
     if (event.key !== "Escape") return;
     if (!discardBackdrop.hidden) hideDiscardPrompt();
     else if (!backdrop.hidden) requestClose();
@@ -1640,6 +2031,13 @@ export function setupErrorReporter(options = {}) {
   shareButton.addEventListener("click", startCapture);
   snapButton.addEventListener("click", captureFrame);
   stopButton.addEventListener("click", stopCapture);
+  leaveCaptureButton.addEventListener("click", showApplicationForCapture);
+  captureBarSnap.addEventListener("click", captureFrame);
+  captureBarBack.addEventListener("click", showReportFromCapture);
+  captureBarStop.addEventListener("click", () => {
+    stopCapture();
+    showReportFromCapture();
+  });
   uploadInput.addEventListener("change", async () => {
     for (const file of [...uploadInput.files].slice(
       0,
@@ -1652,5 +2050,7 @@ export function setupErrorReporter(options = {}) {
   steps.addEventListener("input", invalidatePreparedPackage);
   prepareLink.addEventListener("click", prepareAndEmail);
   renderScreenshots();
-  refreshPrepareLinkHref();
+  updateCaptureControls();
+  refreshPrepareLink();
+  return window.GHRABErrorReporter;
 }

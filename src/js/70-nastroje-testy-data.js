@@ -200,15 +200,9 @@ async function runKorespTests(){
       assertTest(informal.includes("2. osobě")&&informal.includes("pouze křestní jméno")&&informal.includes("dám ti vědět"),"pravidlo pro kolegu není úplné: "+informal);
       assertTest(formal.includes("Vážený pane + příjmení")&&formal.includes("Vážený pane Danieli Baláži"),"formální pravidlo není úplné: "+formal);
     });
-    await test("Hlášení chyby dostane plovoucí ovládání snímků", async()=>{
-      const root=document.createElement("div");root.id="ghrab-error-reporter";root.className="ghrab-error-reporter";
-      root.innerHTML='<button class="ghrab-report-button launcher">Nahlásit chybu</button><div class="ghrab-report-backdrop" hidden><section class="ghrab-report-panel"><header class="ghrab-report-header"><button class="ghrab-report-button icon">×</button></header><section class="ghrab-report-section"><div class="ghrab-report-actions"><button>Povolit snímání obrazovky</button><button disabled>Pořídit snímek</button><button disabled>Ukončit snímání</button></div><div class="ghrab-screenshot-list"><p class="ghrab-screenshot-empty">Bez snímku</p></div></section><footer class="ghrab-report-footer"><button>Zavřít</button></footer></section></div>';
-      document.body.append(root);
-      try{
-        assertTest(enhanceGhrabErrorReporter(root),"reportér se nepodařilo rozšířit");
-        assertTest(!!root.querySelector(".ghrab-ks-capture-bar")&&!!root.querySelector(".ghrab-ks-leave-report"),"chybí plovoucí panel nebo přechod do aplikace");
-        assertTest(root.querySelector("[data-ks-shot-count]").textContent.includes("0 / 5"),"panel neukazuje limit pěti snímků");
-      }finally{root.remove();}
+    await test("Hlášení chyby nepoužívá paralelní KS enhancer", async()=>{
+      assertTest(typeof globalThis.enhanceGhrabErrorReporter==="undefined","stará kompatibilitní funkce je stále globálně dostupná");
+      assertTest(!document.querySelector(".ghrab-ks-capture-bar")&&!document.querySelector("[data-ks-capture-snap]"),"v aplikaci zůstal starý paralelní panel snímání");
     });
     await test("Systémová matice českého 5. pádu", async()=>{
       const rows=[["Daniel","Danieli"],["Viktor","Viktore"],["Igor","Igore"],["Alois","Aloisi"],["Klaus","Klausi"],["Asterix","Asterixi"],["Petr","Petře"],["Marek","Marku"]];
@@ -1128,7 +1122,7 @@ async function runKorespTests(){
       assertTest(iss.danger.some(x=>/telefon/.test(x)),"netypický telefon nebyl zachycen");
       assertTest(iss.warn.some(x=>/třída/.test(x)),"více tříd nebylo zachyceno jako upozornění");
       assertTest(iss.danger.some(x=>/citlivé/.test(x)),"citlivý importovaný obsah nebyl zachycen");
-      applyImportedSettings({profil:{name:'Učitel "autofocus" <img src=x onerror=alert(1)>',role:'<b>role</b>',school:'Gymnázium & test'},slovnikJmen:[{real:'Žák <scr'+'ipt>',token:'osoba ZZ'}],sablony:[{name:'<b>šablona</b>',text:'text'}],neukladatHistorii:true});
+      applyImportedSettings({profil:{name:'Učitel "autofocus" <img src=x alt=x onerror=alert(1)>',role:'<b>role</b>',school:'Gymnázium & test'},slovnikJmen:[{real:'Žák <scr'+'ipt>',token:'osoba ZZ'}],sablony:[{name:'<b>šablona</b>',text:'text'}],neukladatHistorii:true});
       window.__openProfile();
       assertTest(!document.querySelector('#profOverlay img'),"importovaný HTML tag se vykreslil v profilu");
       assertTest(document.querySelector('#pf_name').value.includes('autofocus'),"uvozovky/importovaný profil nejsou uložené jako text");
@@ -1310,12 +1304,16 @@ function collectSettings(){
     // ZÁMĚRNĚ neexportujeme API klíč ani historii e-mailů (citlivé)
   };
 }
-function exportSettings(){
+async function exportSettings(){
   try{
-    const blob=new Blob([JSON.stringify(collectSettings(),null,2)],{type:"application/json"});
-    const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
-    a.download="korespondencni-asistent-nastaveni.json"; document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(()=>URL.revokeObjectURL(a.href),1500); toast("Nastavení exportováno ✓");
+    const payload=collectSettings();
+    if(window.GHRABArtifact?.download){
+      await window.GHRABArtifact.download({appId:"correspondence",appVersion:RELEASE.version,artifactType:"correspondence-settings",sensitivity:"restricted",contentManifest:[{kind:"settings",schema:"korespondencni-asistent-settings-v1"}],payload,filename:"korespondencni-asistent-nastaveni.ghrab.json"});
+    }else{
+      const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+      const a=document.createElement("a"); a.href=URL.createObjectURL(blob);a.download="korespondencni-asistent-nastaveni.json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+    }
+    toast("Nastavení exportováno ✓");
   }catch(e){ toast("Export se nepovedl."); }
 }
 function applyImportedSettings(obj){
@@ -1334,8 +1332,10 @@ function applyImportedSettings(obj){
 function importSettings(file){
   if(!file) return;
   const r=new FileReader();
-  r.onload=()=>{ try{
-    const obj=JSON.parse(String(r.result||"{}"));
+  r.onload=async()=>{ try{
+    const raw=String(r.result||"{}");
+    const parsed=window.GHRABArtifact?.unwrapMaybe?await window.GHRABArtifact.unwrapMaybe(raw,{allowLegacy:true,expectedAppId:"correspondence",verifyChecksum:true}):{payload:JSON.parse(raw)};
+    const obj=parsed.payload;
     const apply=()=>{try{applyImportedSettings(obj);toast("Nastavení importováno ✓");}catch(e){toast("Import se nepovedl: "+(e.message||"neplatný soubor"));}};
     if(!obj._app && (obj.profil||obj.slovnikJmen)){
       const parts=[]; if(obj.profil)parts.push("profil odesílatele"); if(obj.slovnikJmen)parts.push("slovník skutečných jmen");

@@ -1,13 +1,17 @@
-const APP_VERSION = "5.9.11";
-const CACHE_NAME = `korespondencni-asistent-${APP_VERSION}`;
+const GHRAB_SW_CONTRACT='ghrab-service-worker-v1';
+/* GHRAB service-worker contract v1 · update activation is user-controlled. */
+const APP_VERSION = "5.9.19";
+const CACHE_NAME = "ghrab-correspondence-v5.9.19";
+const CACHE_PREFIXES = ["ghrab-correspondence-v", "korespondencni-asistent-"];
 const CORE_ASSETS = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./manual/",
   "./manual/index.html",
-  "./access/error-reporter-ks.js",
-  "./access/error-reporter-ks.css",
+  "./access/error-reporter.js",
+  "./access/error-reporter.css",
+  "./access/error-reporter-adapter.js",
   "./icons/icon-32.png",
   "./icons/icon-48.png",
   "./icons/icon-72.png",
@@ -17,66 +21,89 @@ const CORE_ASSETS = [
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/icon-maskable-512.png",
-  "./icons/apple-touch-icon.png"
+  "./icons/apple-touch-icon.png",
+  "./config/brand-manifest.json",
+  "./config/platform-manifest.json",
+  "./assets/brand/school-logo.png",
+  "./ghrab-platform.consumer.json"
 ];
 
-self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(CORE_ASSETS))
-      .then(() => self.skipWaiting())
-  );
+self.addEventListener('message', (event) => {
+  if (['GHRAB_SKIP_WAITING', 'SKIP_WAITING'].includes(event.data?.type)) self.skipWaiting();
 });
 
-self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    caches.keys()
-      .then((keys) => Promise.all(keys
-        .filter((key) => key.startsWith("korespondencni-asistent-") && key !== CACHE_NAME)
-        .map((key) => caches.delete(key))))
-      .then(() => self.clients.claim())
-  );
+self.addEventListener('install', (event) => {
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    await cache.addAll(CORE_ASSETS);
+    const optionalAssets = [];
+    if (optionalAssets.length) {
+      const results = await Promise.allSettled(optionalAssets.map((asset) => cache.add(asset)));
+      const failed = results.filter((item) => item.status === 'rejected').length;
+      if (failed) console.warn(`[GHRAB SW] ${failed} volitelných assetů nebylo uloženo do offline cache.`);
+    }
+  })());
 });
 
-async function networkFirst(request) {
+self.addEventListener('activate', (event) => {
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys
+      .filter((key) => CACHE_PREFIXES.some((prefix) => key.startsWith(prefix)) && key !== CACHE_NAME)
+      .map((key) => caches.delete(key)));
+    await self.clients.claim();
+  })());
+});
+
+async function networkFirst(request, fallbackUrl = '') {
   const cache = await caches.open(CACHE_NAME);
   try {
-    const fresh = await fetch(request);
-    if (fresh && fresh.ok) cache.put(request, fresh.clone());
-    return fresh;
-  } catch (_) {
-    return (await caches.match(request)) || (await caches.match("./index.html"));
+    const response = await fetch(request, { cache: 'no-store' });
+    if (!response || !response.ok) throw new Error(`HTTP ${response?.status || 0}`);
+    await cache.put(request, response.clone());
+    return response;
+  } catch (error) {
+    const cached = await cache.match(request, { ignoreSearch: true });
+    if (cached) return cached;
+    if (fallbackUrl) {
+      const fallback = await cache.match(fallbackUrl, { ignoreSearch: true });
+      if (fallback) return fallback;
+    }
+    throw error;
   }
 }
 
 async function cacheFirst(request) {
-  const cached = await caches.match(request);
+  const cache = await caches.open(CACHE_NAME);
+  const cached = await cache.match(request);
   if (cached) return cached;
-  const fresh = await fetch(request);
-  if (fresh && fresh.ok) {
-    const cache = await caches.open(CACHE_NAME);
-    cache.put(request, fresh.clone());
-  }
-  return fresh;
+  const response = await fetch(request);
+  if (response?.ok) await cache.put(request, response.clone());
+  return response;
 }
 
-self.addEventListener("fetch", (event) => {
+function isRuntimeRequest(url, scopePath) {
+  const relative = url.pathname.slice(scopePath.length);
+  return relative === 'runtime-config.js' ||
+    relative === 'config/deployment.json' ||
+    relative === 'config/deployment.school-server-p0.json' ||
+    relative === 'config/deployment.school-server.example.json' ||
+    /^(?:api|auth|session|health)(?:\/|$)/.test(relative);
+}
+
+self.addEventListener('fetch', (event) => {
   const request = event.request;
-  if (request.method !== "GET") return;
+  if (request.method !== 'GET') return;
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
-
-  // The client also loads the central access module and revocation data from
-  // /AI-Studio-GHRAB/. Those security resources must always be handled by the
-  // browser/network and must never be frozen in this application's PWA cache.
-  const scopePath = new URL("./", self.location.href).pathname;
-  if (!url.pathname.startsWith(scopePath) || request.cache === "no-store") return;
-
-  // Runtime konfigurace, autentizace a školní API se nikdy nesmí zmrazit v PWA cache.
-  const relativePath=url.pathname.slice(scopePath.length);
-  if (relativePath==="runtime-config.js" || /^(?:api|auth|session|health)(?:\/|$)/.test(relativePath)) return;
-
-  if (request.mode === "navigate") {
+  const scopePath = new URL('./', self.location.href).pathname;
+  if (!url.pathname.startsWith(scopePath) || request.cache === 'no-store' || isRuntimeRequest(url, scopePath)) return;
+  if (request.mode === 'navigate') {
+    const fallback = url.pathname.includes('/manual/') ? './manual/index.html' : './index.html';
+    event.respondWith(networkFirst(request, fallback));
+    return;
+  }
+  if (url.pathname.endsWith('/manifest.webmanifest') || url.pathname.endsWith('/build-info.json')) {
     event.respondWith(networkFirst(request));
     return;
   }

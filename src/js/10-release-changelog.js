@@ -3,11 +3,13 @@ const IS_TEST_MODE=new URLSearchParams(window.location.search).get("test")==="1"
 "use strict";
 
 const RELEASE = {
-  version: "5.9.11",
-  date: "2026-08-03",
+  version: "5.9.19",
+  date: "2026-08-04",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.9.19: společný reportér 1.1.0 — délka finální Gmail/mailto adresy se omezuje až po URL kódování, plný text zůstává v ZIPu a kopírování, dialog drží a obnovuje fokus a každý nový report získá nové ID. Serverová implementace, AI Core, prompty i funkce KS zůstaly beze změny.",
+    "5.9.19: sjednocení technického reportéru s AI Studiem GHRAB — aplikace používá jedinou lokální instanci společného základu, centrální kopie z app-guardu je výslovně vypnuta. Reportér živě přebírá světlý a tmavý režim, podporuje až pět snímků s plovoucím panelem, bezpečný koncept se zachováním nebo úplným smazáním, ZIP s anonymizovanou diagnostikou a nativní odkaz Stáhnout ZIP a otevřít Gmail. Zastaralá paralelní kompatibilitní vrstva byla odstraněna a manuál odkazuje na aktuální centrální návod.",
     "5.9.11: oprava release stopky a stabilizace Gmail odkazu — cílová Gmail adresa s příjemcem, předmětem a tělem je připravená ještě před kliknutím a průběžně se aktualizuje při změně reportu. Click handler už během kliknutí nemění href. Chromium regresní test odděleně ověřuje správnost Gmail URL a otevření nové karty na lokálním testovacím cíli, takže GitHub Actions nezávisí na živém přesměrování mail.google.com.",
     "5.9.11: oprava životního cyklu rozepsaného hlášení — doplňková vrstva snímání už nepřebírá zavírací křížek, spodní tlačítko Zavřít, kliknutí mimo dialog ani Escape. Tyto akce vždy zastaví snímání a otevřou skutečnou volbu Ponechat nebo Smazat. Přechod do aplikace během snímání zůstává pouze na výslovném tlačítku Přejít do aplikace. Nový Chromium regresní test ověřuje smazání textu i screenshotu po zavření, zachování konceptu při volbě Ponechat a chování během aktivního snímání.",
     "5.9.9: definitivní oprava otevírání e-mailu — hlavní akce je nyní skutečný odkaz do nové karty, nikoli JavaScriptové window.open, které mohl Chrome v PWA nebo chráněném kontextu zablokovat. Kliknutí otevře předvyplněný Gmail a na původní kartě současně vytvoří a stáhne ZIP. Nejasné přímé sdílení ZIP bylo odstraněno. Nový prohlížečový regresní test fyzickým kliknutím ověřuje vznik karty Gmailu s adresou správce.",

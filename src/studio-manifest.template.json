@@ -33,22 +33,51 @@
     "communication",
     "anonymisation",
     "email-analysis",
-    "templates"
+    "templates",
+    "ghrab-platform-v1",
+    "canonical-branding",
+    "storage-namespace-v1",
+    "artifact-envelope-v1"
   ],
   "compatibility": {
     "studioMinVersion": "0.18.9",
     "materialSchema": "ghrab-material-v1",
-    "studioBridge": "1.3"
+    "studioBridge": "2.0",
+    "platformContract": "ghrab-platform-v1",
+    "platformRange": ">=1.1.0 <2.0.0"
   },
   "publishedAt": "__BUILD_TIME__",
   "aiCore": {
     "schema": "ghrab-ai-app-integration-v1",
+    "status": "integrated-p1",
     "coreVersion": "1.0.0",
     "contractVersion": "1",
     "serverReady": true,
     "conformancePassed": true,
     "operationsManifestUrl": "https://daniel22-dev.github.io/korespondencni-asistent/ai-operations.json",
     "runtimeSchema": "ghrab-runtime-config-v1",
-    "certifiedAt": "2026-08-02T20:55:00Z"
+    "gatewayContract": "ghrab-ai-request-v1",
+    "certificationStatus": "certified-p1",
+    "certificationEvidence": "evidence/p1-ai-conformance.json",
+    "certifiedOperations": 8
+  },
+  "slug": "korespondencni-asistent",
+  "paths": {
+    "app": "https://daniel22-dev.github.io/korespondencni-asistent/",
+    "manual": "https://daniel22-dev.github.io/korespondencni-asistent/manual/",
+    "manifest": "https://daniel22-dev.github.io/korespondencni-asistent/studio-manifest.json"
+  },
+  "platform": {
+    "schema": "ghrab-platform-app-integration-v1",
+    "contract": "ghrab-platform-v1",
+    "requiredPlatformRange": ">=1.1.0 <2.0.0",
+    "platformVersion": "1.0.0",
+    "brandVersion": "1.0.0",
+    "themeContract": 1,
+    "swContract": 1,
+    "studioBridge": 2,
+    "artifactEnvelope": 1,
+    "storagePrefix": "ghrab.correspondence.",
+    "cacheName": "ghrab-correspondence-v5.9.19"
   }
 }

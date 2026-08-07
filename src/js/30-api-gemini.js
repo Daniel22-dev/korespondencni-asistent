@@ -20,19 +20,14 @@ window.addEventListener("ghrab:runtime-config-changed",applyAiRuntimeUi);
 function cleanKey(s){ return String(s||"").replace(/[^\x21-\x7E]/g,""); }
 function inputKey(){ return cleanKey($("keyInput").value); }
 function setKey(key, scope){ geminiApiKey=cleanKey(key); geminiKeyScope=geminiApiKey?scope:""; $("keyInput").value=geminiApiKey; updateKeyStatus(); }
-function loadKey(){ let s="",p=""; try{s=sessionStorage.getItem(KEY_SESSION_SK)||"";}catch(_){} try{p=localStorage.getItem(KEY_SK)||"";}catch(_){} setKey(s||p, s?"session":(p?"permanent":"")); }
+function loadKey(){ let s="",legacy=""; try{s=sessionStorage.getItem(KEY_SESSION_SK)||"";}catch(_){} try{legacy=localStorage.getItem(KEY_SK)||"";localStorage.removeItem(KEY_SK);}catch(_){} if(!s&&legacy){try{sessionStorage.setItem(KEY_SESSION_SK,legacy);s=legacy;}catch(_){}} setKey(s,s?"session":""); }
 function useKeySession(){ const k=inputKey(); try{ if(k) sessionStorage.setItem(KEY_SESSION_SK,k); else sessionStorage.removeItem(KEY_SESSION_SK); }catch(_){} setKey(k,k?"session":""); }
 function saveKeyPermanent(){
   const k=inputKey();
-  const persist=()=>{try{if(k)localStorage.setItem(KEY_SK,k);else localStorage.removeItem(KEY_SK);}catch(_){}setKey(k,k?"permanent":"");if(k)toast("Klíč byl uložen trvale na tomto zařízení.");};
-  if(!k){persist();return;}
-  const phrase="UKLÁDÁM NA OSOBNÍM ZAŘÍZENÍ";
-  openModal("Trvalé uložení API klíče",'<p class="dialog-text">Klíč zůstane v tomto prohlížeči i po zavření, dokud ho ručně nesmažeš. Tuto volbu použij pouze na vlastním osobním zařízení.</p><label class="dialog-label" style="margin-top:14px">Pro potvrzení opiš přesně:</label><p style="font-weight:800;letter-spacing:.02em">'+phrase+'</p><input class="dialog-input" id="permanentPhrase" type="text" autocomplete="off" autofocus><div class="dialog-actions"><button type="button" class="btn ghost" id="permanentCancel">Zrušit</button><button type="button" class="btn" id="permanentConfirm">Uložit trvale</button></div>',{onMount(body,close){
-    const input=body.querySelector("#permanentPhrase");
-    const norm=(v)=>String(v||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().replace(/\s+/g," ").trim();
-    const submit=()=>{if(norm(input.value)!==norm(phrase)){toast("Věta nesouhlasí — klíč nebyl uložen trvale.");input.focus();return;}persist();close();};
-    body.querySelector("#permanentCancel").onclick=close;body.querySelector("#permanentConfirm").onclick=submit;input.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();submit();}});
-  }});
+  if(!k){clearKey();toast("Nejdřív vlož API klíč.");return;}
+  useKeySession();
+  try{localStorage.removeItem(KEY_SK);}catch(_){}
+  toast("Trvalé ukládání bylo v P1 odstraněno. Klíč platí jen do zavření prohlížeče.");
 }
 function clearKey(){ try{sessionStorage.removeItem(KEY_SESSION_SK);}catch(_){} try{localStorage.removeItem(KEY_SK);}catch(_){} setKey("",""); }
 function updateKeyStatus(){
@@ -45,8 +40,7 @@ function updateKeyStatus(){
   }
   let bCls="none",bTxt="klíč: nezadán";
   if(geminiApiKey){
-    if(geminiKeyScope==="permanent"){el.textContent="✓ Klíč uložen trvale";el.classList.add("perm");bCls="perm";bTxt="klíč: trvale";}
-    else if(geminiKeyScope==="session"){el.textContent="✓ Klíč uložen pro relaci";el.classList.add("ok");bCls="ok";bTxt="klíč: relace";}
+    if(geminiKeyScope==="session"){el.textContent="✓ Klíč uložen pro relaci";el.classList.add("ok");bCls="ok";bTxt="klíč: relace";}
     else{el.textContent="✓ Klíč zadán (neuložen)";el.classList.add("ok");bCls="ok";bTxt="klíč: jen v paměti";}
   }else el.textContent="Klíč není nastaven";
   if(badge){badge.className="key-badge "+bCls;badge.textContent=bTxt;}

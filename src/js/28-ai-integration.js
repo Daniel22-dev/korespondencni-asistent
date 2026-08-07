@@ -45,7 +45,7 @@ function ksServerAuthContext(){
 }
 GHRAB_AI.configure({
   app:{id:"correspondence",version:(typeof RELEASE!=="undefined"&&RELEASE.version)||"0.0.0"},
-  runtimeConfig:window.__GHRAB_RUNTIME_CONFIG__,
+  runtimeConfig:window.GHRAB_PLATFORM?.createAiRuntimeConfig?window.GHRAB_PLATFORM.createAiRuntimeConfig({timeoutMs:120000,maxRequestBytes:18*1024*1024,maxPartBytes:14*1024*1024,models:{economy:'gemini-3.5-flash-lite',balanced:(typeof geminiModel!=='undefined'?geminiModel:'gemini-3.6-flash'),quality:(typeof geminiModel!=='undefined'?geminiModel:'gemini-3.6-flash')}}):window.__GHRAB_RUNTIME_CONFIG__,
   operations:KS_AI_OPERATIONS,
   outputSchemas:KS_AI_OUTPUT_SCHEMAS,
   credentialProvider:async({mode})=>mode==="direct-gemini"?{apiKey:(typeof geminiApiKey!=="undefined"?geminiApiKey:""),modelOverride:(typeof geminiModel!=="undefined"?geminiModel:"")}:null,
