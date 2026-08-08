@@ -29,7 +29,8 @@
     "test:p5": "npm run qa:p5",
     "qa:runtime": "node scripts/qa-p5-runtime.mjs",
     "qa:xss": "node scripts/qa-p5-xss-sinks.mjs",
-    "qa:lock": "node scripts/qa-p5-lock.mjs"
+    "qa:lock": "node scripts/qa-p5-lock.mjs",
+    "pretest:reporter": "npm run build"
   },
   "engines": {
     "node": ">=18"
