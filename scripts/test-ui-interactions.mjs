@@ -35,6 +35,49 @@ async function waitJson(url) {
   throw new Error('Chromium remote debugging timeout.');
 }
 
+async function findPageTarget(url) {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    const targets = await response.json();
+    return targets.find(target => target.type === 'page' && target.webSocketDebuggerUrl) || null;
+  } catch {
+    return null;
+  }
+}
+
+async function waitPageTarget(listUrl, browserWebSocketDebuggerUrl) {
+  const deadline = Date.now() + 12000;
+  let createAttempts = 0;
+  let nextCreateAt = 0;
+
+  while (Date.now() < deadline) {
+    const page = await findPageTarget(listUrl);
+    if (page) return page;
+
+    // GitHub Actions can expose /json/version a little earlier than the first
+    // page target. If the launch target still has not appeared, create one via
+    // the browser-level CDP endpoint instead of dereferencing undefined. The
+    // create request is retryable too, because the browser WebSocket can itself
+    // become ready a few milliseconds after /json/version.
+    if (browserWebSocketDebuggerUrl && createAttempts < 4 && Date.now() >= nextCreateAt) {
+      createAttempts += 1;
+      nextCreateAt = Date.now() + 500;
+      let browserClient;
+      try {
+        browserClient = new Cdp(browserWebSocketDebuggerUrl);
+        await browserClient.call('Target.createTarget', { url: 'about:blank' });
+      } catch {} finally {
+        browserClient?.close();
+      }
+    }
+
+    await sleep(75);
+  }
+
+  throw new Error(`Chromium started, but no page CDP target became available within 12 s (create attempts: ${createAttempts}).`);
+}
+
 class Cdp {
   constructor(url) {
     this.ws = new WebSocket(url);
@@ -126,9 +169,9 @@ async function clickReal(id) {
 }
 
 try {
-  await waitJson(`http://127.0.0.1:${port}/json/version`);
-  const pages = await waitJson(`http://127.0.0.1:${port}/json`);
-  client = new Cdp(pages.find(page => page.type === 'page').webSocketDebuggerUrl);
+  const version = await waitJson(`http://127.0.0.1:${port}/json/version`);
+  const page = await waitPageTarget(`http://127.0.0.1:${port}/json`, version.webSocketDebuggerUrl);
+  client = new Cdp(page.webSocketDebuggerUrl);
   await client.call('Runtime.enable');
   await client.call('Page.enable');
   await client.call('Emulation.setDeviceMetricsOverride', { width: 1280, height: 900, deviceScaleFactor: 1, mobile: false, screenWidth: 1280, screenHeight: 900 });

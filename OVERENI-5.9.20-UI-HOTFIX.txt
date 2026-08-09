@@ -26,3 +26,10 @@ FINÁLNÍ OVĚŘENÍ
 
 OMEZENÍ LOKÁLNÍHO PROSTŘEDÍ
 Plná qa:p5 lokálně nedokončí qa:runtime, protože spravovaná Chromium politika v tomto prostředí blokuje všechny lokální HTTP testovací stránky. Nový UI regresní test používá hermetický Page.setDocumentContent + skutečný GHRAB unlock a tímto omezením netrpí. V GitHub Actions je qa:p5:ci nadále povinná.
+
+DODATEK PO PRVNIM GITHUB ACTIONS BEHU
+- GitHub Actions prosly platformni, quality, browser i runtime kontroly; jediny pad nastal v qa:ui pred prvnim kliknutim.
+- pricina byla race condition testu: /json/version uz odpovidal, ale /json jeste nemusel obsahovat CDP target typu page.
+- scripts/test-ui-interactions.mjs ted ceka na skutecny page target az 12 s a pri potrebe ho vytvori pres browser-level CDP Target.createTarget; vytvoreni je take opakovatelne.
+- aplikacni runtime kvuli teto CI oprave nebyl menen.
+- po oprave lokalne: qa:ui 16/16 PASS a kompletni npm test PASS.

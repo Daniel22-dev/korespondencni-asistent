@@ -1,10 +1,3 @@
-## 5.9.20 — UI hotfix (2026-08-09)
-
-- Opravena regresní blokace klikacího UI po velké platformní aktualizaci: automatická onboarding prohlídka už při běžném startu nepřekrývá aplikaci celoobrazovkovou vrstvou. Prohlídka zůstává dostupná ručně v nabídce **Další možnosti → Prohlídka aplikace**.
-- Základní shell ovládání (denní/noční režim, fullscreen, volba „Analýza příchozího e-mailu“ / „Sestavení vlastního e-mailu“ a návrat) se váže idempotentně už v rané UI vrstvě, takže pozdější chyba nemůže nechat základní tlačítka bez posluchačů.
-- Přístupový bootstrap nově ověřuje nejen existenci `unlockProtectedScripts()`, ale také skutečný počet odemčených skriptů a dosažení `ksAppReady`. Tichý částečný start s viditelným, ale inertním UI se změní na explicitní chybu startu.
-- Přidán Chromium regresní test, který zachovává skutečný `application/ghrab-protected` skript, odemyká jej skutečným GHRAB Platform helperem a provádí skutečné mouse click události přes hit-testing nad motivem, fullscreenem a oběma hlavními pracovními cestami.
-
 ## 5.9.19 — P5 (2026-08-05)
 
 

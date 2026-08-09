@@ -36,3 +36,9 @@ Nový test ověřuje:
 ## Rozsah
 
 AI Core 1.0.0, modelové prompty, anonymizace, Gemini transporty a serverová architektura nebyly změněny. Jde o UI/bootstrap hotfix a zpřísnění regresního testování.
+
+## CI stabilizace po prvním GitHub Actions běhu
+
+První běh `qa:p5:ci` potvrdil zelené platformní, quality, browser a runtime kontroly, ale nový `qa:ui` test mohl v GitHub Actions spadnout ještě před prvním kliknutím. Chromium už zpřístupnilo `/json/version`, zatímco `/json` v témže okamžiku ještě nemusel obsahovat CDP target typu `page`.
+
+Test nyní čeká až 12 sekund na skutečný `page` target a při jeho absenci jej bezpečně vytvoří přes browser-level CDP `Target.createTarget`. Vytvoření lze při krátkém startovacím závodu opakovat. Tato změna se týká pouze testovací infrastruktury; aplikační runtime 5.9.20 se nemění.
