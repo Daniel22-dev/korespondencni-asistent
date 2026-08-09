@@ -1,21 +1,21 @@
 # Korespondenční asistent
 
-**Aktuální verze:** 5.9.19  
+**Aktuální verze:** 5.9.20  
 **Platforma:** GHRAB Platform 1.1.0 · etapa P3
 
 
 Samostatná PWA aplikace ekosystému AI Studio Gymnázia Ostrava-Hrabůvka.
 
-- **Verze aplikace:** 5.9.19
+- **Verze aplikace:** 5.9.20
 - **GHRAB AI Core:** 1.0.0
 - **Doporučený repozitář:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
 - **Interaktivní manuál:** 1.3.8 (manuál 1.3.8)
 
-## Co přináší verze 5.9.19
+## Co přináší verze 5.9.20
 
-Verze 5.9.19 připojuje referenční aplikaci ke GHRAB Platform 1.1.0: používá kanonické logo a patičku, jednotný motiv, namespace `ghrab.correspondence.*`, Studio Bridge v2, artifact envelope v1 a cache `ghrab-correspondence-v5.9.19`. Funkce AI Core a opravy Gmail workflow z verze 5.9.14 zůstávají zachovány.
+Verze 5.9.20 zachovává integraci s GHRAB Platform 1.1.0 a přidává UI hotfix po platformní aktualizaci: automatická onboarding vrstva už neblokuje první kliknutí, kritické shell ovládání se váže dříve a produkční bootstrap ověřuje plný ready stav. Regresní `qa:ui` test používá skutečný GHRAB unlock a fyzické kliknutí; v CI navíc odolně čeká na Chromium CDP page target. Cache je `ghrab-correspondence-v5.9.20`. Funkce AI Core a opravy Gmail workflow z verze 5.9.14 zůstávají zachovány.
 
 ### Zachované opravy 5.9.14
 
@@ -55,7 +55,7 @@ prohlížeč
 → Gemini API
 ```
 
-Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže nasazení verze 5.9.19 samo o sobě nezapíná školní server.
+Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže nasazení verze 5.9.20 samo o sobě nezapíná školní server.
 
 ### Budoucí migrační režim
 

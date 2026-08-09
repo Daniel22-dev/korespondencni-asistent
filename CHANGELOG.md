@@ -1,3 +1,11 @@
+## 5.9.20 — UI hotfix + CI stabilizace (2026-08-09)
+
+- odstraněno automatické onboarding překrytí, které mohlo zachytit první kliknutí nad aplikací;
+- kritické shell ovládání se váže v rané vrstvě a bootstrap ověřuje plný ready stav;
+- přidán regresní Chromium test se skutečným GHRAB Platform unlockem a fyzickými kliknutími;
+- CI test nyní odolně čeká na CDP `page` target a v případě potřeby jej vytvoří přes `Target.createTarget`;
+- sjednocena release metadata 5.9.20 v README a changelogu.
+
 ## 5.9.19 — P5 (2026-08-05)
 
 
