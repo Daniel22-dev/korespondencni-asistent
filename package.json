@@ -1,8 +1,8 @@
 {
-  "name": "ghrab-korespondencni-asistent",
-  "version": "5.9.19",
+  "name": "ghrab-diferenciator",
+  "version": "1.3.12",
   "private": true,
-  "description": "Korespondenční asistent — samostatná PWA pro GitHub Pages",
+  "description": "Diferenciátor pracovních listů a testů — samostatná PWA pro GitHub Pages",
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",

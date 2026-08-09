@@ -1,17 +1,23 @@
 const GHRAB_SW_CONTRACT='ghrab-service-worker-v1';
 /* GHRAB service-worker contract v1 · update activation is user-controlled. */
-const APP_VERSION = "5.9.19";
-const CACHE_NAME = "ghrab-correspondence-v5.9.19";
-const CACHE_PREFIXES = ["ghrab-correspondence-v", "korespondencni-asistent-"];
+const APP_VERSION = "1.3.12";
+const CACHE_NAME = "ghrab-differentiator-v1.3.12";
+const CACHE_PREFIXES = ["ghrab-differentiator-v", "diferenciator-"];
 const CORE_ASSETS = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
-  "./manual/",
-  "./manual/index.html",
+  "./access/access-gate.css",
+  "./access/deployment-config.js",
+  "./access/reporter-bootstrap.js",
   "./access/error-reporter.js",
   "./access/error-reporter.css",
   "./access/error-reporter-adapter.js",
+  "./config/deployment.json",
+  "./config/deployment.school-server-p0.json",
+  "./config/deployment.school-server.example.json",
+  "./manual/",
+  "./manual/index.html",
   "./icons/icon-32.png",
   "./icons/icon-48.png",
   "./icons/icon-72.png",

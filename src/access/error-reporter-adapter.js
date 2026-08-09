@@ -1,12 +1,17 @@
 import { setupErrorReporter } from './error-reporter.js';
 
+const deployment = globalThis.__GHRAB_DEPLOYMENT_CONFIG__;
+const reporterStudioUrl = deployment?.studioBaseUrl || '/AI-Studio-GHRAB/';
+const reporterStudioBase = new URL(reporterStudioUrl, document.baseURI);
+const reporterGuideUrl = deployment?.access?.guideUrl || new URL('manualy/error-report.html', reporterStudioBase).href;
+
 const reporter = setupErrorReporter({
-  appId: 'correspondence',
-  appName: 'Korespondenční asistent',
-  appVersion: '5.9.19',
-  studioUrl: '/AI-Studio-GHRAB/',
+  appId: 'differentiator',
+  appName: 'Diferenciátor',
+  appVersion: '1.3.12',
+  studioUrl: reporterStudioUrl,
   supportEmail: 'balaz@ghrabuvka.cz',
-  guideUrl: '/AI-Studio-GHRAB/manualy/error-report.html',
+  guideUrl: reporterGuideUrl,
   themeResolver: () => document.body.classList.contains('dark') ? 'dark' : 'light',
   launcherBottom: '82px',
   captureBottom: '104px',

@@ -3,502 +3,334 @@
 
   <header>
     <div class="toprow">
-      <div class="toprow-left">
-        <div class="school-brand-lockup">
-          <div class="school-logo-box">
-            <img class="school-logo" id="schoolLogo" src="./assets/brand/school-logo.png" alt="Logo Gymnázia, Ostrava-Hrabůvka">
-          </div>
-          <div class="school-name">GYMNÁZIUM, OSTRAVA-HRABŮVKA</div>
+      <div class="school-brand-lockup">
+        <div class="logo-badge">
+          <img class="school-logo" id="schoolLogo" alt="Logo Gymnázia, Ostrava-Hrabůvka" src="./assets/brand/school-logo.png" />
+        </div>
+        <div class="school-name">GYMNÁZIUM, OSTRAVA-HRABŮVKA</div>
+      </div>
+      <div class="top-actions" aria-label="Horní ovládání aplikace">
+        <div class="top-icon-row" aria-label="Režim zobrazení">
+          <button class="theme-toggle" id="themeToggle" type="button" aria-label="Přepnout denní/noční režim" title="Denní / noční režim">🌙</button>
+          <button class="icon-btn fullscreen-toggle" id="fullscreenToggle" type="button" aria-label="Zapnout režim celé obrazovky" title="Celá obrazovka">⛶</button>
+          <a class="icon-btn manual-launch-btn" id="manualLaunch" href="./manual/" target="_self" aria-label="Otevřít interaktivní manuál celé aplikace" title="Interaktivní manuál celé aplikace">📖</a>
+          <button class="icon-btn help-top-btn" id="helpTopBtn" type="button" aria-label="Otev&#345;&#237;t n&#225;pov&#283;du" title="Jak to funguje">?</button>
         </div>
       </div>
-      <div style="display:flex;gap:8px;flex:0 0 auto">
-        <button class="icon-btn" id="btnMode" aria-label="Přepnout denní a noční režim" title="Denní / noční režim">🌙</button>
-        <a class="icon-btn manual-launch-btn" id="btnManual" href="./manual/" target="_blank" rel="noopener" aria-label="Otevřít interaktivní manuál celé aplikace" title="Interaktivní manuál celé aplikace">📖</a>
-        <button class="icon-btn" id="btnFs" aria-label="Přepnout zobrazení na celou obrazovku" title="Celá obrazovka">⛶</button>
-      </div>
     </div>
-
-    <h1>Korespondenční asistent</h1>
-    <p class="lede"><b>Pomůže skrýt citlivé údaje před odesláním k modelu.</b> Rozbor a odpověď, nebo oprava, přepis a sestavení tvého textu — vždy s povinnou kontrolou náhledu. Před každým odesláním ověř, že v textu nezůstala skutečná jména ani jiné citlivé údaje.</p>
-
-    <div class="ui-mode-row" aria-label="Režim rozhraní">
-      <span class="ui-mode-label">Režim:</span>
-      <button class="ui-mode-btn" id="uiSimple" type="button" data-ui-mode="simple">Jednoduchý</button>
-      <button class="ui-mode-btn" id="uiAdvanced" type="button" data-ui-mode="advanced">Pokročilý</button>
-      <div class="ui-mode-explain" id="uiModeExplain">
-        <span class="mode-note"><b>Jednoduchý</b> = minimum voleb</span>
-        <span class="mode-note"><b>Pokročilý</b> = tón, délka, jazyk, šablony</span>
-      </div>
-    </div>
-    <div class="progress-strip" id="appProgress" aria-label="Postup práce">
-      <span class="progress-step is-current" data-step="1"><span class="pn">1</span><span class="pt">Vložit text</span></span>
-      <span class="progress-step" data-step="2"><span class="pn">2</span><span class="pt">Anonymizovat</span></span>
-      <span class="progress-step" data-step="3"><span class="pn">3</span><span class="pt">Ověřit náhled</span></span>
-      <span class="progress-step" data-step="4"><span class="pn">4</span><span class="pt">Vytvořit výstup</span></span>
-    </div>
-
-    <div class="api-toggle-row">
-      <button class="api-toggle" id="apiToggle" aria-expanded="false" aria-controls="apiPanel">Připojení k AI ▾</button>
-      <span class="key-badge none" id="keyBadge">klíč: nezadán</span>
-    </div>
-    <div class="api" id="apiPanel">
-      <div class="api-head">
-        <span class="api-title" id="apiTitle">⚡ Generování přes Gemini</span>
-        <span class="api-status" id="keyStatus">Klíč není nastaven</span>
-      </div>
-      <div class="school-ai-status" id="schoolGatewayStatus" hidden>
-        <strong>Režim školní AI služby</strong>
-        <span>Generování zajišťuje školní server. Přístupové údaje k modelu nejsou uloženy v prohlížeči ani v této aplikaci. Odesílá se pouze zkontrolovaný anonymizovaný obsah.</span>
-      </div>
-      <div id="directGeminiSettings">
-      <input id="keyInput" type="password" placeholder="Gemini API klíč (AIza…)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" title="Klíč se posílá jen Googlu. Nikdy ho nevkládej do HTML na GitHubu.">
-      <div class="key-actions">
-        <button class="btn small" id="btnSession" title="Klíč se po zavření prohlížeče sám zapomene — nejbezpečnější, vhodné i na sdíleném počítači.">Použít jen pro relaci</button>
-        <button class="btn ghost small" id="btnClear" title="Odstraní klíč z relace a smaže případnou starou kopii.">Smazat klíč</button>
-      </div>
-      <details class="advanced-only"><summary>Pokročilé · bezpečné uložení</summary><div class="key-actions"><button class="btn ghost small" id="btnPermanent" title="Kompatibilní volba; klíč se uloží pouze pro relaci.">Uložit bezpečně pro relaci</button></div><p class="hint">P1 nepovoluje trvalé ukládání klíče poskytovatele. Po zavření prohlížeče se klíč zapomene.</p></details>
-      <p class="hint"><strong>Relace</strong> = klíč se po zavření prohlížeče sám zapomene. API klíč: <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">aistudio.google.com</a> → Get API key.</p>
-
-      <div class="model-row advanced-only">
-        <label for="modelInput" title="Měň jen když generování přestane fungovat s chybou o modelu.">Model</label>
-        <input id="modelInput" type="text" placeholder="gemini-3.6-flash" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-        <div class="model-quick">
-          <button class="qm" id="qmLite" title="Nejnižší spotřeba. Pro jednoduché jazykové úkoly.">◇ Úsporný<span class="sub">gemini-3.5-flash-lite</span></button>
-          <button class="qm" id="qmStrong" title="Vyvážená rychlost a kvalita. Výchozí volba.">⚡ Doporučený<span class="sub">gemini-3.6-flash</span></button>
-          <button class="qm" id="qmQuality" title="Důkladnější model pro náročnější rozbor a formulace.">★ Důkladný<span class="sub">gemini-3.5-flash</span></button>
-        </div>
-        <p class="hint"><strong>Serverless režim:</strong> používá tvůj Gemini API klíč přímo v prohlížeči. Při nedostupnosti zvoleného modelu se jednou zkusí úsporný model.</p>
-        <details class="model-terms"><summary>Fakturace a práce s daty</summary><p class="hint">Pro aplikaci zpřístupněnou uživatelům v ČR/EHP používej projekt s aktivní fakturací, i když může být část provozu pokryta bezplatnou kvótou. Do AI vždy posílej pouze ručně zkontrolovaný anonymizovaný náhled.</p></details>
-      </div>
-      </div>
-
-      <div class="model-row advanced-only">
-        <label title="V jakém jazyce má model napsat výsledek. Rozbor zůstává česky.">Jazyk výstupu</label>
-        <div class="chips" data-group="outlang">
-          <button class="chip on" data-v="cs">Čeština</button>
-          <button class="chip" data-v="en">Angličtina</button>
-          <button class="chip" data-v="es">Španělština</button>
+    <div class="brand">
+      <div>
+        <h1>Diferenciátor pracovních listů a testů</h1>
+        <p class="tag">Z jednoho zadání vyrobí diferencované verze pracovního listu nebo testu pro slabší i nadané žáky. Pro každý předmět.</p>
+        <div class="hero-chips" aria-label="Hlavní vlastnosti aplikace">
+          <span class="hero-chip">🌍 libovolný jazyk</span>
+          <span class="hero-chip">📚 všechny předměty</span>
+          <span class="hero-chip">🖼️ více fotek</span>
+          <span class="hero-chip">📄 stáhnout PDF</span>
         </div>
       </div>
     </div>
   </header>
 
-  <section class="teacher-desk start-screen" id="teacherDesk" aria-labelledby="teacherDeskTitle">
-    <div class="teacher-desk-head">
+
+  <div class="statusbar" aria-label="Stav aplikace">
+    <div class="status-pill warn" id="statusKey"><span class="k">API klíč</span><span class="v">nenastaven</span></div>
+    <div class="status-pill" id="statusModel"><span class="k">Model</span><span class="v">Flash</span></div>
+    <div class="status-pill" id="statusInput"><span class="k">Vstup</span><span class="v">čeká na zadání</span></div>
+    <div class="status-pill" id="statusFlow"><span class="k">Průběh</span><span class="v">připraveno</span></div>
+  </div>
+
+  <section class="test-panel" id="testPanel" aria-label="Interní testovací režim">
+    <div class="test-head">
       <div>
-        <p class="eyebrow">Začni výběrem úkolu</p>
-        <h2 id="teacherDeskTitle">Co chceš dnes vyřídit?</h2>
-        <p>Vyber jednu ze dvou hlavních cest. Školní situace je zkratka uvnitř sestavení vlastního e-mailu, nikoli samostatný režim.</p>
+        <h2>🧪 Interní testovací nástroj</h2>
+        <p>Samostatná interní kontrola aplikace. Testy běží bez API klíče a nepracují s běžným zadáním.</p>
+      </div>
+      <div class="test-tools">
+        <span class="version-badge">testy</span>
+        <button class="btn ghost small" id="hideTestPanel" type="button">Skrýt</button>
       </div>
     </div>
-    <div class="desk-actions start-actions" id="deskActions" aria-label="Volba pracovního postupu">
-      <button class="desk-action start-card" id="tabIn" type="button" data-start="in" aria-controls="pane-in" aria-pressed="false" title="Rozebrat přijatý e-mail a připravit odpověď">
-        <span class="desk-action-icon">🔎</span><span><b>Analýza příchozího e-mailu</b><small>Vlož přijatou zprávu, bezpečně ji anonymizuj, nech ji rozebrat a vytvoř odpověď.</small></span>
-      </button>
-      <button class="desk-action start-card" id="tabMy" type="button" data-start="my" aria-controls="pane-my" aria-pressed="false" title="Opravit, přepsat nebo sestavit vlastní e-mail">
-        <span class="desk-action-icon">✍️</span><span><b>Sestavení vlastního e-mailu</b><small>Oprav koncept, přepiš jej do vhodného tónu nebo sestav nový e-mail z bodů.</small></span>
-      </button>
+    <div class="test-actions">
+      <button class="btn small main-test" id="runAllTests">Spustit testy</button>
+      <button class="btn ghost small secondary-test" id="clearTestResults">Vyčistit výpis</button>
     </div>
-    <details class="desk-secondary" id="deskSecondary">
-      <summary>Rozpracované a často používané úkoly</summary>
-      <div class="desk-lower" id="deskLower">
-        <div class="desk-section">
-          <div class="desk-section-head"><b>Nejčastější situace</b><button class="link-btn" id="openScenarioLibrary" type="button">Všechny scénáře</button></div>
-          <div class="quick-scenarios" id="quickScenarios" aria-label="Rychlé školní situace"></div>
-        </div>
-        <div class="desk-section compact">
-          <div class="desk-section-head"><b>Rozpracované a navazující úkoly</b><button class="link-btn" id="openFollowups" type="button">Spravovat</button></div>
-          <div class="desk-status" id="deskStatus">Zatím žádný uložený koncept ani připomínka.</div>
-        </div>
+    <div class="test-results" id="testResults"></div>
+    <div class="test-log" id="testLog"></div>
+  </section>
+
+  <main class="app-shell">
+    <div class="main-flow">
+  <div class="flow-label setup"><span>Jednor&aacute;zov&eacute; nastaven&iacute;</span></div>
+  <section class="panel api-step-panel" id="apiStepPanel">
+    <p class="step"><b>1</b> Vlož API klíč <span class="step-role tech">Technické nastavení</span></p>
+    <p class="api-step-lede">Klíč je potřeba pro tvorbu verzí, řešení a kontrolu kvality. Nastavení je schované, aby hlavní práce se zadáním zůstala nahoře přehledná.</p>
+    <button class="api-toggle" id="apiToggle">Nastavit / změnit API klíč ▾</button>
+    <div class="api" id="apiPanel">
+      <div class="api-head">
+        <span class="api-title">⚡ Generování přes Gemini</span>
+        <span class="api-status" id="keyStatus">Klíč není nastaven</span>
       </div>
+      <label class="sr-only" for="keyInput">Gemini API klíč</label>
+      <input id="keyInput" type="password" placeholder="Gemini API klíč (AIza…)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" title="Klíč se posílá jen Googlu. Nikdy ho nevkládej do HTML na GitHubu." />
+      <div class="key-actions">
+        <button class="btn small" id="btnSession" title="Klíč se po zavření prohlížeče sám zapomene.">Použít jen pro relaci</button>
+        <button class="btn ghost small" id="btnClear" title="Odstraní klíč z relace a smaže případnou starou kopii.">Smazat klíč</button>
+      </div>
+      <details><summary>Pokročilé · kompatibilita P1</summary><div class="key-actions"><button class="btn ghost small" id="btnPermanent" title="Kompatibilní tlačítko; klíč se uloží pouze pro relaci.">Uložit bezpečně pro relaci</button></div><p class="hint">Trvalé ukládání klíče poskytovatele bylo odstraněno. Na školním serveru se klíč do prohlížeče vůbec neposílá.</p></details>
+      <p class="hint"><b>Relace</b> = klíč se po zavření prohlížeče sám zapomene. Každý kolega používá vlastní osobní API klíč; klíče se nesdílejí a nikdy se nevkládají do HTML na GitHubu. API klíč: <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">aistudio.google.com</a> → Get API key.</p>
+
+      <div class="model-row">
+        <label>Model</label>
+        <div class="model-quick">
+          <button class="qm" id="qmStrong" title="Silnější model — lepší práce s obsahem, jazykem a odborným zápisem. Doporučeno.">⚡ Flash<span class="sub">gemini-3.6-flash</span></button>
+          <button class="qm" id="qmLite" title="Rychlejší a šetrnější k limitu. Pro jednoduché úkoly.">🪶 Flash-Lite<span class="sub">gemini-3.5-flash-lite</span></button>
+        </div>
+        <p class="hint">Při vyčerpání kvóty se postupně zkusí všechny záložní modely. <strong>Podmínky práce s daty se liší podle regionu a fakturace.</strong> U neplacených služeb mimo EHP, Švýcarsko a Spojené království může Google odeslaný obsah a odpovědi použít ke zlepšování produktů a mohou je kontrolovat lidští hodnotitelé. V EHP, Švýcarsku a Spojeném království se podle aktuálních podmínek na data vztahují pravidla placených služeb i u neplacené kvóty; aplikace zpřístupněná uživatelům v těchto regionech má používat projekt s aktivní fakturací. Vždy posílej materiály bez jmen a osobních či citlivých údajů žáků.</p>
+      </div>
+    </div>
+
+  </section>
+
+  <div class="flow-label work"><span>Pr&aacute;ce s materi&aacute;lem</span></div>
+  <section class="panel pedagogical-panel" id="inputPanel">
+    <p class="step"><b>2</b> Nahraj zadání <span class="step-role ped">Pedagogický materiál</span></p>
+
+    <div class="drop" id="drop" tabindex="0" role="button" aria-label="Nahrát soubor nebo vyfotit" style="margin-top:14px">
+      <div class="ico">📄</div>
+      <div class="big">Vyfoť, nahraj nebo přetáhni</div>
+      <div class="sub">více fotek · PDF · obrázek/sken · Word (.docx) · PowerPoint (.pptx) · Excel (.xlsx) · text/CSV/HTML</div>
+    </div>
+    <div class="input-formats" aria-label="Podporované vstupy">
+      <span class="format-chip">fotky</span><span class="format-chip">PDF</span><span class="format-chip">DOCX</span><span class="format-chip">PPTX</span><span class="format-chip">XLSX</span><span class="format-chip">CSV/TSV</span><span class="format-chip">HTML/JSON</span>
+    </div>
+    <p class="formats-compact">Podporuje fotky, PDF, Office soubory, text, CSV a HTML.</p>
+    <p class="file-format-note"><b>Office soubory:</b> aplikace čte textovou vrstvu z DOCX/PPTX/XLSX. Po načtení vždy zkontroluj pořadí textu, tabulky, textová pole, vzorce a prvky vložené jako obrázek.</p>
+    <input id="file" type="file" multiple accept="image/*,application/pdf,.docx,.pptx,.xlsx,.txt,.rtf,.md,.csv,.tsv,.html,.htm,.json" class="hide" />
+    <div class="filechip" id="filechip"><span id="filename"></span><button class="x" id="filex" aria-label="Odebrat">✕</button></div>
+    <div class="thumb" id="thumb"><img id="thumbImg" alt="Náhled nahraného zadání" /></div>
+    <div class="upload-status" id="uploadInfo"></div>
+    <div class="or">nebo</div>
+    <label class="paste-label" for="pasteText">Vložený text zadání <span class="tip" tabindex="0" role="button" aria-expanded="false" data-tip="Sem vlož text testu, pracovního listu, data z tabulky nebo export z jiné aplikace. Po načtení ho ještě zkontroluješ v dalším kroku.">?</span></label>
+    <p class="input-helper">Vlož sem text, pokud nechceš nahrávat soubor. Po kliknutí na „Načíst zadání“ vznikne editovatelný přepis.</p>
+    <textarea id="pasteText" placeholder="Vlož text zadání, data z tabulky, HTML export nebo text z interaktivního testu"></textarea>
+    <div class="privacy-note"><b>Upozornění:</b> běžně vkládej čistý originální test nebo pracovní list. Pokud by materiál náhodou obsahoval jména či citlivé údaje studentů, před nahráním je anonymizuj.</div>
+    <div style="margin-top:14px"><button class="btn" id="extractBtn" title="Ručně vložený text se načte lokálně zdarma. Nahraný soubor přepisuje model a stojí 1 dotaz.">Načíst zadání <span class="zap-cost">⚡ 0–1</span></button></div>
+    <div id="inputErr"></div>
+
+  </section>
+
+  <section class="panel pedagogical-panel hide" id="configPanel">
+    <p class="step"><b>3</b> Zkontroluj zadání a vyber stupně <span class="step-role ped">Pedagogické nastavení</span></p>
+    <label for="baseText">Načtené zadání
+      <span class="tip" tabindex="0" role="button" aria-expanded="false" data-tip="Tohle je přepis z fotky/PDF/dokumentu. Klidně ho oprav – z opraveného textu se pak dělají všechny verze.">?</span>
+    </label>
+    <textarea id="baseText" style="min-height:150px;font-family:var(--serif)"></textarea>
+    <div class="row" style="margin-top:14px">
+      <div class="field"><label for="subject">Předmět</label>
+        <input id="subject" type="text" placeholder="např. Dějepis, Chemie, Matematika, Angličtina, Hudební výchova" /></div>
+    </div>
+    <label class="toggle" style="margin-top:8px">
+      <input type="checkbox" id="cefr" /> Zapnout CEFR odhad jen u jazykového předmětu <span class="zap-cost">⚡ 1</span>
+      <span class="tip" tabindex="0" role="button" aria-expanded="false" data-tip="Zapni u angličtiny, španělštiny a dalších jazyků. Appka odhadne aktuální úroveň A1–C2 a odvodí sousední stupně. U nejazykových předmětů nech vypnuté, ať se nespouští zbytečný dotaz na model.">?</span>
+    </label>
+    <div class="cefr-note" id="cefrNote">CEFR je vypnutý. Zapni ho jen tehdy, když jde o jazykový materiál.</div>
+    <button class="btn ghost small hide" id="cefrRunBtn" type="button" title="Spustí odhad úrovně A1–C2 pro aktuálně načtené zadání.">Odhadnout CEFR úroveň <span class="zap-cost">⚡ 1</span></button>
+    <label class="toggle cefr-force-toggle">
+      <input type="checkbox" id="cefrForce" /> Vynutit CEFR i u nerozpoznaného jazykového předmětu
+      <span class="tip" tabindex="0" role="button" aria-expanded="false" data-tip="Použij jen tehdy, když jde opravdu o jazykový materiál, ale aplikace název předmětu nerozpoznala. Například školní zkratka, seminář nebo kombinovaný název.">?</span>
+    </label>
+    <p class="muted" style="margin:7px 0 0">U jazyků můžeš použít CEFR. U ostatních předmětů jde jen o úroveň obtížnosti.</p>
+
+    <div class="advanced-teaser"><b>Chceš přesnější výstup?</b> Volitelně doplň cílovou skupinu, čas, typ nové varianty, míru zachování struktury nebo vlastní pokyn učitele.</div>
+    <details class="advanced-settings emphasized" id="advancedSettings">
+      <summary><span class="summary-main">Pedagogické zpřesnění</span><span class="summary-sub">volitelné, ale doporučené pro přesnější diferenciaci</span></summary>
+      <div class="advanced-grid">
+        <div class="field"><label for="advTargetGroup">Cílová skupina</label><input id="advTargetGroup" type="text" placeholder="např. 2. ročník, slabší skupina, nadaní žáci" /></div>
+        <div class="field"><label for="advWorkTime">Čas na vypracování</label><input id="advWorkTime" type="text" placeholder="např. 10 minut, 25 minut" /></div>
+        <div class="field wide"><label for="advLearningGoal">Výukový cíl / očekávaný výstup</label><input id="advLearningGoal" type="text" placeholder="např. žák rozliší příčiny a důsledky a své rozhodnutí zdůvodní" /></div>
+        <div class="field wide"><label for="advVariantMode">Co se má v nové verzi změnit?</label><select id="advVariantMode"><option value="auto">Automaticky podle vybrané úrovně</option><option value="same_content_diff_difficulty">Stejný obsah, jiná obtížnost</option><option value="same_format_new_content">Stejný formát, jiný obsah</option><option value="same_content_same_format">Stejný obsah i formát, jen jemně upravit oporu/jazyk</option><option value="same_goal_flexible">Stejný výukový cíl, volnější nová varianta</option></select></div>
+        <div class="field"><label for="advStructureMode">Zachování struktury</label><select id="advStructureMode"><option value="auto">Automaticky podle úrovně</option><option value="strict">Co nejpřesněji zachovat původní strukturu</option><option value="flexible">Může upravit strukturu, pokud to pomůže diferenciaci</option></select></div>
+        <div class="field"><label for="advSupportType">Typ podpory / výzvy</label><input id="advSupportType" type="text" placeholder="např. slovní banka, nápověda, argumentace navíc" /></div>
+        <div class="field wide"><label for="advTeacherInstruction">Vlastní pokyn učitele</label><textarea id="advTeacherInstruction" placeholder="Volitelné: napiš vlastní požadavek, který má model při tvorbě dodržet."></textarea></div>
+      </div>
+      <p class="advanced-hint">Tato část je volitelná. Výchozí automatika ponechává aplikaci univerzální: u Normální verze typicky vytvoří paralelní variantu se stejnou obtížností, u Jednodušší/Obtížnější verze více drží původní obsah a mění míru opory nebo výzvy.</p>
     </details>
-  </section>
-
-  <div class="workspace-shell" id="workspaceShell" hidden>
-    <nav class="workspace-nav" id="workspaceNav" aria-label="Pracovní postup">
-      <button type="button" data-jump="source" class="is-current"><span>1</span>Zdroj</button>
-      <button type="button" data-jump="privacy"><span>2</span>Anonymizace</button>
-      <button type="button" data-jump="analysis"><span>3</span>Rozbor</button>
-      <button type="button" data-jump="draft"><span>4</span>Odpověď</button>
-      <button type="button" data-jump="check"><span>5</span>Kontrola</button>
-    </nav>
-    <main class="workspace-main">
-      <div class="workspace-context-bar">
-        <button class="btn ghost small" id="backToStart" type="button"><span class="action-icon">←</span>Změnit typ úkolu</button>
-        <span id="workspaceContext">Pracovní prostředí</span>
-      </div>
-
-  <!-- ================= PŘÍCHOZÍ ================= -->
-  <section class="tabpane active" id="pane-in" aria-label="Analýza příchozího e-mailu">
-    <p class="zone-label desk-zone"><span class="dot"></span>Tvůj stůl · vše zůstává tady <span class="free">zdarma, lokálně</span></p>
-
-    <section class="step">
-      <div class="card">
-        <div class="step-head"><span class="step-no">1</span><span class="step-title">Přijatý e-mail</span></div>
-        <textarea id="in_raw" placeholder="Sem vlož celou přijatou zprávu — nebo nahraj stažený e-mail (.eml z Gmailu, .txt, .html)…"></textarea>
-        <div class="row">
-          <button class="btn primary" id="in_anonBtn" title="Lokálně nahradí jména, e-maily a telefony značkami. Neodesílá nikam."><span class="action-icon">🔒</span>Anonymizovat a zkontrolovat<span class="free" style="color:#fff;opacity:.8">zdarma</span></button>
-          <button class="btn ghost small" id="in_fileBtn" title="Načte tělo zprávy ze staženého souboru (.eml/.txt/.html). Vše zůstává v prohlížeči."><span class="action-icon">📎</span>Nahrát soubor</button>
-          <input type="file" id="in_file" aria-label="Nahrát přijatý e-mail ze souboru" accept=".eml,.txt,.html,.htm,message/rfc822,text/plain,text/html" style="display:none">
-          <span class="empty">Sama skryje e-maily a telefony. Jména a další citlivé údaje zkontroluj ťuknutím a podle semaforu níže.</span>
-        </div>
-      </div>
-
-      <div id="in_step2" class="privacy-stage" hidden>
-        <div class="privacy-stage-head">
-          <p class="eyebrow">Bezpečnostní příprava · vše v jednom kroku</p>
-          <h2>Zkontroluj anonymizovaný text před odesláním</h2>
-          <p>E-maily a telefony aplikace skryje automaticky. V jednom velkém poli označíš jména a vlastní názvy a zároveň vidíš hlavní anonymizovaný obsah. Před odesláním aplikace zkontroluje i poznámku, volby a celý sestavený prompt.</p>
-        </div>
-        <div class="card privacy-local-panel">
-          <div class="step-head"><span class="step-no">2</span><span class="step-title">Anonymizace a hlavní obsah pro AI model</span></div>
-          <p class="tap-hint">Klikni přímo na slovo nebo označ více slov. V pevném panelu napravo zvolíš osobu, instituci, místo, název / dílo, kontakt, jiný citlivý údaj nebo ponechání. Bezpečné zbývající návrhy lze po přečtení ponechat hromadně. Žlutá značka už je anonymizovaná; kliknutím ji znovu odkryješ.</p>
-          <div class="privacy-warning" role="alert"><strong>Před odesláním pročti celý text.</strong><span>Ověř, že neobsahuje skutečná jména, kontakty ani jiné osobní nebo citlivé údaje. Zobrazený text je hlavní částí zadání. Před API se znovu prověří také poznámka, zvolené parametry a celý sestavený prompt.</span></div>
-          <div class="tap-cue"><span class="arrow action-icon" data-ic="down" aria-hidden="true"></span><span>Klikni na výraz v textu, kategorii zvol napravo a potom text ještě jednou celý přečti.</span></div>
-          <div class="unified-review-grid">
-            <div class="unified-text-column">
-              <div class="final-content-label"><strong>Hlavní anonymizovaný obsah</strong><span>Před odesláním se k němu přidají pouze bezpečně zkontrolované volby a poznámka.</span></div>
-              <div class="tapview final-outgoing-text" id="in_view"></div>
-            </div>
-            <aside class="suggestion-panel" id="in_suggestionPanel" aria-live="polite"></aside>
-          </div>
-          <p class="post-anon-note">Hlavní úkol: skryj skutečné identifikátory, ostatní návrhy vyřeš jednotlivě nebo hromadně a pročti celý odesílaný text. <small>Tabulka náhrad zůstává sbalená níže pro případ ruční opravy.</small></p>
-          <details class="key-details" id="in_keyDetails">
-            <summary><span><span class="kd-title">Klíč náhrad — zůstává jen u tebe</span><span class="kd-sub" id="in_keySummaryLine">Zatím bez náhrad.</span></span></summary>
-            <div class="key-details-body">
-              <p class="keyhead" title="Dvojice „skutečné jméno → značka“. Zůstává jen u tebe, k modelu se neposílá.">Upravit, co je která značka</p>
-              <table class="keytab"><thead><tr><th style="width:46%">Skutečné jméno / údaj</th><th style="width:46%">Značka</th><th></th></tr></thead><tbody id="in_keyBody"></tbody></table>
-              <p class="key-empty" id="in_keyEmpty" style="display:none">Zatím prázdné — přidej, co automatika nenašla.</p>
-              <div class="row">
-                <button class="btn ghost small" id="in_addRow"><span class="action-icon">➕</span>Přidat náhradu</button>
-                <button class="btn ghost small" id="in_reAnon" title="Znovu použije klíč na původní text."><span class="action-icon">🔁</span>Anonymizovat znovu</button>
-                <button class="btn ghost small" id="in_remember" title="Uloží skutečná jména do tohoto prohlížeče. Pouze na vlastním zabezpečeném zařízení; aplikace si vyžádá potvrzení."><span class="action-icon">💾</span>Zapamatovat jména na osobním zařízení</button>
-              </div>
-            </div>
-          </details>
-        </div>
-
-        <div class="threshold privacy-outgoing-panel">
-          <span class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Finální kontrola před odesláním</span>
-          <div class="outside-wrap">
-            <p class="safe-local-label"><strong>Bezpečnostní výsledek.</strong> Semafor níže kontroluje stejné hlavní pole výše; nevytváří druhou kopii textu.</p>
-            <div class="safety" id="in_safety">Semafor anonymizace se zobrazí po vložení textu.</div>
-            <div class="safe-fallback" id="in_safeFallback" aria-live="polite"></div>
-            <div class="preview-summary" id="in_previewSummary" aria-live="polite"></div>
-            <label class="review-check"><input type="checkbox" id="in_reviewOk" aria-label="Potvrzuji kontrolu anonymizace přijatého e-mailu"><span><strong>Zkontrolováno.</strong> Pročetl(a) jsem celý přesný obsah pro AI model, vyřešil(a) návrhy jednotlivě nebo vědomě hromadně a nevidím v něm skutečná jména, kontakty ani jiné citlivé údaje.</span></label>
-            <button class="manual-context-link" type="button" data-open-safety-rules aria-label="Otevřít pravidla bezpečné práce s údaji bez opuštění aplikace">📖 Nejste si jistí? Otevřít pravidla bezpečné práce s údaji</button>
-            <p class="gate-reason" id="in_gateReason" aria-live="polite"></p>
-            <div class="row actsticky">
-              <button class="btn primary" id="in_analyzeBtn" title="Odešle očištěný text aktivní AI službě a vrátí rozbor." disabled><span class="action-icon">🔎</span>Rozebrat <span class="req">1 ⚡</span></button>
-            </div>
-            <div id="in_apiState"></div>
-          </div>
-        </div>
-      </div>
-    </section>
-    <div id="in_results"></div>
-  </section>
-
-  <!-- ================= MŮJ E-MAIL ================= -->
-  <section class="tabpane" id="pane-my" aria-label="Sestavení vlastního e-mailu">
-    <p class="zone-label desk-zone"><span class="dot"></span>Tvůj stůl · vše zůstává tady <span class="free">zdarma, lokálně</span></p>
-
-    <section class="step">
-      <div class="card">
-        <div class="step-head"><span class="step-no">1</span><span class="step-title">Tvůj koncept</span></div>
-        <div class="compose-entry" aria-labelledby="composeEntryTitle">
-          <div class="compose-entry-head">
-            <div><b id="composeEntryTitle">Jak chceš začít?</b><small>Obě možnosti vedou do stejného sestavení e-mailu.</small></div>
-            <button class="help-tip" type="button" aria-label="Nápověda k výběru začátku" data-tip="Vlastní zadání nechá všechny volby na tobě. Školní situace pouze přednastaví adresáta, účel, tón a další parametry; výsledek můžeš dál upravit.">i</button>
-          </div>
-          <div class="compose-entry-actions">
-            <button class="compose-entry-card is-default" id="my_startOwn" type="button"><span>✍️</span><b>Vlastní zadání</b><small>Napíšu koncept, hotový text nebo několik bodů.</small></button>
-            <button class="compose-entry-card" id="my_startScenario" type="button"><span>⚡</span><b>Vybrat školní situaci</b><small>Aplikace přednastaví vhodné volby a ukáže, co změnila.</small></button>
-          </div>
-        </div>
-        <div class="scenario-applied" id="my_scenarioApplied" hidden aria-live="polite"></div>
-        <div class="profile-context-card profile-context-early" id="my_profileContext" aria-live="polite">
-          <div class="profile-context-copy">
-            <span class="profile-context-kicker">Pracovní profil a způsob psaní</span>
-            <strong id="my_profileContextTitle">Zatím není vyplněný</strong>
-            <p id="my_profileContextText">Doplň pracovní kontext, gramatický rod a svůj dlouhodobý způsob psaní. Tón a délku konkrétní zprávy budeš dál volit samostatně.</p>
-          </div>
-          <div class="profile-context-actions"><button class="help-tip" type="button" aria-label="Nápověda k pracovnímu profilu a způsobu psaní" data-tip="Pracovní kontext a způsob psaní se uloží jen v tomto prohlížeči. Jméno se modelu neposílá; slouží pouze pro místní podpis. Konkrétní tón, délka a účel zprávy mají vždy přednost před dlouhodobým stylem.">i</button><button class="btn ghost small" id="my_profileOpen" type="button">Upravit profil</button></div>
-        </div>
-        <textarea id="my_raw" placeholder="Vlož svůj koncept k opravě či přepisu — nebo jen body (odrážky), ze kterých mám e-mail sestavit. Můžeš i nahrát soubor (.eml/.txt/.html)…"></textarea>
-        <div class="row">
-          <button class="btn primary" id="my_anonBtn" title="Skryje e-maily a telefony a pustí tě dál. Jména skryješ ťuknutím, pokud je potřeba."><span class="action-icon">🔒</span>Anonymizovat a zkontrolovat</button>
-          <button class="btn ghost small" id="my_fileBtn" title="Načte text ze staženého souboru (.eml/.txt/.html)."><span class="action-icon">📎</span>Nahrát soubor</button>
-          <input type="file" id="my_file" aria-label="Nahrát vlastní rozepsaný e-mail ze souboru" accept=".eml,.txt,.html,.htm,message/rfc822,text/plain,text/html" style="display:none">
-          <span class="empty">Stejná pojistka jako u příchozí — e-maily a telefony skryje sama, jména a citlivé údaje zkontroluj před odesláním.</span>
-        </div>
-      </div>
-
-      <div id="my_step2" class="privacy-stage" hidden>
-        <div class="privacy-stage-head">
-          <p class="eyebrow">Bezpečnostní příprava · vše v jednom kroku</p>
-          <h2>Zkontroluj anonymizovaný text před odesláním</h2>
-          <p>E-maily a telefony aplikace skryje automaticky. V jednom velkém poli označíš jména a vlastní názvy a zároveň vidíš hlavní anonymizovaný obsah. Před odesláním aplikace zkontroluje i poznámku, volby a celý sestavený prompt.</p>
-        </div>
-        <div class="card privacy-local-panel">
-          <div class="step-head"><span class="step-no">2</span><span class="step-title">Anonymizace a hlavní obsah pro AI model</span></div>
-          <p class="tap-hint">Klikni přímo na slovo nebo označ více slov. V pevném panelu napravo zvolíš osobu, instituci, místo, název / dílo, kontakt, jiný citlivý údaj nebo ponechání. Bezpečné zbývající návrhy lze po přečtení ponechat hromadně. Žlutá značka už je anonymizovaná; kliknutím ji znovu odkryješ.</p>
-          <div class="privacy-warning" role="alert"><strong>Před odesláním pročti celý text.</strong><span>Ověř, že neobsahuje skutečná jména, kontakty ani jiné osobní nebo citlivé údaje. Zobrazený text je hlavní částí zadání. Před API se znovu prověří také poznámka, zvolené parametry a celý sestavený prompt.</span></div>
-          <div class="tap-cue"><span class="arrow action-icon" data-ic="down" aria-hidden="true"></span><span>Klikni na výraz v textu, kategorii zvol napravo a potom text ještě jednou celý přečti.</span></div>
-          <div class="unified-review-grid">
-            <div class="unified-text-column">
-              <div class="final-content-label"><strong>Hlavní anonymizovaný obsah</strong><span>Před odesláním se k němu přidají pouze bezpečně zkontrolované volby a poznámka.</span></div>
-              <div class="tapview final-outgoing-text" id="my_view"></div>
-            </div>
-            <aside class="suggestion-panel" id="my_suggestionPanel" aria-live="polite"></aside>
-          </div>
-          <p class="post-anon-note">Hlavní úkol: skryj skutečné identifikátory, ostatní návrhy vyřeš jednotlivě nebo hromadně a pročti celý odesílaný text. <small>Tabulka náhrad zůstává sbalená níže pro případ ruční opravy.</small></p>
-          <details class="key-details" id="my_keyDetails">
-            <summary><span><span class="kd-title">Klíč náhrad — zůstává jen u tebe</span><span class="kd-sub" id="my_keySummaryLine">Zatím bez náhrad.</span></span></summary>
-            <div class="key-details-body">
-              <p class="keyhead">Upravit, co je která značka</p>
-              <table class="keytab"><thead><tr><th style="width:46%">Skutečné jméno / údaj</th><th style="width:46%">Značka</th><th></th></tr></thead><tbody id="my_keyBody"></tbody></table>
-              <p class="key-empty" id="my_keyEmpty" style="display:none">Zatím prázdné — přidej, co automatika nenašla.</p>
-              <div class="row">
-                <button class="btn ghost small" id="my_addRow"><span class="action-icon">➕</span>Přidat náhradu</button>
-                <button class="btn ghost small" id="my_reAnon"><span class="action-icon">🔁</span>Anonymizovat znovu</button>
-                <button class="btn ghost small" id="my_remember" title="Uloží jména z klíče na toto zařízení. Jen osobní zařízení."><span class="action-icon">💾</span>Zapamatovat jména na osobním zařízení</button>
-              </div>
-            </div>
-          </details>
-        </div>
-
-        <div class="threshold privacy-outgoing-panel">
-          <span class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Finální kontrola před odesláním</span>
-          <div class="outside-wrap">
-            <p class="safe-local-label"><strong>Bezpečnostní výsledek.</strong> Semafor níže kontroluje stejné hlavní pole výše; nevytváří druhou kopii textu.</p>
-            <div class="safety" id="my_safety">Semafor anonymizace se zobrazí po vložení textu.</div>
-            <div class="safe-fallback" id="my_safeFallback" aria-live="polite"></div>
-            <div class="preview-summary" id="my_previewSummary" aria-live="polite"></div>
-            <label class="review-check"><input type="checkbox" id="my_reviewOk" aria-label="Potvrzuji kontrolu anonymizace vlastního e-mailu"><span><strong>Zkontrolováno.</strong> Pročetl(a) jsem celý přesný obsah pro AI model, vyřešil(a) návrhy jednotlivě nebo vědomě hromadně a nevidím v něm skutečná jména, kontakty ani jiné citlivé údaje.</span></label>
-            <button class="manual-context-link" type="button" data-open-safety-rules aria-label="Otevřít pravidla bezpečné práce s údaji bez opuštění aplikace">📖 Nejste si jistí? Otevřít pravidla bezpečné práce s údaji</button>
-            <p class="gate-reason" id="my_gateReason" aria-live="polite"></p>
-
-            <div class="res-card params" style="margin-top:14px;background:var(--paper)">
-              <div class="pgroup advanced-only" id="my_tplGroup">
-                <div class="plabel" title="Ulož si oblíbené nastavení a použij ho na jeden ťuk. (Dlouhý stisk šablony = smazat.)">Šablony</div>
-                <div class="chips" id="my_tpls"></div>
-              </div>
-              <div class="pgroup simple-hide">
-                <div class="plabel">Způsob práce <button class="help-tip" type="button" aria-label="Nápověda ke způsobu práce" data-tip="Rychlé rozpoznání podle slov v zadání odhadne adresáta, jednotlivce nebo skupinu, účel, tón a délku. Řízený režim nechá všechny volby na tobě. Rozpoznané hodnoty můžeš změnit.">i</button></div>
-                <div class="chips" data-group="my_flow">
-                  <button class="chip on" data-v="quick">Rychle — aplikace rozpozná nastavení</button>
-                  <button class="chip" data-v="guided">Řízeně — nastavím vše sám</button>
-                </div>
-                <div class="choice-summary" id="my_flowHint">Stačí vložit body. Před odesláním uvidíš, co aplikace rozpoznala.</div>
-              </div>
-              <div class="pgroup">
-                <div class="plabel">Co mám s textem udělat? <button class="help-tip" type="button" aria-label="Nápověda k typu práce" data-tip="Oprava zachová obsah a opraví jazyk. Přeformulování zachová význam, ale může změnit věty a strukturu. Sestavení z bodů vytvoří celý nový e-mail.">i</button></div>
-                <div class="chips" data-group="my_mode">
-                  <button class="chip on" data-v="opravit">Jen opravit hotový text</button>
-                  <button class="chip" data-v="prepsat">Přeformulovat hotový text</button>
-                  <button class="chip" data-v="sestavit">Sestavit nový e-mail z bodů</button>
-                </div>
-                <div class="choice-summary mode-explanation" id="my_modeHint">Text zůstane obsahově stejný; opraví se pouze chyby. V pokročilém režimu lze povolit i úpravu slohu.</div>
-              </div>
-              <div class="pgroup simple-hide">
-                <div class="plabel" title="Komu píšeš. Předvolí oslovení i míru formálnosti.">Adresát</div>
-                <div class="chips" data-group="my_adresat">
-                  <button class="chip on" data-v="rodic">Rodič</button>
-                  <button class="chip" data-v="kolega">Kolega</button>
-                  <button class="chip" data-v="vedeni">Vedení</button>
-                  <button class="chip" data-v="zak">Žák</button>
-                  <button class="chip" data-v="jiny">Jiný</button>
-                </div>
-                <div class="custom-recipient" id="my_adresatJinyWrap" hidden>
-                  <label for="my_adresatJiny">Komu píšete?</label>
-                  <input id="my_adresatJiny" type="text" maxlength="80" placeholder="např. nakladatelství, knihovna, externí partner">
-                  <small>Popis se použije jen pro nastavení tónu a formálnosti výsledného e-mailu.</small>
-                </div>
-              </div>
-              <div class="pgroup simple-hide" id="my_scopeGroup">
-                <div class="plabel">Počet adresátů <button class="help-tip" type="button" aria-label="Nápověda k počtu adresátů" data-tip="Jeden člověk dovolí jednotné tvary. Skupina vynutí množné číslo a skupinové oslovení, například vás, vám a vaše.">i</button></div>
-                <div class="chips" data-group="my_scope">
-                  <button class="chip on" data-v="single">Jeden člověk</button>
-                  <button class="chip" data-v="group">Skupina / hromadný e-mail</button>
-                </div>
-                <div class="choice-summary" id="my_scopeHint">Jednotlivý adresát: model může použít tvary „tě“ nebo „Vás“ podle zvoleného oslovení.</div>
-              </div>
-              <div class="pgroup simple-hide" id="my_senderGroup">
-                <div class="plabel">Píšu jako <button class="help-tip" type="button" aria-label="Nápověda k perspektivě odesílatele" data-tip="Určuje, zda má e-mail mluvit za tebe, za tým nebo za školu. Kontrola pak hlídá správné jednotné či množné číslo.">i</button></div>
-                <div class="chips" data-group="my_pisujako">
-                  <button class="chip on" data-v="jednotlivec">Jednotlivec</button>
-                  <button class="chip" data-v="tym">Za tým / komisi</button>
-                  <button class="chip" data-v="skola">Za školu / instituci</button>
-                </div>
-              </div>
-              <div class="pgroup simple-hide">
-                <div class="plabel" title="Vykání, tykání, nebo beze změny.">Oslovení</div>
-                <div class="chips" data-group="my_oslov">
-                  <button class="chip on" data-v="vykani">Vykání</button>
-                  <button class="chip" data-v="tykani">Tykání</button>
-                  <button class="chip" data-v="beze">Beze změny</button>
-                </div>
-              </div>
-              <div class="pgroup simple-hide" id="my_fixGroup" style="display:none">
-                <div class="plabel" title="Jak hluboko zasáhnout.">Míra zásahu</div>
-                <div class="chips" data-group="my_fix">
-                  <button class="chip on" data-v="chyby">Jen pravopis a gramatika</button>
-                  <button class="chip" data-v="sloh">I sloh a formulace</button>
-                </div>
-              </div>
-              <div class="pgroup simple-hide" id="my_styleGroup" style="display:none">
-                <div class="plabel" title="Jednorázová změna formulace tohoto konkrétního textu. Dlouhodobý způsob psaní zůstává v profilu.">Jednorázová úprava textu</div>
-                <div class="chips" data-group="my_prepis">
-                  <button class="chip on" data-v="diplomaticky">Diplomatický</button>
-                  <button class="chip" data-v="strucnejsi">Stručnější</button>
-                  <button class="chip" data-v="formalnejsi">Formálnější</button>
-                  <button class="chip" data-v="vstricnejsi">Vstřícnější</button>
-                  <button class="chip" data-v="duraznejsi">Důraznější</button>
-                  <button class="chip" data-v="srozumitelnejsi">Srozumitelnější</button>
-                </div>
-              </div>
-              <div class="pgroup simple-hide" id="my_ucelGroup" style="display:none">
-                <div class="plabel" title="Záměr e-mailu.">Účel</div>
-                <div class="chips" data-group="my_ucel">
-                  <button class="chip on" data-v="oznameni">Oznámení</button>
-                  <button class="chip" data-v="zadost">Žádost</button>
-                  <button class="chip" data-v="pozvanka">Pozvánka</button>
-                  <button class="chip" data-v="omluva">Omluva</button>
-                  <button class="chip" data-v="pripominka">Připomenutí</button>
-                  <button class="chip" data-v="podekovani">Poděkování</button>
-                  <button class="chip" data-v="odmitnuti">Odmítnutí</button>
-                  <button class="chip" data-v="vysvetleni">Vysvětlení</button>
-                  <button class="chip" data-v="potvrzeni">Potvrzení</button>
-                </div>
-              </div>
-              <div class="pgroup simple-hide">
-                <div class="plabel" title="Jazyk výsledného e-mailu. Hodí se pro angličtinu a španělštinu nebo pro zachování jazyka vstupu.">Jazyk výstupu</div>
-                <div class="chips" data-group="my_lang">
-                  <button class="chip on" data-v="cs">Čeština</button>
-                  <button class="chip" data-v="en">Angličtina</button>
-                  <button class="chip" data-v="es">Španělština</button>
-                  <button class="chip" data-v="keep">Zachovat jazyk vstupu</button>
-                  <button class="chip" data-v="translate_style">Přeložit do češtiny + upravit styl</button>
-                </div>
-              </div>
-              <div class="pgroup simple-hide" id="my_scenarioGroup">
-                <p class="scenario-help">Scénář není povinný. Je to přednastavení: jedním kliknutím změní typ práce, adresáta, počet adresátů (kde je to zřejmé), oslovení, účel, tón a délku. Citlivé scénáře navíc zapnou přísnější ochranu.</p>
-                <div class="chips" data-group="my_scenario">
-                  <button class="chip on" data-v="none">Nepoužívat scénář</button>
-                  <button class="chip" data-v="grade_parent">Rodiči na známku</button>
-                  <button class="chip" data-v="consultation">Domluva konzultace</button>
-                  <button class="chip" data-v="absence">Omluva nepřítomnosti</button>
-                  <button class="chip" data-v="discipline">Kázeňská situace</button>
-                  <button class="chip" data-v="sensitive">Citlivá komunikace</button>
-                  <button class="chip" data-v="health_ppp">Zdraví / PPP</button>
-                  <button class="chip" data-v="ospod_family">OSPOD / rodina</button>
-                  <button class="chip" data-v="colleague">Odpověď kolegovi</button>
-                  <button class="chip" data-v="class_info">Informace třídě</button>
-                  <button class="chip" data-v="management">Žádost vedení</button>
-                  <button class="chip" data-v="reminder">Připomenutí termínu</button>
-                  <button class="chip" data-v="refusal">Odmítnutí požadavku</button>
-                  <button class="chip" data-v="missing_work">Chybějící úkoly</button>
-                  <button class="chip" data-v="declining_results">Zhoršení prospěchu</button>
-                  <button class="chip" data-v="positive_parent">Pochvala rodičům</button>
-                  <button class="chip" data-v="complaint_reply">Reakce na stížnost</button>
-                  <button class="chip" data-v="makeup_date">Náhradní termín</button>
-                  <button class="chip" data-v="grade_explanation">Vysvětlení hodnocení</button>
-                  <button class="chip" data-v="individual_support">Individuální podpora</button>
-                  <button class="chip" data-v="rules_reminder">Upozornění na pravidla</button>
-                  <button class="chip" data-v="meeting_change">Změna termínu</button>
-                  <button class="chip" data-v="meeting_apology">Omluva z porady</button>
-                  <button class="chip" data-v="proposal">Podnět / návrh</button>
-                  <button class="chip" data-v="handover">Předání úkolu</button>
-                  <button class="chip" data-v="agreement_summary">Shrnutí domluvy</button>
-                </div>
-                <div class="choice-summary" id="my_scenarioHint"></div>
-              </div>
-              <div class="pgroup advanced-only" id="my_toneGroup" style="display:none">
-                <div class="plabel">Tón této zprávy <button class="help-tip" type="button" aria-label="Nápověda k tónu zprávy" data-tip="Tón platí jen pro tento e-mail a má přednost před dlouhodobým způsobem psaní uloženým v profilu.">i</button></div>
-                <div class="chips" data-group="my_cton">
-                  <button class="chip on" data-v="vstricny">Vstřícný</button>
-                  <button class="chip" data-v="vecny">Věcný</button>
-                  <button class="chip" data-v="durazny">Důraznější</button>
-                </div>
-              </div>
-              <div class="pgroup advanced-only" id="my_lenGroup" style="display:none">
-                <div class="plabel">Délka</div>
-                <div class="chips" data-group="my_cdelka">
-                  <button class="chip" data-v="strucna">Stručná</button>
-                  <button class="chip on" data-v="stredni">Střední</button>
-                  <button class="chip" data-v="podrobna">Podrobná</button>
-                </div>
-              </div>
-              <div class="pgroup advanced-only writing-style-use" id="my_writingStyleGroup" style="display:none">
-                <div class="plabel">Můj způsob psaní <button class="help-tip" type="button" aria-label="Nápověda k osobnímu způsobu psaní" data-tip="Jde o dlouhodobou preferenci formulací z profilu. Nemění fakta, adresáta, účel, délku ani tón této konkrétní zprávy.">i</button></div>
-                <label class="writing-style-toggle" for="my_useWritingStyle"><input id="my_useWritingStyle" type="checkbox" checked><span><strong id="my_writingStyleLabel">Nenastavený</strong><small id="my_writingStyleHint">V profilu zatím není uložen osobní způsob psaní.</small></span></label>
-                <button class="link-btn writing-style-edit" id="my_writingStyleEdit" type="button">Upravit v profilu</button>
-              </div>
-              <div class="pgroup advanced-only" id="my_subjGroup" style="display:none">
-                <div class="plabel">Předmět výsledného e-mailu <button class="help-tip" type="button" aria-label="Nápověda k předmětu e-mailu" data-tip="Volba určuje, zda aplikace kromě těla zprávy vytvoří také text do pole Předmět v Gmailu nebo Outlooku.">i</button></div>
-                <div class="chips" data-group="my_subj">
-                  <button class="chip on" data-v="ne">Bez předmětu</button>
-                  <button class="chip" data-v="ano">Navrhni předmět</button>
-                </div>
-              </div>
-              <div class="pgroup advanced-only note-field" id="my_noteGroup">
-                <div class="plabel">Doplňující pokyn k výsledku (nepovinné) <button class="help-tip" type="button" aria-label="Nápověda k doplňujícímu pokynu" data-tip="Sem napiš jen zvláštní požadavek, který není pokrytý ostatními volbami, například doplnit termín nebo zmírnit závěr.">i</button></div>
-                <input id="my_note" type="text" title="Poznámka se před odesláním kontroluje. Osobu vlož nejlépe místním štítkem pod polem; do AI služby odejde pouze anonymní značka." placeholder="např. navrhni termín ve čtvrtek; ať to nezní podrážděně" style="width:100%;font:13px var(--sans);padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink)">
-              </div>
-              <div class="simple-action-note simple-only"><b>Jednoduchý režim:</b> aplikace použije bezpečné výchozí volby a nechá vidět jen hlavní akci. Tón, délku, jazyk, školní scénáře a další parametry upravíš v pokročilém režimu.</div>
-              <div class="choice-summary advanced-only" id="my_choiceSummary"></div>
-              <div class="row actsticky">
-                <button class="btn primary" id="my_goBtn" title="Pošle jeden request podle voleb výše."><span class="action-icon">✨</span>Hotovo <span class="req">1 ⚡</span></button>
-                <span class="empty" id="my_goHint">Opraví gramatiku, pravopis a styl. Význam zachová.</span>
-              </div>
-              <div id="my_apiState"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-    <div id="my_results"></div>
-  </section>
-    </main>
-
-    <details class="assistant-drawer" id="assistantDrawer">
-      <summary><span>Volitelný pracovní přehled</span><small>Požadavky, termíny a kontrola konceptu</small></summary>
-      <aside class="assistant-rail" id="assistantRail" aria-label="Volitelný pracovní přehled">
-        <div class="rail-card rail-overview">
-          <p class="eyebrow">Pracovní přehled</p>
-          <h2>Co je nyní důležité</h2>
-          <div id="railOverview" class="rail-empty">Po rozboru zde najdeš požadavky, termíny, prioritu a doporučený další krok.</div>
-        </div>
-        <div class="rail-card">
-          <div class="rail-card-head"><h3>Kontrola před odesláním</h3><span id="railCheckBadge" class="status-badge neutral">Čeká</span></div>
-          <div id="railChecklist" class="rail-empty">Kontrola se aktivuje po výběru finálního konceptu.</div>
-        </div>
-        <div class="rail-card">
-          <div class="rail-card-head"><h3>Čekám na odpověď</h3><button class="link-btn" id="railFollowupsOpen" type="button">Otevřít</button></div>
-          <div id="railFollowups" class="rail-empty">Žádné aktivní připomínky.</div>
-        </div>
-      </aside>
-    </details>
-  </div>
-
-  <div class="global-action-bar" id="globalActionBar" aria-label="Hlavní akce" hidden>
-    <button class="bar-btn" id="barNew" type="button"><span>＋</span>Nová zpráva</button>
-    <button class="bar-btn" id="barSave" type="button" disabled><span>⌑</span>Uložit koncept</button>
-    <button class="bar-btn" id="barCheck" type="button" disabled><span>✓</span>Zkontrolovat</button>
-    <button class="bar-btn primary" id="barCopy" type="button" disabled><span>▣</span>Kopírovat výstup</button>
-  </div>
-
-  <div id="synPop"></div>
-  <div id="toasts"></div>
-  <footer class="foot" aria-label="Patička aplikace" data-ghrab-footer data-ghrab-footer-mode="append">
-    <div class="footer-tools-panel">
-      <span class="app-meta">Korespondenční asistent · v<span id="ver"></span></span>
-      <div class="footer-tools-row">
-        <span class="footer-tools-title">Další možnosti</span>
-      </div>
+    <p class="step" style="margin-top:16px"><b>↘</b> Vyber úroveň nové verze</p>
+    <div class="level-detect" id="levelDetect"></div>
+    <div class="tiers" id="tiers">
+      <label class="tierpick" data-t="support"><input type="radio" name="tier" data-tier="support" /><span class="tier-ico">🧩</span>
+        <span><span class="nm">Jednodušší</span> <span class="ds" id="dsSupport">— víc opory: slovní banka, nápověda, výběr z možností</span></span></label>
+      <label class="tierpick on" data-t="core"><input type="radio" name="tier" checked data-tier="core" /><span class="tier-ico">📘</span>
+        <span><span class="nm">Normální</span> <span class="ds" id="dsCore">— stejná obtížnost; obsah/forma podle pedagogického zpřesnění</span></span></label>
+      <label class="tierpick" data-t="extend"><input type="radio" name="tier" data-tier="extend" /><span class="tier-ico">🚀</span>
+        <span><span class="nm">Obtížnější</span> <span class="ds" id="dsExtend">— méně opory, otevřené úlohy, úloha navíc na úsudek</span></span></label>
     </div>
-    <div data-ghrab-footer-branding></div>
-  </footer>
+    <div class="generation-actions">
+      <button class="btn" id="genBtn">Vytvořit vybranou verzi <span class="zap-cost">⚡ 1+</span></button>
+      <button class="btn set-btn" id="genAllBtn">Vytvořit celou sadu 3 verzí <span class="zap-cost">⚡ 3+</span></button>
+    </div>
+    <p class="generation-note">Vybraná verze je rychlá volba pro jeden konkrétní účel. Celá sada vytvoří Jednodušší, Normální i Obtížnější variantu ze stejného zadání. Při vytváření celé sady vzniknou všechny tři verze ze stejného obsahu a liší se jen mírou opory. Pokud chceš paralelní variantu s jiným obsahem, použij v Pedagogickém zpřesnění volbu „Stejný formát, jiný obsah“. Znak „+“ znamená, že při nedodržené JSON struktuře může aplikace výjimečně použít jeden opravný dotaz navíc pro každou verzi.</p>
+    <div class="progress-strip" id="progressStrip" role="status" aria-live="polite"><span class="mini"></span><span id="progressText">Připravuji generování…</span></div>
+    <div id="configErr"></div>
+  </section>
+
+  <section class="panel results pedagogical-panel hide" id="resultsPanel">
+    <p class="step"><b>4</b> Hotová verze <span class="step-role ped">Výstup pro použití</span></p>
+        <div class="result-banner" id="resultBanner"><div class="result-banner-copy"><strong id="resultSummary">Verze je připravená.</strong><span>AI výstup je návrh, ne garance správnosti. Doporučený postup: nejdřív kontrola, potom řešení a ruční učitelské ověření, a až nakonec PDF.</span></div><div class="result-checklist result-flow" aria-label="Doporučený postup před PDF"><span><b>1</b> Kontrola</span><span><b>2</b> Řešení + ověření</span><span><b>3</b> PDF</span></div></div>
+    <div class="meta">
+      <div class="field"><label for="mSubject">Předmět</label><input id="mSubject" type="text" placeholder="Předmět" /></div>
+      <div class="field"><label for="mTopic">Téma</label><input id="mTopic" type="text" placeholder="téma hodiny / testu" /></div>
+      <div class="field"><label for="mClass">Třída</label><input id="mClass" type="text" placeholder="např. 2.B" /></div>
+      <div class="field"><label for="mDate">Datum</label><input id="mDate" type="text" placeholder="dd. mm. rrrr" /></div>
+    </div>
+    <div id="results"></div>
+    <div style="margin-top:14px"><button class="btn ghost" id="restartBtn">Nové zadání</button></div>
+  </section>
+
+    </div>
+
+    <aside class="side-rail" aria-label="Rychlý přehled">
+      <div class="side-card compact">
+        <h2>Rychlý postup</h2>
+        <p>Stačí projít čtyři kroky. Detailní volby otevři jen tehdy, když chceš přesnější výstup.</p>
+        <div class="quick-short" aria-label="Zkrácený postup">
+          <span><b>1</b> API klíč</span>
+          <span><b>2</b> Zadání</span>
+          <span><b>3</b> Úroveň a zpřesnění</span>
+          <span><b>4</b> Kontrola a PDF</span>
+        </div>
+        <p class="side-mini-note">Tip: pro běžnou práci většinou stačí relace, vložený text a jedna vybraná úroveň.</p>
+      </div>
+    </aside>
+  </main>
+
+  <footer id="foot" data-ghrab-footer data-ghrab-footer-mode="append"></footer>
 </div>
+
+<div id="printArea"></div>
+
+<div class="overlay" id="guide">
+  <div class="modal">
+    <h2>Jak to funguje</h2>
+    <div class="guide-steps">
+      <div class="guide-step"><b>1</b><span><strong>Vlož API klíč</strong>Pro běžné použití je nejlepší volba „Použít jen pro relaci“.</span></div>
+      <div class="guide-step"><b>2</b><span><strong>Nahraj nebo vlož zadání</strong>Fotky, PDF, Office soubor nebo čistý text zpracuješ v jednom místě.</span></div>
+      <div class="guide-step"><b>3</b><span><strong>Zkontroluj a vyber úroveň</strong>Oprav načtený text a zvol jednu cílovou verzi nebo vytvoř celou sadu.</span></div>
+      <div class="guide-step"><b>4</b><span><strong>Vytvoř a ověř verzi</strong>Výstup zkontroluj, uprav, zobraz řešení a až potom stáhni PDF.</span></div>
+    </div>
+    <div class="tipline"> Tip: CEFR odhad zapínej jen u jazykových materiálů. U ostatních předmětů ho nech vypnutý, aby appka používala jen úrovně obtížnosti. Nápovědu, changelog a interní testy najdeš dole v rozbalovací liště Nástroje; před vydáním nové verze musí interní testy skončit bez chyb. Aplikace je učitelský nástroj; pokud chceš rozpracovanou práci uchovat, použij dole Exportovat projekt.</div>
+    <button class="btn" id="guideClose">Rozumím</button>
+  </div>
+</div>
+
+<div class="overlay" id="copyOverlay">
+  <div class="modal">
+    <h2>Ruční kopírování</h2>
+    <p class="muted">Prohlížeč nepovolil automatické kopírování. Označ text níže a zkopíruj ho ručně.</p>
+    <textarea class="manual-copy" id="copyManual" readonly></textarea>
+    <button class="btn" id="copyClose" style="margin-top:12px">Zavřít</button>
+  </div>
+</div>
+
+<div class="overlay" id="permanentKeyOverlay" hidden><div class="modal"><h2>Uložení pro relaci</h2><p class="modal-text">Klíč se ukládá pouze do zavření prohlížeče.</p><input class="dialog-input" id="permanentPhrase" type="text" autocomplete="off"><div class="dialog-error" id="permanentErr"></div><div class="modal-actions"><button class="btn ghost small" id="permanentCancel">Zrušit</button><button class="btn small" id="permanentConfirm">Použít pro relaci</button></div></div></div>
+
+<div class="overlay" id="messageOverlay">
+  <div class="modal">
+    <h2 id="messageTitle">Upozornění</h2>
+    <p class="modal-text" id="messageText"></p>
+    <div class="modal-actions">
+      <button class="btn small" id="messageClose">Rozumím</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="overlay" id="dataOverlay">
+  <div class="modal">
+    <h2>Správa dat v prohlížeči</h2>
+    <p class="modal-text">Aplikace neukládá materiály na server. Tady můžeš ručně spravovat data uložená jen v tomto prohlížeči.</p>
+    <div class="data-summary" id="dataSummary"></div>
+    <div class="modal-actions">
+      <button class="btn ghost small" id="dataClearKey">Smazat API klíč</button>
+      <button class="btn ghost small" id="dataClearPrefs">Smazat nastavení</button>
+      <button class="btn ghost small" id="dataClearWork">Vyčistit rozpracovanou práci</button>
+      <button class="btn small" id="dataClose">Zavřít</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="restartOverlay"><div class="modal">
+  <h2 id="restartTitle">Opravdu začít znovu?</h2>
+  <p class="modal-text" id="restartText">V seznamu jsou hotové verze, které vznikly voláním API. Nové zadání je smaže. Pokud si je chceš nechat, použij nejdřív Nástroje a nápověda → Exportovat projekt.</p>
+  <div class="modal-actions">
+    <button class="btn small ghost" id="restartCancel">Zpět</button>
+    <button class="btn small" id="restartExport">Exportovat projekt</button>
+    <button class="btn small danger" id="restartConfirm">Smazat a začít znovu</button>
+  </div>
+</div></div>
+
+<div class="overlay" id="pdfCheckOverlay">
+  <div class="modal">
+    <h2>Kontrola před PDF</h2>
+    <p class="modal-text" id="pdfCheckText">Tato verze ještě neprošla kontrolou kvality. Před stažením PDF je vhodné zkontrolovat věcnou správnost, jazyk, zadání i řešení.</p>
+    <div class="pdf-check-note">Doporučený postup: nejdřív spusť <b>Kontrolu</b>, oprav případné chyby a teprve potom stáhni PDF. AI kontrola ale není garance správnosti; finální odpovědnost má učitel. Pokud už jsi text zkontroloval ručně, můžeš pokračovat bez AI kontroly.
+      <div class="pdf-check-steps"><span>1 Kontrola</span><span>2 Oprava</span><span>3 PDF</span></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn ghost small" id="pdfCheckContinue">Pokračovat bez kontroly</button>
+      <button class="btn small" id="pdfCheckRun">Spustit kontrolu</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="printOverlay">
+  <div class="modal preview-modal">
+    <h2>Náhled před stažením PDF</h2>
+    <p class="muted">Takto bude materiál vypadat. Pak pokračuj do systémového dialogu, kde zvol „Uložit jako PDF".</p>
+    <div class="print-file-name" id="printFileName"></div>
+    <div class="print-preview" id="printPreview"></div>
+    <label class="teacher-confirm"><input type="checkbox" id="printTeacherConfirmed"><span><strong>Finální učitelská kontrola.</strong> Potvrzuji, že jsem prošel/prošla zadání, řešení i případné citlivé údaje a materiál je připraven k použití.</span></label>
+    <p class="print-hint">Tip: v dialogu tisku vyber u položky <b>Záhlaví a zápatí</b> možnost <b>Žádné</b> — jinak prohlížeč doplní datum a cestu k souboru, které student nemá vidět.</p>
+    <div class="modal-actions">
+      <button class="btn ghost small" id="printCancel">Zpět</button>
+      <button class="btn small" id="printConfirm">Stáhnout PDF / vytisknout</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="qualityOverlay">
+  <div class="modal quality-modal">
+    <div class="quality-head">
+      <div>
+        <h2>Kontrola kvality</h2>
+        <p class="muted" id="qualityTierLbl">Automatický audit před použitím ve škole.</p>
+      </div>
+      <span class="version-badge">⚡ audit</span>
+    </div>
+    <div class="quality-disclaimer"><b>Pozor:</b> AI kontrola je pomocný audit, ne potvrzení správnosti. Sleduje i pedagogický cíl, čas, úplnost řešení, strukturu a citlivá data, ale před použitím ve třídě výstup ještě projdi jako učitel.</div>
+    <div class="quality-body" id="qualityBody"></div>
+    <div class="modal-actions">
+      <button class="btn ghost small" id="qualityInsert">Vložit do listu</button>
+      <button class="btn small" id="qualityClose">Zavřít</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="changelogOverlay">
+  <div class="modal changelog-modal">
+    <div class="changelog-head">
+      <div>
+        <h2>Changelog</h2>
+        <p class="muted">Posledních 10 změn v aplikaci. Nejnovější úpravy jsou nahoře.</p>
+      </div>
+      <span class="version-badge" id="currentVersionBadge">verze</span>
+    </div>
+    <div class="change-list" id="changelogList"></div>
+    <div class="modal-actions">
+      <button class="btn small" id="changelogClose">Zavřít</button>
+    </div>
+  </div>
+</div>
+
 

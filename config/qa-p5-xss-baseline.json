@@ -1,9 +1,9 @@
 {
   "schema": "ghrab-p5-xss-baseline-v1",
-  "appId": "correspondence",
+  "appId": "differentiator",
   "counts": {
-    "innerHTML": 100,
-    "insertAdjacentHTML": 2,
+    "innerHTML": 62,
+    "insertAdjacentHTML": 1,
     "outerHTML": 0,
     "documentWrite": 0,
     "eval": 0,

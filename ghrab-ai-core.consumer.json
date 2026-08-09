@@ -1,9 +1,9 @@
 {
   "schema": "ghrab-ai-core-consumer-v1",
-  "appId": "correspondence",
+  "appId": "differentiator",
   "coreVersion": "1.0.0",
   "contractVersion": "1",
   "buildId": "ghrab-ai-core-1.0.0-20260802",
-  "versionFiles": ["scripts/build.mjs", "scripts/test.mjs", "src/ai-operations.json", "src/studio-manifest.template.json"],
+  "versionFiles": ["scripts/build.mjs", "src/ai-operations.json", "src/studio-manifest.template.json"],
   "lastSynchronizedAt": "2026-08-04T00:00:00.000Z"
 }

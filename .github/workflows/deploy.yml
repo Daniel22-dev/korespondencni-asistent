@@ -18,17 +18,13 @@ concurrency:
 jobs:
   build-test:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-
       - run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
-
 
       - name: Install pinned Playwright Chromium
         shell: bash
@@ -40,13 +36,11 @@ jobs:
       - name: Verify GHRAB Platform P3 conformance
         run: npm run qa:platform
 
-
       - name: Enforce P5 R2 release gate
         run: npm run qa:p5:ci
 
       - uses: actions/configure-pages@v5
         if: github.event_name != 'pull_request'
-
       - uses: actions/upload-pages-artifact@v3
         if: github.event_name != 'pull_request'
         with:
@@ -56,11 +50,9 @@ jobs:
     if: github.event_name != 'pull_request'
     needs: build-test
     runs-on: ubuntu-latest
-
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4

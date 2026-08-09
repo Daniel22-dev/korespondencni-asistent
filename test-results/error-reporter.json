@@ -1,20 +1,20 @@
 {
   "schema": "ghrab-error-reporter-test-v1",
-  "appId": "correspondence",
-  "appName": "Korespondenční asistent",
-  "version": "5.9.19",
-  "createdAt": "2026-08-07T17:57:29.876Z",
+  "appId": "differentiator",
+  "appName": "Diferenciátor",
+  "version": "1.3.12",
+  "createdAt": "2026-08-07T18:01:26.822Z",
   "browser": {
     "status": "passed",
     "reason": ""
   },
-  "passed": 79,
+  "passed": 80,
   "failed": 0,
   "results": [
     {
       "name": "Patch verze v package.json",
       "ok": true,
-      "detail": "5.9.19"
+      "detail": "1.3.12"
     },
     {
       "name": "Existuje src/access/error-reporter.js",
@@ -207,7 +207,7 @@
       "detail": ""
     },
     {
-      "name": "src/index.template.html: KS spouští reportér neblokujícím importem s catch",
+      "name": "src/index.template.html: reportér není blokující await",
       "ok": true,
       "detail": ""
     },
@@ -232,22 +232,27 @@
       "detail": ""
     },
     {
-      "name": "src/sw.js: obsahuje verzi 5.9.19",
+      "name": "src/sw.js: obsahuje verzi 1.3.12",
       "ok": true,
       "detail": ""
     },
     {
-      "name": "src/manual/index.html: obsahuje verzi 5.9.19",
+      "name": "src/manual/index.html: obsahuje verzi 1.3.12",
       "ok": true,
       "detail": ""
     },
     {
-      "name": "src/js/10-release-changelog.js: obsahuje verzi 5.9.19",
+      "name": "src/js/10-release-changelog.js: obsahuje verzi 1.3.12",
       "ok": true,
       "detail": ""
     },
     {
-      "name": "README.md: obsahuje verzi 5.9.19",
+      "name": "README.md: obsahuje verzi 1.3.12",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "docs/AUDIT-1.3.12-ERROR-REPORTER.md: obsahuje verzi 1.3.12",
       "ok": true,
       "detail": ""
     },
@@ -319,7 +324,7 @@
     {
       "name": "Ponechání konceptu zachová text, screenshoty a ID",
       "ok": true,
-      "detail": "GHRAB-MSJ8YXXZ-6VCQ7"
+      "detail": "GHRAB-MSJ940WX-MNQEP"
     },
     {
       "name": "Primární Gmail odkaz je kompletní před kliknutím",
@@ -329,7 +334,7 @@
     {
       "name": "Fyzické kliknutí otevře novou kartu",
       "ok": true,
-      "detail": "https://mail.google.com/mail/?view=cm&fs=1&to=balaz%40ghrabuvka.cz&su=%5BAI%20GHRAB%5D%20Chyba%20%E2%80%93%20Koresponden%C4%8Dn%C3%AD%20asistent%205.9.19%20%E2%80%93%20GHRAB-MSJ8YXXZ-6VCQ7&body=Dobr%C3%BD%20den%2C%0A%0Apos%C3%ADl%C3%A1m%20hl%C3%A1%C5%A1en%C3%AD%20technick%C3%A9%20chyby%20v%20aplikaci%20Koresponden%C4%8Dn%C3%AD%20asistent.%0A%0AAplikace%3A%20Koresponden%C4%8Dn%C3%AD%20asistent%0AVerze%3A%205.9.19%0AHl%C3%A1%C5%A1en%C3%AD%20zalo%C5%BEeno%3A%207.%208.%202026%2017%3A57%3A20%0ANaposledy%20upraveno%3A%207.%208.%202026%2017%3A57%3A21%0AZIP%20vytvo%C5%99en%3A%207.%208.%202026%2017%3A57%3A21%0AID%20hl%C3%A1%C5%A1en%C3%AD%3A%20GHRAB-MSJ8YXXZ-6VCQ7%0AStr%C3%A1nka%3A%20http%3A%2F%2F127.0.0.1%3A37793%2Fharness.html%0A%0ACO%20SE%20STALO%3A%0AAnonymizovan%C3%BD%20test%20hl%C3%A1%C5%A1en%C3%AD%20chyby%20v%20aplikaci.%0A%0AJAK%20LZE%20CHYBU%20ZOPAKOVAT%3A%0A1.%20Otev%C5%99%C3%ADt%20test.%202.%20Kliknout.%203.%20Pozorovat%20chybu.%0A%0AAUTOMATICKY%20ZACHYCEN%C3%89%20TECHNICK%C3%89%20%C3%9ADAJE%3A%0A1.%20custom%20%C2%B7%20OLD_DRAFT_MARKER%20%5Be-mail%20odstran%C4%9Bn%5D%20api_key%3D%5Bodstran%C4%9Bno%5D%20prompt%3A%20%5Bobsah%20odstran%C4%9Bn%5D%20%C2%B7%20http%3A%2F%2F127.0.0.1%3A37793%2Fprivate%2Fstudent.fixture%5Bat%5Dexample.test%0A2.%20network%20%C2%B7%20Failed%20to%20fetch%20%C2%B7%20http%3A%2F%2F127.0.0.1%3A37793%2Fnetwork-failure%20%C2%B7%203%20ms%0A3.%20http%20%C2%B7%20GET%20http%3A%2F%2F127.0.0.1%3A37793%2Fhttp-failure%20skon%C4%8Dil%20stavem%20503%20%C2%B7%20HTTP%20503%20%C2%B7%20http%3A%2F%2F127.0.0.1%3A37793%2Fhttp-failure%20%C2%B7%202%20ms%0A4.%20promise%20%C2%B7%20PROMISE_MARKER%0A5.%20javascript%20%C2%B7%20JS_MARKER%20%C2%B7%20http%3A%2F%2F127.0.0.1%3A37793%2Fsafe-script.js%0A%0AProhl%C3%AD%C5%BEe%C4%8D%20%2F%20syst%C3%A9m%3A%20Not(A%3ABrand%208%2C%20Chromium%20144%20%2F%20Linux%0AOkno%3A%20780%20%C3%97%20441px%0AOnline%3A%20ano%0APo%C4%8Det%20screenshot%C5%AF%3A%205%0A%0AScreenshoty%20jsou%20uvnit%C5%99%20ZIP%20bal%C3%AD%C4%8Dku.%0AP%C5%98ILO%C5%BDTE%20SOUBOR%3A%20ghrab-hlaseni-chyby-correspondence-2026-08-07_17-57.zip%0A%0AD%C4%9Bkuji."
+      "detail": "https://mail.google.com/mail/?view=cm&fs=1&to=balaz%40ghrabuvka.cz&su=%5BAI%20GHRAB%5D%20Chyba%20%E2%80%93%20Diferenci%C3%A1tor%201.3.12%20%E2%80%93%20GHRAB-MSJ940WX-MNQEP&body=Dobr%C3%BD%20den%2C%0A%0Apos%C3%ADl%C3%A1m%20hl%C3%A1%C5%A1en%C3%AD%20technick%C3%A9%20chyby%20v%20aplikaci%20Diferenci%C3%A1tor.%0A%0AAplikace%3A%20Diferenci%C3%A1tor%0AVerze%3A%201.3.12%0AHl%C3%A1%C5%A1en%C3%AD%20zalo%C5%BEeno%3A%207.%208.%202026%2018%3A01%3A17%0ANaposledy%20upraveno%3A%207.%208.%202026%2018%3A01%3A18%0AZIP%20vytvo%C5%99en%3A%207.%208.%202026%2018%3A01%3A18%0AID%20hl%C3%A1%C5%A1en%C3%AD%3A%20GHRAB-MSJ940WX-MNQEP%0AStr%C3%A1nka%3A%20http%3A%2F%2F127.0.0.1%3A41937%2Fharness.html%0A%0ACO%20SE%20STALO%3A%0AAnonymizovan%C3%BD%20test%20hl%C3%A1%C5%A1en%C3%AD%20chyby%20v%20aplikaci.%0A%0AJAK%20LZE%20CHYBU%20ZOPAKOVAT%3A%0A1.%20Otev%C5%99%C3%ADt%20test.%202.%20Kliknout.%203.%20Pozorovat%20chybu.%0A%0AAUTOMATICKY%20ZACHYCEN%C3%89%20TECHNICK%C3%89%20%C3%9ADAJE%3A%0A1.%20custom%20%C2%B7%20OLD_DRAFT_MARKER%20%5Be-mail%20odstran%C4%9Bn%5D%20api_key%3D%5Bodstran%C4%9Bno%5D%20prompt%3A%20%5Bobsah%20odstran%C4%9Bn%5D%20%C2%B7%20http%3A%2F%2F127.0.0.1%3A41937%2Fprivate%2Fstudent.fixture%5Bat%5Dexample.test%0A2.%20network%20%C2%B7%20Failed%20to%20fetch%20%C2%B7%20http%3A%2F%2F127.0.0.1%3A41937%2Fnetwork-failure%20%C2%B7%203%20ms%0A3.%20http%20%C2%B7%20GET%20http%3A%2F%2F127.0.0.1%3A41937%2Fhttp-failure%20skon%C4%8Dil%20stavem%20503%20%C2%B7%20HTTP%20503%20%C2%B7%20http%3A%2F%2F127.0.0.1%3A41937%2Fhttp-failure%20%C2%B7%202%20ms%0A4.%20promise%20%C2%B7%20PROMISE_MARKER%0A5.%20javascript%20%C2%B7%20JS_MARKER%20%C2%B7%20http%3A%2F%2F127.0.0.1%3A41937%2Fsafe-script.js%0A%0AProhl%C3%AD%C5%BEe%C4%8D%20%2F%20syst%C3%A9m%3A%20Not(A%3ABrand%208%2C%20Chromium%20144%20%2F%20Linux%0AOkno%3A%20780%20%C3%97%20441px%0AOnline%3A%20ano%0APo%C4%8Det%20screenshot%C5%AF%3A%205%0A%0AScreenshoty%20jsou%20uvnit%C5%99%20ZIP%20bal%C3%AD%C4%8Dku.%0AP%C5%98ILO%C5%BDTE%20SOUBOR%3A%20ghrab-hlaseni-chyby-differentiator-2026-08-07_18-01.zip%0A%0AD%C4%9Bkuji."
     },
     {
       "name": "Po přípravě jsou fallbacky Gmail / poštovní aplikace / kopírování",
@@ -354,12 +359,12 @@
     {
       "name": "Úplné smazání otevře čistý formulář",
       "ok": true,
-      "detail": "{\"description\":\"\",\"steps\":\"\",\"screenshots\":0,\"finalHidden\":true,\"newId\":\"GHRAB-MSJ8Z094-SCCMY\"}"
+      "detail": "{\"description\":\"\",\"steps\":\"\",\"screenshots\":0,\"finalHidden\":true,\"newId\":\"GHRAB-MSJ9434G-8E1L7\"}"
     },
     {
       "name": "Po smazání vznikne nové ID",
       "ok": true,
-      "detail": "GHRAB-MSJ8YXXZ-6VCQ7 → GHRAB-MSJ8Z094-SCCMY"
+      "detail": "GHRAB-MSJ940WX-MNQEP → GHRAB-MSJ9434G-8E1L7"
     },
     {
       "name": "Smazané technické chyby ani původní ID se nevrátily",

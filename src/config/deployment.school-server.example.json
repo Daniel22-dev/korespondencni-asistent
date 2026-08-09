@@ -51,8 +51,8 @@
     "schoolServerConnected": false,
     "liveServerValidationRequired": false
   },
-  "appId": "correspondence",
-  "appBaseUrl": "/apps/korespondencni-asistent/",
+  "appId": "differentiator",
+  "appBaseUrl": "/apps/diferenciator/",
   "releaseAcceptance": {
     "stage": "P5",
     "primaryMode": "standalone-github-pages",

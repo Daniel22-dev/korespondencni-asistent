@@ -1,31 +1,22 @@
-# Korespondenční asistent jako PWA
+# Diferenciátor jako PWA
 
-Tato složka obsahuje instalovatelnou PWA verzi aplikace Korespondenční asistent.
+Tato složka obsahuje instalovatelnou PWA verzi aplikace Diferenciátor.
 
 ## GitHub Pages URL
 
-`https://daniel22-dev.github.io/korespondencni-asistent/`
+`https://daniel22-dev.github.io/diferenciator/`
 
 ## Soubory
 
 - `index.template.html` + `styles.css` + `body.html` + `js/` – rozdělené zdroje aplikace; build (`scripts/build.mjs`) je skládá do jediného nasazovaného `index.html`
-- `manifest.webmanifest` – název, barvy, režim standalone a ikony
+- `manifest.webmanifest` – název, ikony a instalační metadata
 - `sw.js` – service worker s verzovanou cache
-- `icons/` – vlastní ikony ve stylu LifeHubu
-
-## Instalace na telefonu
-
-Otevři aplikaci v Chromu a zvol „Instalovat aplikaci" nebo „Přidat na plochu".
+- `icons/` – ikony pro Android, Chrome a Apple zařízení
 
 ## Aktualizace
 
-Při změně aplikace zvyš verzi v `js/10-release-changelog.js` v objektu `RELEASE` (a přidej záznam do `changes`) **a zároveň** v `sw.js` v konstantě `APP_VERSION`, aby se uživatelům nelepila stará cache. Shodu obou verzí hlídá build (`scripts/build.mjs`) — při nesouladu nasazení selže.
+Při změně aplikace zvyš verzi v `js/10-release-changelog.js` v objektu `RELEASE` (a přidej záznam do `changes`) **a zároveň** v `sw.js` v konstantě `APP_VERSION`, aby se uživatelům nenačítala stará cache. Shodu obou verzí hlídá build (`scripts/build.mjs`) — při nesouladu nasazení selže.
+## Offline režim
 
-## Staré odkazy
+Instalace PWA slouží k pohodlnému spuštění Diferenciátoru z plochy nebo nabídky aplikací, nikoli k práci bez internetu. Při každém otevření se online ověřuje oprávnění přes AI Studio GHRAB a samotné generování využívá Gemini API. Přístupový modul se záměrně neukládá do lokální cache, aby se změna nebo odvolání oprávnění projevily bez prodlení.
 
-Přesměrování historických adres patří do původního společného repozitáře, nikoli do této samostatné aplikace. Postup a souvislosti jsou popsány v `docs/MIGRACE.md`.
-
-
-## Permissions-Policy na GitHub Pages
-
-GitHub Pages neumožňuje nastavit vlastní HTTP hlavičku `Permissions-Policy`. Neúčinná meta značka byla ve verzi 5.5.3 odstraněna; bezpečnostní záměr je dokumentován, ale skutečná hlavička vyžaduje hosting s podporou vlastních hlaviček.

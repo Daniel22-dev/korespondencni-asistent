@@ -1,46 +1,46 @@
 {
   "schema": "ai-studio-app-manifest-v1",
-  "id": "correspondence",
+  "id": "differentiator",
   "name": {
-    "cs": "Korespondenční asistent",
-    "en": "Correspondence Assistant"
+    "cs": "Diferenciátor",
+    "en": "Differentiator"
   },
   "version": "__APP_VERSION__",
   "status": {
-    "cs": "Pracovní pilotní verze",
-    "en": "Working pilot release"
+    "cs": "Připraveno k řízenému pilotu",
+    "en": "Ready for controlled pilot"
   },
   "description": {
-    "cs": "Pomáhá rozebrat příchozí zprávu, anonymizovat ji a připravit profesionální školní odpověď.",
-    "en": "Helps analyse an incoming message, anonymise it and prepare a professional school reply."
+    "cs": "Převádí jeden materiál do pedagogicky smysluplných variant pro různé potřeby žáků.",
+    "en": "Transforms one resource into pedagogically meaningful variants for different learner needs."
   },
-  "launchUrl": "https://daniel22-dev.github.io/korespondencni-asistent/",
-  "manualUrl": "https://daniel22-dev.github.io/korespondencni-asistent/manual/",
-  "repository": "daniel22-dev/korespondencni-asistent",
-  "icon": "assets/apps/correspondence.png",
-  "accent": "#f0aa4b",
+  "launchUrl": "https://daniel22-dev.github.io/diferenciator/",
+  "manualUrl": "https://daniel22-dev.github.io/diferenciator/manual/",
+  "repository": "daniel22-dev/diferenciator",
+  "icon": "assets/apps/differentiator.png",
+  "accent": "#59e0a5",
   "tags": [
     {
-      "cs": "Komunikace",
-      "en": "Communication"
+      "cs": "Diferenciace",
+      "en": "Differentiation"
     },
     {
-      "cs": "Anonymizace",
-      "en": "Anonymisation"
+      "cs": "Pracovní listy",
+      "en": "Worksheets"
     }
   ],
   "capabilities": [
-    "communication",
-    "anonymisation",
-    "email-analysis",
-    "templates",
+    "differentiation",
+    "worksheets",
+    "quality-check",
+    "pdf",
     "ghrab-platform-v1",
     "canonical-branding",
     "storage-namespace-v1",
     "artifact-envelope-v1"
   ],
   "compatibility": {
-    "studioMinVersion": "0.18.9",
+    "studioMinVersion": "0.18.7",
     "materialSchema": "ghrab-material-v1",
     "studioBridge": "2.0",
     "platformContract": "ghrab-platform-v1",
@@ -54,18 +54,18 @@
     "contractVersion": "1",
     "serverReady": true,
     "conformancePassed": true,
-    "operationsManifestUrl": "https://daniel22-dev.github.io/korespondencni-asistent/ai-operations.json",
+    "operationsManifestUrl": "https://daniel22-dev.github.io/diferenciator/ai-operations.json",
     "runtimeSchema": "ghrab-runtime-config-v1",
     "gatewayContract": "ghrab-ai-request-v1",
     "certificationStatus": "certified-p1",
     "certificationEvidence": "evidence/p1-ai-conformance.json",
-    "certifiedOperations": 8
+    "certifiedOperations": 6
   },
-  "slug": "korespondencni-asistent",
+  "slug": "diferenciator",
   "paths": {
-    "app": "https://daniel22-dev.github.io/korespondencni-asistent/",
-    "manual": "https://daniel22-dev.github.io/korespondencni-asistent/manual/",
-    "manifest": "https://daniel22-dev.github.io/korespondencni-asistent/studio-manifest.json"
+    "app": "https://daniel22-dev.github.io/diferenciator/",
+    "manual": "https://daniel22-dev.github.io/diferenciator/manual/",
+    "manifest": "https://daniel22-dev.github.io/diferenciator/studio-manifest.json"
   },
   "platform": {
     "schema": "ghrab-platform-app-integration-v1",
@@ -77,7 +77,7 @@
     "swContract": 1,
     "studioBridge": 2,
     "artifactEnvelope": 1,
-    "storagePrefix": "ghrab.correspondence.",
-    "cacheName": "ghrab-correspondence-v5.9.19"
+    "storagePrefix": "ghrab.differentiator.",
+    "cacheName": "ghrab-differentiator-v1.3.12"
   }
 }
