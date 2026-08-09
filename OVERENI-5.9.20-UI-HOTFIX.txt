@@ -1,0 +1,28 @@
+Korespondenční asistent 5.9.20 — UI hotfix
+Datum ověření: 2026-08-09
+
+PROKÁZANÁ REGRESE V 5.9.19
+- automatická .guide-overlay se otevřela při startu a ležela nad UI;
+- nový hit-test na původním balíku zachytil klik na btnMode na guide-overlay místo tlačítka;
+- původní release testy skutečný produkční unlock/hit target neověřovaly.
+
+OPRAVA
+- onboarding se při startu automaticky neotevírá; je ručně v Další možnosti → Prohlídka aplikace;
+- Escape/kliknutí na pozadí ukládá stav prohlídky jako viděný;
+- shell tlačítka se vážou idempotentně už v rané UI vrstvě;
+- bootstrap kontroluje počet odemčených protected skriptů a ksAppReady;
+- přidán scripts/test-ui-interactions.mjs se skutečným GHRAB Platform unlockem a fyzickými kliknutími.
+
+FINÁLNÍ OVĚŘENÍ
+- npm test: PASS
+  - interní testy 143/143
+  - GHRAB AI Core conformance 17/17
+  - UI interaction regression 16/16
+- GHRAB Platform conformance: 124/124 PASS
+- qa:quality: 31/31 PASS
+- qa:browser: PASS
+- qa:xss: PASS, 0 regresí
+- test:reporter: 49 PASS / 0 FAIL; browserová část lokálně NOT_READY kvůli spravované Chromium URLBlocklist.
+
+OMEZENÍ LOKÁLNÍHO PROSTŘEDÍ
+Plná qa:p5 lokálně nedokončí qa:runtime, protože spravovaná Chromium politika v tomto prostředí blokuje všechny lokální HTTP testovací stránky. Nový UI regresní test používá hermetický Page.setDocumentContent + skutečný GHRAB unlock a tímto omezením netrpí. V GitHub Actions je qa:p5:ci nadále povinná.

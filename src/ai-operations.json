@@ -1,96 +1,105 @@
 {
   "schema": "ghrab-ai-operations-v1",
-  "appId": "differentiator",
-  "appVersion": "1.3.12",
+  "appId": "correspondence",
+  "appVersion": "5.9.20",
   "registryVersion": "1.1.0",
   "coreVersion": "1.0.0",
   "contractVersion": "1",
   "defaultStreaming": false,
   "operations": [
     {
-      "operation": "cefr-detection",
-      "schemaId": "differentiator.text.v1",
-      "defaultModelProfile": "economy",
-      "allowedModelProfiles": [
-        "economy",
-        "balanced"
-      ],
-      "inputTypes": [
-        "text"
-      ],
-      "streaming": false,
-      "expectedOutputs": 1,
-      "maxOutputTokensHint": 4096
-    },
-    {
-      "operation": "material-extraction",
-      "schemaId": "differentiator.text.v1",
+      "operation": "incoming-analysis",
+      "schemaId": "correspondence.analysis.v1",
       "defaultModelProfile": "balanced",
       "allowedModelProfiles": [
         "balanced",
         "quality"
       ],
       "inputTypes": [
-        "text",
-        "image",
-        "document"
+        "text"
       ],
       "streaming": false,
       "expectedOutputs": 1,
       "maxOutputTokensHint": 32768
     },
     {
-      "operation": "worksheet-generation",
-      "schemaId": "differentiator.object.v1",
+      "operation": "reply-draft",
+      "schemaId": "correspondence.reply.v1",
       "defaultModelProfile": "balanced",
       "allowedModelProfiles": [
         "balanced",
         "quality"
       ],
       "inputTypes": [
-        "text",
-        "image",
-        "document"
+        "text"
       ],
       "streaming": false,
-      "expectedOutputs": 1,
-      "maxOutputTokensHint": 32768,
-      "maxProviderRequestsPerWorkflow": 12
+      "expectedOutputs": 3,
+      "maxOutputTokensHint": 32768
     },
     {
-      "operation": "worksheet-structure-repair",
-      "schemaId": "differentiator.object.v1",
-      "defaultModelProfile": "economy",
+      "operation": "outgoing-rewrite",
+      "schemaId": "correspondence.text.v1",
+      "defaultModelProfile": "balanced",
       "allowedModelProfiles": [
-        "economy",
-        "balanced"
+        "balanced",
+        "quality"
       ],
       "inputTypes": [
         "text"
       ],
       "streaming": false,
       "expectedOutputs": 1,
-      "maxOutputTokensHint": 32768,
-      "maxProviderRequestsPerWorkflow": 12
+      "maxOutputTokensHint": 32768
     },
     {
-      "operation": "answer-key-generation",
-      "schemaId": "differentiator.text.v1",
-      "defaultModelProfile": "economy",
+      "operation": "outgoing-compose",
+      "schemaId": "correspondence.text.v1",
+      "defaultModelProfile": "balanced",
       "allowedModelProfiles": [
-        "economy",
-        "balanced"
+        "balanced",
+        "quality"
       ],
       "inputTypes": [
         "text"
       ],
       "streaming": false,
       "expectedOutputs": 1,
-      "maxOutputTokensHint": 16384
+      "maxOutputTokensHint": 32768
     },
     {
-      "operation": "worksheet-quality-audit",
-      "schemaId": "differentiator.text.v1",
+      "operation": "outgoing-proofread",
+      "schemaId": "correspondence.text.v1",
+      "defaultModelProfile": "balanced",
+      "allowedModelProfiles": [
+        "balanced",
+        "quality"
+      ],
+      "inputTypes": [
+        "text"
+      ],
+      "streaming": false,
+      "expectedOutputs": 1,
+      "maxOutputTokensHint": 32768
+    },
+    {
+      "operation": "draft-refinement",
+      "schemaId": "correspondence.text.v1",
+      "defaultModelProfile": "balanced",
+      "allowedModelProfiles": [
+        "balanced",
+        "quality"
+      ],
+      "inputTypes": [
+        "text"
+      ],
+      "streaming": false,
+      "expectedOutputs": 1,
+      "maxOutputTokensHint": 32768
+    },
+    {
+      "operation": "tone-check",
+      "schemaId": "correspondence.tone.v1",
       "defaultModelProfile": "economy",
       "allowedModelProfiles": [
         "economy",
@@ -102,6 +111,21 @@
       "streaming": false,
       "expectedOutputs": 1,
       "maxOutputTokensHint": 8192
+    },
+    {
+      "operation": "synonym-suggestions",
+      "schemaId": "correspondence.synonyms.v1",
+      "defaultModelProfile": "economy",
+      "allowedModelProfiles": [
+        "economy",
+        "balanced"
+      ],
+      "inputTypes": [
+        "text"
+      ],
+      "streaming": false,
+      "expectedOutputs": 1,
+      "maxOutputTokensHint": 4096
     }
   ]
 }

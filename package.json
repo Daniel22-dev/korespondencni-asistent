@@ -1,13 +1,13 @@
 {
-  "name": "ghrab-diferenciator",
-  "version": "1.3.12",
+  "name": "ghrab-korespondencni-asistent",
+  "version": "5.9.20",
   "private": true,
-  "description": "Diferenciátor pracovních listů a testů — samostatná PWA pro GitHub Pages",
+  "description": "Korespondenční asistent — samostatná PWA pro GitHub Pages",
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",
     "pretest": "npm run build",
-    "test": "node scripts/test.mjs",
+    "test": "node scripts/test.mjs && node scripts/test-ui-interactions.mjs",
     "test:reporter": "node scripts/test-error-reporter.mjs",
     "build:school-server": "npm run build && node scripts/build-school-profile.mjs",
     "verify:platform": "node scripts/ghrab-platform-conformance.mjs",
@@ -24,13 +24,14 @@
     "qa:a11y": "node scripts/qa-p5-runtime.mjs",
     "qa:p4": "npm run qa:p5",
     "qa:p4:ci": "npm run qa:p5:ci",
-    "qa:p5": "npm run qa:lock && npm run build && npm run verify:platform && npm run qa:quality && npm run qa:browser && npm run qa:runtime && npm run qa:xss && node scripts/qa-p5-release.mjs && node scripts/qa-p5-acceptance.mjs",
-    "qa:p5:ci": "npm run qa:lock && npm run build && npm run verify:platform && npm run qa:quality && npm run qa:browser && npm run qa:runtime && npm run qa:xss && npm run qa:axe && AXE_REQUIRED=1 node scripts/qa-p5-release.mjs && node scripts/qa-p5-acceptance.mjs",
+    "qa:p5": "npm run qa:lock && npm run build && npm run verify:platform && npm run qa:quality && npm run qa:browser && npm run qa:runtime && npm run qa:ui && npm run qa:xss && node scripts/qa-p5-release.mjs && node scripts/qa-p5-acceptance.mjs",
+    "qa:p5:ci": "npm run qa:lock && npm run build && npm run verify:platform && npm run qa:quality && npm run qa:browser && npm run qa:runtime && npm run qa:ui && npm run qa:xss && npm run qa:axe && AXE_REQUIRED=1 node scripts/qa-p5-release.mjs && node scripts/qa-p5-acceptance.mjs",
     "test:p5": "npm run qa:p5",
     "qa:runtime": "node scripts/qa-p5-runtime.mjs",
     "qa:xss": "node scripts/qa-p5-xss-sinks.mjs",
     "qa:lock": "node scripts/qa-p5-lock.mjs",
-    "pretest:reporter": "npm run build"
+    "pretest:reporter": "npm run build",
+    "qa:ui": "node scripts/test-ui-interactions.mjs"
   },
   "engines": {
     "node": ">=18"

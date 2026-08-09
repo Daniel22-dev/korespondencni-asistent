@@ -1,8 +1,8 @@
 {
   "schema": "ghrab-release-acceptance-v1",
   "stage": "P5",
-  "appId": "differentiator",
-  "appVersion": "1.3.12",
+  "appId": "correspondence",
+  "appVersion": "5.9.20",
   "releaseStatus": "pre-production-accepted",
   "primaryRuntime": {
     "mode": "standalone-github-pages",
@@ -37,7 +37,7 @@
     "sourceRepositoriesExcludedFromSchoolOperationalPackage": true,
     "legalTermsRequireSeparateAgreement": true
   },
-  "revision": "P5-R2",
+  "revision": "P5-R3-UI-HOTFIX",
   "runtimeAudit": {
     "required": true,
     "scriptsExecuted": true,

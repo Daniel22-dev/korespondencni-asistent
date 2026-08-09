@@ -1,7 +1,7 @@
 {
   "schema": "ghrab-data-manifest-v1",
-  "appId": "differentiator",
-  "appVersion": "1.3.12",
+  "appId": "correspondence",
+  "appVersion": "5.9.20",
   "manifestVersion": 3,
   "dataCategories": [
     "settings",
@@ -20,7 +20,8 @@
       "kind": "localStorage",
       "category": "application-data",
       "patterns": [
-        "ghrab.differentiator.*"
+        "ghrab.correspondence.*",
+        "ghrab.correspondence.ks5.*"
       ],
       "sensitivity": "potentially-personal",
       "authority": "client",
@@ -30,7 +31,8 @@
       "kind": "sessionStorage",
       "category": "session-data",
       "patterns": [
-        "ghrab.differentiator.gemini_key_session"
+        "ghrab.correspondence.gemini_key_session",
+        "ghrab.correspondence.work_session_v2"
       ],
       "sensitivity": "confidential",
       "authority": "client",
@@ -40,8 +42,8 @@
       "kind": "localStorage",
       "category": "credential",
       "patterns": [
-        "ghrab.differentiator.gemini_key",
-        "ghrab.differentiator.gemini_key_session"
+        "ghrab.correspondence.gemini_key",
+        "ghrab.correspondence.gemini_key_session"
       ],
       "sensitivity": "secret",
       "authority": "client-direct-mode-only",
@@ -51,8 +53,8 @@
       "kind": "sessionStorage",
       "category": "credential",
       "patterns": [
-        "ghrab.differentiator.gemini_key",
-        "ghrab.differentiator.gemini_key_session"
+        "ghrab.correspondence.gemini_key",
+        "ghrab.correspondence.gemini_key_session"
       ],
       "sensitivity": "secret",
       "authority": "client-direct-mode-only",
@@ -62,8 +64,8 @@
       "kind": "cacheStorage",
       "category": "application-cache",
       "patterns": [
-        "ghrab-differentiator-v*",
-        "differentiator*"
+        "ghrab-correspondence-v*",
+        "correspondence*"
       ],
       "sensitivity": "non-content-cache",
       "authority": "client",
@@ -81,7 +83,8 @@
     "includesSecrets": false,
     "envelopeSchema": "ghrab-artifact-envelope-v1",
     "artifactTypes": [
-      "differentiator-project"
+      "correspondence-settings",
+      "correspondence-library"
     ],
     "nativeFormats": [
       "docx",
@@ -92,7 +95,7 @@
   "deletion": {
     "supported": true,
     "clientVerified": true,
-    "serverEndpoint": "data/differentiator"
+    "serverEndpoint": "data/correspondence"
   },
   "sharedDevice": {
     "supported": true,
@@ -101,7 +104,7 @@
   },
   "storageNamespace": {
     "schema": "ghrab-storage-namespace-v1",
-    "prefix": "ghrab.differentiator.",
+    "prefix": "ghrab.correspondence.",
     "migrationId": "p2-storage-namespace-v1",
     "backup": "full",
     "rollbackSupported": true
@@ -109,7 +112,8 @@
   "import": {
     "supported": true,
     "artifactTypes": [
-      "differentiator-project"
+      "correspondence-settings",
+      "correspondence-library"
     ],
     "acceptsLegacyJson": true,
     "checksumRequiredForEnvelope": true

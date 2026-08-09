@@ -1,7 +1,7 @@
 {
   "schema": "ghrab-platform-app-integration-v1",
-  "appId": "differentiator",
-  "appVersion": "1.3.12",
+  "appId": "correspondence",
+  "appVersion": "5.9.20",
   "contract": "ghrab-platform-v1",
   "requiredPlatformRange": ">=1.0.0 <2.0.0",
   "platformVersion": "1.0.0",
@@ -14,10 +14,12 @@
     "schema": "ghrab-artifact-envelope-v1",
     "checksum": "SHA-256",
     "exports": [
-      "differentiator-project"
+      "correspondence-settings",
+      "correspondence-library"
     ],
     "imports": [
-      "differentiator-project"
+      "correspondence-settings",
+      "correspondence-library"
     ],
     "acceptsLegacyJson": true,
     "nativeFormats": [
@@ -26,19 +28,19 @@
       "txt"
     ]
   },
-  "storagePrefix": "ghrab.differentiator.",
-  "cacheName": "ghrab-differentiator-v1.3.12",
+  "storagePrefix": "ghrab.correspondence.",
+  "cacheName": "ghrab-correspondence-v5.9.20",
   "capabilities": [
+    "anonymisation",
     "artifact-envelope-v1",
     "canonical-branding",
-    "differentiation",
+    "communication",
+    "email-analysis",
     "ghrab-platform-v1",
-    "pdf",
-    "quality-check",
     "storage-namespace-v1",
     "sw-contract-v1",
-    "theme-contract-v1",
-    "worksheets"
+    "templates",
+    "theme-contract-v1"
   ],
   "artifacts": {
     "ghrab-platform.js": {
