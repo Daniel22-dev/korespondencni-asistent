@@ -3,11 +3,12 @@ const IS_TEST_MODE=new URLSearchParams(window.location.search).get("test")==="1"
 "use strict";
 
 const RELEASE = {
-  version: "5.9.20",
+  version: "5.9.21",
   date: "2026-08-09",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.9.21: oprava spuštění přes AI Studio — sdílený stav Gemini runtime se inicializuje před GHRAB AI integrací, takže předem dostupná centrální platforma už nemůže vyvolat TDZ chybu `geminiModel before initialization`. Regresní Chromium test nově reprodukuje předem aktivní `createAiRuntimeConfig`, skutečný GHRAB unlock a požaduje plný `ksAppReady` bez runtime výjimky.",
     "5.9.20: UI hotfix po platformní aktualizaci — automatická úvodní prohlídka už při startu nevytváří celoobrazovkovou vrstvu nad aplikací; je dostupná ručně v Dalších možnostech. Kritická tlačítka motivu, celé obrazovky a volby pracovního postupu se vážou už v rané shell vrstvě a bootstrap nově odmítne tichý částečný start. Přidán regresní Chromium test se skutečným GHRAB unlockem a fyzickými kliknutími.",
     "5.9.19: společný reportér 1.1.0 — délka finální Gmail/mailto adresy se omezuje až po URL kódování, plný text zůstává v ZIPu a kopírování, dialog drží a obnovuje fokus a každý nový report získá nové ID. Serverová implementace, AI Core, prompty i funkce KS zůstaly beze změny.",
     "5.9.19: sjednocení technického reportéru s AI Studiem GHRAB — aplikace používá jedinou lokální instanci společného základu, centrální kopie z app-guardu je výslovně vypnuta. Reportér živě přebírá světlý a tmavý režim, podporuje až pět snímků s plovoucím panelem, bezpečný koncept se zachováním nebo úplným smazáním, ZIP s anonymizovanou diagnostikou a nativní odkaz Stáhnout ZIP a otevřít Gmail. Zastaralá paralelní kompatibilitní vrstva byla odstraněna a manuál odkazuje na aktuální centrální návod.",

@@ -185,6 +185,12 @@ try {
   await client.call('Page.setDocumentContent', { frameId: tree.frameTree.frame.id, html: prepareHtml(raw) });
   await client.eval(`window.__KS_UI_TEST_ERRORS__=[];addEventListener('error',e=>window.__KS_UI_TEST_ERRORS__.push(String(e.error?.stack||e.message||e.error||'error')));addEventListener('unhandledrejection',e=>window.__KS_UI_TEST_ERRORS__.push(String(e.reason?.stack||e.reason||'rejection')));`);
   await client.eval(platformJs);
+  // Reproduce the production Studio path: central platform runtime capabilities
+  // are already present before the protected KS bundle is unlocked. In 5.9.20
+  // this exposed a TDZ crash because 28-ai-integration.js read geminiModel before
+  // 30-api-gemini.js initialised that lexical binding.
+  await client.eval(`(()=>{const base=window.GHRAB_PLATFORM||{};window.GHRAB_PLATFORM=Object.freeze({...base,createAiRuntimeConfig:({timeoutMs=120000,maxRequestBytes=18*1024*1024,maxPartBytes=14*1024*1024,models={}}={})=>Object.freeze({schema:'ghrab-runtime-config-v1',ai:Object.freeze({defaultMode:'direct-gemini',selectedMode:'direct-gemini',allowedModes:Object.freeze(['direct-gemini']),allowUserModeSelection:false,automaticFallback:false,gatewayUrl:'/api/v1/ai/generate',healthUrl:'/api/v1/ai/health',requestTimeoutMs:timeoutMs,gatewayMaxRetries:0,maxRequestBytes,maxPartBytes,directGemini:Object.freeze({endpointBase:'https://generativelanguage.googleapis.com/v1beta/models',profileModels:Object.freeze({economy:models.economy||'gemini-3.5-flash-lite',balanced:models.balanced||'gemini-3.6-flash',quality:models.quality||'gemini-3.6-flash'}),fallbackModels:Object.freeze([models.economy||'gemini-3.5-flash-lite']),useResponseSchema:false,maxOutputTokens:32768})}),telemetry:Object.freeze({enabled:true})})});document.documentElement.dataset.ksStudioRuntimeFixture='ready';})()`);
+  check('studio-runtime.capability-present-before-unlock', await client.eval(`typeof window.GHRAB_PLATFORM?.createAiRuntimeConfig==='function'`), 'createAiRuntimeConfig');
   const protectedBefore = await client.eval(`document.querySelectorAll('script[type="application/ghrab-protected"][data-ghrab-protected]').length`);
   check('protected-script.present-before-unlock', protectedBefore === 1, String(protectedBefore));
   const unlockCount = await client.eval(`window.GHRAB_PLATFORM?.unlockProtectedScripts?.() ?? -1`);

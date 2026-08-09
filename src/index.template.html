@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="cs" data-ghrab-access="checking" data-ghrab-app-id="correspondence" data-ghrab-app-version="5.9.20">
+<html lang="cs" data-ghrab-access="checking" data-ghrab-app-id="correspondence" data-ghrab-app-version="5.9.21">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -24,10 +24,16 @@
 <body><!--==SEM_BUILD_VLOZI_BODY_HTML==--><script type="application/ghrab-protected" data-ghrab-protected>/*==SEM_BUILD_VLOZI_JS==*/</script>
 <script type="module" data-ghrab-access-bootstrap>
 const APP_ID = 'correspondence';
-function showAccessBootstrapFailure(title = 'Přístup nelze ověřit', message = 'Centrální přístupová služba není dostupná. Zkontrolujte připojení a otevřete aplikaci znovu přes AI Studio.') {
+function showAccessBootstrapFailure(title = 'Spuštění aplikace nelze dokončit', message = 'Ověření přístupu nebo inicializace aplikace selhala. Otevřete aplikaci znovu přes AI Studio.', detail = '') {
   document.documentElement.dataset.ghrabAccess = 'denied';
   document.body.style.visibility = 'visible';
   document.body.innerHTML = '<main class="ghrab-access-gate"><div class="ghrab-access-gate-mark">⬡</div><p class="ghrab-access-gate-eyebrow">AI STUDIO GHRAB</p><h1>' + title + '</h1><p>' + message + '</p><div class="ghrab-access-gate-actions"><a class="ghrab-access-gate-primary" href="/AI-Studio-GHRAB/">Otevřít AI Studio</a></div></main>';
+  if (detail) {
+    const diagnostic = document.createElement('p');
+    diagnostic.className = 'ghrab-access-gate-reason';
+    diagnostic.textContent = 'Technická příčina: ' + String(detail).slice(0, 240);
+    document.querySelector('.ghrab-access-gate-actions')?.before(diagnostic);
+  }
 }
 try {
   const { protectApp } = await import('/AI-Studio-GHRAB/access/app-guard.js');
@@ -52,7 +58,8 @@ try {
   }
 } catch (error) {
   console.error('AI Studio access bootstrap failed', error);
-  showAccessBootstrapFailure();
+  const detail = error instanceof Error ? `${error.name}: ${error.message}` : String(error || 'unknown-error');
+  showAccessBootstrapFailure(undefined, undefined, detail);
 }
 </script>
 <noscript><style>html[data-ghrab-access="checking"] body{visibility:visible}</style><main style="max-width:42rem;margin:4rem auto;padding:1.5rem;font-family:system-ui">Tato aplikace vyžaduje zapnutý JavaScript a platný přístup z AI Studia GHRAB.</main></noscript>

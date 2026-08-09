@@ -1,8 +1,4 @@
 /* ===================== KLÍČ + MODEL ===================== */
-const KEY_SK="rozbor_gemini_key", KEY_SESSION_SK="rozbor_gemini_key_session", MODEL_SK="rozbor_gemini_model";
-const MODEL_DEFAULT="gemini-3.6-flash", QUALITY_MODEL="gemini-3.5-flash", FALLBACK_MODELS=["gemini-3.5-flash-lite"];
-let geminiApiKey="", geminiKeyScope="", geminiModel=MODEL_DEFAULT;
-let TEST_RUN_ACTIVE=false;
 window.__setTestRunActive=v=>{ TEST_RUN_ACTIVE=!!v; };
 function testMockAvailable(){ return (IS_TEST_MODE||TEST_RUN_ACTIVE) && !!window.__TEST_MOCK_GEMINI; }
 function currentAiMode(){return window.GHRABRuntime?GHRABRuntime.getMode():"direct-gemini";}

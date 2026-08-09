@@ -1,3 +1,11 @@
+## 5.9.21 — oprava startu uvnitř AI Studia (2026-08-09)
+
+- opraven pád chráněného aplikačního skriptu při startu s již aktivním centrálním GHRAB Platform runtime (`ReferenceError: Cannot access 'geminiModel' before initialization`);
+- Gemini model/key runtime stav je inicializován v novém modulu `27-ai-runtime-state.js` ještě před `28-ai-integration.js`;
+- produkční strict-ready kontrola z 5.9.20 zůstává zachována a nyní správně dosáhne `ksAppReady=true`;
+- `qa:ui` nově před unlockem simuluje dostupnost `GHRAB_PLATFORM.createAiRuntimeConfig()` a brání návratu stejné TDZ regrese.
+- nouzová startovací obrazovka už netvrdí automaticky výpadek centrální přístupové služby; bezpečně zobrazí stručnou technickou příčinu, pokud bootstrap skutečně selže.
+
 ## 5.9.20 — UI hotfix + CI stabilizace (2026-08-09)
 
 - odstraněno automatické onboarding překrytí, které mohlo zachytit první kliknutí nad aplikací;
