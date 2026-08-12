@@ -2,7 +2,7 @@
   "schema": "ghrab-platform-consumer-v1",
   "appId": "correspondence",
   "appName": "Korespondenční asistent",
-  "appVersion": "5.9.21",
+  "appVersion": "5.9.22",
   "platform": {
     "version": "1.1.0",
     "contract": "ghrab-platform-v1",
@@ -145,7 +145,7 @@
     ]
   },
   "cache": {
-    "name": "ghrab-correspondence-v5.9.21",
+    "name": "ghrab-correspondence-v5.9.22",
     "updateMessage": "GHRAB_SKIP_WAITING"
   },
   "html": {

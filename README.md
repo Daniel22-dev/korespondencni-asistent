@@ -1,21 +1,21 @@
 # Korespondenční asistent
 
-**Aktuální verze:** 5.9.21  
+**Aktuální verze:** 5.9.22  
 **Platforma:** GHRAB Platform 1.1.0 · etapa P3
 
 
 Samostatná PWA aplikace ekosystému AI Studio Gymnázia Ostrava-Hrabůvka.
 
-- **Verze aplikace:** 5.9.21
+- **Verze aplikace:** 5.9.22
 - **GHRAB AI Core:** 1.0.0
 - **Doporučený repozitář:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
 - **Interaktivní manuál:** 1.3.8 (manuál 1.3.8)
 
-## Co přináší verze 5.9.21
+## Co přináší verze 5.9.22
 
-Verze 5.9.21 opravuje produkční start Korespondenčního asistenta otevřeného uvnitř AI Studia. Sdílený stav Gemini runtime je nyní inicializován ještě před GHRAB AI integrací, takže předem aktivní centrální `GHRAB_PLATFORM.createAiRuntimeConfig()` nemůže přistoupit k `geminiModel` v Temporal Dead Zone. Regresní `qa:ui` test tuto cestu výslovně simuluje před skutečným odemčením chráněného skriptu a vyžaduje `ksShellReady` i `ksAppReady` bez runtime výjimky. Cache je `ghrab-correspondence-v5.9.21`. UI hotfix 5.9.20 a funkce AI Core zůstávají zachovány.
+Verze 5.9.22 opravuje automatické testy, ukládání profilu a kontrolu „Jak text působí?“. Přidává ručně zadaný předmět, který se k výsledku připojí pouze lokálně. Test runner nově čeká na výslovné spuštění, viditelně ukazuje průběh, potlačuje dočasná hlášení a po skončení obnoví profil, formuláře i pracovní rozhraní. Dva původní pády způsobovala neúplná práce s kanonickými storage klíči po migraci GHRAB Platform; oprava pokrývá legacy i kanonický namespace. Chromium sada fyzicky ověřuje hlavní tlačítka, všechny položky Dalších možností a všechny čtyři vývojářské nástroje. Cache je `ghrab-correspondence-v5.9.22`; opravy startu z 5.9.21 zůstávají zachovány.
 
 ### Zachované opravy 5.9.14
 
@@ -55,7 +55,7 @@ prohlížeč
 → Gemini API
 ```
 
-Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže nasazení verze 5.9.21 samo o sobě nezapíná školní server.
+Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže nasazení verze 5.9.22 samo o sobě nezapíná školní server.
 
 ### Budoucí migrační režim
 

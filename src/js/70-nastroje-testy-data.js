@@ -12,9 +12,9 @@ function buildFooterTools(){
   const row=document.createElement("div"); row.className="footer-tools-row";
   const title=document.createElement("span"); title.className="footer-tools-title"; title.textContent="Další možnosti";
   const wrap=document.createElement("span"); wrap.className="tools-wrap";
-  const btn=document.createElement("button"); btn.className="tools-btn"; btn.type="button"; btn.textContent="Otevřít nabídku ▴"; btn.title="Profil, uložené výstupy, šablony a správa dat"; btn.setAttribute("aria-expanded","false");
+  const btn=document.createElement("button"); btn.id="footerToolsToggle"; btn.className="tools-btn"; btn.type="button"; btn.textContent="Otevřít nabídku ▴"; btn.title="Profil, uložené výstupy, šablony a správa dat"; btn.setAttribute("aria-expanded","false");
   const menu=document.createElement("div"); menu.className="tools-menu"; menu.setAttribute("role","menu");
-  toolsActions.forEach(a=>{ const b=document.createElement("button"); b.type="button"; b.title=a.title||a.label; b.innerHTML='<span class="action-icon">'+esc(a.icon||"•")+'</span><span><b>'+esc(a.label)+'</b><small>'+esc(a.title||"")+'</small></span>'; b.onclick=()=>{ menu.classList.remove("open"); btn.setAttribute("aria-expanded","false"); a.fn&&a.fn(); }; menu.appendChild(b); });
+  toolsActions.forEach(a=>{ const b=document.createElement("button"); b.type="button"; b.dataset.footerTool=a.label; b.title=a.title||a.label; b.innerHTML='<span class="action-icon">'+esc(a.icon||"•")+'</span><span><b>'+esc(a.label)+'</b><small>'+esc(a.title||"")+'</small></span>'; b.onclick=()=>{ menu.classList.remove("open"); btn.setAttribute("aria-expanded","false"); a.fn&&a.fn(); }; menu.appendChild(b); });
   btn.onclick=(e)=>{ e.stopPropagation(); const open=!menu.classList.contains("open"); menu.classList.toggle("open",open); btn.setAttribute("aria-expanded",open?"true":"false"); };
   document.addEventListener("click",(e)=>{ if(!wrap.contains(e.target)){ menu.classList.remove("open"); btn.setAttribute("aria-expanded","false"); } });
   document.addEventListener("keydown",(e)=>{ if(e.key==="Escape"){ menu.classList.remove("open"); btn.setAttribute("aria-expanded","false"); } });
@@ -45,6 +45,7 @@ function openLastPromptDebug(){
 function openTestRunner(auto){
   const html='<p class="hint">Testy běží lokálně a používají mock Gemini odpovědí; nic se neposílá do API. Během testu se dočasně mění pracovní vstupy i lokální data aplikace — původní stav se po dokončení obnoví.</p>'+
     '<div class="row"><button class="btn" id="runTestsNow">Spustit testy</button></div>'+
+    '<div class="test-progress-panel" id="testProgressPanel" role="status" aria-live="polite" hidden><div class="test-progress-head"><b id="testProgressTitle">Testy běží…</b><span id="testProgressCount">0 dokončeno</span></div><div class="test-progress-track" aria-hidden="true"><span></span></div><small id="testProgressCurrent">Připravuji bezpečnou testovací kopii stavu aplikace…</small></div>'+
     '<div id="testOut" style="margin-top:12px"></div>';
   const m=openModal("Automatické testy", html, {label:"Automatické testy"});
   const run=m.body.querySelector("#runTestsNow"); if(run) run.onclick=()=>runKorespTests();
@@ -55,27 +56,73 @@ function waitFor(cond, ms=1800){ return new Promise((resolve,reject)=>{ const st
 function assertTest(cond, msg){ if(!cond) throw new Error(msg||"assert failed"); }
 function snapshotAppStorage(){
   const snap={local:{},session:{}};
-  const grab=(store,bucket)=>{ try{Object.keys(store).filter(k=>/^(rozbor_|ks5_)|^ghrab\.(?:handoff\.v1|pilot\.events\.v2)$/.test(k)).forEach(k=>{bucket[k]=store.getItem(k);});}catch(_){} };
+  const grab=(store,bucket)=>{ appStorageKeys(store).forEach(k=>{try{bucket[k]=store.getItem(k);}catch(_){}}); };
   grab(localStorage,snap.local); grab(sessionStorage,snap.session); return snap;
 }
 function restoreAppStorage(snap){
-  const put=(store,bucket)=>{ try{Object.keys(store).filter(k=>/^(rozbor_|ks5_)|^ghrab\.(?:handoff\.v1|pilot\.events\.v2)$/.test(k)).forEach(k=>{try{store.removeItem(k);}catch(_){}});}catch(_){} try{Object.keys(bucket||{}).forEach(k=>{try{store.setItem(k,bucket[k]);}catch(_){}});}catch(_){} };
+  const put=(store,bucket)=>{ appStorageKeys(store).forEach(k=>{try{store.removeItem(k);}catch(_){}}); try{Object.keys(bucket||{}).forEach(k=>{try{store.setItem(k,bucket[k]);}catch(_){}});}catch(_){} };
   put(localStorage,snap&&snap.local); put(sessionStorage,snap&&snap.session);
 }
-function snapshotTestState(){ return {storage:snapshotAppStorage(),st:JSON.parse(JSON.stringify(ST)),inRaw:E("in","raw").value,myRaw:E("my","raw").value,key:geminiApiKey,scope:geminiKeyScope,model:geminiModel,mock:window.__TEST_MOCK_GEMINI,gatewayMock:window.__TEST_MOCK_GATEWAY,runtime:GHRABRuntime.getConfig()}; }
+function snapshotTestUiState(){
+  const fields={},chips={},details={};
+  document.querySelectorAll("input[id],textarea[id],select[id]").forEach(el=>{
+    if(el.type==="file"||el.closest("#testProgressPanel"))return;
+    fields[el.id]={value:el.value,checked:"checked" in el?!!el.checked:undefined};
+  });
+  document.querySelectorAll(".chips[data-group]").forEach(group=>{
+    const selected=group.querySelector(".chip.on[data-v]");
+    if(selected)chips[group.dataset.group]=selected.dataset.v;
+  });
+  document.querySelectorAll("details[id]").forEach(el=>{details[el.id]=!!el.open;});
+  return {fields,chips,details,workspaceOpen:document.body.classList.contains("workspace-open"),pane:activePane()};
+}
+function closeTestSideEffects(){
+  const runnerOverlay=$("testOut")?.closest(".modal-overlay")||null;
+  [...document.querySelectorAll(".modal-overlay.open")].forEach(overlay=>{
+    if(overlay===runnerOverlay)return;
+    const close=overlay.querySelector(".modal-close");
+    if(close)close.click();else overlay.classList.remove("open");
+  });
+  [...document.querySelectorAll(".guide-overlay")].forEach(overlay=>{
+    const close=overlay.querySelector(".tour-skip,.tour-close,[aria-label='Zavřít']");
+    if(close)close.click();else overlay.remove();
+  });
+}
+function snapshotTestState(){ return {storage:snapshotAppStorage(),st:JSON.parse(JSON.stringify(ST)),inRaw:E("in","raw").value,myRaw:E("my","raw").value,key:geminiApiKey,scope:geminiKeyScope,model:geminiModel,mock:window.__TEST_MOCK_GEMINI,gatewayMock:window.__TEST_MOCK_GATEWAY,runtime:GHRABRuntime.getConfig(),ui:snapshotTestUiState()}; }
 function restoreTestState(snap){
   restoreAppStorage(snap.storage);
   ST.in=snap.st.in; ST.my=snap.st.my; E("in","raw").value=snap.inRaw; E("my","raw").value=snap.myRaw; geminiApiKey=snap.key; geminiKeyScope=snap.scope; geminiModel=snap.model; window.__TEST_MOCK_GEMINI=snap.mock; window.__TEST_MOCK_GATEWAY=snap.gatewayMock; GHRABRuntime.replaceForTesting(snap.runtime);
   publishActiveKeyReals("in"); publishActiveKeyReals("my");
-  try{renderView("in");renderView("my");renderKeyTable("in");renderKeyTable("my");renderPreview("in");renderPreview("my");renderTemplates();renderMyProfileContext();renderWritingStyleControls();refreshDeskStatus();applyAiRuntimeUi();updateKeyStatus();updateModelUI();}catch(_){}
+  closeTestSideEffects();
+  try{
+    renderView("in");renderView("my");renderKeyTable("in");renderKeyTable("my");renderPreview("in");renderPreview("my");renderTemplates();renderMyProfileContext();renderWritingStyleControls();refreshDeskStatus();applyAiRuntimeUi();updateKeyStatus();updateModelUI();
+    Object.entries(snap.ui?.fields||{}).forEach(([id,state])=>{const el=$(id);if(!el||el.type==="file")return;el.value=state.value;if(state.checked!==undefined)el.checked=state.checked;});
+    Object.entries(snap.ui?.chips||{}).forEach(([group,value])=>setChip(group,value));
+    Object.entries(snap.ui?.details||{}).forEach(([id,open])=>{const el=$(id);if(el)el.open=open;});
+    setUiMode(localStorage.getItem(UI_MODE_SK)||"simple");updateCustomSubjectUi();updateMyMode();
+    if(snap.ui?.workspaceOpen)switchTab(snap.ui.pane||"in");else showStartScreen();
+  }catch(_){}
 }
+let korespTestsRunning=false;
 async function runKorespTests(){
+  if(korespTestsRunning)return window.__LAST_KORESP_TEST_RESULTS__||[];
+  korespTestsRunning=true;
   const out=$("testOut"); if(out) out.innerHTML='<div class="loading"><span class="spin"></span>Spouštím testy…</div>';
+  const runBtn=$("runTestsNow"),progress=$("testProgressPanel"),progressCount=$("testProgressCount"),progressCurrent=$("testProgressCurrent");
+  if(runBtn){runBtn.disabled=true;runBtn.setAttribute("aria-busy","true");runBtn.dataset.prevText=runBtn.textContent;runBtn.textContent="Testy běží…";}
+  if(progress)progress.hidden=false;
   const markerKey="rozbor_test_marker",markerValue="test-"+Date.now();
   let oldMarker=null; try{oldMarker=localStorage.getItem(markerKey);localStorage.setItem(markerKey,markerValue);}catch(_){}
   const snap=snapshotTestState(); const results=[];
-  window.__setTestRunActive(true);
-  const test=async(name, fn)=>{ const t0=performance.now(); try{ await fn(); results.push({name,ok:true,ms:Math.round(performance.now()-t0)}); }catch(e){ results.push({name,ok:false,msg:e.message||String(e),ms:Math.round(performance.now()-t0)}); } };
+  window.__setTestRunActive(true); document.body.classList.add("ks-tests-running");
+  const test=async(name, fn)=>{
+    if(progressCurrent)progressCurrent.textContent="Právě probíhá: "+name;
+    await new Promise(resolve=>requestAnimationFrame(()=>resolve()));
+    const t0=performance.now();
+    try{ await fn(); results.push({name,ok:true,ms:Math.round(performance.now()-t0)}); }
+    catch(e){ results.push({name,ok:false,msg:e.message||String(e),ms:Math.round(performance.now()-t0)}); }
+    if(progressCount)progressCount.textContent=results.length+" dokončeno";
+  };
   try{
     await test("Server-ready runtime má bezpečný výchozí režim", async()=>{
       const cfg=GHRABRuntime.getConfig();
@@ -845,6 +892,10 @@ async function runKorespTests(){
       const wrap=document.createElement("div"),btn=document.createElement("button");
       await toneCheck("in","Děkuji za zprávu.",wrap,btn);
       assertTest(!!wrap.querySelector(".tonecard")&&wrap.textContent.includes("Příliš stručné")&&wrap.textContent.includes("Mírně šablonovité")&&wrap.textContent.includes("touto cestou"),"rozšířená karta hodnocení textu se nevykreslila");
+      ST.in.clean="Dobrý den, potvrzuji domluvenou konzultaci.";E("in","reviewOk").checked=true;clearAnalysisCache();
+      const generated=document.createElement("div");
+      await toneCheck("in","Předmět: Konzultace\n\nDobrý den,\n\nkázeňskou situaci probereme osobně.\n\n[podpis]",generated,btn,{trustedGenerated:true});
+      assertTest(!!generated.querySelector(".tonecard"),"bezpečný nedotčený návrh vrátila kontrola tónu chybně k anonymizaci");
       window.__TEST_MOCK_GEMINI=old; geminiApiKey=oldKey;
     });
     await test("Import cizího souboru je odmítnut", async()=>{
@@ -1162,7 +1213,7 @@ async function runKorespTests(){
     await test("Smazání dat vyčistí i pracovní stůl", async()=>{
       try{localStorage.setItem("ks5_workbench_drafts","[]");localStorage.setItem("ks5_signatures","[]");localStorage.setItem("ks5_followups","[]");localStorage.setItem("rozbor_name_hints","1");}catch(_){}
       clearAllLocalData();
-      const zbytek=Object.keys(localStorage).filter(k=>/^(rozbor_|ks5_)/.test(k));
+      const zbytek=appStorageKeys(localStorage);
       assertTest(!zbytek.length,"po smazání zůstaly klíče: "+zbytek.join(", "));
     });
     await test("Smazání dat odstraní i předávku a telemetrii AI Studia", async()=>{
@@ -1240,18 +1291,31 @@ async function runKorespTests(){
       assertTest(splitSubject("Asunto: Tarea pendiente\n\nEstimados padres,").subject==="Tarea pendiente","ES předmět");
       assertTest(splitSubject("Předmět: Chybějící úkol\n\nDobrý den,").subject==="Chybějící úkol","CS předmět");
     });
+    await test("Vlastní předmět lze napsat ručně a zůstává lokální", async()=>{
+      const chip=document.querySelector('.chips[data-group="my_subj"] .chip[data-v="vlastni"]'),input=$("my_customSubject"),wrap=$("my_customSubjectWrap");
+      assertTest(!!chip&&!!input&&!!wrap&&input.maxLength===60,"chybí volba nebo limit vlastního předmětu");
+      setChip("my_subj","vlastni");updateCustomSubjectUi();input.value="Konzultace ve čtvrtek";input.dispatchEvent(new Event("input",{bubbles:true}));
+      assertTest(!wrap.hidden&&!input.disabled,"pole vlastního předmětu se nezobrazilo");
+      const output=applyCustomSubjectToOutput("Předmět: Návrh modelu\n\nDobrý den,\n\nděkuji.\n\n[podpis]",input.value,"Předmět");
+      const parsed=splitSubject(output);
+      assertTest(parsed.subject==="Konzultace ve čtvrtek"&&!output.includes("Návrh modelu")&&parsed.body.includes("děkuji"),"vlastní předmět nebyl lokálně použit přesně");
+    });
     await test("Překreslení dlouhého e-mailu je v rozumném čase", async()=>{
       E("in","raw").value="Dobrý den, potvrzuji termín odevzdání. ".repeat(600); const t0=performance.now(); doAnon("in"); const ms=performance.now()-t0;
       assertTest(ms<2500,"anonymizace 22 tisíc znaků trvala "+Math.round(ms)+" ms");
     });
   } finally {
-    restoreTestState(snap); window.__setTestRunActive(false);
+    restoreTestState(snap); window.__setTestRunActive(false); document.body.classList.remove("ks-tests-running");
     const markerOk=(()=>{try{return localStorage.getItem(markerKey)===markerValue;}catch(_){return false;}})();
     results.push({name:"Testy neztratí lokální data",ok:markerOk,msg:markerOk?"":"značkovací hodnota se neobnovila",ms:0});
     try{if(oldMarker===null)localStorage.removeItem(markerKey);else localStorage.setItem(markerKey,oldMarker);}catch(_){}
   }
   const pass=results.filter(r=>r.ok).length, fail=results.length-pass;
   if(out){ out.innerHTML='<div class="res-card"><h3>Výsledek</h3><p class="summary">'+pass+'/'+results.length+' testů prošlo'+(fail?' · '+fail+' selhalo':'')+'</p></div>'+results.map(r=>'<div class="test-result '+(r.ok?'ok':'fail')+'"><b>'+(r.ok?'✓ ':'✗ ')+esc(r.name)+'</b><small>'+r.ms+' ms'+(r.msg?' · '+esc(r.msg):'')+'</small></div>').join(""); }
+  window.__LAST_KORESP_TEST_RESULTS__=results;
+  if(progress)progress.hidden=true;
+  if(runBtn){runBtn.disabled=false;runBtn.removeAttribute("aria-busy");runBtn.textContent=runBtn.dataset.prevText||"Spustit testy";delete runBtn.dataset.prevText;}
+  korespTestsRunning=false;
   console.table(results);
   return results;
 }
@@ -1261,6 +1325,20 @@ window.runKorespTests=runKorespTests;
 /* ===================== SPRÁVA LOKÁLNÍCH DAT ===================== */
 
 const UI_MODE_SK="rozbor_ui_mode";
+const APP_STORAGE_KEY_RE=/^(?:rozbor_|ks5_|ghrab\.correspondence\.)|^ghrab\.(?:handoff\.v1|pilot\.events\.v2)$/;
+function storageKeyList(store){
+  const keys=[];
+  try{
+    for(let i=0;i<Number(store&&store.length||0);i+=1){
+      const key=store.key(i); if(key!==null&&key!==undefined&&!keys.includes(String(key)))keys.push(String(key));
+    }
+  }catch(_){}
+  // Fallback pro testovací nebo spravované implementace Storage.
+  try{Object.keys(store||{}).forEach(key=>{if(!keys.includes(key))keys.push(key);});}catch(_){}
+  return keys;
+}
+function isOwnedAppStorageKey(key){return APP_STORAGE_KEY_RE.test(String(key||""));}
+function appStorageKeys(store){return storageKeyList(store).filter(isOwnedAppStorageKey);}
 function setUiMode(mode){
   mode = (mode === "advanced") ? "advanced" : "simple";
   document.body.classList.toggle("ui-simple", mode === "simple");
@@ -1283,14 +1361,16 @@ function initUiMode(){
 }
 
 function clearAllLocalData(){
-  // Maž podle jmenného prostoru aplikace, ne podle ručního výčtu, který nové funkce snadno minou.
-  const prefixes=/^(rozbor_|ks5_)|^ghrab\.(?:handoff\.v1|pilot\.events\.v2)$/;
+  // Maž legacy i kanonické klíče. Po migraci GHRAB Platform jsou fyzicky uložené
+  // pod ghrab.correspondence.*, i když aplikace dál používá kompatibilní aliasy.
   [localStorage,sessionStorage].forEach(store=>{
-    try{ Object.keys(store).filter(k=>prefixes.test(k)).forEach(k=>{ try{ store.removeItem(k); }catch(_){} }); }catch(_){}
+    appStorageKeys(store).forEach(k=>{ try{ store.removeItem(k); }catch(_){} });
   });
   geminiApiKey=""; geminiKeyScope=""; geminiModel=MODEL_DEFAULT;
   try{ $("keyInput").value=""; $("modelInput").value=MODEL_DEFAULT; }catch(_){}
-  updateKeyStatus(); updateModelUI(); renderTemplates(); toast("Lokální data smazána ✓");
+  updateKeyStatus(); updateModelUI(); renderTemplates();
+  try{renderMyProfileContext();renderWritingStyleControls();}catch(_){}
+  toast("Lokální data smazána ✓");
 }
 function collectSettings(){
   return {
@@ -1387,7 +1467,7 @@ function openDeveloperTools(){
     '<button class="dev-tool-card" id="devOps"><b>Technický log</b><span>Stavy, chyby a timeouty bez textů e-mailů.</span></button>'+    '<button class="dev-tool-card" id="devAiRuntime"><b>AI runtime</b><span>Aktivní transport, kontrakt, adaptéry a poslední usage metadata.</span></button>'+
     '</div>';
   const m=openModal("Vývojářské nástroje", html, {label:"Vývojářské nástroje"});
-  m.body.querySelector("#devTests").onclick=()=>{ m.close(); openTestRunner(true); };
+  m.body.querySelector("#devTests").onclick=()=>{ m.close(); openTestRunner(false); };
   m.body.querySelector("#devDebug").onclick=()=>{ m.close(); openLastPromptDebug(); };
   m.body.querySelector("#devOps").onclick=()=>{ m.close(); openOpsLog(); };
   m.body.querySelector("#devAiRuntime").onclick=()=>{ m.close(); openAiRuntimeDiagnostics(); };

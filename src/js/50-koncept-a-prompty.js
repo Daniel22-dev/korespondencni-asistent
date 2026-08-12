@@ -191,7 +191,10 @@ function draftCard(p, opts){
   const tw=el.querySelector(".tweak-in");
   el.querySelector(".tweak-go").onclick=()=>{ const ins=(tw.value||"").trim(); if(!ins){ toast("Napiš, co upravit."); return; } refineDraft(p,el,getSrc(),ins).then(()=>{ tw.value=""; }); };
   if(tw) tw.addEventListener("keydown",(e)=>{ if(e.key==="Enter"){ e.preventDefault(); el.querySelector(".tweak-go").click(); } });
-  el.querySelector(".act-tone").onclick=(e)=>toneCheck(p,getSrc(),el.querySelector(".tone-wrap"),e.currentTarget);
+  el.querySelector(".act-tone").onclick=(e)=>{
+    const untouched=el._revisionIndex===0&&getSrc()===(el._revisions[0]&&el._revisions[0].text);
+    toneCheck(p,getSrc(),el.querySelector(".tone-wrap"),e.currentTarget,{trustedGenerated:untouched});
+  };
   updateRevisionButtons();
   setTimeout(()=>{ if(typeof refreshDraftReadiness==="function") refreshDraftReadiness(el,p); if(!opts.deferActive && typeof setActiveDraftCard==="function") setActiveDraftCard(el,p); },0);
   return el;
@@ -409,15 +412,23 @@ async function refineDraft(p, card, srcText, instruction){
   }catch(e){ toast("Úprava se nepovedla: "+friendlyApiMessage(e)); }
   finally{ card.style.opacity="1"; }
 }
-async function toneCheck(p, srcText, wrap, btn){
+async function toneCheck(p, srcText, wrap, btn, options){
   if(!isAiServiceReady()){ $("apiPanel").classList.add("open"); toast("Chybí připojení k AI službě."); return; }
   if(!wrap) return;
   const text=(srcText||"").trim(); if(!text){ toast("Není co posoudit."); return; }
-  const safeText=safeAuxiliaryText(p,text,null,"Koncept"); if(safeText===null)return;
+  const bodyText=splitSubject(text).body.trim(); if(!bodyText){wrap.textContent="E-mail neobsahuje tělo, které by šlo posoudit.";wrap.classList.add("error");return;}
+  const opts=options||{},review=E(p,"reviewOk"),source=String(ST[p]&&ST[p].clean||"");
+  const reviewedGenerated=!!(opts.trustedGenerated&&review&&review.checked&&source&&preflightIssues(source,p).danger.length===0);
+  // Nedotčený návrh už vznikl z ručně potvrzeného anonymizovaného zdroje.
+  // Opakovaná kontrola dál blokuje tvrdé identifikátory, ale nevrací uživatele
+  // kvůli heuristice názvů nebo obecnému citlivému termínu do původního textu.
+  // Ručně upravený koncept zůstává kontrolován v plném rozsahu.
+  const safeText=safeAuxiliaryText(p,bodyText,wrap,"Koncept",{flashPreview:false,skipUnknownNames:reviewedGenerated,allowSensitiveTerms:reviewedGenerated}); if(safeText===null)return;
   if(btn) btn.disabled=true;
+  wrap.classList.remove("error");
   wrap.innerHTML='<div class="loading"><span class="spin"></span>Čtu, jak text působí…</div>';
   try{
-    const d=await callGemini("Koncept:\n\"\"\"\n"+safeText+"\n\"\"\"", SYS_TONECHECK, "tone", {pane:p,texts:[safeText],ackSensitive:!!(ST[p]&&ST[p].sensitiveAck)}, {thinking:"minimal",operation:"tone-check",modelProfile:"economy"});
+    const d=await callGemini("Koncept:\n\"\"\"\n"+safeText+"\n\"\"\"", SYS_TONECHECK, "tone", {pane:p,texts:[safeText],ackSensitive:reviewedGenerated||!!(ST[p]&&ST[p].sensitiveAck)}, {thinking:"minimal",operation:"tone-check",modelProfile:"economy"});
     const st=(d.naladeni&&d.naladeni.stupen)||"neutral";
     const rizika=Array.isArray(d.rizika)?d.rizika.filter(Boolean):[];
     const natural=(d.prirozenost&&d.prirozenost.stupen)||"prirozeny";
@@ -545,8 +556,11 @@ function renderChoiceSummary(p){
     el.textContent=parts.join(" · "); return;
   }
   const parts=["Režim: "+({opravit:"Opravit",prepsat:"Přepsat",sestavit:"Sestavit"}[readChip("my_mode")]||"—"),"Adresát: "+recipientLabel("my"),"Počet: "+(AUDIENCE_SCOPE[readChip("my_scope")||"single"]||"Jeden člověk"),"Jazyk: "+(LANG_MY[readChip("my_lang")]||"Čeština")];
+  if(readChip("my_mode")!=="opravit"){
+    const subjectMode=readChip("my_subj")||"ne",own=$("my_customSubject");
+    parts.push(subjectMode==="ano"?"Předmět: navrhne aplikace":subjectMode==="vlastni"?("Předmět: "+(String(own&&own.value||"").trim()||"doplňte vlastní")):"Bez předmětu");
+  }
   if(hasPersonalWritingStyle()) parts.push("Způsob psaní: "+(isPersonalWritingStyleEnabled("my")?profileWritingStyleLabel():"pro tuto zprávu vypnutý"));
   const sc=SCHOOL_SCENARIOS[readChip("my_scenario")||"none"]; if(sc&&sc.label&&readChip("my_scenario")!=="none") parts.push("Scénář: "+sc.label);
   el.textContent=parts.join(" · ");
 }
-

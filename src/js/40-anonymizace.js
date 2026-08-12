@@ -1090,17 +1090,18 @@ function unresolvedAuxiliaryNames(text){
   });
   return out;
 }
-function safeAuxiliaryText(p,raw,state,label){
+function safeAuxiliaryText(p,raw,state,label,options){
+  const opts=options||{};
   const original=String(raw||"").trim();if(!original)return "";
   let clean=applyKeyToText(p,original);
   const fuzzy=replaceLikelyKnownNameForms(p,clean);clean=applyKeyToText(p,fuzzy.text);
-  const iss=preflightIssues(clean,p),unknown=unresolvedAuxiliaryNames(clean),findings=iss.danger.slice();
+  const iss=preflightIssues(clean,p),unknown=opts.skipUnknownNames?[]:unresolvedAuxiliaryNames(clean),findings=iss.danger.filter(x=>!(opts.allowSensitiveTerms&&/citlivé/.test(x)));
   if(fuzzy.ambiguous.length)findings.push("nejednoznačný tvar jména: "+fuzzy.ambiguous.join(", "));
   if(unknown.length)findings.push("nevyřešené možné jméno nebo vlastní název: "+unknown.join(", "));
   if(findings.length){
     const msg=(label||"Doplňující pokyn")+" obsahuje možný osobní nebo citlivý údaj („"+findings.join("; ")+"“). Vlož osobu pomocí místního štítku pod polem, použij značku osoba A/B, nebo pokyn zobecni.";
     if(state)state.innerHTML='<div class="error"><b>Pokyn nebyl odeslán.</b> '+esc(msg)+'</div>';else toast(msg);
-    flashPreview(p);return null;
+    if(opts.flashPreview!==false)flashPreview(p);return null;
   }
   return clean;
 }
@@ -1370,4 +1371,3 @@ function tokenizeHTML(p, text){
   });
   return html;
 }
-

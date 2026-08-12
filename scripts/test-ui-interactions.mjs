@@ -122,7 +122,7 @@ class Cdp {
 }
 
 function prepareHtml(source) {
-  const memory = `<script data-ks-ui-test-storage>(()=>{class M{constructor(){this.m=new Map()}get length(){return this.m.size}key(i){return [...this.m.keys()][i]??null}getItem(k){k=String(k);return this.m.has(k)?this.m.get(k):null}setItem(k,v){this.m.set(String(k),String(v))}removeItem(k){this.m.delete(String(k))}clear(){this.m.clear()}};try{Object.defineProperty(window,'localStorage',{value:new M(),configurable:true});Object.defineProperty(window,'sessionStorage',{value:new M(),configurable:true})}catch{}window.matchMedia=window.matchMedia||(()=>({matches:false,media:'',addListener(){},removeListener(){},addEventListener(){},removeEventListener(){}}));})();<\/script>`;
+  const memory = `<script data-ks-ui-test-storage>(()=>{class M{constructor(){this.m=new Map()}get length(){return this.m.size}key(i){return [...this.m.keys()][i]??null}getItem(k){k=String(k);return this.m.has(k)?this.m.get(k):null}setItem(k,v){this.m.set(String(k),String(v))}removeItem(k){this.m.delete(String(k))}clear(){this.m.clear()}};try{Object.defineProperty(window,'Storage',{value:M,configurable:true});Object.defineProperty(window,'localStorage',{value:new M(),configurable:true});Object.defineProperty(window,'sessionStorage',{value:new M(),configurable:true})}catch{}window.matchMedia=window.matchMedia||(()=>({matches:false,media:'',addListener(){},removeListener(){},addEventListener(){},removeEventListener(){}}));})();<\/script>`;
   let html = source
      .replace(/(<html\b[^>]*\bdata-ghrab-access=)["']checking["']/i, '$1"granted"')
     .replace(/<meta\b[^>]*http-equiv=["']content-security-policy["'][^>]*>/gi, '')
@@ -168,6 +168,41 @@ async function clickReal(id) {
   return point;
 }
 
+async function elementPointSelector(selector) {
+  return client.eval(`(()=>{const el=document.querySelector(${JSON.stringify(selector)});if(!el)return null;el.scrollIntoView({block:'center',inline:'center'});const r=el.getBoundingClientRect();const x=r.left+r.width/2,y=r.top+r.height/2;const top=document.elementFromPoint(x,y);return {x,y,width:r.width,height:r.height,topId:top?.id||'',topClass:String(top?.className||''),hit:Boolean(top&&(top===el||el.contains(top)))};})()`);
+}
+
+async function clickRealSelector(selector) {
+  const point = await elementPointSelector(selector);
+  if (!point) throw new Error(`Prvek ${selector} nebyl nalezen.`);
+  await client.call('Input.dispatchMouseEvent', { type: 'mouseMoved', x: point.x, y: point.y });
+  await client.call('Input.dispatchMouseEvent', { type: 'mousePressed', x: point.x, y: point.y, button: 'left', clickCount: 1 });
+  await client.call('Input.dispatchMouseEvent', { type: 'mouseReleased', x: point.x, y: point.y, button: 'left', clickCount: 1 });
+  await sleep(80);
+  return point;
+}
+
+async function replaceText(selector, value) {
+  await clickRealSelector(selector);
+  await client.eval(`document.querySelector(${JSON.stringify(selector)})?.select?.()`);
+  await client.call('Input.insertText', { text: String(value) });
+  await client.call('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Tab', code: 'Tab' });
+  await client.call('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Tab', code: 'Tab' });
+  await sleep(50);
+}
+
+async function openFooterTool(label) {
+  await clickReal('footerToolsToggle');
+  return clickRealSelector(`[data-footer-tool="${String(label).replace(/"/g, '\\"')}"]`);
+}
+
+async function exerciseFooterModal(label, expectedTitle, checkId) {
+  await openFooterTool(label);
+  const state = await client.eval(`(()=>{const overlay=[...document.querySelectorAll('.modal-overlay.open')].at(-1);return {open:Boolean(overlay),title:overlay?.querySelector('.modal-head b')?.textContent?.trim()||''};})()`);
+  check(checkId, state.open && expectedTitle.test(state.title), JSON.stringify(state));
+  if (state.open) await clickRealSelector('.modal-overlay.open .modal-close');
+}
+
 try {
   const version = await waitJson(`http://127.0.0.1:${port}/json/version`);
   const page = await waitPageTarget(`http://127.0.0.1:${port}/json`, version.webSocketDebuggerUrl);
@@ -185,6 +220,7 @@ try {
   await client.call('Page.setDocumentContent', { frameId: tree.frameTree.frame.id, html: prepareHtml(raw) });
   await client.eval(`window.__KS_UI_TEST_ERRORS__=[];addEventListener('error',e=>window.__KS_UI_TEST_ERRORS__.push(String(e.error?.stack||e.message||e.error||'error')));addEventListener('unhandledrejection',e=>window.__KS_UI_TEST_ERRORS__.push(String(e.reason?.stack||e.reason||'rejection')));`);
   await client.eval(platformJs);
+  await client.eval(`window.__GHRAB_STUDIO_ACCESS__={permit:{role:'admin'}}`);
   // Reproduce the production Studio path: central platform runtime capabilities
   // are already present before the protected KS bundle is unlocked. In 5.9.20
   // this exposed a TDZ crash because 28-ai-integration.js read geminiModel before
@@ -204,6 +240,15 @@ try {
   }
   check('ui.runtime-ready', ready, String(ready));
   check('onboarding.not-auto-blocking', !(await client.eval(`Boolean(document.querySelector('.guide-overlay'))`)), 'automatic .guide-overlay');
+
+  await client.eval(`localStorage.setItem('rozbor_profile',JSON.stringify({name:'Profil před testy',role:'učitel',gender:'male',subjects:'angličtina',school:'Testovací škola',writingStyle:'civilni',sign:'pozdrav'}))`);
+  const inAppResults = await client.eval(`window.runKorespTests()`);
+  const inAppFailures = Array.isArray(inAppResults) ? inAppResults.filter(item => !item.ok) : [];
+  check('in-app-tests.completed', Array.isArray(inAppResults) && inAppResults.length > 0, String(inAppResults?.length || 0));
+  check('in-app-tests.passed', inAppFailures.length === 0, JSON.stringify(inAppFailures));
+  const profileAfterTests = await client.eval(`JSON.parse(localStorage.getItem('rozbor_profile')||'{}')`);
+  check('in-app-tests.profile-preserved', profileAfterTests.name === 'Profil před testy' && profileAfterTests.school === 'Testovací škola', JSON.stringify(profileAfterTests));
+  check('in-app-tests.no-toast-noise', await client.eval(`document.getElementById('toasts')?.childElementCount===0`), 'temporary toast count');
 
   const darkBefore = await client.eval(`document.body.classList.contains('dark')`);
   const modePoint = await clickReal('btnMode');
@@ -231,6 +276,74 @@ try {
   const myState = await client.eval(`({workspaceHidden:document.getElementById('workspaceShell')?.hidden,deskHidden:document.getElementById('teacherDesk')?.hidden,tabActive:document.getElementById('tabMy')?.classList.contains('active'),paneActive:document.getElementById('pane-my')?.classList.contains('active')})`);
   check('click.compose.hit-target', myPoint.hit, `${myPoint.topId || myPoint.topClass}`);
   check('click.compose.opens-workspace', myState.workspaceHidden === false && myState.deskHidden === true && myState.tabActive === true && myState.paneActive === true, JSON.stringify(myState));
+
+  await clickReal('uiAdvanced');
+  await clickRealSelector('.chips[data-group="my_mode"] .chip[data-v="sestavit"]');
+  const resultFoldState = await client.eval(`({hidden:document.getElementById('my_resultFold')?.hidden,open:document.getElementById('my_resultFold')?.open})`);
+  if (!resultFoldState.hidden && !resultFoldState.open) await clickRealSelector('#my_resultFold > summary');
+  await clickRealSelector('.chips[data-group="my_subj"] .chip[data-v="vlastni"]');
+  await replaceText('#my_customSubject', 'Konzultace ve čtvrtek');
+  const subjectState = await client.eval(`({visible:document.getElementById('my_customSubject')?.offsetParent!==null,value:document.getElementById('my_customSubject')?.value,count:document.getElementById('my_customSubjectCount')?.textContent,max:document.getElementById('my_customSubject')?.maxLength})`);
+  check('click.custom-subject.available', subjectState.visible && subjectState.value === 'Konzultace ve čtvrtek' && subjectState.max === 60, JSON.stringify(subjectState));
+
+  const footerLabels = await client.eval(`[...document.querySelectorAll('[data-footer-tool]')].map(button=>button.dataset.footerTool)`);
+  const expectedFooterLabels = ['Uložené koncepty','Formulace a podpisy','Scénáře školní komunikace','Čekám na odpověď','Školní balíček šablon','Profil odesílatele','Poslední výstupy','Přehled změn','Prohlídka aplikace','Správa dat','Vývojářské nástroje'];
+  check('footer.menu.complete', expectedFooterLabels.every(label=>footerLabels.includes(label)) && footerLabels.length===expectedFooterLabels.length, JSON.stringify(footerLabels));
+  await exerciseFooterModal('Uložené koncepty', /^Rozpracované koncepty$/, 'footer.saved-drafts.opens');
+  await exerciseFooterModal('Formulace a podpisy', /^(?:Formulace a podpisy|Podpisy)$/, 'footer.blocks-signatures.opens');
+  await exerciseFooterModal('Scénáře školní komunikace', /^Scénáře školní komunikace$/, 'footer.scenarios.opens');
+  await exerciseFooterModal('Čekám na odpověď', /^Připomínky a čekání na odpověď$/, 'footer.followups.opens');
+  await exerciseFooterModal('Školní balíček šablon', /^Sdílená školní knihovna$/, 'footer.school-library.opens');
+
+  await openFooterTool('Profil odesílatele');
+  check('footer.profile.opens', await client.eval(`document.getElementById('profOverlay')?.classList.contains('open')`), 'profile overlay');
+  await replaceText('#pf_name', 'Profil po uložení');
+  check('footer.profile.stays-open-while-editing', await client.eval(`document.getElementById('profOverlay')?.classList.contains('open')`), 'editing');
+  await clickReal('pf_save');
+  const savedProfile = await client.eval(`JSON.parse(localStorage.getItem('rozbor_profile')||'{}')`);
+  check('footer.profile.saves', savedProfile.name === 'Profil po uložení' && !(await client.eval(`document.getElementById('profOverlay')?.classList.contains('open')`)), JSON.stringify(savedProfile));
+  await openFooterTool('Profil odesílatele');
+  check('footer.profile.reopens-persisted', await client.eval(`document.getElementById('pf_name')?.value==='Profil po uložení'`), 'persisted profile');
+  await clickReal('profClose');
+
+  await openFooterTool('Poslední výstupy');
+  check('footer.history.opens', await client.eval(`document.getElementById('histOverlay')?.classList.contains('open')`), 'history overlay');
+  await clickReal('histClose');
+
+  await openFooterTool('Přehled změn');
+  check('footer.changelog.opens', await client.eval(`Boolean(document.querySelector('.modal-overlay.open [aria-label="Co je nového"]'))`), 'changelog modal');
+  await clickRealSelector('.modal-overlay.open .modal-close');
+
+  await openFooterTool('Prohlídka aplikace');
+  check('footer.tour.opens', await client.eval(`Boolean(document.querySelector('.guide-overlay .tour-card'))`), 'tour overlay');
+  await clickRealSelector('.guide-overlay .tour-skip');
+
+  await openFooterTool('Správa dat');
+  check('footer.data-manager.opens', await client.eval(`Boolean(document.querySelector('.modal-overlay.open [aria-label="Správa lokálních dat"]'))`), 'data manager modal');
+  await clickRealSelector('.modal-overlay.open .modal-close');
+
+  const devVisible = await client.eval(`Boolean(document.querySelector('[data-footer-tool="Vývojářské nástroje"]'))`);
+  check('footer.developer-tools.admin-visible', devVisible, String(devVisible));
+  if (devVisible) {
+    await openFooterTool('Vývojářské nástroje');
+    check('developer.menu.complete', await client.eval(`document.querySelectorAll('.modal-overlay.open .dev-tool-card').length===4`), '4 tools');
+    await clickReal('devTests');
+    const runnerIdle = await client.eval(`({open:Boolean(document.querySelector('.modal-overlay.open [aria-label="Automatické testy"]')),enabled:!document.getElementById('runTestsNow')?.disabled,empty:!(document.getElementById('testOut')?.textContent||'').trim()})`);
+    check('developer.tests.wait-for-explicit-start', runnerIdle.open && runnerIdle.enabled && runnerIdle.empty, JSON.stringify(runnerIdle));
+    await clickRealSelector('.modal-overlay.open .modal-close');
+
+    await openFooterTool('Vývojářské nástroje'); await clickReal('devDebug');
+    check('developer.debug.opens', await client.eval(`Boolean(document.querySelector('.modal-overlay.open [aria-label="Debug prompt"]'))`), 'debug prompt');
+    await clickRealSelector('.modal-overlay.open .modal-close');
+
+    await openFooterTool('Vývojářské nástroje'); await clickReal('devOps');
+    check('developer.ops.opens', await client.eval(`Boolean(document.querySelector('.modal-overlay.open [aria-label="Technický provozní log"]'))`), 'ops log');
+    await clickRealSelector('.modal-overlay.open .modal-close');
+
+    await openFooterTool('Vývojářské nástroje'); await clickReal('devAiRuntime');
+    check('developer.runtime.opens', await client.eval(`Boolean(document.querySelector('.modal-overlay.open [aria-label="Diagnostika AI připojení"]'))`), 'runtime diagnostics');
+    await clickRealSelector('.modal-overlay.open .modal-close');
+  }
 
   const tourTool = await client.eval(`Boolean([...document.querySelectorAll('button')].find(b=>/Prohlídka aplikace/i.test(b.textContent||b.getAttribute('title')||'')))`);
   check('onboarding.manual-entry-present', tourTool, String(tourTool));

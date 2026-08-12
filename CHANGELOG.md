@@ -1,3 +1,12 @@
+## 5.9.22 — Další možnosti, profil a vlastní předmět (2026-08-12)
+
+- automatické testy se spouštějí až tlačítkem, během běhu ukazují průběh a nevytvářejí záplavu dočasných hlášek;
+- testovací běh bezpečně obnovuje profil, aplikační úložiště, formuláře i otevřenou pracovní cestu; opraveny dva pády způsobené platformní migrací storage klíčů;
+- profil odesílatele se při vyplňování nezavře kliknutím mimo formulář a při chybě uložení zůstane otevřený s viditelnou zprávou;
+- při sestavení nebo přepisu lze zadat vlastní předmět, který se do výsledku doplní pouze lokálně a neposílá se AI;
+- kontrola „Jak text působí?“ analyzuje tělo zprávy bez předmětu a nedotčený návrh z potvrzeného bezpečného zdroje falešně nevrací k anonymizaci;
+- rozšířen Chromium regresní test o 42 fyzických klikacích kontrol hlavních cest, celé nabídky Další možnosti a všech čtyř vývojářských nástrojů; interní sada má 144 testů.
+
 ## 5.9.21 — oprava startu uvnitř AI Studia (2026-08-09)
 
 - opraven pád chráněného aplikačního skriptu při startu s již aktivním centrálním GHRAB Platform runtime (`ReferenceError: Cannot access 'geminiModel' before initialization`);

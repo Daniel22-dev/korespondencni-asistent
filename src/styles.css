@@ -405,6 +405,21 @@
   body.dark .test-result.fail{ background:#3a201d; border-color:#6b3a33; color:#f0b3aa; }
   .test-result b{ display:block; font-size:13px; }
   .test-result small{ color:var(--ink-soft); }
+  .test-progress-panel{margin:12px 0 4px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--paper)}
+  .test-progress-panel[hidden]{display:none}
+  .test-progress-head{display:flex;justify-content:space-between;gap:12px;color:var(--ink);font:600 12.5px var(--sans)}
+  .test-progress-head span{color:var(--ink-soft);font-weight:500}
+  .test-progress-track{height:6px;margin:10px 0 8px;overflow:hidden;border-radius:999px;background:var(--line)}
+  .test-progress-track span{display:block;width:38%;height:100%;border-radius:inherit;background:var(--accent);animation:testProgress 1.15s ease-in-out infinite}
+  .test-progress-panel small{display:block;min-height:2.8em;color:var(--ink-soft);font:12px/1.4 var(--sans)}
+  @keyframes testProgress{0%{transform:translateX(-110%)}100%{transform:translateX(290%)}}
+  @media (prefers-reduced-motion:reduce){.test-progress-track span{width:100%;animation:none}}
+  .custom-subject-field{margin-top:10px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper)}
+  .custom-subject-field[hidden]{display:none}
+  .custom-subject-field label{display:block;margin-bottom:5px;color:var(--ink);font:600 12px var(--sans)}
+  .custom-subject-field input{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--desk);color:var(--ink);font:13px var(--sans)}
+  .custom-subject-field input:focus{border-color:var(--accent);outline:2px solid color-mix(in srgb,var(--accent) 28%,transparent);outline-offset:1px}
+  .custom-subject-field .field-meta{display:flex;justify-content:space-between;gap:12px;margin-top:5px;color:var(--ink-soft);font:11px/1.35 var(--sans)}
   .retry-row{ margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; }
   .safety.nosend{ background:#fdecea; border-color:#f3a9a1; color:#84251b; }
   body.dark .safety.nosend{ background:#3a201d; border-color:#7a3a32; color:#f0b3aa; }

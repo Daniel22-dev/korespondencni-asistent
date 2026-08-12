@@ -338,7 +338,8 @@ loadHistory();
           '<button class="chip" data-v="jmeno">Jen jméno</button><button class="chip" data-v="pozdrav">S pozdravem + jméno</button><button class="chip" data-v="funkce">Funkce + jméno</button><button class="chip" data-v="vlastni">Vlastní</button></div>'+
         '<div id="pf_customWrap" style="display:none"><label style="'+lbl+'">Vlastní podpis</label><textarea id="pf_custom" style="'+inS+';min-height:70px;font-family:var(--sans)" placeholder="S pozdravem\nJan Novák\nučitel angličtiny">'+esc(p.custom||"")+'</textarea></div>'+
       '</section>'+
-      '<div style="margin-top:16px;display:flex;gap:8px"><button class="btn" id="pf_save">Uložit profil</button><button class="btn ghost" id="pf_clear">Smazat profil</button></div>'+
+      '<div id="pf_state" role="status" aria-live="polite"></div>'+
+      '<div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="pf_save">Uložit profil</button><button class="btn ghost" id="pf_cancel">Zrušit</button><button class="btn danger" id="pf_clear">Smazat profil</button></div>'+
       '</div>';
     wireChips(overlay);
     setChip("pf_sign",p.sign||"pozdrav");
@@ -351,6 +352,7 @@ loadHistory();
     overlay.querySelector('.chips[data-group="pf_wstyle"]').addEventListener("click",e=>{if(e.target.closest(".chip"))updateStyleDescription();});
     updateSignature(); updateStyleDescription();
     overlay.querySelector("#profClose").onclick=close;
+    overlay.querySelector("#pf_cancel").onclick=close;
     overlay.querySelector("#pf_save").onclick=()=>{
       const prof={
         name:overlay.querySelector("#pf_name").value.trim(),
@@ -364,21 +366,31 @@ loadHistory();
         sign:readChip("pf_sign"),
         custom:overlay.querySelector("#pf_custom").value
       };
-      try{localStorage.setItem("rozbor_profile",JSON.stringify(typeof sanitizeProfile==="function"?sanitizeProfile(prof):prof));}catch(_){}
+      const safe=typeof sanitizeProfile==="function"?sanitizeProfile(prof):prof;
+      const state=overlay.querySelector("#pf_state");
+      try{
+        localStorage.setItem("rozbor_profile",JSON.stringify(safe));
+        const stored=typeof loadProfile==="function"?loadProfile():JSON.parse(localStorage.getItem("rozbor_profile")||"{}");
+        if(JSON.stringify(stored)!==JSON.stringify(safe))throw new Error("uložená data se nepodařilo ověřit");
+      }catch(e){if(state){state.textContent="Profil se nepodařilo uložit. Okno zůstává otevřené; zkus to prosím znovu.";state.classList.add("error");}return;}
       if(typeof renderMyProfileContext==="function")renderMyProfileContext();
       if(typeof renderWritingStyleControls==="function")renderWritingStyleControls();
       toast("Profil a způsob psaní uloženy ✓"); close();
     };
     overlay.querySelector("#pf_clear").onclick=()=>{
-      try{localStorage.removeItem("rozbor_profile");}catch(_){}
-      if(typeof renderMyProfileContext==="function")renderMyProfileContext();
-      if(typeof renderWritingStyleControls==="function")renderWritingStyleControls();
-      toast("Profil smazán"); render();
+      confirmActionModal({title:"Smazat profil odesílatele",message:"Opravdu smazat jméno, pracovní kontext, způsob psaní a podpis uložený v tomto prohlížeči?",confirmText:"Smazat profil",danger:true,onConfirm(){
+        try{localStorage.removeItem("rozbor_profile");}catch(_){}
+        if(typeof renderMyProfileContext==="function")renderMyProfileContext();
+        if(typeof renderWritingStyleControls==="function")renderWritingStyleControls();
+        toast("Profil smazán"); render();
+      }});
     };
   }
   function open(){render();overlay.classList.add("open");}
   function close(){overlay.classList.remove("open");}
-  overlay.addEventListener("click",e=>{if(e.target===overlay)close();});
+  // Profil se nezavírá kliknutím mimo kartu: při delším formuláři je snadné
+  // minout okraj nebo scrollbar a přijít tak o rozepsané změny.
+  overlay.addEventListener("click",e=>{if(e.target===overlay)e.preventDefault();});
   document.addEventListener("keydown",e=>{if(e.key==="Escape"&&overlay.classList.contains("open"))close();});
   document.body.appendChild(overlay);
   window.__openProfile=open;
@@ -432,6 +444,18 @@ function updateQuickPreview(){
   if(mode==="sestavit"&&clean){ const r=inferQuickComposeSettings(clean,false); fh.innerHTML=base+"<br><b>Aktuální odhad:</b> "+esc(r.label)+"."; }
   else fh.innerHTML=base+" Při sestavení z bodů se výsledek ukáže ještě před odesláním requestu.";
 }
+function updateCustomSubjectUi(){
+  const wrap=$("my_customSubjectWrap"),input=$("my_customSubject"),count=$("my_customSubjectCount");
+  const own=readChip("my_subj")==="vlastni";
+  if(wrap)wrap.hidden=!own;
+  if(input){input.disabled=!own;if(own)input.setAttribute("aria-required","true");else input.removeAttribute("aria-required");}
+  if(count&&input)count.textContent=String(input.value||"").length+"/60";
+}
+function subjectLineLabel(){const lang=readChip("my_lang");return lang==="en"?"Subject":lang==="es"?"Asunto":"Předmět";}
+function applyCustomSubjectToOutput(output,subject,label){
+  const clean=String(subject||"").trim().slice(0,60),body=splitSubject(String(output||"")).body;
+  return clean?(String(label||subjectLineLabel())+": "+clean+"\n\n"+body):body;
+}
 function updateMyMode(){
   const m=readChip("my_mode"), flow=readChip("my_flow")||"quick";
   $("my_fixGroup").style.display=(m==="opravit")?"block":"none";
@@ -440,6 +464,7 @@ function updateMyMode(){
   $("my_toneGroup").style.display=(m==="sestavit")?"block":"none";
   $("my_lenGroup").style.display=(m==="sestavit")?"block":"none";
   $("my_subjGroup").style.display=(m==="prepsat"||m==="sestavit")?"block":"none";
+  updateCustomSubjectUi();
   const styleApplicable=m==="prepsat"||m==="sestavit"||(m==="opravit"&&readChip("my_fix")==="sloh");
   $("my_writingStyleGroup").style.display=styleApplicable?"block":"none";
   const pane=$("pane-my"); if(pane) pane.classList.toggle("quick-compose",flow==="quick");
@@ -502,6 +527,8 @@ function applySchoolScenario(v){ syncSchoolScenario(v, true); }
   const profileBtn=$("my_profileOpen"); if(profileBtn) profileBtn.addEventListener("click",()=>{ if(window.__openProfile) window.__openProfile(); });
   const styleEdit=$("my_writingStyleEdit"); if(styleEdit) styleEdit.addEventListener("click",()=>{ if(window.__openProfile) window.__openProfile(); });
   const styleUse=$("my_useWritingStyle"); if(styleUse) styleUse.addEventListener("change",()=>renderChoiceSummary("my"));
+  const subjGroup=document.querySelector('.chips[data-group="my_subj"]'); if(subjGroup) subjGroup.addEventListener("click",()=>{updateCustomSubjectUi();renderChoiceSummary("my");});
+  const customSubject=$("my_customSubject"); if(customSubject) customSubject.addEventListener("input",()=>{updateCustomSubjectUi();renderChoiceSummary("my");});
   renderWritingStyleControls();
   updateMyMode();
   applySchoolScenario(readChip("my_scenario")||"none");
@@ -511,7 +538,7 @@ function applySchoolScenario(v){ syncSchoolScenario(v, true); }
 })();
 $("my_goBtn").onclick=async()=>{
   if(isBusy($("my_goBtn"))) return;
-  const text=(ST.my.clean||"").trim(); const state=$("my_apiState"); state.innerHTML="";
+  const text=(ST.my.clean||"").trim(); const state=$("my_apiState"); state.innerHTML="";state.className="";
   if(!text){ state.innerHTML='<div class="error">Není co zpracovat — nejdřív vlož text a dej Pokračovat.</div>'; return; }
   if(!$("my_reviewOk").checked){ state.innerHTML='<div class="error">Nejdřív potvrď finální kontrolu náhledu pod semaforem anonymizace.</div>'; flashPreview("my"); return; }
   if(!isAiServiceReady()){ $("apiPanel").classList.add("open"); state.innerHTML='<div class="error">Chybí klíč k API. Vlož ho nahoře.</div>'; return; }
@@ -529,7 +556,9 @@ $("my_goBtn").onclick=async()=>{
   const note=safeAuxiliaryText("my", ($("my_note")&&$("my_note").value.trim())||"", state, "Doplňující pokyn");
   const styleCtx=buildPersonalWritingStyleContext("my",state,isPersonalWritingStyleEnabled("my"));
   if(note===null || styleCtx===null || !enforcePreflight("my", state,[note,...(styleCtx?styleCtx.texts:[])].filter(Boolean))) return;
-  const subj=readChip("my_subj")==="ano";
+  const subjMode=mode==="opravit"?"ne":readChip("my_subj")||"ne",subj=subjMode==="ano";
+  const customSubject=subjMode==="vlastni"?String($("my_customSubject")&&$("my_customSubject").value||"").trim():"";
+  if(subjMode==="vlastni"&&!customSubject){state.textContent="Doplň vlastní předmět. Pole může mít nejvýše 60 znaků.";state.classList.add("error");$("my_customSubject")?.focus();return;}
   const senderMode=readChip("my_pisujako")||"jednotlivec"; ST.my.replySenderMode=senderMode;
   const common="\nAdresát: "+recipientLabel("my")+"\n"+audiencePrompt()+"\nOslovení: "+oslovTxt+"\n"+senderPerspectivePrompt(senderMode)+(scope==="single"&&oslov!=="beze"?("\n"+recipientAddressingPrompt(adr,oslov)):"")+(note?"\nDalší pokyn: "+note:"")+(subj?"\nNa první řádek napiš předmět zprávy ve tvaru Předmět: / Subject: / Asunto: podle jazyka výstupu a pod něj samotný e-mail.":"")+scenarioLine+profileLine()+styleCtx.line+myLangLine();
   let sys, prompt, styl, operation;
@@ -550,7 +579,8 @@ $("my_goBtn").onclick=async()=>{
   try{
     const d=await callGemini(prompt, sys+myLangSystem(), "text", {pane:"my",texts:[text,note,...styleCtx.texts],ackSensitive:!!(ST.my&&ST.my.sensitiveAck)}, {operation,modelProfile:"balanced"}); mergeSyn("my", d.synonyma);
     state.innerHTML=""; const wrap=$("my_results"); wrap.innerHTML="";
-    const cleanedOutput=replyAllowsEmoji(note)?(d.text||""):stripReplyEmoji(d.text||"");
+    let cleanedOutput=replyAllowsEmoji(note)?(d.text||""):stripReplyEmoji(d.text||"");
+    if(subjMode==="vlastni")cleanedOutput=applyCustomSubjectToOutput(cleanedOutput,customSubject);
     const card=draftCard("my",{ styl, text:cleanedOutput, sourceText:text, hint:"Dvojklik na slovo nabídne synonyma. Označenou formulaci můžeš uzamknout a zbytek dále upravovat.", usePersonalStyle:styleCtx.enabled });
     if(mode==="opravit" && Array.isArray(d.zmeny)&&d.zmeny.length){ const cv=document.createElement("div"); cv.innerHTML='<h3 style="margin:14px 0 6px">Co se změnilo</h3><div class="cover">'+d.zmeny.map(z=>'<span class="ok">• '+esc(z)+'</span>').join("<br>")+'</div>'; card.insertBefore(cv, card.querySelector(".actions")); }
     wrap.appendChild(card); ST.my.outputReady=true; recordCorrespondenceTelemetry('outgoing-email',1,1,0); updateProgress("my"); if(typeof markWorkspaceStage==="function") markWorkspaceStage("draft"); if(typeof setActiveDraftCard==="function") setActiveDraftCard(card,"my"); wrap.scrollIntoView({behavior:"smooth",block:"start"});
@@ -667,4 +697,3 @@ function readFileInto(p, file){
   E(p,"fileBtn").onclick=()=>E(p,"file").click();
   E(p,"file").addEventListener("change",(e)=>{ const f=e.target.files&&e.target.files[0]; if(f) readFileInto(p,f); e.target.value=""; });
 });
-

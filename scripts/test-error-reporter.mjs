@@ -441,6 +441,39 @@ async function waitJson(url, attempts = 200) {
   }
   throw new Error(`Timeout: ${url}`);
 }
+async function findPageTarget(url) {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    const targets = await response.json();
+    return targets.find((item) => item.type === 'page' && item.webSocketDebuggerUrl) || null;
+  } catch {
+    return null;
+  }
+}
+async function waitPageTarget(listUrl, browserWebSocketDebuggerUrl) {
+  const deadline = Date.now() + 12000;
+  let createAttempts = 0;
+  let nextCreateAt = 0;
+  while (Date.now() < deadline) {
+    const page = await findPageTarget(listUrl);
+    if (page) return page;
+    if (browserWebSocketDebuggerUrl && createAttempts < 4 && Date.now() >= nextCreateAt) {
+      createAttempts += 1;
+      nextCreateAt = Date.now() + 500;
+      let browserClient;
+      try {
+        browserClient = new CdpClient(browserWebSocketDebuggerUrl);
+        await browserClient.open();
+        await browserClient.call('Target.createTarget', { url: 'about:blank' });
+      } catch {} finally {
+        try { browserClient?.close(); } catch {}
+      }
+    }
+    await sleep(75);
+  }
+  throw new Error(`Chromium nemá page target ani po čekání (pokusy o vytvoření: ${createAttempts})`);
+}
 async function waitFor(client, expression, label, attempts = 240) {
   for (let index = 0; index < attempts; index += 1) {
     try {
@@ -500,15 +533,14 @@ async function runBrowserTests() {
     '--disable-default-apps', '--no-first-run', '--no-proxy-server',
     '--disable-background-networking', '--disable-component-update',
     `--remote-debugging-port=${debugPort}`, `--user-data-dir=${profile}`,
+    'about:blank',
   ], { stdio: ['ignore', 'ignore', 'ignore'] });
 
   let client;
   const runtimeExceptions = [];
   try {
-    await waitJson(`http://127.0.0.1:${debugPort}/json/version`);
-    const pages = await waitJson(`http://127.0.0.1:${debugPort}/json`);
-    const page = pages.find((item) => item.type === 'page');
-    if (!page) throw new Error('Chromium nemá page target');
+    const version = await waitJson(`http://127.0.0.1:${debugPort}/json/version`);
+    const page = await waitPageTarget(`http://127.0.0.1:${debugPort}/json`, version.webSocketDebuggerUrl);
     client = new CdpClient(page.webSocketDebuggerUrl);
     await client.open();
     client.on('Runtime.exceptionThrown', (params) => runtimeExceptions.push(params.exceptionDetails?.exception?.description || params.exceptionDetails?.text || 'unknown'));

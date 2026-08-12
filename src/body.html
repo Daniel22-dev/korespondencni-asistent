@@ -440,6 +440,12 @@
                 <div class="chips" data-group="my_subj">
                   <button class="chip on" data-v="ne">Bez předmětu</button>
                   <button class="chip" data-v="ano">Navrhni předmět</button>
+                  <button class="chip" data-v="vlastni">Vlastní předmět</button>
+                </div>
+                <div id="my_customSubjectWrap" class="custom-subject-field" hidden>
+                  <label for="my_customSubject">Vlastní předmět</label>
+                  <input id="my_customSubject" type="text" maxlength="60" autocomplete="off" placeholder="Napište předmět e-mailu">
+                  <div class="field-meta"><span>Předmět se doplní až lokálně a neposílá se AI modelu.</span><span id="my_customSubjectCount">0/60</span></div>
                 </div>
               </div>
               <div class="pgroup advanced-only note-field" id="my_noteGroup">
@@ -501,4 +507,3 @@
     <div data-ghrab-footer-branding></div>
   </footer>
 </div>
-

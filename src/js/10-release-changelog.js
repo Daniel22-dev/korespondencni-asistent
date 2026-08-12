@@ -3,11 +3,12 @@ const IS_TEST_MODE=new URLSearchParams(window.location.search).get("test")==="1"
 "use strict";
 
 const RELEASE = {
-  version: "5.9.21",
-  date: "2026-08-09",
+  version: "5.9.22",
+  date: "2026-08-12",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.9.22: opravy Dalších možností a práce s konceptem — automatické testy čekají na výslovné spuštění, průběžně ukazují stav, nevytvářejí záplavu toastů a po dokončení obnoví profil, lokální data i rozhraní. Opraveno mazání a obnova kanonických storage klíčů po platformní migraci, ukládání profilu zůstává otevřené při chybě a formulář se nezavře náhodným kliknutím mimo kartu. Můj e-mail nabízí vlastní předmět doplněný pouze lokálně a kontrola Jak text působí? už u nedotčeného bezpečného návrhu falešně nevrací uživatele k anonymizaci. Regresní sada má 144 interních testů a samostatné fyzické klikací kontroly všech položek Dalších možností.",
     "5.9.21: oprava spuštění přes AI Studio — sdílený stav Gemini runtime se inicializuje před GHRAB AI integrací, takže předem dostupná centrální platforma už nemůže vyvolat TDZ chybu `geminiModel before initialization`. Regresní Chromium test nově reprodukuje předem aktivní `createAiRuntimeConfig`, skutečný GHRAB unlock a požaduje plný `ksAppReady` bez runtime výjimky.",
     "5.9.20: UI hotfix po platformní aktualizaci — automatická úvodní prohlídka už při startu nevytváří celoobrazovkovou vrstvu nad aplikací; je dostupná ručně v Dalších možnostech. Kritická tlačítka motivu, celé obrazovky a volby pracovního postupu se vážou už v rané shell vrstvě a bootstrap nově odmítne tichý částečný start. Přidán regresní Chromium test se skutečným GHRAB unlockem a fyzickými kliknutími.",
     "5.9.19: společný reportér 1.1.0 — délka finální Gmail/mailto adresy se omezuje až po URL kódování, plný text zůstává v ZIPu a kopírování, dialog drží a obnovuje fokus a každý nový report získá nové ID. Serverová implementace, AI Core, prompty i funkce KS zůstaly beze změny.",
@@ -120,6 +121,9 @@ function reDocnum(flags){ return new RegExp(RE_DOCNUM_SRC, (flags||"").includes(
 function maskDocumentNumbers(text){ return String(text||"").replace(reDocnum("giu"),m=>" ".repeat(m.length)); }
 function unicodeWordRegex(source,flags){ const f=String(flags||"iu"); return new RegExp("(?<![\\p{L}\\p{M}\\d])(?:"+source+")(?![\\p{L}\\p{M}\\d])",f.includes("u")?f:f+"u"); }
 function toast(msg){
+  // Vestavěné testy vyvolávají desítky běžných akcí. Jejich dočasné toastové
+  // zprávy by překrývaly test runner a působily jako blikající černé rámečky.
+  if(typeof TEST_RUN_ACTIVE!=="undefined"&&TEST_RUN_ACTIVE)return;
   const c=$("toasts"); if(!c) return;
   const t=document.createElement("div"); t.className="toast"; t.textContent=msg; c.appendChild(t);
   requestAnimationFrame(()=>t.classList.add("show"));
@@ -180,4 +184,3 @@ function tokenClass(tok){
 }
 function hasLeftoverToken(text){ return /(?:osoba|osoby|osobě|osobu|osobo|osobou)\s+[A-Z]|\[\[PERSON_[A-Z]+(?:\|[1-7])?\]\]|\[e-mail\s*\d|\[telefon\s*\d|\[rodné číslo|\[datum narození|\[číslo účtu|\[instituce\s*\d|\[místo\s*\d|\[název\s*\d|\[kontakt\s*\d|\[citlivý údaj\s*\d|\[podpis\]|\[u[čc]itel\]/.test(text); }
 const escRe = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
