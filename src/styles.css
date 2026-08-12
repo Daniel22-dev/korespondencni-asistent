@@ -209,6 +209,15 @@
   .tone-summary .mood{ margin-top:0; }
   .tone-section-title{ margin:12px 0 5px; color:var(--ink-soft); font:800 10.5px var(--sans); letter-spacing:.05em; text-transform:uppercase; }
   .tone-section-title + .asks{ margin-top:0; }
+  .tone-choices{ margin-top:12px; padding-top:2px; border-top:1px solid var(--line); }
+  .tone-choices .hintline{ margin:3px 0 8px; }
+  .tone-choice-list{ display:grid; gap:7px; }
+  .tone-choice{ display:grid; grid-template-columns:18px minmax(0,1fr); gap:8px; align-items:start; padding:8px 9px; border:1px solid var(--line); border-radius:8px; background:color-mix(in srgb,var(--paper) 86%,var(--desk)); font:12px/1.45 var(--sans); cursor:pointer; }
+  .tone-choice:has(input:checked){ border-color:var(--accent); background:color-mix(in srgb,var(--accent) 8%,var(--paper)); }
+  .tone-choice input{ margin:2px 0 0; accent-color:var(--accent); }
+  .tone-choice b{ color:var(--ink-soft); }
+  .tone-choice-actions{ display:flex; gap:8px; flex-wrap:wrap; margin-top:9px; }
+  .tone-applied{ margin:8px 0 3px; color:var(--calm); font:750 12px/1.45 var(--sans); }
   .token.t-sign, .w.hid.t-sign{ background:rgba(120,124,130,.20); color:var(--ink-soft); }
 
   .empty{ color:var(--ink-soft); font-size:14px; padding:6px 0; }

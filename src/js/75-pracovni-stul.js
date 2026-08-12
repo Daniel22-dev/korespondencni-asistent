@@ -37,9 +37,10 @@ function getSignatures(){
   const profile=profileSignature();if(profile)out.unshift({id:"profile",name:"Podpis z profilu",text:profile,system:true});
   return out;
 }
-window.getSelectedSignatureText=function(){
-  const a=getSignatures();if(!a.length)return "";const id=localStorage.getItem(LS.selectedSignature)||"profile";return (a.find(x=>x.id===id)||a[0]).text||"";
+window.getSelectedSignature=function(){
+  const a=getSignatures();if(!a.length)return null;const id=localStorage.getItem(LS.selectedSignature)||"profile";return a.find(x=>x.id===id)||a[0];
 };
+window.getSelectedSignatureText=function(){const selected=window.getSelectedSignature();return selected&&selected.text||"";};
 function containsAny(t,arr){t=String(t||"").toLowerCase();return arr.some(x=>t.includes(x));}
 function extractDates(t){
   const text=String(t||""),out=[];

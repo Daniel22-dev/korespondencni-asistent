@@ -1,3 +1,13 @@
+## 5.10.0 — přirozenější oslovení, podpis a volitelné AI úpravy (2026-08-12)
+
+- kontrola „Jak text působí?“ nabízí samostatné zaškrtávací volby pro komunikační rizika, šablonovité obraty a celkový návrh;
+- tlačítko „Zapracovat vybrané“ upraví pouze právě zvolenou variantu, respektuje nevybrané body a uloží změnu do historie verzí;
+- při tykání kolegovi nebo vedení se po anonymizaci vrací pouze křestní jméno i ze značky osoby v 5. pádě, například `Lukáš Slouka` → `Ahoj Lukáši`;
+- profil obsahuje volitelnou podobu jména pro neformální podpis; u kolegy nebo vedení s tykáním lze použít `S pozdravem` a `Dan`, při vykání zůstává plné jméno a vlastní podpis se nepřepisuje;
+- odpověď lze vytvořit bez vybraného automaticky rozpoznaného požadavku, pokud uživatel zadá celý obsah do poznámky;
+- výkonové limity byly pro minor verzi zvýšeny přibližně o 2–4 % kvůli novému ovládání a regresním testům, nadále zůstávají blokující součástí release gate;
+- interní regresní sada byla rozšířena na 148 testů.
+
 ## 5.9.22 — Další možnosti, profil a vlastní předmět (2026-08-12)
 
 - automatické testy se spouštějí až tlačítkem, během běhu ukazují průběh a nevytvářejí záplavu dočasných hlášek;

@@ -2,7 +2,7 @@
   "schema": "ghrab-platform-consumer-v1",
   "appId": "correspondence",
   "appName": "Korespondenční asistent",
-  "appVersion": "5.9.22",
+  "appVersion": "5.10.0",
   "platform": {
     "version": "1.1.0",
     "contract": "ghrab-platform-v1",
@@ -145,7 +145,7 @@
     ]
   },
   "cache": {
-    "name": "ghrab-correspondence-v5.9.22",
+    "name": "ghrab-correspondence-v5.10.0",
     "updateMessage": "GHRAB_SKIP_WAITING"
   },
   "html": {
@@ -161,12 +161,12 @@
     "moduleContract": "ghrab-lazy-modules-v1",
     "requireBudget": true,
     "performanceBudget": {
-      "distBytes": 1200000,
-      "entryHtmlBytes": 720000,
-      "entryCriticalBytes": 870000,
-      "largestInlineScriptBytes": 560000,
-      "precacheBytes": 1180000,
-      "largestFileBytes": 720000,
+      "distBytes": 1220000,
+      "entryHtmlBytes": 740000,
+      "entryCriticalBytes": 890000,
+      "largestInlineScriptBytes": 580000,
+      "precacheBytes": 1200000,
+      "largestFileBytes": 740000,
       "duplicateLargeBytes": 20000
     },
     "modules": {

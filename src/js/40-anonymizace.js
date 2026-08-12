@@ -56,7 +56,8 @@ function compactPaneForSession(p){
     km:JSON.parse(JSON.stringify(st.km||[])),emailN:st.emailN||0,phoneN:st.phoneN||0,
     raw:String(st.raw||""),clean:String(st.clean||""),pozadavky:Array.isArray(st.pozadavky)?st.pozadavky:[],
     analysis:st.analysis||null,sensitiveAck:!!st.sensitiveAck,reviewedSuggestions:st.reviewedSuggestions||{},
-    selectedPhrase:String(st.selectedPhrase||""),replySenderMode:st.replySenderMode||""
+    selectedPhrase:String(st.selectedPhrase||""),replySenderMode:st.replySenderMode||"",
+    replyRecipient:st.replyRecipient||"",replyAddressingMode:st.replyAddressingMode||"",replyAudienceScope:st.replyAudienceScope||""
   };
 }
 function saveWorkingSessionNow(){
@@ -1312,15 +1313,20 @@ function recompose(p,text){
     const canonicalEntry=canonicalPersonEntry(entries),canonical=canonicalEntry&&canonicalEntry.real||"";
     if(/^osoba\b/.test(token)){
       const label=parsePersonToken(token),forms=personFormsForEntry(canonicalEntry||{real:canonical});
-      const salRe=new RegExp("((?:(?:Ahoj|Milý|Milá|Vážený|Vážená|Pane|Paní)\\s+|(?:Dobrý den|Dobrý večer)\\s*,?\\s*))"+escRe(token)+"(?=\\s*[,!?.]|\\s|$)","gi");
+      // Model vrací osobu v požadovaném pádě (např. [[PERSON_A|5]] -> „osobo A“).
+      // Oslovení proto musí zachytit všechny lokální pádové tvary značky, ne pouze
+      // její základní podobu „osoba A“. Jinak by obecná rekompozice vrátila celé
+      // jméno a vzniklo by chybné neformální oslovení „Ahoj Lukáši Slouko“.
+      const personTokenRe="(?:osoba|osoby|osobě|osobu|osobo|osobou)\\s+"+escRe(label);
+      const salRe=new RegExp("((?:(?:Ahoj|Milý|Milá|Vážený|Vážená|Pane|Paní)\\s+|(?:Dobrý den|Dobrý večer)\\s*,?\\s*))"+personTokenRe+"(?=\\s*[,!?.]|\\s|$)","gi");
       t=t.replace(salRe,(m,lead)=>lead+salutationName(entries,lead));
       const genericRe=new RegExp("\\b(osoba|osoby|osobě|osobu|osobo|osobou)\\s+"+escRe(label)+"\\b","gi");
       t=t.replace(genericRe,(m,word)=>forms[genericPersonCase(word)]||canonical);
     }
     t=t.replace(new RegExp(escRe(token),"g"),canonical);
   });
-  if(typeof normalizeReplySignature==="function")t=normalizeReplySignature(t);
-  t=t.replace(/\[podpis\]|\[učitel\]|\(\s*učitel\s*\)/gi,signatureText());
+  if(typeof normalizeReplySignature==="function")t=normalizeReplySignature(t,p);
+  t=t.replace(/\[podpis\]|\[učitel\]|\(\s*učitel\s*\)/gi,signatureText(p));
   return t.replace(/\n{3,}/g,"\n\n").trimEnd();
 }
 function knownKeyLeaks(p,text){
@@ -1366,7 +1372,7 @@ function tokenizeHTML(p, text){
     }else html=html.replace(new RegExp(escRe(esc(t)),"g"),'<span class="token '+tokenClass(t)+'">'+esc(t)+'</span>');
   });
   html=html.replace(/\[podpis\]|\[učitel\]|\(\s*učitel\s*\)/gi, m=>{
-    const signature=typeof signatureText==="function"?signatureText():m;
+    const signature=typeof signatureText==="function"?signatureText(p):m;
     return '<span class="token t-sign visible-signature" contenteditable="false" data-sign-token="[podpis]" title="Podpis se doplňuje lokálně z profilu a neposílá se AI modelu.">'+esc(signature)+'</span>';
   });
   return html;

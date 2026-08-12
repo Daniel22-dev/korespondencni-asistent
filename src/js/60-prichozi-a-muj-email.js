@@ -87,7 +87,7 @@ function renderAnalysis(d){
   const asks=Array.isArray(d.pozadavky)?d.pozadavky.filter(Boolean):[];
   const asksHtml=asks.length?asks.map((x,i)=>'<label class="reply-scope-item"><input type="checkbox" data-ask="'+i+'" checked><span>'+esc(x)+'</span></label>').join(""):'<p class="empty">Rozbor nenašel žádný samostatný požadavek. Odpověď se bude řídit shrnutím a poznámkou.</p>';
   pc.innerHTML='<h3>Vytvořit tři varianty odpovědi</h3><p class="hintline">Dostaneš stručnou, standardní a diplomatickou variantu. Všechny vyjdou ze stejných předvybraných bodů.</p>'+
-    '<details class="reply-scope" id="in_scopeDetails" open><summary><span><b>Co odpověď pokryje</b><small>Všechny nalezené body jsou předvybrané. Nemusíš nic měnit.</small></span><span class="reply-scope-count" id="in_scopeCount">'+asks.length+'/'+asks.length+'</span></summary><div id="in_asks">'+asksHtml+'</div><p class="hintline">Odškrtni pouze bod, který v odpovědi záměrně řešit nechceš.</p></details>'+
+    '<details class="reply-scope" id="in_scopeDetails" open><summary><span><b>Co odpověď pokryje</b><small>Všechny nalezené body jsou předvybrané. Nemusíš nic měnit.</small></span><span class="reply-scope-count" id="in_scopeCount">'+asks.length+'/'+asks.length+'</span></summary><div id="in_asks">'+asksHtml+'</div><p class="hintline">Odškrtni body, které řešit nechceš. Pokud odškrtneš všechny, napiš vlastní obsah odpovědi do poznámky níže.</p></details>'+
     '<div class="pgroup note-field"><div class="plabel" title="Vlastní doplnění, výjimka nebo fakt, který má návrh zohlednit.">Co mám v odpovědi ještě zohlednit? <span class="optional-label">volitelné</span></div><input id="in_note" type="text" title="Poznámka je součástí promptu. Osobu vlož nejlépe místním štítkem pod polem; do AI služby odejde pouze anonymní značka." placeholder="např. nezmiňuj důvod neúčasti; navrhni krátkou telefonickou domluvu"><p class="field-safety-note">Poznámka se skutečně promítne do návrhu. Známé tvary jmen se skryjí; nevyřešené možné jméno nebo citlivý údaj odeslání zastaví.</p></div>'+
     '<div class="pgroup simple-hide"><div class="plabel" title="Komu odpovídáš. Předvolí oslovení i tón.">Adresát</div>'+chipGroup("in_adresat",ADRESAT,"rodic")+'<div class="custom-recipient" id="in_adresatJinyWrap" hidden><label for="in_adresatJiny">Komu odpovídáte?</label><input id="in_adresatJiny" type="text" maxlength="80" placeholder="např. nakladatelství, knihovna, externí partner"><small>Popis se použije pro tón a formálnost odpovědi.</small></div></div>'+
     '<div class="pgroup advanced-only"><div class="plabel" title="Určuje, zda má odpověď mluvit v jednotném, nebo množném čísle.">Píšu jako</div>'+chipGroup("in_pisujako",PISU_JAKO,"jednotlivec")+'<p class="hintline">Výchozí je jednotlivec. Zmínka o kolezích nebo předmětové komisi sama o sobě nepřepne odpověď na „my“.</p></div>'+
@@ -140,13 +140,15 @@ async function genReplies(){
   if(!isAiServiceReady()){ $("apiPanel").classList.add("open"); state.innerHTML='<div class="error">Chybí klíč k API. Vlož ho nahoře.</div>'; return; }
   const zamer=readChip("in_zamer"),ton=readChip("in_ton"),delka=readChip("in_delka"),oslov=readChip("in_oslov"),adr=readChip("in_adresat"),pisuJako=readChip("in_pisujako")||"jednotlivec";
   ST.in.replySenderMode=pisuJako;
+  ST.in.replyRecipient=adr;
   ST.in.replyAddressingMode=oslov;
+  ST.in.replyAudienceScope="single";
   if(adr==="jiny"&&!customRecipientValue("in")){ state.innerHTML='<div class="error"><b>Upřesni adresáta.</b> Do pole „Komu odpovídáte?“ napiš například nakladatelství nebo externí partner.</div>'; $("in_adresatJiny")?.focus(); return; }
   const allEls=[...document.querySelectorAll('#in_asks input[data-ask]')];
   const checked=allEls.filter(c=>c.checked).map(c=>ST.in.pozadavky[+c.dataset.ask]).filter(Boolean);
   const unchecked=allEls.filter(c=>!c.checked).map(c=>ST.in.pozadavky[+c.dataset.ask]).filter(Boolean);
-  if(allEls.length && !checked.length){ state.innerHTML='<div class="error"><b>Není vybrán žádný požadavek.</b> Zaškrtni alespoň jeden bod, na který má odpověď reagovat.</div>'; return; }
   const noteRaw=($("in_note")&&$("in_note").value.trim())||"";
+  if(allEls.length && !checked.length && !noteRaw){ state.innerHTML='<div class="error"><b>Není vybrán žádný požadavek ani vlastní pokyn.</b> Zaškrtni alespoň jeden bod, nebo napiš obsah odpovědi do poznámky.</div>'; return; }
   const note=safeAuxiliaryText("in",noteRaw,state,"Poznámka pro odpověď");
   const styleCtx=buildPersonalWritingStyleContext("in",state,isPersonalWritingStyleEnabled("in"));
   if(note===null || styleCtx===null || !enforcePreflight("in",state,[note,...(styleCtx?styleCtx.texts:[])].filter(Boolean))) return;
@@ -155,7 +157,7 @@ async function genReplies(){
     "Napiš přesně 3 varianty: STRUČNOU, STANDARDNÍ a DIPLOMATICKOU. Všechny musí reagovat na stejné vybrané body.\n"+
     "Adresát: "+recipientLabel("in")+"\nPíšu jako: "+(PISU_JAKO[pisuJako]||"Jednotlivec")+"\n"+senderPerspectivePrompt(pisuJako)+"\n"+recipientAddressingPrompt(adr,oslov)+"\nZáměr: "+(ZAMER[zamer]||zamer)+"\nVýchozí tón: "+(TON[ton]||ton)+"\nOrientační délka standardní varianty: "+(DELKA[delka]||delka)+"\nOslovení: "+(OSLOV[oslov]||oslov)+"\n"+
     (note?"Další pokyn: "+note+"\n":"")+
-    "Reaguj POUZE na tyto požadavky: "+JSON.stringify(checked.length?checked:ST.in.pozadavky)+
+    (checked.length?"Reaguj POUZE na tyto požadavky: "+JSON.stringify(checked):"Uživatel vypnul všechny automaticky nalezené požadavky. Nevycházej z nich; obsah odpovědi postav POUZE na dalším pokynu výše.")+
     (unchecked.length?"\nTyto body ani osoby, kterých se týkají, v odpovědi VŮBEC nezmiňuj: "+JSON.stringify(unchecked):"")+
     threadLine+profileLine()+styleCtx.line+langLine();
   const done=setBusy($("in_replyBtn"),"Skládám tři varianty…");
@@ -173,7 +175,7 @@ async function genReplies(){
       pouzite.add(idx); return navrhy[idx];
     }).filter(Boolean);
     const allowEmoji=replyAllowsEmoji(noteRaw);
-    navrhy=navrhy.map(n=>({...n,text:normalizeReplySignature(allowEmoji?String(n&&n.text||""):stripReplyEmoji(n&&n.text))}));
+    navrhy=navrhy.map(n=>({...n,text:normalizeReplySignature(allowEmoji?String(n&&n.text||""):stripReplyEmoji(n&&n.text),"in")}));
     const toolbar=document.createElement("div"); toolbar.className="reply-toolbar reply-choice-head";
     toolbar.innerHTML='<div><p class="eyebrow">Hotové návrhy</p><h3>Nejdřív pouze vyber jednu variantu</h3><p>Přečti si tři návrhy vedle sebe. Úpravy, kontrola a finální akce se zobrazí až u zvolené varianty.</p></div>';
     const grid=document.createElement("div"); grid.className="reply-grid variant-choice-grid";
@@ -334,6 +336,8 @@ loadHistory();
         '<p class="profile-style-privacy"><b>Bez citlivých údajů:</b> tyto dvě preference se při zapnutém osobním stylu přidají k zadání pro model. Neuváděj jména, třídy, diagnózy ani konkrétní případy.</p>'+
       '</section>'+
       '<section class="profile-modal-section"><p class="profile-modal-kicker">Podpis</p>'+
+        '<label style="'+lbl+'">Jméno pro neformální podpis kolegům · nepovinné</label><input id="pf_casualName" type="text" maxlength="80" style="'+inS+'" value="'+escAttr(p.casualName||suggestedCasualProfileName(p))+'" placeholder="např. Dan">'+
+        '<p class="hintline">Použije se jen pro kolegu nebo vedení při tykání. Při vykání zůstane plné jméno a ostatní nastavení podpisu.</p>'+
         '<label style="'+lbl+'">Styl podpisu</label><div class="chips" data-group="pf_sign" style="margin-top:6px">'+
           '<button class="chip" data-v="jmeno">Jen jméno</button><button class="chip" data-v="pozdrav">S pozdravem + jméno</button><button class="chip" data-v="funkce">Funkce + jméno</button><button class="chip" data-v="vlastni">Vlastní</button></div>'+
         '<div id="pf_customWrap" style="display:none"><label style="'+lbl+'">Vlastní podpis</label><textarea id="pf_custom" style="'+inS+';min-height:70px;font-family:var(--sans)" placeholder="S pozdravem\nJan Novák\nučitel angličtiny">'+esc(p.custom||"")+'</textarea></div>'+
@@ -356,6 +360,7 @@ loadHistory();
     overlay.querySelector("#pf_save").onclick=()=>{
       const prof={
         name:overlay.querySelector("#pf_name").value.trim(),
+        casualName:overlay.querySelector("#pf_casualName").value.trim(),
         role:overlay.querySelector("#pf_role").value.trim(),
         gender:readChip("pf_gender")||"neutral",
         subjects:overlay.querySelector("#pf_subjects").value.trim(),
@@ -559,7 +564,7 @@ $("my_goBtn").onclick=async()=>{
   const subjMode=mode==="opravit"?"ne":readChip("my_subj")||"ne",subj=subjMode==="ano";
   const customSubject=subjMode==="vlastni"?String($("my_customSubject")&&$("my_customSubject").value||"").trim():"";
   if(subjMode==="vlastni"&&!customSubject){state.textContent="Doplň vlastní předmět. Pole může mít nejvýše 60 znaků.";state.classList.add("error");$("my_customSubject")?.focus();return;}
-  const senderMode=readChip("my_pisujako")||"jednotlivec"; ST.my.replySenderMode=senderMode;
+  const senderMode=readChip("my_pisujako")||"jednotlivec"; ST.my.replySenderMode=senderMode;ST.my.replyRecipient=adr;ST.my.replyAddressingMode=oslov;ST.my.replyAudienceScope=scope;
   const common="\nAdresát: "+recipientLabel("my")+"\n"+audiencePrompt()+"\nOslovení: "+oslovTxt+"\n"+senderPerspectivePrompt(senderMode)+(scope==="single"&&oslov!=="beze"?("\n"+recipientAddressingPrompt(adr,oslov)):"")+(note?"\nDalší pokyn: "+note:"")+(subj?"\nNa první řádek napiš předmět zprávy ve tvaru Předmět: / Subject: / Asunto: podle jazyka výstupu a pod něj samotný e-mail.":"")+scenarioLine+profileLine()+styleCtx.line+myLangLine();
   let sys, prompt, styl, operation;
   if(mode==="prepsat"){

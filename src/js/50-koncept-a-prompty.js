@@ -62,7 +62,7 @@ async function fetchSyn(){
 /* ===================== KARTA KONCEPTU (sdílená) ===================== */
 function draftCard(p, opts){
   // opts: {styl, text, cover, hint, variantType, sourceText}
-  const initialText=ensureSignaturePlaceholder(opts.text||"");
+  const initialText=ensureSignaturePlaceholder(opts.text||"",p);
   const el=document.createElement("article");
   el.className="draft reveal"; el.dataset.tok="1"; el.dataset.variant=opts.variantType||"";
   let cover="";
@@ -94,7 +94,7 @@ function draftCard(p, opts){
     (opts.hint?'<p class="hintline">'+esc(opts.hint)+'</p>':'')+
     '<div class="tweakrow"><input class="tweak-in" type="text" placeholder="Uprav: např. zkrať to a přidej termín ve čtvrtek" title="Napiš, co změnit. Upraví tento koncept, ne od nuly."><button class="btn small tweak-go" title="Upraví tento koncept podle pokynu."><span class="action-icon">🛠️</span>Uprav <span class="req">1 ⚡</span></button></div>'+
     '<details class="draft-check"><summary><span>Kontrola před odesláním</span><span class="status-badge neutral draft-check-badge">Čeká</span></summary><div class="draft-check-body"><div class="check-list"><div class="check-item check-warn"><span>○</span><span>Kontrola se připravuje…</span></div></div></div></details>'+
-    '<div class="tone-wrap"></div>'+
+    '<div class="tone-wrap" aria-live="polite"></div>'+
     '<div class="actions">'+
       '<button class="btn ghost small act-fold" title="Přepne zobrazení na skutečná jména a podpis."><span class="action-icon">👁️</span>Ukázat se jmény</button>'+
       '<button class="btn small act-copy" title="Zkopíruje hotový e-mail do schránky."><span class="action-icon">📋</span>Zkopírovat</button>'+
@@ -114,7 +114,7 @@ function draftCard(p, opts){
     const clone=body.cloneNode(true);
     clone.querySelectorAll("[data-sign-token]").forEach(node=>node.replaceWith(document.createTextNode(node.dataset.signToken||"[podpis]")));
     const value=(clone.innerText!==undefined?clone.innerText:clone.textContent)||"";
-    return ensureSignaturePlaceholder(value.replace(/\u00a0/g," ").replace(/\r\n?/g,"\n").replace(/\n{3,}/g,"\n\n").trimEnd());
+    return ensureSignaturePlaceholder(value.replace(/\u00a0/g," ").replace(/\r\n?/g,"\n").replace(/\n{3,}/g,"\n\n").trimEnd(),p);
   }
   function updateRevisionButtons(){
     const u=el.querySelector(".act-undo"),r=el.querySelector(".act-redo");
@@ -137,7 +137,7 @@ function draftCard(p, opts){
   }
   function getSrc(){ return el.dataset.tok==="1" ? readEditableText() : el._src; }
   function setSrc(t,label){
-    t=ensureSignaturePlaceholder(t);
+    t=ensureSignaturePlaceholder(t,p);
     el._src=t; el.dataset.tok="1"; body.innerHTML=tokenizeHTML(p,t); body.contentEditable="true";
     const fb=el.querySelector(".act-fold"); if(fb) fb.lastChild.textContent="Ukázat se jmény";
     const current=el._revisions[el._revisionIndex]&&el._revisions[el._revisionIndex].text;
@@ -193,7 +193,7 @@ function draftCard(p, opts){
   if(tw) tw.addEventListener("keydown",(e)=>{ if(e.key==="Enter"){ e.preventDefault(); el.querySelector(".tweak-go").click(); } });
   el.querySelector(".act-tone").onclick=(e)=>{
     const untouched=el._revisionIndex===0&&getSrc()===(el._revisions[0]&&el._revisions[0].text);
-    toneCheck(p,getSrc(),el.querySelector(".tone-wrap"),e.currentTarget,{trustedGenerated:untouched});
+    toneCheck(p,getSrc(),el.querySelector(".tone-wrap"),e.currentTarget,{trustedGenerated:untouched,card:el});
   };
   updateRevisionButtons();
   setTimeout(()=>{ if(typeof refreshDraftReadiness==="function") refreshDraftReadiness(el,p); if(!opts.deferActive && typeof setActiveDraftCard==="function") setActiveDraftCard(el,p); },0);
@@ -212,7 +212,7 @@ function saveHistory(p, label, text){
   h.unshift({ d:Date.now(), label:label||"E-mail", text:safe, safe:true, format:2 }); h=h.slice(0,10);
   try{ localStorage.setItem("rozbor_history", JSON.stringify(h)); }catch(_){}
 }
-const PROFILE_FIELDS={name:120,role:120,subjects:160,school:160,styleAvoid:500,styleCustom:500,custom:600};
+const PROFILE_FIELDS={name:120,casualName:80,role:120,subjects:160,school:160,styleAvoid:500,styleCustom:500,custom:600};
 const PROFILE_ENUMS={gender:["male","female","neutral"],sign:["jmeno","pozdrav","funkce","vlastni"],writingStyle:["civilni","usporny","vysvetlujici","formalni"]};
 function sanitizeProfile(value){
   const src=value&&typeof value==="object"&&!Array.isArray(value)?value:{},out={};
@@ -296,22 +296,40 @@ function writingStyleControlHtml(p){
     '<label class="writing-style-toggle" for="'+p+'_useWritingStyle"><input id="'+p+'_useWritingStyle" type="checkbox" '+(configured?'checked':'disabled')+'><span><strong id="'+p+'_writingStyleLabel">'+esc(configured?profileWritingStyleLabel(profile):"Nenastavený")+'</strong><small id="'+p+'_writingStyleHint">'+esc(configured?profileWritingStyleDescription(profile)+" Tón a délka konkrétní zprávy mají přednost.":"V profilu zatím není uložen osobní způsob psaní.")+'</small></span></label>'+
     '<button class="link-btn writing-style-edit" id="'+p+'_writingStyleEdit" type="button">Upravit v profilu</button>';
 }
-function signatureText(){
-  if(typeof getSelectedSignatureText==="function"){
-    const selected=getSelectedSignatureText();
-    if(selected) return selected;
-  }
+function suggestedCasualProfileName(profile){
+  const p=profile||loadProfile(),explicit=String(p.casualName||"").trim();if(explicit)return explicit;
+  const titles=/^(?:mgr|ing|bc|mudr|rndr|phdr|judr|doc|prof)\.?$/i;
+  const first=String(p.name||"").replace(/[<>]/g," ").split(/\s+/).map(x=>x.replace(/^[,.;:]+|[,.;:]+$/g,"")).find(x=>x&&!titles.test(x))||"";
+  const familiar={daniel:"Dan"}[first.toLocaleLowerCase("cs-CZ")];
+  return familiar||first;
+}
+function usesInformalWorkSignature(pane){
+  const st=pane&&ST[pane];if(!st)return false;
+  return st.replyAddressingMode==="tykani"&&(st.replyRecipient==="kolega"||st.replyRecipient==="vedeni");
+}
+function signatureText(pane){
+  const selected=typeof window.getSelectedSignature==="function"?window.getSelectedSignature():null;
+  if(selected&&selected.id!=="profile"&&selected.text)return selected.text;
   const p=loadProfile(); const name=(p.name||"").trim();
   if(!name) return "[učitel]";
   const role=(p.role||"").trim(), school=(p.school||"").trim(), style=p.sign||"pozdrav";
   if(style==="vlastni" && (p.custom||"").trim()) return p.custom.trim();
+  if(usesInformalWorkSignature(pane)){
+    const casual=suggestedCasualProfileName(p)||name;
+    return style==="jmeno"?casual:"S pozdravem\n"+casual;
+  }
+  if(selected&&selected.text)return selected.text;
+  if(typeof window.getSelectedSignatureText==="function"){
+    const selectedText=window.getSelectedSignatureText();
+    if(selectedText) return selectedText;
+  }
   if(style==="jmeno") return name;
   if(style==="funkce"){ let s="S pozdravem\n"+name; if(role||school) s+="\n"+[role,school].filter(Boolean).join(", "); return s; }
   return "S pozdravem\n"+name;
 }
-function normalizeReplySignature(text){
+function normalizeReplySignature(text,pane){
   let t=String(text||"").replace(/\r\n?/g,"\n").trimEnd();
-  const local=typeof signatureText==="function"?String(signatureText()||"").trim():"";
+  const local=typeof signatureText==="function"?String(signatureText(pane)||"").trim():"";
   if(local && local!=="[učitel]"){
     const escaped=local.replace(/[.*+?^${}()|[\]\\]/g,"\\$&").replace(/\n/g,"\\s*\\n\\s*");
     t=t.replace(new RegExp("(?:^|\\n)\\s*"+escaped+"\\s*$","i"),"\n[podpis]").replace(/^\n/,"");
@@ -323,12 +341,12 @@ function normalizeReplySignature(text){
   t=t.replace(/(?:[ \t]*\n)*[ \t]*\[podpis\](?:[ \t]*\n[ \t]*\[podpis\])+/gi,"\n\n[podpis]");
   return t.replace(/\n{3,}/g,"\n\n").trimEnd();
 }
-function ensureSignaturePlaceholder(text){
-  let t=normalizeReplySignature(text);
-  if(/\[podpis\]/i.test(t)) return normalizeReplySignature(t);
+function ensureSignaturePlaceholder(text,pane){
+  let t=normalizeReplySignature(text,pane);
+  if(/\[podpis\]/i.test(t)) return normalizeReplySignature(t,pane);
   const closing=/(?:^|\n)\s*(?:s pozdravem|s úctou|děkuji a zdravím|srdečně|kind regards|best regards|regards|saludos|atentamente)\s*[,!.]?\s*$/i;
-  if(closing.test(t)) return normalizeReplySignature(t.replace(closing,"\n[podpis]").replace(/^\n/,""));
-  return normalizeReplySignature(t+(t?"\n\n":"")+"[podpis]");
+  if(closing.test(t)) return normalizeReplySignature(t.replace(closing,"\n[podpis]").replace(/^\n/,""),pane);
+  return normalizeReplySignature(t+(t?"\n\n":"")+"[podpis]",pane);
 }
 function profileContextParts(){
   const p=loadProfile(), parts=[];
@@ -390,11 +408,12 @@ function recipientAddressingPrompt(recipient,salutation){
   }
   return rule;
 }
-async function refineDraft(p, card, srcText, instruction){
-  if(!isAiServiceReady()){ $("apiPanel").classList.add("open"); toast("Chybí připojení k AI službě."); return; }
-  const safeInstruction=safeAuxiliaryText(p,instruction,null,"Pokyn k úpravě");
-  const safeDraft=safeAuxiliaryText(p,ensureSignaturePlaceholder(srcText),null,"Koncept");
-  if(safeInstruction===null || safeDraft===null) return;
+async function refineDraft(p, card, srcText, instruction, options){
+  if(!isAiServiceReady()){ $("apiPanel").classList.add("open"); toast("Chybí připojení k AI službě."); return false; }
+  const opts=options||{};
+  const safeInstruction=safeAuxiliaryText(p,instruction,null,"Pokyn k úpravě",{skipUnknownNames:!!opts.trustedInstruction,allowSensitiveTerms:!!opts.trustedInstruction});
+  const safeDraft=safeAuxiliaryText(p,ensureSignaturePlaceholder(srcText,p),null,"Koncept",{skipUnknownNames:!!opts.trustedDraft,allowSensitiveTerms:!!opts.trustedDraft});
+  if(safeInstruction===null || safeDraft===null) return false;
   const lLine=p==="my"?myLangLine():langLine();
   const lSystem=p==="my"?myLangSystem():langSystem();
   const locked=Array.isArray(card&&card._locked)?card._locked.filter(Boolean):[];
@@ -403,14 +422,32 @@ async function refineDraft(p, card, srcText, instruction){
   try{
     const senderMode=ST[p]&&ST[p].replySenderMode||"jednotlivec";
     const styleCtx=buildPersonalWritingStyleContext(p,null,card&&card._usePersonalStyle);
-    if(styleCtx===null)return;
+    if(styleCtx===null)return false;
     const d=await callGemini(
       "Uprav tento koncept e-mailu podle pokynu, zachovej značky a podpis [podpis].\n"+senderPerspectivePrompt(senderMode)+profileLine()+styleCtx.line+"\nPokyn: "+safeInstruction+lockedLine+"\n\nKoncept:\n\"\"\"\n"+safeDraft+"\n\"\"\""+lLine,
-      SYS_REFINE+lSystem, "text", {pane:p,texts:[safeDraft,safeInstruction,...styleCtx.texts],ackSensitive:!!(ST[p]&&ST[p].sensitiveAck)}, {operation:"draft-refinement",modelProfile:"balanced"}
+      SYS_REFINE+lSystem, "text", {pane:p,texts:[safeDraft,safeInstruction,...styleCtx.texts],ackSensitive:!!(ST[p]&&ST[p].sensitiveAck)||!!opts.trustedDraft}, {operation:"draft-refinement",modelProfile:"balanced"}
     );
-    if(d&&d.text){ if(card.__setSrc) card.__setSrc(d.text,"AI úprava"); mergeSyn(p,d.synonyma); toast("Upraveno ✓"); }
-  }catch(e){ toast("Úprava se nepovedla: "+friendlyApiMessage(e)); }
+    if(d&&d.text){ if(card.__setSrc) card.__setSrc(d.text,"AI úprava"); mergeSyn(p,d.synonyma); toast("Upraveno ✓"); return true; }
+    return false;
+  }catch(e){ toast("Úprava se nepovedla: "+friendlyApiMessage(e)); return false; }
   finally{ card.style.opacity="1"; }
+}
+function toneChoiceData(data){
+  const out=[];
+  (Array.isArray(data&&data.rizika)?data.rizika:[]).filter(Boolean).forEach(value=>out.push({
+    kind:"Komunikační riziko",label:String(value),instruction:"Odstraň nebo zmírni toto komunikační riziko: "+String(value)
+  }));
+  (Array.isArray(data&&data.sablonoviteObraty)?data.sablonoviteObraty:[]).filter(Boolean).forEach(value=>out.push({
+    kind:"Šablonovitý obrat",label:String(value),instruction:"Přeformuluj nebo odstraň tento šablonovitý obrat, aniž změníš význam: "+String(value)
+  }));
+  if(data&&String(data.navrh||"").trim())out.push({kind:"Celkový návrh",label:String(data.navrh).trim(),instruction:String(data.navrh).trim()});
+  return out;
+}
+function selectedToneInstruction(items,indexes){
+  const selected=(indexes||[]).map(index=>items[+index]).filter(Boolean);
+  if(!selected.length)return "";
+  return "Zapracuj POUZE následující připomínky, které uživatel výslovně vybral z hodnocení textu. Zachovej všechny ostatní formulace, fakta, termíny, význam, zvolený tón, předmět, značky a podpis. Nic nového si nevymýšlej.\n"+
+    selected.map((item,index)=>(index+1)+". "+item.kind+": "+item.instruction).join("\n");
 }
 async function toneCheck(p, srcText, wrap, btn, options){
   if(!isAiServiceReady()){ $("apiPanel").classList.add("open"); toast("Chybí připojení k AI službě."); return; }
@@ -426,7 +463,7 @@ async function toneCheck(p, srcText, wrap, btn, options){
   const safeText=safeAuxiliaryText(p,bodyText,wrap,"Koncept",{flashPreview:false,skipUnknownNames:reviewedGenerated,allowSensitiveTerms:reviewedGenerated}); if(safeText===null)return;
   if(btn) btn.disabled=true;
   wrap.classList.remove("error");
-  wrap.innerHTML='<div class="loading"><span class="spin"></span>Čtu, jak text působí…</div>';
+  const loading=document.createElement("div"),loadingSpin=document.createElement("span");loading.className="loading";loadingSpin.className="spin";loading.append(loadingSpin,document.createTextNode("Čtu, jak text působí…"));wrap.replaceChildren(loading);
   try{
     const d=await callGemini("Koncept:\n\"\"\"\n"+safeText+"\n\"\"\"", SYS_TONECHECK, "tone", {pane:p,texts:[safeText],ackSensitive:reviewedGenerated||!!(ST[p]&&ST[p].sensitiveAck)}, {thinking:"minimal",operation:"tone-check",modelProfile:"economy"});
     const st=(d.naladeni&&d.naladeni.stupen)||"neutral";
@@ -435,11 +472,35 @@ async function toneCheck(p, srcText, wrap, btn, options){
     const naturalMood={prirozeny:"klid",mirne_sablonovity:"neutral",sablonovity:"napeti"}[natural]||"neutral";
     const naturalLabel={prirozeny:"Přirozený styl",mirne_sablonovity:"Mírně šablonovité",sablonovity:"Šablonovité"}[natural]||"Přirozenost";
     const sablony=Array.isArray(d.sablonoviteObraty)?d.sablonoviteObraty.filter(Boolean):[];
+    const choices=toneChoiceData(d),choiceRows=choices.map((item,index)=>'<label class="tone-choice"><input type="checkbox" data-tone-choice="'+index+'"><span><b>'+esc(item.kind)+':</b> '+esc(item.label)+'</span></label>').join("");
+    const choicePanel=choices.length?'<div class="tone-choices"><p class="tone-section-title">Co chceš zapracovat</p><p class="hintline">Zaškrtni pouze připomínky, se kterými souhlasíš.</p><div class="tone-choice-list">'+choiceRows+'</div><div class="tone-choice-actions"><button type="button" class="btn ghost small tone-select-all">Vybrat vše</button><button type="button" class="btn small tone-apply" disabled>Zapracovat vybrané <span class="req">1 ⚡</span></button></div><p class="hintline">Upraví se pouze tato varianta. Původní znění zůstane dostupné přes Zpět a Verze.</p></div>':'';
     wrap.innerHTML='<div class="tonecard reveal"><div class="tone-summary"><span class="mood" data-s="'+esc(st)+'">'+(MOOD[st]||"Naladění")+'<span class="mtxt">'+esc((d.naladeni&&d.naladeni.popis)||"")+'</span></span>'+
       '<span class="mood" data-s="'+esc(naturalMood)+'">'+esc(naturalLabel)+'<span class="mtxt">'+esc((d.prirozenost&&d.prirozenost.popis)||"")+'</span></span></div>'+
       (rizika.length?'<p class="tone-section-title">Komunikační rizika</p><ul class="asks">'+rizika.map(x=>'<li>'+esc(x)+'</li>').join("")+'</ul>':'<p class="hintline" style="margin-top:10px">Žádná komunikační rizika nenalezena.</p>')+
       (sablony.length?'<p class="tone-section-title">Šablonovité obraty</p><ul class="asks">'+sablony.map(x=>'<li>'+esc(x)+'</li>').join("")+'</ul>':'<p class="hintline" style="margin-top:8px">Text neobsahuje nápadné šablonovité obraty.</p>')+
-      (d.navrh?'<div class="cover" style="margin-top:8px"><span class="ok">Návrh: '+esc(d.navrh)+'</span></div>':'')+'</div>';
+      (d.navrh?'<div class="cover" style="margin-top:8px"><span class="ok">Návrh: '+esc(d.navrh)+'</span></div>':'')+choicePanel+'</div>';
+    if(choices.length){
+      const checks=[...wrap.querySelectorAll("[data-tone-choice]")],apply=wrap.querySelector(".tone-apply"),all=wrap.querySelector(".tone-select-all"),card=opts.card;
+      const refresh=()=>{const selected=checks.filter(input=>input.checked).length;if(apply)apply.disabled=!selected||!card;if(all)all.textContent=selected===checks.length?"Zrušit výběr":"Vybrat vše";};
+      checks.forEach(input=>input.addEventListener("change",refresh));
+      if(all)all.onclick=()=>{const select=!checks.every(input=>input.checked);checks.forEach(input=>{input.checked=select;});refresh();};
+      if(apply)apply.onclick=async()=>{
+        const indexes=checks.filter(input=>input.checked).map(input=>input.dataset.toneChoice),instruction=selectedToneInstruction(choices,indexes);
+        if(!instruction||!card)return;
+        const current=typeof card.__getSrc==="function"?card.__getSrc():text;
+        if(String(current||"").trim()!==text){toast("Text se od hodnocení změnil. Spusť nejdřív znovu Jak text působí?.");return;}
+        apply.disabled=true;if(all)all.disabled=true;checks.forEach(input=>{input.disabled=true;});
+        const original=[...apply.childNodes],spinner=document.createElement("span");spinner.className="btn-spin";spinner.setAttribute("aria-hidden","true");apply.replaceChildren(spinner,document.createTextNode(" Zapracovávám…"));
+        const changed=await refineDraft(p,card,current,instruction,{trustedInstruction:true,trustedDraft:reviewedGenerated});
+        if(changed){
+          const panel=wrap.querySelector(".tone-choices");
+          if(panel){const message=document.createElement("p");message.className="tone-applied";message.textContent="✓ Vybrané připomínky byly zapracovány do této varianty. Pro nové znění můžeš kontrolu spustit znovu.";panel.replaceChildren(message);}
+        }else{
+          apply.replaceChildren(...original);if(all)all.disabled=false;checks.forEach(input=>{input.disabled=false;});refresh();
+        }
+      };
+      refresh();
+    }
   }catch(e){ wrap.innerHTML='<div class="error">Nepovedlo se: '+esc(friendlyApiMessage(e))+'.</div>'; }
   finally{ if(btn) btn.disabled=false; }
 }
@@ -483,7 +544,7 @@ const SYS_REPLY="Jsi asistent českého středoškolského učitele. Napíšeš 
 const SYS_KOREKTURA="Jsi korektor češtiny pro středoškolského učitele. Oprav gramatiku, pravopis, interpunkci a styl, ale ZACHOVEJ význam i tón. "+CZECH_RULES+" Oslovení uprav jen podle pokynu. Vrať i krátký seznam hlavních změn a hrstku synonym. Odpověz VÝHRADNĚ platným JSON: {\"text\":\"opravená verze\",\"zmeny\":[\"co se změnilo\"],\"synonyma\":{\"slovo\":[\"alt1\"]}}";
 const SYS_PREPIS="Jsi asistent češtiny pro středoškolského učitele. Přepíšeš e-mail do zadaného tónu, zachováš obsah a značky. "+CZECH_RULES+NATURAL_STYLE_RULE+" Respektuj zadané oslovení. Vrať i hrstku synonym. Odpověz VÝHRADNĚ platným JSON: {\"text\":\"přepsaná verze\",\"synonyma\":{\"slovo\":[\"alt1\"]}}";
 const SYS_REFINE="Jsi asistent češtiny. Upravíš koncept e-mailu podle pokynu, zachováš značky a bezchybnou češtinu. "+CZECH_RULES+NATURAL_STYLE_RULE+" Odpověz VÝHRADNĚ platným JSON: {\"text\":\"upravená verze\",\"synonyma\":{\"slovo\":[\"alt1\"]}}";
-const SYS_TONECHECK="Jsi rádce českého učitele. Dostaneš JEHO koncept e-mailu (se značkami místo jmen). Posuď, jak text vyzní u příjemce a zda působí jako konkrétní přirozená zpráva, nebo jako univerzální šablona. "+CZECH_RULES+" Za šablonovitost nepovažuj samotné běžné oslovení, jednu funkční zdvořilostní větu ani stručné ‚Děkuji za zprávu‘. Hledej prázdné úvody, opakování, automatická klišé, nadměrně uhlazené či úřednické formulace a věty bez informační nebo vztahové funkce. Buď konkrétní a stručný. Odpověz VÝHRADNĚ platným JSON: {\"naladeni\":{\"stupen\":\"klid|neutral|napeti\",\"popis\":\"jak to vyzní, krátce\"},\"prirozenost\":{\"stupen\":\"prirozeny|mirne_sablonovity|sablonovity\",\"popis\":\"krátké vysvětlení\"},\"rizika\":[\"místo, které může působit ostře, nejasně nebo podrážděně\"],\"sablonoviteObraty\":[\"konkrétní obrat nebo prázdná věta; jinak prázdné\"],\"navrh\":\"1 věta, co upravit; jinak prázdné\"}";
+const SYS_TONECHECK="Jsi rádce českého učitele. Dostaneš JEHO koncept e-mailu (se značkami místo jmen). Posuď, jak text vyzní u příjemce a zda působí jako konkrétní přirozená zpráva, nebo jako univerzální šablona. "+CZECH_RULES+" Za šablonovitost nepovažuj samotné běžné oslovení, jednu funkční zdvořilostní větu ani stručné ‚Děkuji za zprávu‘. Hledej prázdné úvody, opakování, automatická klišé, nadměrně uhlazené či úřednické formulace a věty bez informační nebo vztahové funkce. Každou položku rizika formuluj samostatně a konkrétně: stručně uveď problematické místo nebo účinek a směr vhodné úpravy, aby si uživatel mohl zvolit, zda ji chce zapracovat. Buď konkrétní a stručný. Odpověz VÝHRADNĚ platným JSON: {\"naladeni\":{\"stupen\":\"klid|neutral|napeti\",\"popis\":\"jak to vyzní, krátce\"},\"prirozenost\":{\"stupen\":\"prirozeny|mirne_sablonovity|sablonovity\",\"popis\":\"krátké vysvětlení\"},\"rizika\":[\"konkrétní místo nebo účinek + stručný směr úpravy\"],\"sablonoviteObraty\":[\"konkrétní obrat nebo prázdná věta; jinak prázdné\"],\"navrh\":\"1 věta, co upravit; jinak prázdné\"}";
 const SYS_COMPOSE="Jsi asistent češtiny pro středoškolského učitele. Z předaných bodů sestavíš hotový, souvislý e-mail — oslovení, věcné a přirozeně členěné tělo, podle potřeby jednu funkční zdvořilou závěrečnou větu a podpis „[podpis]“. Nepřidávej smyšlené údaje nad rámec bodů. "+CZECH_RULES+NATURAL_STYLE_RULE+" Respektuj zadaný tón, délku a oslovení. Vrať i hrstku synonym. Odpověz VÝHRADNĚ platným JSON: {\"text\":\"hotový e-mail\",\"synonyma\":{\"slovo\":[\"alt1\"]}}";
 
 const ZAMER={vyhovet:"Vyhovět / souhlasit",vysvetlit:"Vysvětlit a uklidnit",doplnit:"Požádat o doplnění",odmitnout:"Zdvořile odmítnout",schuzka:"Navrhnout schůzku",potvrdit:"Potvrdit přijetí"};

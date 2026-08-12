@@ -236,6 +236,13 @@ async function runKorespTests(){
       assertTest(r.includes("Ahoj Pavlo,")&&!r.includes("Ahoj Pavlo Tlolková"),"neformální oslovení stále obsahuje příjmení: "+r);
       assertTest(r.includes("dám ti včas vědět")&&!r.includes("dám Pavle Tlolkové"),"adresát zůstal v těle třetí osobou: "+r);
     });
+    await test("Tykání po modelovém 5. pádě použije jen křestní jméno", async()=>{
+      ST.in.km=[{real:"Lukáš Slouka",token:"osoba A",auto:false}];ST.in.replyAddressingMode="tykani";
+      const anonymni=fromModelPersonTokens("Ahoj [[PERSON_A|5]],\n\nděkuji za zprávu.\n\n[podpis]");
+      assertTest(anonymni.includes("Ahoj osobo A,"),"modelová značka se nepřevedla do lokálního 5. pádu: "+anonymni);
+      const r=recompose("in",anonymni);
+      assertTest(r.includes("Ahoj Lukáši,")&&!r.includes("Ahoj Lukáši Slouko")&&!r.includes("Ahoj Lukáši Slouka"),"tykání po anonymizaci vrátilo i příjmení: "+r);
+    });
     await test("Formální oslovení používá pane nebo paní a příjmení", async()=>{
       ST.in.km=[{real:"Pavla Tlolková",token:"osoba A",auto:false},{real:"Daniel Baláž",token:"osoba B",auto:false}];
       const r=recompose("in","Vážená paní osoba A,\nVážený pane osoba B,\n[podpis]");
@@ -243,8 +250,9 @@ async function runKorespTests(){
       assertTest(r.includes("Vážený pane Baláži,")&&!r.includes("pane Danieli Baláži"),"mužské formální oslovení je chybné: "+r);
     });
     await test("Prompt chápe adresáta jako druhou osobu", async()=>{
-      const informal=recipientAddressingPrompt("kolega","tykani"),formal=recipientAddressingPrompt("jiny","vykani");
+      const informal=recipientAddressingPrompt("kolega","tykani"),management=recipientAddressingPrompt("vedeni","tykani"),formal=recipientAddressingPrompt("jiny","vykani");
       assertTest(informal.includes("2. osobě")&&informal.includes("pouze křestní jméno")&&informal.includes("dám ti vědět"),"pravidlo pro kolegu není úplné: "+informal);
+      assertTest(management.includes("pouze křestní jméno")&&management.includes("nikdy nepřipojuj příjmení"),"tykání s vedením nepoužívá jen křestní jméno: "+management);
       assertTest(formal.includes("Vážený pane + příjmení")&&formal.includes("Vážený pane Danieli Baláži"),"formální pravidlo není úplné: "+formal);
     });
     await test("Hlášení chyby nepoužívá paralelní KS enhancer", async()=>{
@@ -852,6 +860,25 @@ async function runKorespTests(){
         card.remove();
       }finally{if(old===null)localStorage.removeItem("rozbor_profile");else localStorage.setItem("rozbor_profile",old);}
     });
+    await test("Tykání kolegům a vedení používá neformální profilový podpis", async()=>{
+      const oldProfile=localStorage.getItem("rozbor_profile"),oldSelected=localStorage.getItem("ks5_selected_signature"),oldRecipient=ST.in.replyRecipient,oldAddressing=ST.in.replyAddressingMode;
+      try{
+        localStorage.setItem("rozbor_profile",JSON.stringify({name:"Daniel Baláž",sign:"pozdrav"}));localStorage.removeItem("ks5_selected_signature");
+        ST.in.replyRecipient="kolega";ST.in.replyAddressingMode="tykani";
+        assertTest(signatureText("in")==="S pozdravem\nDan","kolega s tykáním nemá přirozený podpis: "+signatureText("in"));
+        assertTest(recompose("in","Ahoj,\n\nděkuji.\n\n[podpis]").endsWith("S pozdravem\nDan"),"neformální podpis se nepropsal do výsledku");
+        ST.in.replyRecipient="vedeni";
+        assertTest(signatureText("in")==="S pozdravem\nDan","vedení s tykáním nemá přirozený podpis: "+signatureText("in"));
+        ST.in.replyAddressingMode="vykani";
+        assertTest(signatureText("in")==="S pozdravem\nDaniel Baláž","vykání chybně zkrátilo profilový podpis: "+signatureText("in"));
+        localStorage.setItem("rozbor_profile",JSON.stringify({name:"Daniel Baláž",casualName:"Dany",sign:"pozdrav"}));ST.in.replyAddressingMode="tykani";
+        assertTest(signatureText("in")==="S pozdravem\nDany","vlastní neformální jméno z profilu nebylo použito");
+      }finally{
+        ST.in.replyRecipient=oldRecipient;ST.in.replyAddressingMode=oldAddressing;
+        if(oldProfile===null)localStorage.removeItem("rozbor_profile");else localStorage.setItem("rozbor_profile",oldProfile);
+        if(oldSelected===null)localStorage.removeItem("ks5_selected_signature");else localStorage.setItem("ks5_selected_signature",oldSelected);
+      }
+    });
     await test("Dvě podobná jména zůstávají dvě osoby", async()=>{
       ST.in.raw="Jan Novák a Jana Nováková se dostavili.";
       ST.in.km=[{real:"Jan Novák",token:"osoba A",auto:false},{real:"Jana Nováková",token:"osoba B",auto:false}];
@@ -897,6 +924,26 @@ async function runKorespTests(){
       await toneCheck("in","Předmět: Konzultace\n\nDobrý den,\n\nkázeňskou situaci probereme osobně.\n\n[podpis]",generated,btn,{trustedGenerated:true});
       assertTest(!!generated.querySelector(".tonecard"),"bezpečný nedotčený návrh vrátila kontrola tónu chybně k anonymizaci");
       window.__TEST_MOCK_GEMINI=old; geminiApiKey=oldKey;
+    });
+    await test("Vybrané připomínky z hodnocení se zapracují jen do dané varianty", async()=>{
+      const old=window.__TEST_MOCK_GEMINI,oldKey=geminiApiKey;geminiApiKey="";let refinementPrompt="",current="Děkuji za zprávu.\n\n[podpis]";
+      window.__TEST_MOCK_GEMINI=async({schema,thinking,prompt})=>{
+        if(schema==="tone"){assertTest(thinking==="minimal","hodnocení textu nemá levné uvažování");return {naladeni:{stupen:"neutral",popis:"věcné"},prirozenost:{stupen:"mirne_sablonovity",popis:"lze zpřesnit"},rizika:["Příliš stručné – doplň další krok"],sablonoviteObraty:["touto cestou"],navrh:"Zpřesnit závěr"};}
+        if(schema==="text"){refinementPrompt=prompt;return {text:"Děkuji za zprávu. Ozvu se zítra.\n\n[podpis]",synonyma:{}};}
+        throw new Error("Neočekávané schéma "+schema);
+      };
+      ST.in.km=[];publishActiveKeyReals("in");
+      const wrap=document.createElement("div"),btn=document.createElement("button"),card=document.createElement("article");card._locked=[];card._usePersonalStyle=false;card.__getSrc=()=>current;card.__setSrc=value=>{current=value;};
+      await toneCheck("in",current,wrap,btn,{card});
+      const checks=[...wrap.querySelectorAll("[data-tone-choice]")],apply=wrap.querySelector(".tone-apply");
+      assertTest(checks.length===3&&apply&&apply.disabled,"hodnocení nevykreslilo nezaškrtnuté volby a neaktivní akci");
+      checks[0].checked=true;checks[0].dispatchEvent(new Event("change",{bubbles:true}));
+      assertTest(!apply.disabled,"výběr připomínky neaktivoval zapracování");
+      await apply.onclick();
+      assertTest(current.includes("Ozvu se zítra"),"vybraná připomínka neupravila danou variantu");
+      assertTest(refinementPrompt.includes("Příliš stručné – doplň další krok")&&!refinementPrompt.includes("Šablonovitý obrat: Přeformuluj nebo odstraň tento šablonovitý obrat"),"do úpravy se propsala i nezaškrtnutá připomínka: "+refinementPrompt);
+      assertTest(wrap.textContent.includes("byly zapracovány do této varianty"),"rozhraní nepotvrdilo zapracování vybraných bodů");
+      window.__TEST_MOCK_GEMINI=old;geminiApiKey=oldKey;
     });
     await test("Import cizího souboru je odmítnut", async()=>{
       let rejected=false; try{applyImportedSettings({_app:"jina-aplikace",profil:{name:"Cizí"}});}catch(e){rejected=/není nastavení/.test(e.message);}
@@ -1073,6 +1120,21 @@ async function runKorespTests(){
       E("in","reviewOk").checked=true; let calls=0; window.__TEST_MOCK_GEMINI=async()=>{calls++;return {navrhy:[]};}; geminiApiKey="test";
       await genReplies();
       assertTest(calls===0 && $("in_replyState").textContent.includes("Není vybrán žádný požadavek"),"prázdný výběr tiše obnovil všechny požadavky");
+    });
+    await test("Vlastní poznámka dovolí odpověď bez vybraného požadavku", async()=>{
+      ST.in.clean="Bezpečný anonymizovaný text."; ST.in.pozadavky=["První bod","Druhý bod"];
+      renderAnalysis({shrnuti:"Test",naladeni:{stupen:"neutral",popis:""},pozadavky:ST.in.pozadavky,upozorneni:[],doporucenyZamer:"informovat"});
+      document.querySelectorAll('#in_asks input[data-ask]').forEach(x=>x.checked=false);
+      $("in_note").value="poděkuj za zprávu a napiš, že se ozvu ve čtvrtek";
+      E("in","reviewOk").checked=true; let captured=""; geminiApiKey="test";
+      window.__TEST_MOCK_GEMINI=async({prompt})=>{captured=prompt;return {navrhy:[
+        {typ:"strucna",styl:"Stručná",text:"Děkuji za zprávu. Ozvu se ve čtvrtek.\n[podpis]"},
+        {typ:"standardni",styl:"Standardní",text:"Děkuji za zprávu. Ve čtvrtek se Vám ozvu.\n[podpis]"},
+        {typ:"diplomaticka",styl:"Diplomatická",text:"Děkuji za Vaši zprávu. Ozvu se Vám ve čtvrtek.\n[podpis]"}
+      ],synonyma:{}};};
+      await genReplies();
+      assertTest(captured.includes("Uživatel vypnul všechny automaticky nalezené požadavky")&&captured.includes("poděkuj za zprávu")&&!captured.includes('Reaguj POUZE na tyto požadavky: ["První bod"'),"poznámka nepřevzala řízení odpovědi nebo se vrátily odškrtnuté požadavky: "+captured);
+      assertTest(document.querySelectorAll('#in_replies .variant-choice-card').length===3,"poznámka bez vybraného požadavku nevytvořila tři varianty");
     });
     await test("E2E Můj e-mail přes mock", async()=>{
       window.__TEST_MOCK_GEMINI=async()=>({text:"Dobrý den,\nopraveno.\n[podpis]",zmeny:["Oprava formulace"],synonyma:{}});

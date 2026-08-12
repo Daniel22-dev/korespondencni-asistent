@@ -3,11 +3,12 @@ const IS_TEST_MODE=new URLSearchParams(window.location.search).get("test")==="1"
 "use strict";
 
 const RELEASE = {
-  version: "5.9.22",
+  version: "5.10.0",
   date: "2026-08-12",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.10.0: přirozenější dokončení e-mailu a volitelné zapracování hodnocení — v Jak text působí? lze jednotlivě zaškrtnout komunikační rizika, šablonovité obraty nebo celkové doporučení a zapracovat pouze vybrané body do právě zvolené varianty se zachováním historie. Při tykání kolegovi nebo vedení používá oslovení jen křestní jméno i po návratu modelové značky v 5. pádě; profil navíc nabízí neformální podobu jména pro místní podpis, například S pozdravem / Dan, zatímco vykání a vlastní podpisy zůstávají beze změny. Odpověď lze vytvořit i bez vybraného automatického požadavku, pokud je celý obsah zadán v poznámce. Regresní sada má 148 interních testů.",
     "5.9.22: opravy Dalších možností a práce s konceptem — automatické testy čekají na výslovné spuštění, průběžně ukazují stav, nevytvářejí záplavu toastů a po dokončení obnoví profil, lokální data i rozhraní. Opraveno mazání a obnova kanonických storage klíčů po platformní migraci, ukládání profilu zůstává otevřené při chybě a formulář se nezavře náhodným kliknutím mimo kartu. Můj e-mail nabízí vlastní předmět doplněný pouze lokálně a kontrola Jak text působí? už u nedotčeného bezpečného návrhu falešně nevrací uživatele k anonymizaci. Regresní sada má 144 interních testů a samostatné fyzické klikací kontroly všech položek Dalších možností.",
     "5.9.21: oprava spuštění přes AI Studio — sdílený stav Gemini runtime se inicializuje před GHRAB AI integrací, takže předem dostupná centrální platforma už nemůže vyvolat TDZ chybu `geminiModel before initialization`. Regresní Chromium test nově reprodukuje předem aktivní `createAiRuntimeConfig`, skutečný GHRAB unlock a požaduje plný `ksAppReady` bez runtime výjimky.",
     "5.9.20: UI hotfix po platformní aktualizaci — automatická úvodní prohlídka už při startu nevytváří celoobrazovkovou vrstvu nad aplikací; je dostupná ručně v Dalších možnostech. Kritická tlačítka motivu, celé obrazovky a volby pracovního postupu se vážou už v rané shell vrstvě a bootstrap nově odmítne tichý částečný start. Přidán regresní Chromium test se skutečným GHRAB unlockem a fyzickými kliknutími.",
