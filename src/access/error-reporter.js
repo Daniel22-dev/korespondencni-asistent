@@ -1408,7 +1408,22 @@ export function setupErrorReporter(options = {}) {
       video.playsInline = true;
       video.srcObject = stream;
       video.className = "ghrab-capture-video";
-      document.body.append(video);
+      video.setAttribute("aria-hidden", "true");
+      video.tabIndex = -1;
+      // Pomocný živý obraz patří dovnitř kořene reportéru. CSS selektor je tak
+      // účinný i při sdílení stejné karty a video nemůže vytvořit rekurzivní
+      // „zrcadlovou chodbu“. Inline pojistka chrání i krátký okamžik před
+      // načtením nebo při selhání externího stylu.
+      Object.assign(video.style, {
+        position: "fixed",
+        left: "-10000px",
+        top: "-10000px",
+        width: "1px",
+        height: "1px",
+        opacity: "0",
+        pointerEvents: "none",
+      });
+      root.append(video);
       await video.play();
       if (!video.videoWidth)
         await new Promise((resolve) =>

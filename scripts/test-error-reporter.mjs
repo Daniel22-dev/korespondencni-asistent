@@ -141,6 +141,7 @@ function staticAudit() {
   check('CSS respektuje safe-area', css.includes('safe-area-inset-bottom') && css.includes('safe-area-inset-right'));
   check('CSS má responzivní panel snímání', css.includes('@media (max-width: 430px)') && css.includes('.ghrab-capture-bar'));
   check('CSS skrývá reportér při samotném snímku', css.includes('.ghrab-error-reporter.ghrab-capture-hidden'));
+  check('Živý obraz snímání nemůže být viditelný v aplikaci', reporter.includes('root.append(video)') && !reporter.includes('document.body.append(video)') && css.includes('.ghrab-capture-video'));
 
   check('Adaptér má správné appId', adapter.includes(`appId: '${config.appId}'`));
   check('Adaptér má správnou verzi', adapter.includes(`appVersion: '${config.version}'`));
@@ -616,6 +617,11 @@ async function runBrowserTests() {
 
       byText('button', 'Povolit snímání obrazovky').click();
       await until(() => !byText('button', 'Přejít do aplikace').disabled, 'Snímání se neaktivovalo');
+      const captureVideo = root.querySelector(':scope > video.ghrab-capture-video');
+      assert(captureVideo && captureVideo.getAttribute('aria-hidden') === 'true', 'Pomocné video není uvnitř reportéru nebo není skryté pro asistivní technologie');
+      const captureVideoStyle = getComputedStyle(captureVideo);
+      const captureVideoRect = captureVideo.getBoundingClientRect();
+      assert(captureVideoStyle.opacity === '0' && captureVideoStyle.visibility === 'hidden' && captureVideoStyle.pointerEvents === 'none' && captureVideoRect.right <= 0, 'Pomocné video je viditelné a může vytvořit zrcadlovou chodbu');
       assert(!backdrop.hidden, 'Povolení snímání nesmí samo skrýt hlášení');
       assert(root.querySelector('.ghrab-capture-bar').hidden, 'Panel se zobrazil před explicitním přechodem');
       byText('button', 'Přejít do aplikace').click(); await wait(60);

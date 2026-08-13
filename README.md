@@ -1,31 +1,32 @@
 # Korespondenční asistent
 
-**Aktuální verze:** 5.10.2  
+**Aktuální verze:** 5.10.3  
 **Platforma:** GHRAB Platform 1.1.0 · etapa P3
 
 
 Samostatná PWA aplikace ekosystému AI Studio Gymnázia Ostrava-Hrabůvka.
 
-- **Verze aplikace:** 5.10.2
+- **Verze aplikace:** 5.10.3
 - **GHRAB AI Core:** 1.0.0
 - **Doporučený repozitář:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
 - **Interaktivní manuál:** 1.3.10 (manuál 1.3.10)
 
-## Co přináší verze 5.10.2
+## Co přináší verze 5.10.3
 
-Verze 5.10.2 dokončuje opravy z reálného testování. Úvod už nezobrazuje duplicitní oznámení o dostupné aktualizaci. Volba „Sestavit nový e-mail ze zadání nebo bodů“ výslovně pokrývá jak souvislé instrukce, tak bodový podklad. Import Gmail `.eml` spolehlivěji zpracuje kódované hlavičky, vícečástové MIME zprávy, textovou i HTML část a běžná středoevropská kódování; limit souboru je 40 MB. Hlášení chyby vede uživatele ve dvou zřetelných krocích: nejprve vytvoří skutečný odkaz ke stažení ZIP a teprve po kliknutí zpřístupní předvyplněný Gmail. Gmail místní soubor automaticky nepřiloží, proto aplikace tuto skutečnost výslovně připomene v rozhraní i v těle zprávy. Opravy verze 5.10.1 včetně odstranění neplatné testovací šablony, rychlých úprav konceptu a čitelných oznámení zůstávají zachovány. Cache je `ghrab-correspondence-v5.10.2`; interní sada má 151 testů.
+Verze 5.10.3 opravuje zobrazení pomocného živého obrazu při pořizování snímků k hlášení chyby. Video používané pouze jako technický zdroj snímku je nyní vložené dovnitř reportéru a skryté současně přes CSS i nezávislou inline pojistku. Při sdílení stejné karty a následném posouvání stránky proto už nevzniká rekurzivní „zrcadlová chodba“ s opakovaným záhlavím, spodní lištou a panelem snímání. Všechny opravy verze 5.10.2 zůstávají zachovány: jasnější sestavení nového e-mailu ze zadání nebo bodů, robustnější import Gmail `.eml`, odstranění duplicitního oznámení o aktualizaci a dvoukrokové stažení ZIP před otevřením Gmailu. Cache je `ghrab-correspondence-v5.10.3`; interní sada má 151 testů a samostatnou regresní kontrolu neviditelnosti pomocného videa.
 
-### Hlášení chyby ve verzi 5.10.2
+### Hlášení chyby ve verzi 5.10.3
 
+- pomocný živý obraz pro snímání je mimo viditelnou plochu, nereaguje na ukazatel a je skrytý i pro asistivní technologie;
+- reportér obsahuje dvojitou ochranu proti zobrazení videa: pravidlo ve stylech i inline nastavení ještě před vložením prvku do stránky;
+- automatická prohlížečová kontrola ověřuje umístění videa přímo v reportéru, nulovou viditelnost a polohu mimo obrazovku;
 - hlášení chyby používá dvoukrok: nejprve vytvoří explicitní odkaz ke stažení ZIP a až po jeho kliknutí zpřístupní předvyplněný Gmail;
 - Gmail i text zprávy jasně připomínají, že místní ZIP nelze připojit automaticky a musí se vložit kancelářskou sponkou;
-- prohlížečový test už nezávisí na živém načtení `mail.google.com`, které se v GitHub runneru může přesměrovat nebo skončit chybovou stránkou;
-- test odděleně ověřuje vytvoření ZIP, přímé uživatelské stažení, odemčení Gmailu, správného příjemce a otevření nové karty;
 - životní cyklus konceptu ze 5.9.10 zůstává beze změny.
 
-Technický souhrn vydání je v `RELEASE-NOTES-5.10.2-USER-TESTING.md`.
+Technický souhrn vydání je v `RELEASE-NOTES-5.10.3-SCREEN-CAPTURE.md`.
 
 ## GHRAB AI Core
 
@@ -55,7 +56,7 @@ prohlížeč
 → Gemini API
 ```
 
-Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže nasazení verze 5.10.2 samo o sobě nezapíná školní server.
+Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže nasazení verze 5.10.3 samo o sobě nezapíná školní server.
 
 ### Budoucí migrační režim
 

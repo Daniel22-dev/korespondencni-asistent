@@ -1,3 +1,11 @@
+## 5.10.3 — oprava rekurzivního obrazu při snímání (2026-08-13)
+
+- pomocné video pro snímání obrazovky se nyní vkládá přímo do kořene reportéru, na který platí jeho skryté styly;
+- video dostalo nezávislou inline pojistku mimo obrazovku, nulovou viditelnost, vypnuté události ukazatele a označení `aria-hidden`;
+- při sdílení stejné karty a posouvání stránky už nevzniká „zrcadlová chodba“ s opakovaným rozhraním aplikace;
+- statická i Chromium regresní kontrola ověřují, že pomocné video nemůže být viditelné;
+- dvoukrokové stažení ZIP, odemčení Gmailu, import Gmail `.eml` a ostatní opravy verze 5.10.2 zůstávají beze změny.
+
 ## 5.10.2 — Gmail EML, jasnější sestavení a spolehlivé stažení hlášení (2026-08-13)
 
 - odstraněno duplicitní oznámení o dostupné PWA aktualizaci při otevření aplikace;
