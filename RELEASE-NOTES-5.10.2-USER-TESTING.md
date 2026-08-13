@@ -19,6 +19,7 @@ Zůstávají všechny opravy šablon, rychlých úprav, bezpečnostních hláše
 - build a platformní kontrola;
 - 151 interních regresních testů;
 - samostatná kontrola reportéru včetně přípravy ZIP, odemčení Gmailu a textu upozornění;
+- prohlížečový test vybírá tlačítko přípravy ZIP podle jeho jednoznačných metadat, nikoli podle obecné vizuální třídy `primary`;
 - kontrola kvality a release gate.
 
 Balíček pro GitHub neobsahuje generované složky `dist/`, `node_modules/` ani testovací výstupy. `dist/` vytvoří GitHub Actions.

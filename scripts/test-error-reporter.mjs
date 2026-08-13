@@ -653,14 +653,14 @@ async function runBrowserTests() {
       await samePrompt(() => backdrop.click(), 'kliknutí mimo dialog');
       await samePrompt(() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })), 'Escape');
 
-      const idBeforeKeep = root.querySelector('button.ghrab-report-button.primary').dataset.reportId;
+      const idBeforeKeep = root.querySelector('button.ghrab-report-button.primary[data-support-email]').dataset.reportId;
       footerClose.click(); await wait(30);
       byText('.ghrab-discard-backdrop button', 'Ponechat rozepsané a zavřít').click(); await wait(40);
       launcher.click(); await wait(40);
       assert(comment.value.includes('Anonymizovaný test'), 'Ponechaný koncept ztratil popis');
       assert(steps.value.includes('Otevřít test'), 'Ponechaný koncept ztratil postup');
       assert(root.querySelectorAll('.ghrab-screenshot-card').length === 5, 'Ponechaný koncept ztratil screenshoty');
-      assert(root.querySelector('button.ghrab-report-button.primary').dataset.reportId === idBeforeKeep, 'Ponechaný koncept změnil ID');
+      assert(root.querySelector('button.ghrab-report-button.primary[data-support-email]').dataset.reportId === idBeforeKeep, 'Ponechaný koncept změnil ID');
 
       window.dispatchEvent(new ErrorEvent('error', { message: 'JS_MARKER', filename: location.origin + '/safe-script.js', lineno: 7, colno: 3 }));
       const rejection = new Event('unhandledrejection');
@@ -675,7 +675,7 @@ async function runBrowserTests() {
       });
       await wait(80);
 
-      const primary = root.querySelector('button.ghrab-report-button.primary');
+      const primary = root.querySelector('button.ghrab-report-button.primary[data-support-email]');
       assert(primary.tagName === 'BUTTON' && primary.textContent.includes('Připravit ZIP'), 'Primární akce není tlačítko pro přípravu ZIP');
       assert(primary.dataset.supportEmail === 'balaz@ghrabuvka.cz', 'Tlačítko nemá správného příjemce pro následný Gmail koncept');
       return { lightContrast, darkContrast, idBeforeKeep };
@@ -687,7 +687,7 @@ async function runBrowserTests() {
     check('Primární akce před otevřením Gmailu pouze připravuje ZIP', true);
 
     const clickBox = await client.evaluate(`(() => {
-      const control = document.querySelector('#ghrab-error-reporter button.ghrab-report-button.primary');
+      const control = document.querySelector('#ghrab-error-reporter button.ghrab-report-button.primary[data-support-email]');
       control.scrollIntoView({ block: 'center', inline: 'center' });
       const rect = control.getBoundingClientRect();
       return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
@@ -785,7 +785,7 @@ async function runBrowserTests() {
         steps: textareas[1].value,
         screenshots: root.querySelectorAll('.ghrab-screenshot-card').length,
         finalHidden: root.querySelector('.ghrab-report-final').hidden,
-        newId: root.querySelector('button.ghrab-report-button.primary').dataset.reportId,
+        newId: root.querySelector('button.ghrab-report-button.primary[data-support-email]').dataset.reportId,
       };
       textareas[0].value = 'Druhý anonymizovaný koncept po úplném smazání.';
       textareas[0].dispatchEvent(new Event('input', { bubbles: true }));
@@ -803,7 +803,7 @@ async function runBrowserTests() {
 
     const secondBox = await client.evaluate(`(() => {
       window.__downloadCaptures = [];
-      const control = document.querySelector('#ghrab-error-reporter button.ghrab-report-button.primary');
+      const control = document.querySelector('#ghrab-error-reporter button.ghrab-report-button.primary[data-support-email]');
       control.scrollIntoView({ block: 'center' });
       const rect = control.getBoundingClientRect();
       return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
@@ -867,7 +867,7 @@ async function runBrowserTests() {
     await fetch(`${localBase}/__support-mode?mode=404`);
     await navigate(client, `${appBase}/harness.html?fallback=1`);
     await waitFor(client, 'window.__harnessReady === true', 'Fallback harness se nespustil');
-    await waitFor(client, 'document.querySelector("#ghrab-error-reporter button.ghrab-report-button.primary")?.dataset.supportEmail === "balaz@ghrabuvka.cz"', 'Fallback e-mail se nepoužil');
+    await waitFor(client, 'document.querySelector("#ghrab-error-reporter button.ghrab-report-button.primary[data-support-email]")?.dataset.supportEmail === "balaz@ghrabuvka.cz"', 'Fallback e-mail se nepoužil');
     check('Při nedostupném support.json se použije bezpečný fallback', true, 'balaz@ghrabuvka.cz');
     await fetch(`${localBase}/__support-mode?mode=ok`);
 
