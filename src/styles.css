@@ -143,10 +143,15 @@
   /* stepper — kruhové číslo */
   .step-no{ display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:50%; background:var(--accent); color:#fff; font-family:var(--sans); font-size:13px; font-weight:700; margin-right:10px; flex:0 0 auto; }
   /* toast */
-  #toasts{ position:fixed; left:50%; bottom:18px; transform:translateX(-50%); z-index:200; display:flex; flex-direction:column; gap:8px; align-items:center; pointer-events:none; width:calc(100% - 32px); max-width:420px; }
-  .toast{ background:var(--ink); color:var(--paper); font:600 13px var(--sans); padding:11px 16px; border-radius:10px; box-shadow:0 8px 28px rgba(0,0,0,.28); opacity:0; transform:translateY(10px); transition:opacity .25s, transform .25s; max-width:100%; text-align:center; }
+  #toasts{ position:fixed; left:50%; bottom:76px; transform:translateX(-50%); z-index:200; display:flex; flex-direction:column; gap:8px; align-items:stretch; pointer-events:none; width:calc(100% - 32px); max-width:620px; }
+  .toast{ background:var(--ink); color:var(--paper); font:600 13px/1.45 var(--sans); padding:11px 12px 11px 16px; border-radius:10px; box-shadow:0 8px 28px rgba(0,0,0,.28); opacity:0; transform:translateY(10px); transition:opacity .25s, transform .25s; width:100%; text-align:left; display:flex; align-items:flex-start; gap:12px; pointer-events:auto; }
   .toast.show{ opacity:1; transform:none; }
+  .toast-important{ border-left:4px solid #f2a35b; }
+  .toast-message{ flex:1; min-width:0; }
+  .toast-close{ flex:0 0 auto; border:1px solid currentColor; border-radius:7px; background:transparent; color:inherit; padding:4px 7px; font:700 11px var(--sans); cursor:pointer; opacity:.85; }
+  .toast-close:hover,.toast-close:focus-visible{ opacity:1; outline:2px solid currentColor; outline-offset:2px; }
   body.dark .toast{ background:var(--desk); color:var(--ink); border:1px solid var(--line); }
+  body.dark .toast-important{ border-left:4px solid #f2a35b; }
   /* lepkavé hlavní tlačítko na mobilu */
   @media (max-width:640px){
     .actsticky{ position:sticky; bottom:0; z-index:6; margin:0 -18px; padding:10px 18px 12px; background:linear-gradient(transparent, var(--outside) 35%); }

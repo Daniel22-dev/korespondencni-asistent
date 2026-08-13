@@ -6,7 +6,7 @@ import {spawn,execSync} from "node:child_process";
 import {setTimeout as sleep} from "node:timers/promises";
 const ROOT=join(dirname(fileURLToPath(import.meta.url)),".."),BASE=join(ROOT,"dist");
 const CORE_VERSION="1.0.0",CORE_DIR=join(ROOT,"vendor",`ghrab-ai-core-${CORE_VERSION}`),CONFORMANCE_SOURCE=readFileSync(join(CORE_DIR,`ghrab-ai-conformance-${CORE_VERSION}.js`),"utf-8");
-const REPO="korespondencni-asistent",APP_ID="correspondence",APP_VERSION="5.10.0",SUITE="openTestRunner(false); runKorespTests()",ITEM="#testOut .test-result",FAIL="#testOut .test-result.fail",CACHE_PREFIX="ghrab-correspondence-v";
+const REPO="korespondencni-asistent",APP_ID="correspondence",APP_VERSION="5.10.1",SUITE="openTestRunner(false); runKorespTests()",ITEM="#testOut .test-result",FAIL="#testOut .test-result.fail",CACHE_PREFIX="ghrab-correspondence-v";
 let failures=0;const ok=m=>console.log("  ✓ "+m),bad=m=>{console.error("  ✗ "+m);failures++};
 if(!existsSync(join(BASE,"index.html"))){console.error("Chybí dist. Spusť nejdřív npm run build.");process.exit(1)}
 function testHtml(raw){return raw.replace('type="application/ghrab-protected" data-ghrab-protected','type="text/javascript" data-ghrab-test-executable').replace(/<script type="module" data-ghrab-access-bootstrap>[\s\S]*?<\/script>/,'')}
@@ -67,7 +67,7 @@ if(!existsSync(reporterJsPath)||!existsSync(reporterCssPath)||!existsSync(report
   if(!reporterJs.includes("Smazat hlášení a zavřít")||!reporterJs.includes("Ponechat rozepsané a zavřít")||!reporterJs.includes("resetDraft()")||!reporterJs.includes("state.screenshots.forEach(revokeScreenshot)"))bad("zavření reportu neumí bezpečně smazat nebo ponechat koncept");else ok("zavření reportu nabízí smazání nebo ponechání konceptu");
   if(!reporterJs.includes('"Přejít do aplikace"')||!reporterJs.includes('"Pořídit snímek"')||!reporterJs.includes('"Zpět k hlášení"')||!reporterJs.includes('"Ukončit snímání"'))bad("chybí sjednocený workflow snímání");else ok("sjednocený workflow snímání je přítomen");
   if(!reporterCss.includes('[data-theme="light"]')||!reporterCss.includes('color-scheme: dark')||!reporterCss.includes("safe-area-inset-bottom"))bad("společné CSS nepokrývá oba motivy a bezpečné okraje");else ok("společné CSS pokrývá oba motivy a bezpečné okraje");
-  if(!reporterAdapter.includes("document.body.classList.contains('dark')")||!reporterAdapter.includes("appVersion: '5.10.0'"))bad("adaptér KS nesleduje body.dark nebo nemá správnou verzi");else ok("adaptér KS respektuje skutečný motiv a verzi");
+  if(!reporterAdapter.includes("document.body.classList.contains('dark')")||!reporterAdapter.includes("appVersion: '5.10.1'"))bad("adaptér KS nesleduje body.dark nebo nemá správnou verzi");else ok("adaptér KS respektuje skutečný motiv a verzi");
   try{execSync(`node --check "${reporterJsPath}"`,{stdio:"ignore"});ok("společný reportér je syntakticky platný")}catch{bad("společný reportér má syntaktickou chybu")}
 }
 if(existsSync(join(ROOT,"src","access","error-reporter-ks.js"))||existsSync(join(ROOT,"src","access","error-reporter-ks.css"))||existsSync(join(ROOT,"src","js","26-error-reporter-compat.js")))bad("v projektu zůstala stará paralelní implementace KS");else ok("stará paralelní implementace KS byla odstraněna");

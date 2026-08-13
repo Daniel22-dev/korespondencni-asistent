@@ -405,12 +405,20 @@ async function runKorespTests(){
       const naturalItem=natural.items.find(x=>x.label==="Text nepůsobí zbytečně šablonovitě");
       assertTest(naturalItem&&naturalItem.ok,"běžné funkční poděkování bylo chybně označeno jako šablonovité");
     });
-    await test("Editor nabízí cílenou úpravu Přirozeněji", async()=>{
-      const card=draftCard("in",{text:"Dobrý den,\n\nDěkuji za zprávu.\n\n[podpis]",deferActive:true});
-      document.body.appendChild(card);
-      const btn=[...card.querySelectorAll(".act-quick")].find(x=>x.textContent.trim()==="Přirozeněji");
-      assertTest(btn&&btn.dataset.ins.includes("univerzální šablona")&&btn.dataset.ins.includes("Nic nového si nevymýšlej"),"tlačítko Přirozeněji nebo jeho bezpečný pokyn chybí");
-      card.remove();
+    await test("Editor nabízí a provede cílenou úpravu Přirozeněji", async()=>{
+      const old=window.__TEST_MOCK_GEMINI;
+      try{
+        ST.in.km=[];ST.in.clean="Bezpečný anonymizovaný zdroj.";E("in","reviewOk").checked=true;publishActiveKeyReals("in");
+        window.__TEST_MOCK_GEMINI=async({schema})=>{assertTest(schema==="text","rychlá úprava nepoužila textové schéma");return {text:"Předmět: Informace k odměnám\n\nDobrý den,\n\nprosím o vysvětlení.\n\n[podpis]",synonyma:{}};};
+        const card=draftCard("in",{text:"Předmět: Informace k odměnám\n\nDobrý den,\n\nrád bych Vás touto cestou požádal o vysvětlení.\n\n[podpis]",sourceText:ST.in.clean,deferActive:true});
+        document.body.appendChild(card);
+        const btn=[...card.querySelectorAll(".act-quick")].find(x=>x.textContent.trim()==="Přirozeněji");
+        assertTest(btn&&btn.dataset.ins.includes("univerzální šablona")&&btn.dataset.ins.includes("Nic nového si nevymýšlej"),"tlačítko Přirozeněji nebo jeho bezpečný pokyn chybí");
+        assertTest(card.__isTrustedDraft(),"bezpečně vygenerovaný koncept nebyl označen jako prověřený");
+        const changed=await btn.onclick();
+        assertTest(changed&&card.__getSrc().includes("prosím o vysvětlení"),"slovo Informace v předmětu chybně zablokovalo rychlou úpravu");
+        card.remove();
+      }finally{window.__TEST_MOCK_GEMINI=old;}
     });
     await test("Podpis se nedubluje", async()=>{
       const a=ensureSignaturePlaceholder("Přeji hezký den.\n\nS pozdravem\n\n[podpis]");
@@ -1235,10 +1243,12 @@ async function runKorespTests(){
       assertTest(iss.danger.some(x=>/telefon/.test(x)),"netypický telefon nebyl zachycen");
       assertTest(iss.warn.some(x=>/třída/.test(x)),"více tříd nebylo zachyceno jako upozornění");
       assertTest(iss.danger.some(x=>/citlivé/.test(x)),"citlivý importovaný obsah nebyl zachycen");
-      applyImportedSettings({profil:{name:'Učitel "autofocus" <img src=x alt=x onerror=alert(1)>',role:'<b>role</b>',school:'Gymnázium & test'},slovnikJmen:[{real:'Žák <scr'+'ipt>',token:'osoba ZZ'}],sablony:[{name:'<b>šablona</b>',text:'text'}],neukladatHistorii:true});
+      applyImportedSettings({profil:{name:'Učitel "autofocus" <img src=x alt=x onerror=alert(1)>',role:'<b>role</b>',school:'Gymnázium & test'},slovnikJmen:[{real:'Žák <scr'+'ipt>',token:'osoba ZZ'}],sablony:[{name:'<b>šablona</b>',vals:{my_mode:"sestavit"}},{name:"Platná šablona",vals:{my_mode:"sestavit",my_adresat:"rodic"}}],neukladatHistorii:true});
       window.__openProfile();
       assertTest(!document.querySelector('#profOverlay img'),"importovaný HTML tag se vykreslil v profilu");
       assertTest(document.querySelector('#pf_name').value.includes('autofocus'),"uvozovky/importovaný profil nejsou uložené jako text");
+      assertTest(loadTpls().length===1&&loadTpls()[0].name==="Platná šablona","neplatná importovaná šablona nebyla odstraněna nebo platná zmizela");
+      assertTest(![...document.querySelectorAll("#my_tpls .chip")].some(x=>x.textContent.includes("<b>")),"HTML značka se zobrazila jako název šablony");
       document.querySelector('#profClose').click();
     });
     await test("Prompt-injection obrana", async()=>{
@@ -1463,7 +1473,7 @@ function applyImportedSettings(obj){
   if(obj._app && obj._app!=="korespondencni-asistent") throw new Error("soubor není nastavení Korespondenčního asistenta");
   if(obj.profil && typeof obj.profil==="object"){ try{ localStorage.setItem("rozbor_profile", JSON.stringify(typeof sanitizeProfile==="function"?sanitizeProfile(obj.profil):{})); }catch(_){} }
   if(Array.isArray(obj.slovnikJmen)){ try{ localStorage.setItem("rozbor_dict", JSON.stringify(obj.slovnikJmen)); }catch(_){} }
-  if(Array.isArray(obj.sablony)){ try{ localStorage.setItem("rozbor_templates", JSON.stringify(obj.sablony)); }catch(_){} }
+  if(Array.isArray(obj.sablony)){ try{ saveTpls(obj.sablony); }catch(_){} }
   if(obj.model && isValidModel(obj.model)){ try{ setModel(obj.model); }catch(_){} }
   if(obj.rezimUI){ try{ setUiMode(obj.rezimUI); }catch(_){} }
   try{ setNoHistory(!!obj.neukladatHistorii); }catch(_){}

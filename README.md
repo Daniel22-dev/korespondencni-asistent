@@ -1,21 +1,21 @@
 # Korespondenční asistent
 
-**Aktuální verze:** 5.10.0  
+**Aktuální verze:** 5.10.1  
 **Platforma:** GHRAB Platform 1.1.0 · etapa P3
 
 
 Samostatná PWA aplikace ekosystému AI Studio Gymnázia Ostrava-Hrabůvka.
 
-- **Verze aplikace:** 5.10.0
+- **Verze aplikace:** 5.10.1
 - **GHRAB AI Core:** 1.0.0
 - **Doporučený repozitář:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
-- **Interaktivní manuál:** 1.3.9 (manuál 1.3.9)
+- **Interaktivní manuál:** 1.3.10 (manuál 1.3.10)
 
-## Co přináší verze 5.10.0
+## Co přináší verze 5.10.1
 
-Verze 5.10.0 rozšiřuje kontrolu „Jak text působí?“ o zaškrtávací připomínky, z nichž lze do právě preferované varianty zapracovat pouze vybrané body. Při tykání kolegovi nebo vedení se po anonymizaci správně použije jen křestní jméno; profil navíc nabízí neformální podobu jména pro místní podpis, například `S pozdravem` a `Dan`. Odpověď lze vytvořit i bez vybraného automatického požadavku, pokud uživatel zadá celý obsah do poznámky. Opravy Dalších možností, profilu, vlastního předmětu a test runneru z verze 5.9.22 zůstávají zachovány. Cache je `ghrab-correspondence-v5.10.0`; interní sada má 148 testů.
+Verze 5.10.1 opravuje poznatky z reálného testování sestavení e-mailu. Neplatná položka `<b>šablona</b>` z bezpečnostního testu se při načtení automaticky odstraní a testovací data už nemohou zůstat mezi uživatelskými šablonami. Rychlé úpravy „Zkrátit“, „Zmírnit“, „Zpřesnit“ a „Přirozeněji“ neblokují běžné slovo s velkým písmenem v předmětu, například `Informace`, pokud koncept vznikl z ručně potvrzeného anonymizovaného zdroje. Po ruční změně se úplná bezpečnostní kontrola znovu zapne. Delší chyby a bezpečnostní upozornění zůstávají otevřené do ručního zavření; krátká potvrzení se zobrazují déle a poté zmizí sama. Funkce 5.10.0 včetně volitelného zapracování hodnocení, přirozeného oslovení a neformálního podpisu zůstávají zachovány. Cache je `ghrab-correspondence-v5.10.1`; interní sada má 148 testů.
 
 ### Zachované opravy 5.9.14
 
@@ -55,7 +55,7 @@ prohlížeč
 → Gemini API
 ```
 
-Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže nasazení verze 5.10.0 samo o sobě nezapíná školní server.
+Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže nasazení verze 5.10.1 samo o sobě nezapíná školní server.
 
 ### Budoucí migrační režim
 

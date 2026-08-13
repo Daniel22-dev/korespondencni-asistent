@@ -2,7 +2,7 @@
   "schema": "ghrab-release-acceptance-v1",
   "stage": "P5",
   "appId": "correspondence",
-  "appVersion": "5.10.0",
+  "appVersion": "5.10.1",
   "releaseStatus": "pre-production-accepted",
   "primaryRuntime": {
     "mode": "standalone-github-pages",
@@ -37,7 +37,7 @@
     "sourceRepositoriesExcludedFromSchoolOperationalPackage": true,
     "legalTermsRequireSeparateAgreement": true
   },
-  "revision": "P5-R5-NATURAL-REVIEW",
+  "revision": "P5-R6-TESTING-HOTFIX",
   "runtimeAudit": {
     "required": true,
     "scriptsExecuted": true,

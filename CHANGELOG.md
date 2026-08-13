@@ -1,3 +1,12 @@
+## 5.10.1 — šablony, rychlé úpravy a čitelná oznámení (2026-08-13)
+
+- neplatná testovací šablona s názvem `<b>šablona</b>` se už nemůže propsat do uložených dat; starý neplatný záznam se při načtení automaticky odstraní a platné šablony zůstanou zachované;
+- tlačítka „Zkrátit“, „Zmírnit“, „Zpřesnit“ a „Přirozeněji“ už u bezpečně vygenerovaného konceptu neblokují běžná slova s velkým písmenem v předmětu, například `Informace`;
+- bezpečnost zůstává zachována: po ruční změně konceptu se znovu použije úplná kontrola možných jmen, kontaktů a citlivých údajů;
+- delší chyby a bezpečnostní upozornění zůstávají zobrazené do ručního zavření, mají vlastní tlačítko „Zavřít“, jsou širší a nepřekrývají spodní ovládací lištu;
+- krátká potvrzení se zavírají automaticky až po delší, délce textu přizpůsobené době;
+- regresní sada zůstává na 148 testech a nově přímo ověřuje import neplatné šablony i rychlou úpravu předmětu `Informace k odměnám`.
+
 ## 5.10.0 — přirozenější oslovení, podpis a volitelné AI úpravy (2026-08-12)
 
 - kontrola „Jak text působí?“ nabízí samostatné zaškrtávací volby pro komunikační rizika, šablonovité obraty a celkový návrh;

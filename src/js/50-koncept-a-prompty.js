@@ -108,7 +108,14 @@ function draftCard(p, opts){
   try{ const lc=outLangCode(p); if(lc && lc!=="cs"){ body.setAttribute("lang", lc); body.setAttribute("spellcheck","false"); } }catch(_){}
   el._src=initialText; el._sourceText=opts.sourceText||(ST[p]&&ST[p].clean)||""; el._cover=opts.cover||{}; el._locked=[];
   el._usePersonalStyle=opts.usePersonalStyle===undefined?isPersonalWritingStyleEnabled(p):!!opts.usePersonalStyle;
-  el._revisions=[{text:el._src,at:Date.now(),label:"Vygenerováno"}]; el._revisionIndex=0;
+  const reviewedSourceIsSafe=()=>{
+    const review=E(p,"reviewOk"),source=String(el._sourceText||"");
+    if(!review||!review.checked||!source)return false;
+    const danger=preflightIssues(source,p).danger.filter(x=>!((ST[p]&&ST[p].sensitiveAck)&&/citlivé/.test(x)));
+    return danger.length===0;
+  };
+  el._trustedDraft=reviewedSourceIsSafe();
+  el._revisions=[{text:el._src,at:Date.now(),label:"Vygenerováno",trusted:el._trustedDraft}]; el._revisionIndex=0;
   let revisionTimer=null;
   function readEditableText(){
     const clone=body.cloneNode(true);
@@ -124,31 +131,31 @@ function draftCard(p, opts){
     const text=readEditableText(); const current=el._revisions[el._revisionIndex]&&el._revisions[el._revisionIndex].text;
     if(text===current) return;
     el._revisions=el._revisions.slice(0,el._revisionIndex+1);
-    el._revisions.push({text,at:Date.now(),label:label||"Ruční úprava"});
+    el._revisions.push({text,at:Date.now(),label:label||"Ruční úprava",trusted:!!el._trustedDraft});
     if(el._revisions.length>30) el._revisions.shift(); else el._revisionIndex++;
     updateRevisionButtons();
     if(typeof refreshDraftReadiness==="function") refreshDraftReadiness(el,p);
   }
   function applyRevision(index){
     const rec=el._revisions[index]; if(!rec) return;
-    el._revisionIndex=index; el._src=rec.text; el.dataset.tok="1"; body.innerHTML=tokenizeHTML(p,rec.text); body.contentEditable="true"; updateRevisionButtons();
+    el._revisionIndex=index; el._src=rec.text; el._trustedDraft=!!rec.trusted; el.dataset.tok="1"; body.innerHTML=tokenizeHTML(p,rec.text); body.contentEditable="true"; updateRevisionButtons();
     const fb=el.querySelector(".act-fold"); if(fb) fb.lastChild.textContent="Ukázat se jmény";
     if(typeof refreshDraftReadiness==="function") refreshDraftReadiness(el,p);
   }
   function getSrc(){ return el.dataset.tok==="1" ? readEditableText() : el._src; }
-  function setSrc(t,label){
+  function setSrc(t,label,meta){
     t=ensureSignaturePlaceholder(t,p);
-    el._src=t; el.dataset.tok="1"; body.innerHTML=tokenizeHTML(p,t); body.contentEditable="true";
+    el._src=t; el._trustedDraft=!!(meta&&meta.trusted); el.dataset.tok="1"; body.innerHTML=tokenizeHTML(p,t); body.contentEditable="true";
     const fb=el.querySelector(".act-fold"); if(fb) fb.lastChild.textContent="Ukázat se jmény";
     const current=el._revisions[el._revisionIndex]&&el._revisions[el._revisionIndex].text;
-    if(t!==current){ el._revisions=el._revisions.slice(0,el._revisionIndex+1); el._revisions.push({text:t,at:Date.now(),label:label||"AI úprava"}); el._revisionIndex=el._revisions.length-1; }
+    if(t!==current){ el._revisions=el._revisions.slice(0,el._revisionIndex+1); el._revisions.push({text:t,at:Date.now(),label:label||"AI úprava",trusted:el._trustedDraft}); el._revisionIndex=el._revisions.length-1; }
     updateRevisionButtons(); if(typeof refreshDraftReadiness==="function") refreshDraftReadiness(el,p);
   }
-  el.__setSrc=setSrc; el.__getSrc=getSrc; el.__finalText=()=>recompose(p,getSrc());
+  el.__setSrc=setSrc; el.__getSrc=getSrc; el.__isTrustedDraft=()=>!!el._trustedDraft; el.__finalText=()=>recompose(p,getSrc());
   const finalT=el.__finalText;
   body.addEventListener("dblclick",(ev)=>handleDblClick(p,ev));
   body.addEventListener("focus",()=>{ if(typeof setActiveDraftCard==="function") setActiveDraftCard(el,p); });
-  body.addEventListener("input",()=>{ el._src=readEditableText(); clearTimeout(revisionTimer); revisionTimer=setTimeout(()=>recordRevision("Ruční úprava"),650); if(typeof refreshDraftReadiness==="function") refreshDraftReadiness(el,p); });
+  body.addEventListener("input",()=>{ el._src=readEditableText(); el._trustedDraft=false; clearTimeout(revisionTimer); revisionTimer=setTimeout(()=>recordRevision("Ruční úprava"),650); if(typeof refreshDraftReadiness==="function") refreshDraftReadiness(el,p); });
   el.querySelector(".act-undo").onclick=()=>applyRevision(el._revisionIndex-1);
   el.querySelector(".act-redo").onclick=()=>applyRevision(el._revisionIndex+1);
   el.querySelector(".act-versions").onclick=()=>{ if(typeof openDraftVersions==="function") openDraftVersions(el,p); };
@@ -159,7 +166,7 @@ function draftCard(p, opts){
     if(!el._locked.includes(text)) el._locked.push(text); if(typeof renderLockedSnippets==="function") renderLockedSnippets(el); toast("Formulace uzamčena ✓");
   };
   el.querySelector(".act-block").onclick=()=>{ if(typeof openBlocksManager==="function") openBlocksManager(el,p); };
-  el.querySelectorAll(".act-quick").forEach(btn=>btn.onclick=()=>refineDraft(p,el,getSrc(),btn.dataset.ins));
+  el.querySelectorAll(".act-quick").forEach(btn=>btn.onclick=()=>refineDraft(p,el,getSrc(),btn.dataset.ins,{trustedInstruction:true,trustedDraft:el.__isTrustedDraft()}));
   el.querySelector(".act-fold").onclick=(e)=>{
     const btn=e.currentTarget;
     if(el.dataset.tok==="1"){ el._src=readEditableText(); body.textContent=recompose(p, el._src); body.contentEditable="false"; btn.lastChild.textContent="Ukázat se značkami"; el.dataset.tok="0"; }
@@ -189,11 +196,10 @@ function draftCard(p, opts){
   el.querySelector(".act-save").onclick=()=>{ if(typeof saveWorkbenchDraft==="function") saveWorkbenchDraft(el,p,opts); };
   el.querySelector(".act-follow").onclick=()=>{ if(typeof openFollowupDialog==="function") openFollowupDialog(el,p); };
   const tw=el.querySelector(".tweak-in");
-  el.querySelector(".tweak-go").onclick=()=>{ const ins=(tw.value||"").trim(); if(!ins){ toast("Napiš, co upravit."); return; } refineDraft(p,el,getSrc(),ins).then(()=>{ tw.value=""; }); };
+  el.querySelector(".tweak-go").onclick=()=>{ const ins=(tw.value||"").trim(); if(!ins){ toast("Napiš, co upravit."); return; } refineDraft(p,el,getSrc(),ins,{trustedDraft:el.__isTrustedDraft()}).then(()=>{ tw.value=""; }); };
   if(tw) tw.addEventListener("keydown",(e)=>{ if(e.key==="Enter"){ e.preventDefault(); el.querySelector(".tweak-go").click(); } });
   el.querySelector(".act-tone").onclick=(e)=>{
-    const untouched=el._revisionIndex===0&&getSrc()===(el._revisions[0]&&el._revisions[0].text);
-    toneCheck(p,getSrc(),el.querySelector(".tone-wrap"),e.currentTarget,{trustedGenerated:untouched,card:el});
+    toneCheck(p,getSrc(),el.querySelector(".tone-wrap"),e.currentTarget,{trustedGenerated:el.__isTrustedDraft(),card:el});
   };
   updateRevisionButtons();
   setTimeout(()=>{ if(typeof refreshDraftReadiness==="function") refreshDraftReadiness(el,p); if(!opts.deferActive && typeof setActiveDraftCard==="function") setActiveDraftCard(el,p); },0);
@@ -427,7 +433,7 @@ async function refineDraft(p, card, srcText, instruction, options){
       "Uprav tento koncept e-mailu podle pokynu, zachovej značky a podpis [podpis].\n"+senderPerspectivePrompt(senderMode)+profileLine()+styleCtx.line+"\nPokyn: "+safeInstruction+lockedLine+"\n\nKoncept:\n\"\"\"\n"+safeDraft+"\n\"\"\""+lLine,
       SYS_REFINE+lSystem, "text", {pane:p,texts:[safeDraft,safeInstruction,...styleCtx.texts],ackSensitive:!!(ST[p]&&ST[p].sensitiveAck)||!!opts.trustedDraft}, {operation:"draft-refinement",modelProfile:"balanced"}
     );
-    if(d&&d.text){ if(card.__setSrc) card.__setSrc(d.text,"AI úprava"); mergeSyn(p,d.synonyma); toast("Upraveno ✓"); return true; }
+    if(d&&d.text){ if(card.__setSrc) card.__setSrc(d.text,"AI úprava",{trusted:true}); mergeSyn(p,d.synonyma); toast("Upraveno ✓"); return true; }
     return false;
   }catch(e){ toast("Úprava se nepovedla: "+friendlyApiMessage(e)); return false; }
   finally{ card.style.opacity="1"; }

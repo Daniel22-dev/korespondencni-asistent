@@ -248,9 +248,40 @@ function myLangSystem(){
 }
 wireChips($("apiPanel"));
 
-function loadTpls(){ try{ return JSON.parse(localStorage.getItem("rozbor_templates")||"[]"); }catch(_){ return []; } }
-function saveTpls(a){ try{ localStorage.setItem("rozbor_templates", JSON.stringify(a)); }catch(_){} }
 const TPL_KEYS=["my_flow","my_mode","my_adresat","my_scope","my_pisujako","my_oslov","my_prepis","my_ucel","my_cton","my_cdelka","my_subj","my_lang","my_scenario"];
+function cleanTemplateName(value){
+  const name=typeof value==="string"?value.replace(/\s+/g," ").trim().slice(0,80):"";
+  return !name||/[<>\u0000-\u001f\u007f]/.test(name)?"":name;
+}
+function cleanTemplateRecord(item){
+  if(!item||typeof item!=="object"||Array.isArray(item))return null;
+  const name=cleanTemplateName(item.name),source=item.vals;
+  if(!name||!source||typeof source!=="object"||Array.isArray(source))return null;
+  const vals={};
+  TPL_KEYS.forEach(k=>{const value=source[k];if(typeof value==="string"&&value.trim())vals[k]=value.trim().slice(0,80);});
+  return Object.keys(vals).length?{name,vals}:null;
+}
+function cleanTemplates(items){
+  if(!Array.isArray(items))return [];
+  const names=new Set(),out=[];
+  items.forEach(item=>{
+    const clean=cleanTemplateRecord(item),key=clean&&clean.name.toLocaleLowerCase("cs-CZ");
+    if(!clean||names.has(key)||out.length>=30)return;
+    names.add(key);out.push(clean);
+  });
+  return out;
+}
+function loadTpls(){
+  try{
+    const raw=JSON.parse(localStorage.getItem("rozbor_templates")||"[]"),clean=cleanTemplates(raw);
+    if(JSON.stringify(raw)!==JSON.stringify(clean))localStorage.setItem("rozbor_templates",JSON.stringify(clean));
+    return clean;
+  }catch(_){
+    try{localStorage.setItem("rozbor_templates","[]");}catch(__){}
+    return [];
+  }
+}
+function saveTpls(a){ try{ localStorage.setItem("rozbor_templates", JSON.stringify(cleanTemplates(a))); }catch(_){} }
 function renderTemplates(){
   const box=$("my_tpls"); if(!box) return; box.innerHTML="";
   loadTpls().forEach((t,i)=>{
@@ -267,11 +298,14 @@ function renderTemplates(){
 }
 function saveCurrentTemplate(){
   askTextModal({title:"Uložit šablonu",label:"Název šablony",placeholder:"např. Rodič – omluva",confirmText:"Uložit šablonu",onConfirm(name){
+    name=cleanTemplateName(name);
+    if(!name){toast("Název šablony nesmí obsahovat značky < nebo >.");return;}
     const vals={}; TPL_KEYS.forEach(k=>vals[k]=readChip(k));
-    const a=loadTpls().filter(t=>t.name!==name); a.unshift({name, vals}); saveTpls(a.slice(0,12)); renderTemplates(); toast("Šablona uložena ✓");
+    const a=loadTpls().filter(t=>t.name.toLocaleLowerCase("cs-CZ")!==name.toLocaleLowerCase("cs-CZ")); a.unshift({name, vals}); saveTpls(a.slice(0,12)); renderTemplates(); toast("Šablona uložena ✓");
   }});
 }
 function applyTemplate(vals){
+  if(!vals||typeof vals!=="object"||Array.isArray(vals)){toast("Tato šablona není platná.");return;}
   TPL_KEYS.forEach(k=>{ if(vals[k]) setChip(k, vals[k]); });
   syncSchoolScenario(vals.my_scenario||readChip("my_scenario")||"none", false);
   updateMyMode(); toast("Šablona použita");

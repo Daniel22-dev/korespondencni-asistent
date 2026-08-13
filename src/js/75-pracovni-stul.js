@@ -132,7 +132,7 @@ window.renderLockedSnippets=function(el){
 window.openDraftVersions=function(el,p){
   const revisions=el._revisions||[];
   const rows=revisions.map((r,i)=>'<button class="version-row'+(i===el._revisionIndex?' current':'')+'" data-ver="'+i+'"><b>'+esc(r.label||"Verze")+'</b><span>'+new Date(r.at).toLocaleString("cs-CZ")+'</span><small>'+esc((r.text||"").slice(0,180))+'</small></button>').reverse().join("");
-  openModal("Historie verzí",rows||'<p class="empty">Zatím není žádná další verze.</p>',{onMount(body,close){body.querySelectorAll("[data-ver]").forEach(b=>b.onclick=()=>{const r=revisions[+b.dataset.ver];if(r&&el.__setSrc){el.__setSrc(r.text,"Obnovená verze");close();toast("Verze obnovena ✓");}});}});
+  openModal("Historie verzí",rows||'<p class="empty">Zatím není žádná další verze.</p>',{onMount(body,close){body.querySelectorAll("[data-ver]").forEach(b=>b.onclick=()=>{const r=revisions[+b.dataset.ver];if(r&&el.__setSrc){el.__setSrc(r.text,"Obnovená verze",{trusted:!!r.trusted});close();toast("Verze obnovena ✓");}});}});
 };
 function insertBlock(el,text){
   const current=el.__getSrc?el.__getSrc():clean(el.querySelector(".body")&&el.querySelector(".body").innerText);

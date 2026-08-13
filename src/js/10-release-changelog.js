@@ -3,11 +3,12 @@ const IS_TEST_MODE=new URLSearchParams(window.location.search).get("test")==="1"
 "use strict";
 
 const RELEASE = {
-  version: "5.10.0",
-  date: "2026-08-12",
+  version: "5.10.1",
+  date: "2026-08-13",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.10.1: opravy podle reálného testování — neplatná testovací šablona s HTML názvem se při načtení odstraní a testovací import ji už nemůže ponechat v uživatelských datech. Rychlé úpravy Zkrátit, Zmírnit, Zpřesnit a Přirozeněji neblokují bezpečně vygenerovaný koncept kvůli běžnému slovu s velkým písmenem v předmětu, například Informace; po ruční změně se úplná bezpečnostní kontrola znovu zapne. Delší chyby a bezpečnostní upozornění zůstávají otevřené do ručního zavření a krátká potvrzení se zobrazují déle. Regresní sada má 148 interních testů.",
     "5.10.0: přirozenější dokončení e-mailu a volitelné zapracování hodnocení — v Jak text působí? lze jednotlivě zaškrtnout komunikační rizika, šablonovité obraty nebo celkové doporučení a zapracovat pouze vybrané body do právě zvolené varianty se zachováním historie. Při tykání kolegovi nebo vedení používá oslovení jen křestní jméno i po návratu modelové značky v 5. pádě; profil navíc nabízí neformální podobu jména pro místní podpis, například S pozdravem / Dan, zatímco vykání a vlastní podpisy zůstávají beze změny. Odpověď lze vytvořit i bez vybraného automatického požadavku, pokud je celý obsah zadán v poznámce. Regresní sada má 148 interních testů.",
     "5.9.22: opravy Dalších možností a práce s konceptem — automatické testy čekají na výslovné spuštění, průběžně ukazují stav, nevytvářejí záplavu toastů a po dokončení obnoví profil, lokální data i rozhraní. Opraveno mazání a obnova kanonických storage klíčů po platformní migraci, ukládání profilu zůstává otevřené při chybě a formulář se nezavře náhodným kliknutím mimo kartu. Můj e-mail nabízí vlastní předmět doplněný pouze lokálně a kontrola Jak text působí? už u nedotčeného bezpečného návrhu falešně nevrací uživatele k anonymizaci. Regresní sada má 144 interních testů a samostatné fyzické klikací kontroly všech položek Dalších možností.",
     "5.9.21: oprava spuštění přes AI Studio — sdílený stav Gemini runtime se inicializuje před GHRAB AI integrací, takže předem dostupná centrální platforma už nemůže vyvolat TDZ chybu `geminiModel before initialization`. Regresní Chromium test nově reprodukuje předem aktivní `createAiRuntimeConfig`, skutečný GHRAB unlock a požaduje plný `ksAppReady` bez runtime výjimky.",
@@ -121,14 +122,24 @@ function rePhone(flags){ return new RegExp(RE_PHONE_SRC, flags||"u"); }
 function reDocnum(flags){ return new RegExp(RE_DOCNUM_SRC, (flags||"").includes("u")?(flags||"u"):(flags||"")+"u"); }
 function maskDocumentNumbers(text){ return String(text||"").replace(reDocnum("giu"),m=>" ".repeat(m.length)); }
 function unicodeWordRegex(source,flags){ const f=String(flags||"iu"); return new RegExp("(?<![\\p{L}\\p{M}\\d])(?:"+source+")(?![\\p{L}\\p{M}\\d])",f.includes("u")?f:f+"u"); }
-function toast(msg){
+function toast(msg,options){
   // Vestavěné testy vyvolávají desítky běžných akcí. Jejich dočasné toastové
   // zprávy by překrývaly test runner a působily jako blikající černé rámečky.
   if(typeof TEST_RUN_ACTIVE!=="undefined"&&TEST_RUN_ACTIVE)return;
   const c=$("toasts"); if(!c) return;
-  const t=document.createElement("div"); t.className="toast"; t.textContent=msg; c.appendChild(t);
+  const opts=options&&typeof options==="object"?options:{},text=String(msg||"");
+  const important=opts.persistent!==undefined?!!opts.persistent:(text.length>110||/(?:nepoved|chyb[ií]|obsahuje|zastaven|neplatn|příliš|nejdřív|zkontroluj|není bezpečné|nelze|vlastní odpovědnost)/i.test(text));
+  const t=document.createElement("div"),message=document.createElement("span"),close=document.createElement("button");
+  t.className="toast"+(important?" toast-important":"");t.setAttribute("role",important?"alert":"status");t.setAttribute("aria-live",important?"assertive":"polite");
+  message.className="toast-message";message.textContent=text;
+  close.className="toast-close";close.type="button";close.textContent="Zavřít";close.setAttribute("aria-label","Zavřít oznámení");
+  t.append(message,close);c.appendChild(t);
+  const dismiss=()=>{if(t.dataset.closing)return;t.dataset.closing="1";t.classList.remove("show");setTimeout(()=>t.remove(),300);};
+  close.onclick=dismiss;
   requestAnimationFrame(()=>t.classList.add("show"));
-  setTimeout(()=>{ t.classList.remove("show"); setTimeout(()=>t.remove(),300); }, 2600);
+  if(!important){const duration=Number.isFinite(opts.duration)?Math.max(1500,+opts.duration):Math.min(9000,Math.max(4000,1800+text.length*55));setTimeout(dismiss,duration);}
+  while(c.children.length>3)c.firstElementChild.remove();
+  return t;
 }
 const SECURITY_GUIDE_SK="rozbor_security_guide_seen_v1";
 const TOUR_SK="rozbor_tour_seen_v1";
