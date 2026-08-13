@@ -3,11 +3,12 @@ const IS_TEST_MODE=new URLSearchParams(window.location.search).get("test")==="1"
 "use strict";
 
 const RELEASE = {
-  version: "5.10.1",
+  version: "5.10.2",
   date: "2026-08-13",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.10.2: dokončení oprav z uživatelského testování — úvod už nezobrazuje duplicitní oznámení o dostupné aktualizaci, volba pro vytvoření nového e-mailu jasně přijímá souvislé zadání i body a import Gmail .eml spolehlivěji čte kódované hlavičky, vícečástové zprávy i běžná středoevropská kódování. Hlášení chyby nyní vede bezpečným dvoukrokem: nejprve připraví skutečný odkaz ke stažení ZIP a po jeho stažení zpřístupní předvyplněný Gmail s výslovnou připomínkou ručního přiložení. Regresní sada má 151 interních testů.",
     "5.10.1: opravy podle reálného testování — neplatná testovací šablona s HTML názvem se při načtení odstraní a testovací import ji už nemůže ponechat v uživatelských datech. Rychlé úpravy Zkrátit, Zmírnit, Zpřesnit a Přirozeněji neblokují bezpečně vygenerovaný koncept kvůli běžnému slovu s velkým písmenem v předmětu, například Informace; po ruční změně se úplná bezpečnostní kontrola znovu zapne. Delší chyby a bezpečnostní upozornění zůstávají otevřené do ručního zavření a krátká potvrzení se zobrazují déle. Regresní sada má 148 interních testů.",
     "5.10.0: přirozenější dokončení e-mailu a volitelné zapracování hodnocení — v Jak text působí? lze jednotlivě zaškrtnout komunikační rizika, šablonovité obraty nebo celkové doporučení a zapracovat pouze vybrané body do právě zvolené varianty se zachováním historie. Při tykání kolegovi nebo vedení používá oslovení jen křestní jméno i po návratu modelové značky v 5. pádě; profil navíc nabízí neformální podobu jména pro místní podpis, například S pozdravem / Dan, zatímco vykání a vlastní podpisy zůstávají beze změny. Odpověď lze vytvořit i bez vybraného automatického požadavku, pokud je celý obsah zadán v poznámce. Regresní sada má 148 interních testů.",
     "5.9.22: opravy Dalších možností a práce s konceptem — automatické testy čekají na výslovné spuštění, průběžně ukazují stav, nevytvářejí záplavu toastů a po dokončení obnoví profil, lokální data i rozhraní. Opraveno mazání a obnova kanonických storage klíčů po platformní migraci, ukládání profilu zůstává otevřené při chybě a formulář se nezavře náhodným kliknutím mimo kartu. Můj e-mail nabízí vlastní předmět doplněný pouze lokálně a kontrola Jak text působí? už u nedotčeného bezpečného návrhu falešně nevrací uživatele k anonymizaci. Regresní sada má 144 interních testů a samostatné fyzické klikací kontroly všech položek Dalších možností.",

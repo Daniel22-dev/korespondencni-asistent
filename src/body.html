@@ -96,7 +96,7 @@
         <span class="desk-action-icon">🔎</span><span><b>Analýza příchozího e-mailu</b><small>Vlož přijatou zprávu, bezpečně ji anonymizuj, nech ji rozebrat a vytvoř odpověď.</small></span>
       </button>
       <button class="desk-action start-card" id="tabMy" type="button" data-start="my" aria-controls="pane-my" aria-pressed="false" title="Opravit, přepsat nebo sestavit vlastní e-mail">
-        <span class="desk-action-icon">✍️</span><span><b>Sestavení vlastního e-mailu</b><small>Oprav koncept, přepiš jej do vhodného tónu nebo sestav nový e-mail z bodů.</small></span>
+        <span class="desk-action-icon">✍️</span><span><b>Sestavení vlastního e-mailu</b><small>Oprav koncept, přepiš jej do vhodného tónu nebo sestav nový e-mail ze zadání či bodů.</small></span>
       </button>
     </div>
     <details class="desk-secondary" id="deskSecondary">
@@ -138,7 +138,7 @@
         <textarea id="in_raw" placeholder="Sem vlož celou přijatou zprávu — nebo nahraj stažený e-mail (.eml z Gmailu, .txt, .html)…"></textarea>
         <div class="row">
           <button class="btn primary" id="in_anonBtn" title="Lokálně nahradí jména, e-maily a telefony značkami. Neodesílá nikam."><span class="action-icon">🔒</span>Anonymizovat a zkontrolovat<span class="free" style="color:#fff;opacity:.8">zdarma</span></button>
-          <button class="btn ghost small" id="in_fileBtn" title="Načte tělo zprávy ze staženého souboru (.eml/.txt/.html). Vše zůstává v prohlížeči."><span class="action-icon">📎</span>Nahrát soubor</button>
+          <button class="btn ghost small" id="in_fileBtn" title="Načte text zprávy ze souboru .eml staženého z Gmailu (až 40 MB), .txt nebo .html. Přílohy uvnitř e-mailu přeskočí a vše zůstává v prohlížeči."><span class="action-icon">📎</span>Nahrát soubor</button>
           <input type="file" id="in_file" aria-label="Nahrát přijatý e-mail ze souboru" accept=".eml,.txt,.html,.htm,message/rfc822,text/plain,text/html" style="display:none">
           <span class="empty">Sama skryje e-maily a telefony. Jména a další citlivé údaje zkontroluj ťuknutím a podle semaforu níže.</span>
         </div>
@@ -228,7 +228,7 @@
         <textarea id="my_raw" placeholder="Vlož svůj koncept k opravě či přepisu — nebo jen body (odrážky), ze kterých mám e-mail sestavit. Můžeš i nahrát soubor (.eml/.txt/.html)…"></textarea>
         <div class="row">
           <button class="btn primary" id="my_anonBtn" title="Skryje e-maily a telefony a pustí tě dál. Jména skryješ ťuknutím, pokud je potřeba."><span class="action-icon">🔒</span>Anonymizovat a zkontrolovat</button>
-          <button class="btn ghost small" id="my_fileBtn" title="Načte text ze staženého souboru (.eml/.txt/.html)."><span class="action-icon">📎</span>Nahrát soubor</button>
+          <button class="btn ghost small" id="my_fileBtn" title="Načte text ze souboru .eml staženého z Gmailu (až 40 MB), .txt nebo .html. Přílohy uvnitř e-mailu přeskočí."><span class="action-icon">📎</span>Nahrát soubor</button>
           <input type="file" id="my_file" aria-label="Nahrát vlastní rozepsaný e-mail ze souboru" accept=".eml,.txt,.html,.htm,message/rfc822,text/plain,text/html" style="display:none">
           <span class="empty">Stejná pojistka jako u příchozí — e-maily a telefony skryje sama, jména a citlivé údaje zkontroluj před odesláním.</span>
         </div>
@@ -290,14 +290,14 @@
                   <button class="chip on" data-v="quick">Rychle — aplikace rozpozná nastavení</button>
                   <button class="chip" data-v="guided">Řízeně — nastavím vše sám</button>
                 </div>
-                <div class="choice-summary" id="my_flowHint">Stačí vložit body. Před odesláním uvidíš, co aplikace rozpoznala.</div>
+                <div class="choice-summary" id="my_flowHint">Napiš souvislé zadání nebo vlož body. Před odesláním uvidíš, co aplikace rozpoznala.</div>
               </div>
               <div class="pgroup">
-                <div class="plabel">Co mám s textem udělat? <button class="help-tip" type="button" aria-label="Nápověda k typu práce" data-tip="Oprava zachová obsah a opraví jazyk. Přeformulování zachová význam, ale může změnit věty a strukturu. Sestavení z bodů vytvoří celý nový e-mail.">i</button></div>
+                <div class="plabel">Co mám s textem udělat? <button class="help-tip" type="button" aria-label="Nápověda k typu práce" data-tip="Oprava zachová obsah a opraví jazyk. Přeformulování zachová význam, ale může změnit věty a strukturu. Sestavení ze zadání nebo bodů vytvoří celý nový e-mail.">i</button></div>
                 <div class="chips" data-group="my_mode">
                   <button class="chip on" data-v="opravit">Jen opravit hotový text</button>
                   <button class="chip" data-v="prepsat">Přeformulovat hotový text</button>
-                  <button class="chip" data-v="sestavit">Sestavit nový e-mail z bodů</button>
+                  <button class="chip" data-v="sestavit">Sestavit nový e-mail ze zadání nebo bodů</button>
                 </div>
                 <div class="choice-summary mode-explanation" id="my_modeHint">Text zůstane obsahově stejný; opraví se pouze chyby. V pokročilém režimu lze povolit i úpravu slohu.</div>
               </div>

@@ -11,15 +11,9 @@ function registerPwa(){
     navigator.serviceWorker.register("./sw.js")
       .then((reg) => {
         try { reg.update(); } catch (_) {}
-        reg.addEventListener("updatefound", () => {
-          const sw = reg.installing;
-          if (!sw) return;
-          sw.addEventListener("statechange", () => {
-            if (sw.state === "installed" && navigator.serviceWorker.controller) {
-              try { toast("Je dostupná nová verze aplikace. Po znovuotevření se načte."); } catch (_) {}
-            }
-          });
-        });
+        // Zobrazení a aktivaci aktualizace řídí jediný společný panel GHRAB
+        // Platform („Aktualizovat / Později“). Vlastní toast by stejnou událost
+        // oznamoval podruhé a neměl by žádnou akci pro bezpečné načtení verze.
       })
       .catch((err) => console.warn("PWA registrace selhala:", err));
   });

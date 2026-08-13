@@ -1090,6 +1090,63 @@ async function runKorespTests(){
       const parsed=parseEml(eml);
       assertTest(parsed.includes("Petr Novák") && parsed.includes("Předmět test") && parsed.includes("Dobrý den."),"EML se nerozbalil nebo nedekódoval správně: "+parsed);
     });
+    await test("Import Gmail EML: vybere textovou variantu a přeskočí přílohy", async()=>{
+      const eml=[
+        'From: =?UTF-8?Q?Luk=C3=A1=C5=A1_?= =?UTF-8?Q?Slouka?= <lukas@example.cz>',
+        'Subject: =?UTF-8?Q?Prosba_o_odpov=C4=9B=C4=8F?=',
+        'MIME-Version: 1.0',
+        'Content-Type: multipart/mixed;',
+        ' boundary="gmail-mixed"',
+        '',
+        '--gmail-mixed',
+        'Content-Type: multipart/alternative; boundary="gmail-alt"',
+        '',
+        '--gmail-alt',
+        'Content-Type: text/plain; charset=UTF-8',
+        'Content-Transfer-Encoding: quoted-printable',
+        '',
+        'Dobr=C3=BD den,',
+        'pros=C3=ADm o odpov=C4=9B=C4=8F.',
+        '--gmail-alt',
+        'Content-Type: text/html; charset=UTF-8',
+        'Content-Transfer-Encoding: quoted-printable',
+        '',
+        '<div>Dobr=C3=BD den,<br>pros=C3=ADm o odpov=C4=9B=C4=8F.</div>',
+        '--gmail-alt--',
+        '--gmail-mixed',
+        'Content-Type: image/png; name="image.png"',
+        'Content-Disposition: inline; filename="image.png"',
+        'Content-Transfer-Encoding: base64',
+        '',
+        'iVBORw0KGgo=',
+        '--gmail-mixed',
+        'Content-Type: text/plain; charset=UTF-8; name="tajne.txt"',
+        'Content-Disposition: attachment; filename="tajne.txt"',
+        '',
+        'TEXT Z PRILOHY SE NESMI IMPORTOVAT',
+        '--gmail-mixed--',
+        ''
+      ].join('\r\n');
+      const parsed=parseEml(binaryFromBytes(encodeUtf8Bytes(eml)));
+      assertTest(parsed.includes("Lukáš Slouka")&&parsed.includes("Prosba o odpověď"),"Gmail hlavičky se nedekódovaly: "+parsed);
+      assertTest(parsed.includes("Dobrý den,\nprosím o odpověď."),"Textová varianta Gmail zprávy chybí: "+parsed);
+      assertTest(parsed.split("Dobrý den").length===2&&!parsed.includes("TEXT Z PRILOHY"),"HTML varianta se zdvojila nebo se načetla příloha: "+parsed);
+    });
+    await test("Import Gmail EML: HTML-only a Base64", async()=>{
+      const eml='From: gmail@example.com\r\nSubject: HTML zprava\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\nPGRpdj5Eb2Jyw70gZGVuLDxicj5wcm9zw61tIG8genByw6F2dS48L2Rpdj4=';
+      const parsed=parseEml(binaryFromBytes(encodeUtf8Bytes(eml)));
+      assertTest(parsed.includes("Dobrý den,\nprosím o zprávu."),"HTML-only Gmail zpráva se nepřevedla na čitelný text: "+parsed);
+    });
+    await test("Import Gmail EML: FileReader a vyšší limit pro MIME zprávu", async()=>{
+      assertTest(maxImportFileSize({name:"zprava.eml",type:""})===40*1024*1024,".eml nemá zvýšený bezpečný limit");
+      assertTest(maxImportFileSize({name:"zprava",type:"message/rfc822"})===40*1024*1024,"MIME typ message/rfc822 se nerozpoznal jako EML");
+      assertTest(maxImportFileSize({name:"poznamka.txt",type:"text/plain"})===5*1024*1024,"limit ostatních souborů se nechtěně změnil");
+      E("in","raw").value="";
+      const file=new File(['From: test@example.com\r\nSubject: Test Gmailu\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\nDobr=C3=BD den z Gmailu.'],"gmail-message",{type:"message/rfc822"});
+      readFileInto("in",file);
+      await waitFor(()=>E("in","raw").value.includes("Dobrý den z Gmailu."),3000);
+      assertTest(ST.in.clean.includes("Dobrý den z Gmailu."),"načtení přes skutečný FileReader nespustilo anonymizační krok");
+    });
     await test("E2E Příchozí přes mock", async()=>{
       window.__TEST_MOCK_GEMINI=async()=>({shrnuti:"Rodič žádá o konzultaci.",naladeni:{stupen:"neutral",popis:"věcné"},pozadavky:["Domluvit termín"],upozorneni:[],doporucenyZamer:"schuzka"});
       E("in","raw").value="Dobrý den, prosím o konzultaci. Tel. 777 123 456."; doAnon("in"); E("in","reviewOk").checked=true; updateSendGate("in");
@@ -1145,6 +1202,9 @@ async function runKorespTests(){
       assertTest(document.querySelectorAll('#in_replies .variant-choice-card').length===3,"poznámka bez vybraného požadavku nevytvořila tři varianty");
     });
     await test("E2E Můj e-mail přes mock", async()=>{
+      const composeChip=document.querySelector('.chips[data-group="my_mode"] .chip[data-v="sestavit"]');
+      assertTest(composeChip&&composeChip.textContent.includes("ze zadání nebo bodů"),"režim sestavení stále tvrdí, že přijímá pouze body");
+      assertTest(String($("my_goBtn").onclick).includes("Sestav e-mail z tohoto zadání nebo bodů"),"prompt sestavení nevysvětluje podporu souvislého zadání");
       window.__TEST_MOCK_GEMINI=async()=>({text:"Dobrý den,\nopraveno.\n[podpis]",zmeny:["Oprava formulace"],synonyma:{}});
       E("my","raw").value="Dobry den, posilam informaci."; doAnon("my"); E("my","reviewOk").checked=true; updateSendGate("my");
       await $("my_goBtn").onclick();
@@ -1265,6 +1325,7 @@ async function runKorespTests(){
       const labels=toolsActions.map(a=>a.label).join("|");
       assertTest(!labels.includes("Debug prompt") && !labels.includes("Spustit testy"),"debug nebo testy zůstaly jako samostatné položky");
       assertTest(DEV_MODE?labels.includes("Vývojářské nástroje"):!labels.includes("Vývojářské nástroje"),"viditelnost vývojářských nástrojů neodpovídá roli správce nebo testovacímu režimu");
+      assertTest(!String(registerPwa).includes("toast("),"aktualizace PWA stále zobrazuje duplicitní černé oznámení vedle platformního panelu");
     });
 
     await test("Historie ukládá jen anonymizovanou verzi", async()=>{

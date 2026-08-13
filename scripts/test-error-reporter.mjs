@@ -116,8 +116,9 @@ function staticAudit() {
   check('Limit je přesně pět screenshotů', reporter.includes('const MAX_SCREENSHOTS = 5'));
   check('Finální compose URL je omezena na 7000 znaků', reporter.includes('const MAX_COMPOSE_URL_LENGTH = 7000') && reporter.includes('export function fitMailBodyToComposeUrl'));
   check('Zkracování zachovává plné tělo a krátí diagnostiku jako první', reporter.includes('const fullBody = makeBody') && reporter.includes('currentDiagnostics = currentDiagnostics.slice(0, 3)'));
-  check('Gmail je skutečný HTML odkaz target=_blank', reporter.includes('prepareLink.target = "_blank"') && reporter.includes('prepareLink.rel = "noopener"'));
-  check('Gmail href se připravuje před kliknutím', reporter.includes('refreshPrepareLink();') && reporter.includes('prepareLink.href = draft.gmailUrl'));
+  check('Primární akce pouze připraví ZIP', reporter.includes('const prepareLink = button(') && reporter.includes('Připravit ZIP balíček'));
+  check('ZIP má po vytvoření přímý odkaz download', reporter.includes('download.download = info.file.name') && reporter.includes('download.dataset.reportDownload = "zip"'));
+  check('Gmail se zpřístupní až po kliknutí na stažení', reporter.includes('mailStep.hidden = true') && reporter.includes('mailStep.hidden = false') && reporter.includes('ZIP mám stažený – otevřít Gmail'));
   check('Zakázaný window.open se nepoužívá', !/\bwindow\.open\s*\(/.test(reporter));
   check('Neexistuje stará přímá funkce sdílení balíčku', !/navigator\.share|Sdílet balíček přímo/.test(reporter));
   check('ZIP obsahuje povinné soubory', ['00-PREHLED-HLASENI.html', 'hlaseni.txt', 'technicke-udaje.json', 'screenshot-'].every((value) => reporter.includes(value)));
@@ -127,7 +128,7 @@ function staticAudit() {
   check('Úplné smazání maže data, ID, chyby, ZIP a stream', ['state.screenshots = []', 'state.preparedFile = null', 'state.preparedBlob = null', 'state.reportId = reportId()', 'state.technicalErrors = []', 'stopCapture()'].every((value) => reporter.includes(value)));
   check('Nové hlášení po dokončeném reportu dostane nové ID', reporter.includes('if (state.completed) resetDraft()') && reporter.includes('state.completed = true'));
   check('Dialog obsahuje focus trap a obnovu předchozího fokusu', reporter.includes('function trapDialogFocus(event)') && reporter.includes('previousFocus') && reporter.includes('target.focus?.({ preventScroll: true })'));
-  check('Stav Gmailu je neutrální, nikoli neověřené tvrzení o otevření', reporter.includes('Prohlížeč dostal odkaz na předvyplněný Gmail') && !reporter.includes('Gmail se otevřel'));
+  check('Rozhraní i e-mail výslovně upozorňují na ruční přílohu', reporter.includes('Gmail místní soubor z bezpečnostních důvodů nepřipojí automaticky') && reporter.includes('PŘÍLOHA NENÍ PŘIPOJENA AUTOMATICKY'));
   check('Přechod do aplikace je samostatné tlačítko', reporter.includes('"Přejít do aplikace"') && reporter.includes('showApplicationForCapture'));
   check('Plovoucí panel má všechny tři akce', ['"Pořídit snímek"', '"Zpět k hlášení"', '"Ukončit snímání"'].every((value) => reporter.includes(value)));
   check('Reportér se při pořízení snímku skrývá', reporter.includes('root.classList.add("ghrab-capture-hidden")') && reporter.includes('root.classList.remove("ghrab-capture-hidden")'));
@@ -652,14 +653,14 @@ async function runBrowserTests() {
       await samePrompt(() => backdrop.click(), 'kliknutí mimo dialog');
       await samePrompt(() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })), 'Escape');
 
-      const idBeforeKeep = root.querySelector('a.ghrab-report-button.primary').dataset.reportId;
+      const idBeforeKeep = root.querySelector('button.ghrab-report-button.primary').dataset.reportId;
       footerClose.click(); await wait(30);
       byText('.ghrab-discard-backdrop button', 'Ponechat rozepsané a zavřít').click(); await wait(40);
       launcher.click(); await wait(40);
       assert(comment.value.includes('Anonymizovaný test'), 'Ponechaný koncept ztratil popis');
       assert(steps.value.includes('Otevřít test'), 'Ponechaný koncept ztratil postup');
       assert(root.querySelectorAll('.ghrab-screenshot-card').length === 5, 'Ponechaný koncept ztratil screenshoty');
-      assert(root.querySelector('a.ghrab-report-button.primary').dataset.reportId === idBeforeKeep, 'Ponechaný koncept změnil ID');
+      assert(root.querySelector('button.ghrab-report-button.primary').dataset.reportId === idBeforeKeep, 'Ponechaný koncept změnil ID');
 
       window.dispatchEvent(new ErrorEvent('error', { message: 'JS_MARKER', filename: location.origin + '/safe-script.js', lineno: 7, colno: 3 }));
       const rejection = new Event('unhandledrejection');
@@ -674,29 +675,63 @@ async function runBrowserTests() {
       });
       await wait(80);
 
-      const primary = root.querySelector('a.ghrab-report-button.primary');
-      const parsed = new URL(primary.href);
-      assert(primary.tagName === 'A' && primary.target === '_blank' && primary.rel.includes('noopener'), 'Primární akce není nativní bezpečný odkaz');
-      assert(parsed.hostname === 'mail.google.com' && parsed.searchParams.get('to') === 'balaz@ghrabuvka.cz', 'Gmail URL nemá správného příjemce');
-      assert(parsed.searchParams.get('su')?.includes(idBeforeKeep) && parsed.searchParams.get('body')?.includes('PŘILOŽTE SOUBOR'), 'Gmail URL nemá předmět nebo tělo');
-      return { lightContrast, darkContrast, idBeforeKeep, gmailHref: primary.href };
+      const primary = root.querySelector('button.ghrab-report-button.primary');
+      assert(primary.tagName === 'BUTTON' && primary.textContent.includes('Připravit ZIP'), 'Primární akce není tlačítko pro přípravu ZIP');
+      assert(primary.dataset.supportEmail === 'balaz@ghrabuvka.cz', 'Tlačítko nemá správného příjemce pro následný Gmail koncept');
+      return { lightContrast, darkContrast, idBeforeKeep };
     })()`);
     check('Světlý režim, tmavý režim a změna motivu za běhu', ui.lightContrast >= 4.5 && ui.darkContrast >= 4.5, `kontrast ${ui.lightContrast.toFixed(2)} / ${ui.darkContrast.toFixed(2)}`);
     check('Screenshot workflow, limit 5, návrat, náhled, odstranění a editor', true);
     check('Všechny čtyři způsoby zavření používají stejný dialog', true);
     check('Ponechání konceptu zachová text, screenshoty a ID', true, ui.idBeforeKeep);
-    check('Primární Gmail odkaz je kompletní před kliknutím', ui.gmailHref.includes('balaz%40ghrabuvka.cz'));
+    check('Primární akce před otevřením Gmailu pouze připravuje ZIP', true);
+
+    const clickBox = await client.evaluate(`(() => {
+      const control = document.querySelector('#ghrab-error-reporter button.ghrab-report-button.primary');
+      control.scrollIntoView({ block: 'center', inline: 'center' });
+      const rect = control.getBoundingClientRect();
+      return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+    })()`);
+    await client.call('Input.dispatchMouseEvent', { type: 'mousePressed', x: clickBox.x, y: clickBox.y, button: 'left', clickCount: 1 });
+    await client.call('Input.dispatchMouseEvent', { type: 'mouseReleased', x: clickBox.x, y: clickBox.y, button: 'left', clickCount: 1 });
+    await waitFor(client, 'document.querySelector(".ghrab-report-final a[data-report-download=zip]") && document.querySelector(".ghrab-report-mail-step")?.hidden === true', 'ZIP se nepřipravil do samostatného kroku', 400);
+    const staged = await client.evaluate(`(() => {
+      const root = document.getElementById('ghrab-error-reporter');
+      const download = root.querySelector('a[data-report-download=zip]');
+      const gmail = [...root.querySelectorAll('.ghrab-report-mail-step a')].find((node) => node.textContent.includes('otevřít Gmail'));
+      const parsed = new URL(gmail.href);
+      return {
+        downloadName: download.download,
+        mailHidden: root.querySelector('.ghrab-report-mail-step').hidden,
+        gmailHref: gmail.href,
+        recipient: parsed.searchParams.get('to'),
+        subject: parsed.searchParams.get('su'),
+        body: parsed.searchParams.get('body'),
+      };
+    })()`);
+    check('Gmail zůstává skrytý, dokud uživatel nestáhne ZIP', staged.mailHidden && staged.downloadName.endsWith('.zip'));
+    check('Předvyplněný Gmail má správného příjemce a upozornění na přílohu', staged.gmailHref.includes('mail.google.com') && staged.recipient === 'balaz@ghrabuvka.cz' && staged.subject.includes(ui.idBeforeKeep) && staged.body.includes('PŘÍLOHA NENÍ PŘIPOJENA AUTOMATICKY'));
+
+    const downloadBox = await client.evaluate(`(() => {
+      const link = document.querySelector('#ghrab-error-reporter a[data-report-download=zip]');
+      link.scrollIntoView({ block: 'center', inline: 'center' });
+      const rect = link.getBoundingClientRect();
+      return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+    })()`);
+    await client.call('Input.dispatchMouseEvent', { type: 'mousePressed', x: downloadBox.x, y: downloadBox.y, button: 'left', clickCount: 1 });
+    await client.call('Input.dispatchMouseEvent', { type: 'mouseReleased', x: downloadBox.x, y: downloadBox.y, button: 'left', clickCount: 1 });
+    await waitFor(client, 'window.__downloadCaptures.length >= 1 && document.querySelector(".ghrab-report-mail-step")?.hidden === false', 'Přímé stažení ZIP neodemklo Gmail', 400);
 
     const beforeTargets = new Set((await waitJson(`http://127.0.0.1:${debugPort}/json`)).filter((item) => item.type === 'page').map((item) => item.id));
-    const clickBox = await client.evaluate(`(() => {
-      const link = document.querySelector('#ghrab-error-reporter a.ghrab-report-button.primary');
+    const gmailBox = await client.evaluate(`(() => {
+      const link = [...document.querySelectorAll('#ghrab-error-reporter .ghrab-report-mail-step a')].find((node) => node.textContent.includes('otevřít Gmail'));
       link.href = ${JSON.stringify(`${appBase}/new-tab.html`)};
       link.scrollIntoView({ block: 'center', inline: 'center' });
       const rect = link.getBoundingClientRect();
       return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
     })()`);
-    await client.call('Input.dispatchMouseEvent', { type: 'mousePressed', x: clickBox.x, y: clickBox.y, button: 'left', clickCount: 1 });
-    await client.call('Input.dispatchMouseEvent', { type: 'mouseReleased', x: clickBox.x, y: clickBox.y, button: 'left', clickCount: 1 });
+    await client.call('Input.dispatchMouseEvent', { type: 'mousePressed', x: gmailBox.x, y: gmailBox.y, button: 'left', clickCount: 1 });
+    await client.call('Input.dispatchMouseEvent', { type: 'mouseReleased', x: gmailBox.x, y: gmailBox.y, button: 'left', clickCount: 1 });
     let openedTarget = null;
     for (let index = 0; index < 100; index += 1) {
       const targets = await waitJson(`http://127.0.0.1:${debugPort}/json`);
@@ -704,8 +739,7 @@ async function runBrowserTests() {
       if (openedTarget) break;
       await sleep(50);
     }
-    check('Fyzické kliknutí otevře novou kartu', Boolean(openedTarget), openedTarget?.url || 'žádný nový target');
-    await waitFor(client, 'window.__downloadCaptures.length >= 1 && !document.querySelector(".ghrab-report-final").hidden', 'ZIP se nepřipravil nebo nestáhl', 400);
+    check('Gmail se otevře až samostatným fyzickým kliknutím po stažení', Boolean(openedTarget), openedTarget?.url || 'žádný nový target');
     const prepared = await client.evaluate(`(() => {
       const root = document.getElementById('ghrab-error-reporter');
       const final = root.querySelector('.ghrab-report-final');
@@ -717,7 +751,7 @@ async function runBrowserTests() {
         clipboard: window.__clipboardText,
       }), 80));
     })()`);
-    check('Po přípravě jsou fallbacky Gmail / poštovní aplikace / kopírování', prepared.links.some((item) => item.text === 'Otevřít Gmail' && item.href.includes('balaz%40ghrabuvka.cz')) && prepared.links.some((item) => item.text === 'Otevřít poštovní aplikaci' && item.href.startsWith('mailto:')) && prepared.clipboard.includes('balaz@ghrabuvka.cz'));
+    check('Po stažení jsou dostupné Gmail / poštovní aplikace / kopírování', prepared.links.some((item) => item.text.includes('otevřít Gmail')) && prepared.links.some((item) => item.text === 'Otevřít poštovní aplikaci' && item.href.startsWith('mailto:')) && prepared.clipboard.includes('balaz@ghrabuvka.cz'));
 
     const zip1 = inspectZip(prepared.download.base64, 'first-draft', {
       expectedScreenshots: 5,
@@ -751,7 +785,7 @@ async function runBrowserTests() {
         steps: textareas[1].value,
         screenshots: root.querySelectorAll('.ghrab-screenshot-card').length,
         finalHidden: root.querySelector('.ghrab-report-final').hidden,
-        newId: root.querySelector('a.ghrab-report-button.primary').dataset.reportId,
+        newId: root.querySelector('button.ghrab-report-button.primary').dataset.reportId,
       };
       textareas[0].value = 'Druhý anonymizovaný koncept po úplném smazání.';
       textareas[0].dispatchEvent(new Event('input', { bubbles: true }));
@@ -767,25 +801,49 @@ async function runBrowserTests() {
     check('Úplné smazání otevře čistý formulář', reset.description === '' && reset.steps === '' && reset.screenshots === 0 && reset.finalHidden === true, JSON.stringify(reset));
     check('Po smazání vznikne nové ID', reset.newId && reset.newId !== ui.idBeforeKeep, `${ui.idBeforeKeep} → ${reset.newId}`);
 
-    const beforeSecondTargets = new Set((await waitJson(`http://127.0.0.1:${debugPort}/json`)).filter((item) => item.type === 'page').map((item) => item.id));
     const secondBox = await client.evaluate(`(() => {
       window.__downloadCaptures = [];
-      const link = document.querySelector('#ghrab-error-reporter a.ghrab-report-button.primary');
-      link.href = ${JSON.stringify(`${appBase}/new-tab.html?second=1`)};
-      link.scrollIntoView({ block: 'center' });
-      const rect = link.getBoundingClientRect();
+      const control = document.querySelector('#ghrab-error-reporter button.ghrab-report-button.primary');
+      control.scrollIntoView({ block: 'center' });
+      const rect = control.getBoundingClientRect();
       return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
     })()`);
     await client.call('Input.dispatchMouseEvent', { type: 'mousePressed', x: secondBox.x, y: secondBox.y, button: 'left', clickCount: 1 });
     await client.call('Input.dispatchMouseEvent', { type: 'mouseReleased', x: secondBox.x, y: secondBox.y, button: 'left', clickCount: 1 });
-    await waitFor(client, 'window.__downloadCaptures.length >= 1', 'Druhý ZIP se nepřipravil', 400);
+    await waitFor(client, 'document.querySelector("#ghrab-error-reporter a[data-report-download=zip]")', 'Druhý ZIP se nepřipravil', 400);
+    const secondDownloadBox = await client.evaluate(`(() => {
+      const link = document.querySelector('#ghrab-error-reporter a[data-report-download=zip]');
+      link.scrollIntoView({ block: 'center' });
+      const rect = link.getBoundingClientRect();
+      return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+    })()`);
+    await client.call('Input.dispatchMouseEvent', { type: 'mousePressed', x: secondDownloadBox.x, y: secondDownloadBox.y, button: 'left', clickCount: 1 });
+    await client.call('Input.dispatchMouseEvent', { type: 'mouseReleased', x: secondDownloadBox.x, y: secondDownloadBox.y, button: 'left', clickCount: 1 });
+    await waitFor(client, 'window.__downloadCaptures.length >= 1', 'Druhý ZIP se nestáhl přímým kliknutím', 400);
     const secondDownload = await client.evaluate('window.__downloadCaptures[0]');
     const zip2 = inspectZip(secondDownload.base64, 'second-draft', {
       expectedScreenshots: 1,
       forbidden: ['OLD_DRAFT_MARKER', TEST_SENSITIVE_EMAIL, 'ANON_KEY_TOKEN', 'ANON_PROMPT_TOKEN'],
     });
     check('Smazané technické chyby ani původní ID se nevrátily', !zip2.allText.includes('OLD_DRAFT_MARKER') && zip2.metadata.reportId === reset.newId);
-    check('Druhé fyzické kliknutí opět otevřelo novou kartu', (await waitJson(`http://127.0.0.1:${debugPort}/json`)).some((item) => item.type === 'page' && !beforeSecondTargets.has(item.id)));
+    const beforeSecondTargets = new Set((await waitJson(`http://127.0.0.1:${debugPort}/json`)).filter((item) => item.type === 'page').map((item) => item.id));
+    const secondGmailBox = await client.evaluate(`(() => {
+      const link = [...document.querySelectorAll('#ghrab-error-reporter .ghrab-report-mail-step a')].find((node) => node.textContent.includes('otevřít Gmail'));
+      link.href = ${JSON.stringify(`${appBase}/new-tab.html?second=1`)};
+      link.scrollIntoView({ block: 'center' });
+      const rect = link.getBoundingClientRect();
+      return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+    })()`);
+    await client.call('Input.dispatchMouseEvent', { type: 'mousePressed', x: secondGmailBox.x, y: secondGmailBox.y, button: 'left', clickCount: 1 });
+    await client.call('Input.dispatchMouseEvent', { type: 'mouseReleased', x: secondGmailBox.x, y: secondGmailBox.y, button: 'left', clickCount: 1 });
+    let secondOpened = false;
+    for (let index = 0; index < 100; index += 1) {
+      const targets = await waitJson(`http://127.0.0.1:${debugPort}/json`);
+      secondOpened = targets.some((item) => item.type === 'page' && !beforeSecondTargets.has(item.id));
+      if (secondOpened) break;
+      await sleep(50);
+    }
+    check('Druhý Gmail se opět otevře až po samostatném kliknutí', secondOpened);
 
     await client.call('Emulation.setDeviceMetricsOverride', { width: 360, height: 800, deviceScaleFactor: 1, mobile: true });
     const mobile = await client.evaluate(`(async () => {
@@ -809,7 +867,7 @@ async function runBrowserTests() {
     await fetch(`${localBase}/__support-mode?mode=404`);
     await navigate(client, `${appBase}/harness.html?fallback=1`);
     await waitFor(client, 'window.__harnessReady === true', 'Fallback harness se nespustil');
-    await waitFor(client, 'document.querySelector("#ghrab-error-reporter a.ghrab-report-button.primary")?.href.includes("balaz%40ghrabuvka.cz")', 'Fallback e-mail se nepoužil');
+    await waitFor(client, 'document.querySelector("#ghrab-error-reporter button.ghrab-report-button.primary")?.dataset.supportEmail === "balaz@ghrabuvka.cz"', 'Fallback e-mail se nepoužil');
     check('Při nedostupném support.json se použije bezpečný fallback', true, 'balaz@ghrabuvka.cz');
     await fetch(`${localBase}/__support-mode?mode=ok`);
 

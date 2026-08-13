@@ -469,7 +469,7 @@ function updateScopeHint(){
 function updateModeHint(){
   const h=$("my_modeHint"); if(!h) return;
   const m=readChip("my_mode");
-  h.textContent=m==="opravit"?"Text zůstane obsahově stejný. Volba „Jen pravopis a gramatika“ neopravuje formulace; volba „I sloh a formulace“ dovolí i lehké stylistické zlepšení.":m==="prepsat"?"Obsah se zachová, ale aplikace věty přeformuluje podle vybraného stylu a účelu.":"Z hesel nebo odrážek vznikne nový souvislý e-mail včetně oslovení, těla a závěru.";
+  h.textContent=m==="opravit"?"Text zůstane obsahově stejný. Volba „Jen pravopis a gramatika“ neopravuje formulace; volba „I sloh a formulace“ dovolí i lehké stylistické zlepšení.":m==="prepsat"?"Obsah se zachová, ale aplikace věty přeformuluje podle vybraného stylu a účelu.":"Ze souvislého zadání, hesel nebo odrážek vznikne nový e-mail včetně oslovení, těla a závěru.";
 }
 function updateQuickPreview(){
   const fh=$("my_flowHint"); if(!fh) return;
@@ -481,7 +481,7 @@ function updateQuickPreview(){
   const base="<b>Rychlý režim:</b> používá místní slovní pravidla, nikoli další AI request. Hledá výrazy pro adresáta, jednotlivce či skupinu, účel, citlivost a přibližnou délku.";
   const clean=String(ST.my&&ST.my.clean||"").trim();
   if(mode==="sestavit"&&clean){ const r=inferQuickComposeSettings(clean,false); fh.innerHTML=base+"<br><b>Aktuální odhad:</b> "+esc(r.label)+"."; }
-  else fh.innerHTML=base+" Při sestavení z bodů se výsledek ukáže ještě před odesláním requestu.";
+  else fh.innerHTML=base+" Při sestavení ze zadání nebo bodů se rozpoznané nastavení ukáže ještě před odesláním požadavku.";
 }
 function updateCustomSubjectUi(){
   const wrap=$("my_customSubjectWrap"),input=$("my_customSubject"),count=$("my_customSubjectCount");
@@ -607,8 +607,8 @@ $("my_goBtn").onclick=async()=>{
     prompt="Přepiš tento e-mail jako: "+(PREPIS[s]||s)+".\nÚčel: "+(UCEL[u]||u)+"."+common+"\n\n\"\"\"\n"+text+"\n\"\"\"";
   } else if(mode==="sestavit"){
     operation="outgoing-compose";
-    const ton=readChip("my_cton"), delka=readChip("my_cdelka"), u=readChip("my_ucel"); styl="Sestaveno z bodů"; sys=SYS_COMPOSE;
-    prompt="Sestav e-mail z těchto bodů (se značkami místo jmen):\n\"\"\"\n"+text+"\n\"\"\"\n\nÚčel: "+(UCEL[u]||u)+"\nTón: "+(TON[ton]||ton)+"\nDélka: "+(DELKA[delka]||delka)+common;
+    const ton=readChip("my_cton"), delka=readChip("my_cdelka"), u=readChip("my_ucel"); styl="Sestaveno ze zadání nebo bodů"; sys=SYS_COMPOSE;
+    prompt="Sestav e-mail z tohoto zadání nebo bodů (se značkami místo jmen):\n\"\"\"\n"+text+"\n\"\"\"\n\nÚčel: "+(UCEL[u]||u)+"\nTón: "+(TON[ton]||ton)+"\nDélka: "+(DELKA[delka]||delka)+common;
   } else {
     operation="outgoing-proofread";
     const fix=readChip("my_fix"); styl="Opravená verze"; sys=SYS_KOREKTURA;
@@ -629,107 +629,223 @@ $("my_goBtn").onclick=async()=>{
 
 /* ===================== NAHRÁNÍ SOUBORU (.eml/.txt/.html) ===================== */
 function stripHtml(html){
-  try{ const doc=new DOMParser().parseFromString(html,"text/html"); doc.querySelectorAll("style,script").forEach(n=>n.remove()); return (doc.body?doc.body.innerText||doc.body.textContent:doc.textContent||"").replace(/\n{3,}/g,"\n\n").trim(); }
-  catch(_){ return html.replace(/<[^>]+>/g," ").replace(/\s+\n/g,"\n").trim(); }
+  try{
+    const doc=new DOMParser().parseFromString(html,"text/html");
+    doc.querySelectorAll("style,script,noscript,template").forEach(n=>n.remove());
+    doc.querySelectorAll("br").forEach(n=>n.replaceWith(doc.createTextNode("\n")));
+    doc.querySelectorAll("p,div,li,tr,blockquote,h1,h2,h3,h4,h5,h6").forEach(n=>n.appendChild(doc.createTextNode("\n")));
+    return (doc.body?doc.body.textContent:doc.textContent||"").replace(/\u00a0/g," ").replace(/[ \t]+\n/g,"\n").replace(/\n[ \t]+/g,"\n").replace(/\n{3,}/g,"\n\n").trim();
+  }
+  catch(_){ return String(html||"").replace(/<br\s*\/?\s*>/gi,"\n").replace(/<[^>]+>/g," ").replace(/[ \t]+\n/g,"\n").replace(/\n{3,}/g,"\n\n").trim(); }
+}
+function unfoldMimeHeaders(headers){ return String(headers||"").replace(/\r\n?/g,"\n").replace(/\n[ \t]+/g," "); }
+function mimeHeaderValue(headers,name){
+  const safe=String(name||"").replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+  return ((new RegExp("(?:^|\\n)"+safe+":\\s*([^\\n]*)","i").exec(unfoldMimeHeaders(headers))||[])[1]||"").trim();
+}
+function mimeParameter(headers,name){
+  const safe=String(name||"").replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+  const source=mimeHeaderValue(headers,"content-type")+";"+mimeHeaderValue(headers,"content-disposition");
+  const m=new RegExp("(?:^|;)\\s*"+safe+"\\*?\\s*=\\s*(?:\"((?:\\\\.|[^\"])*)\"|([^;\\s]+))","i").exec(source);
+  return String((m&&(m[1]!==undefined?m[1].replace(/\\(.)/g,"$1"):m[2]))||"").trim();
 }
 function mimeCharset(headers){
-  const m=/charset\s*=\s*["']?([^\s;"']+)/i.exec(headers||"");
-  return (m&&m[1]||"utf-8").toLowerCase();
+  return (mimeParameter(headers,"charset")||"utf-8").toLowerCase();
+}
+function decodeUtf8Bytes(bytes){
+  const arr=bytes instanceof Uint8Array?bytes:Uint8Array.from(bytes||[]);let out="";
+  for(let i=0;i<arr.length;){
+    const b=arr[i];
+    if(b<128){out+=String.fromCharCode(b);i++;continue;}
+    let needed=0,cp=0,min=0;
+    if((b&224)===192){needed=1;cp=b&31;min=128;}
+    else if((b&240)===224){needed=2;cp=b&15;min=2048;}
+    else if((b&248)===240){needed=3;cp=b&7;min=65536;}
+    else{out+="�";i++;continue;}
+    if(i+needed>=arr.length){out+="�";i++;continue;}
+    let valid=true;
+    for(let j=1;j<=needed;j++){if((arr[i+j]&192)!==128){valid=false;break;}cp=(cp<<6)|(arr[i+j]&63);}
+    if(!valid||cp<min||cp>1114111||(cp>=55296&&cp<=57343)){out+="�";i++;continue;}
+    out+=String.fromCodePoint(cp);i+=needed+1;
+  }
+  return out;
+}
+function encodeUtf8Bytes(value){
+  const bytes=[];
+  for(const char of String(value||"")){
+    const cp=char.codePointAt(0);
+    if(cp<128)bytes.push(cp);
+    else if(cp<2048)bytes.push(192|(cp>>6),128|(cp&63));
+    else if(cp<65536)bytes.push(224|(cp>>12),128|((cp>>6)&63),128|(cp&63));
+    else bytes.push(240|(cp>>18),128|((cp>>12)&63),128|((cp>>6)&63),128|(cp&63));
+  }
+  return Uint8Array.from(bytes);
 }
 function decodeBytes(bytes, charset){
-  const cs=String(charset||"utf-8").replace(/^utf8$/i,"utf-8").toLowerCase();
-  const arr=Array.from(bytes||[]);
-  if(cs==="utf-8" || cs==="utf8"){
-    try{ return decodeURIComponent(arr.map(b=>"%"+(b&255).toString(16).padStart(2,"0")).join("")); }catch(_){}
+  let cs=String(charset||"utf-8").replace(/^utf8$/i,"utf-8").trim().toLowerCase();
+  if(cs==="ascii"||cs==="us-ascii")cs="windows-1252";
+  const arr=bytes instanceof Uint8Array?bytes:Uint8Array.from(bytes||[]);
+  if(cs==="utf-8"){
+    try{ if(typeof TextDecoder!=="undefined")return new TextDecoder("utf-8",{fatal:false}).decode(arr); }catch(_){}
+    return decodeUtf8Bytes(arr);
   }
-  try{ return new TextDecoder(cs,{fatal:false}).decode(Uint8Array.from(arr)); }
+  try{ if(typeof TextDecoder!=="undefined")return new TextDecoder(cs,{fatal:false}).decode(arr); }
   catch(_){
-    try{ return new TextDecoder("utf-8",{fatal:false}).decode(Uint8Array.from(arr)); }
-    catch(__){ return String.fromCharCode(...arr); }
+    return decodeUtf8Bytes(arr);
   }
+  return decodeUtf8Bytes(arr);
+}
+function bytesFromBinary(s){ return Uint8Array.from(String(s||""),c=>c.charCodeAt(0)&255); }
+function binaryFromBytes(bytes){
+  const arr=bytes instanceof Uint8Array?bytes:Uint8Array.from(bytes||[]),chunks=[];
+  for(let i=0;i<arr.length;i+=32768)chunks.push(String.fromCharCode(...arr.subarray(i,i+32768)));
+  return chunks.join("");
 }
 function qpBytes(s){
   s=String(s||"").replace(/=\r?\n/g,""); const bytes=[];
   for(let i=0;i<s.length;i++){
     if(s[i]==="=" && /^[0-9A-Fa-f]{2}$/.test(s.substr(i+1,2))){ bytes.push(parseInt(s.substr(i+1,2),16)); i+=2; }
-    else bytes.push(s.charCodeAt(i)&0xff);
+    else{
+      const code=s.charCodeAt(i);
+      if(code<=255)bytes.push(code);
+      else bytes.push(...encodeUtf8Bytes(s[i]));
+    }
   }
   return bytes;
 }
 function qpDecode(s, charset){ return decodeBytes(qpBytes(s),charset); }
+function b64Bytes(s){
+  try{
+    let clean=String(s||"").replace(/\s+/g,"").replace(/-/g,"+").replace(/_/g,"/");
+    while(clean.length%4)clean+="=";
+    const bin=atob(clean); return Uint8Array.from(bin,c=>c.charCodeAt(0));
+  }
+  catch(_){ return null; }
+}
 function b64Decode(s, charset){
-  try{ const bin=atob(String(s||"").replace(/\s+/g,"")); return decodeBytes(Array.from(bin,c=>c.charCodeAt(0)),charset); }
-  catch(_){ return String(s||""); }
+  const bytes=b64Bytes(s); return bytes?decodeBytes(bytes,charset):String(s||"");
+}
+function decodeRawMimeHeaderText(value){
+  const text=String(value||"");
+  if(!/[\x80-\xff]/.test(text)||/[^\x00-\xff]/.test(text))return text;
+  const utf8=decodeBytes(bytesFromBinary(text),"utf-8");
+  return utf8.includes("�")?decodeBytes(bytesFromBinary(text),"windows-1252"):utf8;
 }
 function decodeMimeHeader(value){
-  return String(value||"").replace(/=\?([^?]+)\?([bq])\?([^?]*)\?=/gi,(_,cs,enc,data)=>{
-    if(String(enc).toLowerCase()==="b") return b64Decode(data,cs);
-    return qpDecode(String(data).replace(/_/g," "),cs);
-  }).replace(/\s{2,}/g," ").trim();
+  const source=String(value||""),re=/=\?([^?]+)\?([bq])\?([^?]*)\?=/gi;let out="",last=0,previousEncoded=false,m;
+  while((m=re.exec(source))){
+    const between=source.slice(last,m.index);
+    if(!(previousEncoded&&/^\s*$/.test(between)))out+=decodeRawMimeHeaderText(between);
+    out+=String(m[2]).toLowerCase()==="b"?b64Decode(m[3],m[1]):qpDecode(String(m[3]).replace(/_/g," "),m[1]);
+    last=re.lastIndex;previousEncoded=true;
+  }
+  out+=decodeRawMimeHeaderText(source.slice(last));
+  return out.replace(/[ \t]{2,}/g," ").trim();
 }
 function decodePart(headers, body){
   const charset=mimeCharset(headers);
-  const cte=(/content-transfer-encoding:\s*([^\r\n;]+)/i.exec(headers)||[])[1];
+  const cte=mimeHeaderValue(headers,"content-transfer-encoding");
   if(cte && /base64/i.test(cte)) body=b64Decode(body,charset);
   else if(cte && /quoted-printable/i.test(cte)) body=qpDecode(body,charset);
-  const ct=(/content-type:\s*([^\r\n;]+)/i.exec(headers)||[])[1]||"text/plain";
+  else if(!/[^\x00-\xff]/.test(String(body||"")))body=decodeBytes(bytesFromBinary(body),charset);
+  const ct=(mimeHeaderValue(headers,"content-type").split(";",1)[0]||"text/plain").trim();
   if(/text\/html/i.test(ct)) body=stripHtml(body);
   return String(body||"").trim();
 }
 function splitMimeParts(body,boundary){
-  const marker="--"+boundary;
-  return String(body||"").split(marker).slice(1).map(x=>x.replace(/^\r?\n/,"").replace(/--\s*$/,"").trim()).filter(Boolean);
-}
-function collectMimeText(headers, body, out, depth){
-  if(depth>8) return;
-  const ct=(/content-type:\s*([^\r\n;]+)/i.exec(headers)||[])[1]||"text/plain";
-  const disposition=(/content-disposition:\s*([^\r\n;]+)/i.exec(headers)||[])[1]||"";
-  if(/attachment/i.test(disposition)) return;
-  const bnd=(/boundary\s*=\s*"?([^"\r\n;]+)"?/i.exec(headers)||[])[1];
-  if(/^multipart\//i.test(ct) && bnd){
-    splitMimeParts(body,bnd).forEach(part=>{
-      const sep=part.search(/\r?\n\r?\n/); if(sep<0) return;
-      const match=part.slice(sep).match(/^\r?\n\r?\n/); const breakLen=match?match[0].length:2;
-      collectMimeText(part.slice(0,sep).replace(/\r?\n[ \t]+/g," "),part.slice(sep+breakLen),out,depth+1);
-    });
-    return;
+  const marker="--"+boundary,closing=marker+"--",parts=[];let current=null;
+  for(const line of String(body||"").replace(/\r\n?/g,"\n").split("\n")){
+    const boundaryLine=line.replace(/[ \t]+$/,"");
+    if(boundaryLine===marker||boundaryLine===closing){
+      if(current)parts.push(current.join("\n").replace(/^\n+|\n+$/g,""));
+      current=boundaryLine===closing?null:[];
+      if(boundaryLine===closing)break;
+    }else if(current)current.push(line);
   }
-  if(/text\/plain/i.test(ct)) out.plain.push(decodePart(headers,body));
-  else if(/text\/html/i.test(ct)) out.html.push(decodePart(headers,body));
+  return parts.filter(Boolean);
 }
-function parseEml(raw){
-  raw=String(raw||"").replace(/\r\n/g,"\n");
-  const sep=raw.indexOf("\n\n"); const head=sep<0?raw:raw.slice(0,sep); const rest=sep<0?"":raw.slice(sep+2);
-  const unfold=head.replace(/\n[ \t]+/g," ");
-  const from=decodeMimeHeader((/^from:\s*(.+)$/im.exec(unfold)||[])[1]||"");
-  const subj=decodeMimeHeader((/^subject:\s*(.+)$/im.exec(unfold)||[])[1]||"");
-  const outParts={plain:[],html:[]}; collectMimeText(unfold,rest,outParts,0);
-  const bodyText=(outParts.plain.filter(Boolean).join("\n\n")||outParts.html.filter(Boolean).join("\n\n")).trim();
+function splitMimeEntity(raw){
+  const source=String(raw||"").replace(/\r\n?/g,"\n"),sep=source.indexOf("\n\n");
+  return sep<0?{headers:"",body:source}:{headers:source.slice(0,sep),body:source.slice(sep+2)};
+}
+function isMimeAttachment(headers){
+  const disposition=mimeHeaderValue(headers,"content-disposition");
+  return /^attachment\b/i.test(disposition)||!!mimeParameter(headers,"filename")||!!mimeParameter(headers,"name");
+}
+function decodeTransferBinary(headers,body){
+  const cte=mimeHeaderValue(headers,"content-transfer-encoding");
+  if(/base64/i.test(cte)){const bytes=b64Bytes(body);return bytes?binaryFromBytes(bytes):String(body||"");}
+  if(/quoted-printable/i.test(cte))return binaryFromBytes(qpBytes(body));
+  return String(body||"");
+}
+function extractMimeText(headers,body,depth){
+  if(depth>12||isMimeAttachment(headers))return "";
+  const ct=(mimeHeaderValue(headers,"content-type").split(";",1)[0]||"text/plain").trim().toLowerCase();
+  if(/^multipart\//.test(ct)){
+    const boundary=mimeParameter(headers,"boundary");if(!boundary)return "";
+    const candidates=splitMimeParts(body,boundary).map(part=>{
+      const entity=splitMimeEntity(part),partType=(mimeHeaderValue(entity.headers,"content-type").split(";",1)[0]||"text/plain").trim().toLowerCase();
+      return {type:partType,text:extractMimeText(entity.headers,entity.body,depth+1)};
+    }).filter(x=>x.text.trim());
+    if(ct==="multipart/alternative"){
+      const plain=candidates.find(x=>x.type==="text/plain");
+      if(plain)return plain.text.trim();
+      const html=candidates.find(x=>x.type==="text/html");
+      return (html||candidates[0]||{text:""}).text.trim();
+    }
+    return candidates.map(x=>x.text.trim()).filter(Boolean).join("\n\n").trim();
+  }
+  if(ct==="message/rfc822")return parseEmlDetails(decodeTransferBinary(headers,body),depth+1).text;
+  if(ct==="text/plain"||ct==="text/html")return decodePart(headers,body);
+  return "";
+}
+function parseEmlDetails(raw,depth){
+  let source=String(raw||"").replace(/\r\n?/g,"\n");
+  if(source.startsWith("\ufeff"))source=source.slice(1);
+  else if(source.startsWith("\xef\xbb\xbf"))source=source.slice(3);
+  const entity=splitMimeEntity(source),head=unfoldMimeHeaders(entity.headers);
+  const from=decodeMimeHeader(mimeHeaderValue(head,"from"));
+  const subj=decodeMimeHeader(mimeHeaderValue(head,"subject"));
+  const bodyText=extractMimeText(head,entity.body,Number(depth)||0).trim();
   let out="";
   if(from) out+="Od: "+from+"\n";
   if(subj) out+="Předmět: "+subj+"\n";
   if(out) out+="\n";
-  return (out+bodyText).trim();
+  return {text:(out+bodyText).trim(),bodyText};
+}
+function parseEml(raw){ return parseEmlDetails(raw,0).text; }
+function isEmlFile(file){ return /\.eml$/i.test(String(file&&file.name||""))||/^message\/rfc822(?:;|$)/i.test(String(file&&file.type||"")); }
+function maxImportFileSize(file){ return isEmlFile(file)?40*1024*1024:5*1024*1024; }
+function supportedImportFile(file){ return isEmlFile(file)||/\.(?:txt|html?|htm)$/i.test(String(file&&file.name||""))||/^(?:text\/plain|text\/html)(?:;|$)/i.test(String(file&&file.type||"")); }
+function importFileError(message){ toast(message,{persistent:true}); }
+function decodeRegularFile(bytes){
+  const utf8=decodeBytes(bytes,"utf-8");
+  return utf8.includes("�")?decodeBytes(bytes,"windows-1250"):utf8;
 }
 function readFileInto(p, file){
   const name=(file.name||"").toLowerCase();
-  if(file.size>5*1024*1024){ toast("Soubor je příliš velký. Maximum je 5 MB."); return; }
+  const eml=isEmlFile(file),limit=maxImportFileSize(file);
+  if(!supportedImportFile(file)){ importFileError("Tento typ souboru neumím načíst. Použij .eml z Gmailu, .txt nebo .html."); return; }
+  if(file.size>limit){ importFileError(eml?"Tento .eml soubor je příliš velký. Maximum je 40 MB; velké přílohy z e-mailu nejprve odstraň.":"Soubor je příliš velký. Maximum je 5 MB."); return; }
   const reader=new FileReader();
   reader.onload=()=>{
-    const bytes=new Uint8Array(reader.result||[]);
-    // Hlavičku načti v jednobajtovém kódování, aby šlo zjistit deklarovaný charset těla.
-    const head=new TextDecoder("windows-1252",{fatal:false}).decode(bytes.slice(0,4096));
-    const cs=name.endsWith(".eml") ? mimeCharset(head) : "utf-8";
-    let txt="";
-    try{ txt=new TextDecoder(cs,{fatal:false}).decode(bytes); }
-    catch(_){ txt=new TextDecoder("utf-8",{fatal:false}).decode(bytes); }
-    if(name.endsWith(".eml")) txt=parseEml(txt);
-    else if(name.endsWith(".html")||name.endsWith(".htm")) txt=stripHtml(txt);
-    if(txt.length>60000){ txt=txt.slice(0,60000); toast("Soubor byl zkrácen na 60 000 znaků. Pro rychlejší a přesnější práci vlož raději jen poslední relevantní zprávu nebo část vlákna."); }
-    E(p,"raw").value=txt;
-    doAnon(p);
+    try{
+      const bytes=new Uint8Array(reader.result||[]);let txt="";
+      if(eml){
+        const parsed=parseEmlDetails(binaryFromBytes(bytes),0);
+        if(!parsed.bodyText.trim()){ importFileError("V souboru .eml se nepodařilo najít čitelný text zprávy. Zkus v Gmailu zprávu znovu stáhnout přes Více → Stáhnout zprávu, případně vlož její text ručně."); return; }
+        txt=parsed.text;
+      }else{
+        txt=decodeRegularFile(bytes);
+        if(name.endsWith(".html")||name.endsWith(".htm")||/^text\/html/i.test(file.type||""))txt=stripHtml(txt);
+      }
+      if(!txt.trim()){ importFileError("Soubor neobsahuje žádný čitelný text."); return; }
+      if(txt.length>60000){ txt=txt.slice(0,60000); toast("Soubor byl zkrácen na 60 000 znaků. Pro rychlejší a přesnější práci vlož raději jen poslední relevantní zprávu nebo část vlákna."); }
+      E(p,"raw").value=txt;
+      doAnon(p);
+    }catch(_){ importFileError("Soubor se nepovedlo zpracovat. Pokud jde o zprávu z Gmailu, stáhni ji znovu přes Více → Stáhnout zprávu nebo vlož text ručně."); }
   };
-  reader.onerror=()=>toast("Soubor se nepovedlo načíst.");
+  reader.onerror=()=>importFileError("Soubor se nepovedlo načíst.");
   reader.readAsArrayBuffer(file);
 }
 ["in","my"].forEach(p=>{

@@ -1,3 +1,12 @@
+## 5.10.2 — Gmail EML, jasnější sestavení a spolehlivé stažení hlášení (2026-08-13)
+
+- odstraněno duplicitní oznámení o dostupné PWA aktualizaci při otevření aplikace;
+- volba pro vytvoření nového e-mailu je nově pojmenovaná „Sestavit nový e-mail ze zadání nebo bodů“ a odpovídá souvislým instrukcím i bodovému podkladu;
+- import `.eml` z Gmailu lépe zpracuje MIME strukturu, kódované hlavičky, textovou i HTML část, quoted-printable/base64 a běžná středoevropská kódování; platí bezpečný limit 40 MB;
+- hlášení chyby nejprve připraví přímý odkaz ke stažení ZIP a až po skutečném kliknutí zpřístupní předvyplněný Gmail;
+- rozhraní i e-mail výslovně uvádějí, že Gmail místní ZIP automaticky nepřipojí a uživatel jej musí přiložit ručně;
+- regresní sada má 151 interních testů a samostatnou statickou i prohlížečovou kontrolu reportéru.
+
 ## 5.10.1 — šablony, rychlé úpravy a čitelná oznámení (2026-08-13)
 
 - neplatná testovací šablona s názvem `<b>šablona</b>` se už nemůže propsat do uložených dat; starý neplatný záznam se při načtení automaticky odstraní a platné šablony zůstanou zachované;
