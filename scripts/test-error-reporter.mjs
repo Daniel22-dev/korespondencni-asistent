@@ -264,22 +264,6 @@ function harnessHtml() {
     }
     return nativeToBlob.call(this, callback, ...args);
   };
-  window.__downloadCaptures = [];
-  const nativeAnchorClick = HTMLAnchorElement.prototype.click;
-  HTMLAnchorElement.prototype.click = function() {
-    if (this.download && String(this.href).startsWith('blob:')) {
-      const filename = this.download;
-      fetch(this.href).then((response) => response.arrayBuffer()).then((buffer) => {
-        const bytes = new Uint8Array(buffer);
-        let binary = '';
-        for (let offset = 0; offset < bytes.length; offset += 0x8000) {
-          binary += String.fromCharCode(...bytes.subarray(offset, offset + 0x8000));
-        }
-        window.__downloadCaptures.push({ filename, base64: btoa(binary) });
-      });
-    }
-    return nativeAnchorClick.call(this);
-  };
   window.__sensitiveFixtures = {
     prompt: 'ANON_PROMPT_TOKEN',
     originalText: 'ANON_ORIGINAL_TEXT_TOKEN',
@@ -484,6 +468,31 @@ async function waitFor(client, expression, label, attempts = 240) {
   }
   const diagnostic = await client.evaluate(`({href:location.href,ready:window.__harnessReady||false,error:window.__harnessError||null,body:document.body?.innerText?.slice(0,300)||'',root:!!document.querySelector('#ghrab-error-reporter')})`).catch(() => null);
   throw new Error(`${label}${diagnostic ? `: ${JSON.stringify(diagnostic)}` : ''}`);
+}
+function zipDownloadSnapshot(directory) {
+  const snapshot = new Map();
+  for (const name of readdirSync(directory)) {
+    if (!name.toLowerCase().endsWith('.zip')) continue;
+    const info = statSync(join(directory, name));
+    snapshot.set(name, `${info.size}:${info.mtimeMs}`);
+  }
+  return snapshot;
+}
+async function waitForZipDownload(directory, previous, label, attempts = 400) {
+  for (let index = 0; index < attempts; index += 1) {
+    for (const name of readdirSync(directory)) {
+      if (!name.toLowerCase().endsWith('.zip')) continue;
+      const path = join(directory, name);
+      const info = statSync(path);
+      const signature = `${info.size}:${info.mtimeMs}`;
+      if (info.size > 0 && previous.get(name) !== signature) {
+        return { filename: name, base64: readFileSync(path).toString('base64') };
+      }
+    }
+    await sleep(50);
+  }
+  const files = readdirSync(directory).join(', ') || 'prázdná složka';
+  throw new Error(`${label}: ${files}`);
 }
 async function navigate(client, url) {
   await client.call('Page.navigate', { url });
@@ -712,6 +721,7 @@ async function runBrowserTests() {
     check('Gmail zůstává skrytý, dokud uživatel nestáhne ZIP', staged.mailHidden && staged.downloadName.endsWith('.zip'));
     check('Předvyplněný Gmail má správného příjemce a upozornění na přílohu', staged.gmailHref.includes('mail.google.com') && staged.recipient === 'balaz@ghrabuvka.cz' && staged.subject.includes(ui.idBeforeKeep) && staged.body.includes('PŘÍLOHA NENÍ PŘIPOJENA AUTOMATICKY'));
 
+    const firstDownloadSnapshot = zipDownloadSnapshot(downloadDir);
     const downloadBox = await client.evaluate(`(() => {
       const link = document.querySelector('#ghrab-error-reporter a[data-report-download=zip]');
       link.scrollIntoView({ block: 'center', inline: 'center' });
@@ -720,7 +730,8 @@ async function runBrowserTests() {
     })()`);
     await client.call('Input.dispatchMouseEvent', { type: 'mousePressed', x: downloadBox.x, y: downloadBox.y, button: 'left', clickCount: 1 });
     await client.call('Input.dispatchMouseEvent', { type: 'mouseReleased', x: downloadBox.x, y: downloadBox.y, button: 'left', clickCount: 1 });
-    await waitFor(client, 'window.__downloadCaptures.length >= 1 && document.querySelector(".ghrab-report-mail-step")?.hidden === false', 'Přímé stažení ZIP neodemklo Gmail', 400);
+    await waitFor(client, 'document.querySelector(".ghrab-report-mail-step")?.hidden === false', 'Přímé stažení ZIP neodemklo Gmail', 400);
+    const firstDownload = await waitForZipDownload(downloadDir, firstDownloadSnapshot, 'Chromium fyzicky nestáhl první ZIP');
 
     const beforeTargets = new Set((await waitJson(`http://127.0.0.1:${debugPort}/json`)).filter((item) => item.type === 'page').map((item) => item.id));
     const gmailBox = await client.evaluate(`(() => {
@@ -747,13 +758,12 @@ async function runBrowserTests() {
       const copy = [...final.querySelectorAll('button')].find((node) => node.textContent.trim() === 'Zkopírovat údaje e-mailu');
       copy.click();
       return new Promise((resolve) => setTimeout(() => resolve({
-        download: window.__downloadCaptures[0], links,
-        clipboard: window.__clipboardText,
+        links, clipboard: window.__clipboardText,
       }), 80));
     })()`);
     check('Po stažení jsou dostupné Gmail / poštovní aplikace / kopírování', prepared.links.some((item) => item.text.includes('otevřít Gmail')) && prepared.links.some((item) => item.text === 'Otevřít poštovní aplikaci' && item.href.startsWith('mailto:')) && prepared.clipboard.includes('balaz@ghrabuvka.cz'));
 
-    const zip1 = inspectZip(prepared.download.base64, 'first-draft', {
+    const zip1 = inspectZip(firstDownload.base64, 'first-draft', {
       expectedScreenshots: 5,
       requiredTypes: ['javascript', 'promise', 'http', 'network'],
       forbidden: [
@@ -764,13 +774,7 @@ async function runBrowserTests() {
     });
     check('Stažený ZIP má přesný obsah a bezpečná metadata', zip1.names.length === 8, `${zip1.names.length} souborů`);
     check('ZIP zachytil JS, Promise, HTTP a síťové chyby bez citlivých dat', zip1.metadata.technicalErrors.length >= 4);
-    check('Prohlížeč fyzicky stáhl ZIP na původní kartě', (() => {
-      for (let i = 0; i < 100; i += 1) {
-        const files = readdirSync(downloadDir).filter((name) => name.endsWith('.zip'));
-        if (files.length) return true;
-      }
-      return false;
-    })());
+    check('Prohlížeč fyzicky stáhl ZIP na původní kartě', firstDownload.filename.toLowerCase().endsWith('.zip'), firstDownload.filename);
 
     const reset = await client.evaluate(`(async () => {
       const root = document.getElementById('ghrab-error-reporter');
@@ -802,7 +806,6 @@ async function runBrowserTests() {
     check('Po smazání vznikne nové ID', reset.newId && reset.newId !== ui.idBeforeKeep, `${ui.idBeforeKeep} → ${reset.newId}`);
 
     const secondBox = await client.evaluate(`(() => {
-      window.__downloadCaptures = [];
       const control = document.querySelector('#ghrab-error-reporter button.ghrab-report-button.primary[data-support-email]');
       control.scrollIntoView({ block: 'center' });
       const rect = control.getBoundingClientRect();
@@ -811,6 +814,7 @@ async function runBrowserTests() {
     await client.call('Input.dispatchMouseEvent', { type: 'mousePressed', x: secondBox.x, y: secondBox.y, button: 'left', clickCount: 1 });
     await client.call('Input.dispatchMouseEvent', { type: 'mouseReleased', x: secondBox.x, y: secondBox.y, button: 'left', clickCount: 1 });
     await waitFor(client, 'document.querySelector("#ghrab-error-reporter a[data-report-download=zip]")', 'Druhý ZIP se nepřipravil', 400);
+    const secondDownloadSnapshot = zipDownloadSnapshot(downloadDir);
     const secondDownloadBox = await client.evaluate(`(() => {
       const link = document.querySelector('#ghrab-error-reporter a[data-report-download=zip]');
       link.scrollIntoView({ block: 'center' });
@@ -819,8 +823,7 @@ async function runBrowserTests() {
     })()`);
     await client.call('Input.dispatchMouseEvent', { type: 'mousePressed', x: secondDownloadBox.x, y: secondDownloadBox.y, button: 'left', clickCount: 1 });
     await client.call('Input.dispatchMouseEvent', { type: 'mouseReleased', x: secondDownloadBox.x, y: secondDownloadBox.y, button: 'left', clickCount: 1 });
-    await waitFor(client, 'window.__downloadCaptures.length >= 1', 'Druhý ZIP se nestáhl přímým kliknutím', 400);
-    const secondDownload = await client.evaluate('window.__downloadCaptures[0]');
+    const secondDownload = await waitForZipDownload(downloadDir, secondDownloadSnapshot, 'Chromium fyzicky nestáhl druhý ZIP');
     const zip2 = inspectZip(secondDownload.base64, 'second-draft', {
       expectedScreenshots: 1,
       forbidden: ['OLD_DRAFT_MARKER', TEST_SENSITIVE_EMAIL, 'ANON_KEY_TOKEN', 'ANON_PROMPT_TOKEN'],

@@ -6,6 +6,7 @@
 - hlášení chyby nejprve připraví přímý odkaz ke stažení ZIP a až po skutečném kliknutí zpřístupní předvyplněný Gmail;
 - rozhraní i e-mail výslovně uvádějí, že Gmail místní ZIP automaticky nepřipojí a uživatel jej musí přiložit ručně;
 - opraven selektor prohlížečového CI testu, který zaměňoval tlačítko „Připravit ZIP balíček“ za dřívější primární tlačítko snímání obrazovky;
+- fyzický download v Chromium testu se ověřuje podle skutečně uloženého ZIPu na disku, nikoli pomocí zachytávání programového `link.click()`, které se při skutečném myším kliknutí nespouští;
 - regresní sada má 151 interních testů a samostatnou statickou i prohlížečovou kontrolu reportéru.
 
 ## 5.10.1 — šablony, rychlé úpravy a čitelná oznámení (2026-08-13)
