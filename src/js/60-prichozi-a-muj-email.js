@@ -37,7 +37,7 @@ $("in_analyzeBtn").onclick=async()=>{
   if(!enforcePreflight("in", state)) return;
   if(!isAiServiceReady()){ $("apiPanel").classList.add("open"); state.innerHTML='<div class="error">Chybí klíč k API. Vlož ho nahoře a zvol „Použít jen pro relaci“.</div>'; return; }
   const done=setBusy($("in_analyzeBtn"),"Rozebírám…");
-  try{ const d=await callGemini(text, SYS_ANALYZE, "analyze", {pane:"in",texts:[text],ackSensitive:!!(ST.in&&ST.in.sensitiveAck)}, {operation:"incoming-analysis",modelProfile:"balanced"}); ST.in.clean=text; ST.in.pozadavky=Array.isArray(d.pozadavky)?d.pozadavky:[]; ST.in.outputReady=true; state.innerHTML=""; renderAnalysis(d); recordCorrespondenceTelemetry('incoming-analysis',1,1,0); updateProgress("in"); $("in_results").scrollIntoView({behavior:"smooth",block:"start"}); }
+  try{ const d=await callGemini(text, SYS_ANALYZE, "analyze", {pane:"in",texts:[text],ackSensitive:!!(ST.in&&ST.in.sensitiveAck)}, {operation:"incoming-analysis"}); ST.in.clean=text; ST.in.pozadavky=Array.isArray(d.pozadavky)?d.pozadavky:[]; ST.in.outputReady=true; state.innerHTML=""; renderAnalysis(d); recordCorrespondenceTelemetry('incoming-analysis',1,1,0); updateProgress("in"); $("in_results").scrollIntoView({behavior:"smooth",block:"start"}); }
   catch(err){ recordCorrespondenceTelemetry('incoming-analysis',1,0,1); setApiError(state, err, ()=>$("in_analyzeBtn").click()); }
   finally{ done(); updateSendGate("in"); }
 };
@@ -162,7 +162,7 @@ async function genReplies(){
     threadLine+profileLine()+styleCtx.line+langLine();
   const done=setBusy($("in_replyBtn"),"Skládám tři varianty…");
   try{
-    const d=await callGemini(prompt,SYS_REPLY+langSystem(),"reply", {pane:"in",texts:[ST.in.clean,note,...styleCtx.texts,...checked,...unchecked],ackSensitive:!!(ST.in&&ST.in.sensitiveAck)}, {operation:"reply-draft",modelProfile:"balanced"}); mergeSyn("in",d.synonyma);
+    const d=await callGemini(prompt,SYS_REPLY+langSystem(),"reply", {pane:"in",texts:[ST.in.clean,note,...styleCtx.texts,...checked,...unchecked],ackSensitive:!!(ST.in&&ST.in.sensitiveAck)}, {operation:"reply-draft"}); mergeSyn("in",d.synonyma);
     state.innerHTML=""; const box=$("in_replies"); box.innerHTML="";
     let navrhy=Array.isArray(d&&d.navrhy)?d.navrhy:[];
     if(!navrhy.length){ recordCorrespondenceTelemetry('reply-draft',3,0,3); box.innerHTML='<p class="empty">Model nevrátil návrh — zkus to znovu.</p>'; return; }
@@ -616,7 +616,7 @@ $("my_goBtn").onclick=async()=>{
   }
   const done=setBusy($("my_goBtn"),"Pracuji…");
   try{
-    const d=await callGemini(prompt, sys+myLangSystem(), "text", {pane:"my",texts:[text,note,...styleCtx.texts],ackSensitive:!!(ST.my&&ST.my.sensitiveAck)}, {operation,modelProfile:"balanced"}); mergeSyn("my", d.synonyma);
+    const d=await callGemini(prompt, sys+myLangSystem(), "text", {pane:"my",texts:[text,note,...styleCtx.texts],ackSensitive:!!(ST.my&&ST.my.sensitiveAck)}, {operation}); mergeSyn("my", d.synonyma);
     state.innerHTML=""; const wrap=$("my_results"); wrap.innerHTML="";
     let cleanedOutput=replyAllowsEmoji(note)?(d.text||""):stripReplyEmoji(d.text||"");
     if(subjMode==="vlastni")cleanedOutput=applyCustomSubjectToOutput(cleanedOutput,customSubject);

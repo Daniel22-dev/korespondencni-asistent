@@ -50,7 +50,7 @@ async function fetchSyn(){
     if(safeSentence===null)return;
     const d=await callGemini(
       "Slovo: \""+synCtx.word+"\"\nOkolí: \""+safeSentence+"\"\nVrať 4 vhodná "+lang+" synonyma ve STEJNÉM gramatickém tvaru jako slovo v okolí.",
-      "Jsi "+helper+" jazykový pomocník. Vracíš jen synonyma ve správném tvaru a stejném jazyce jako zadané slovo. Odpověz VÝHRADNĚ platným JSON: {\"synonyma\":[\"…\",\"…\"]}", "synonyms", {pane:synCtx.p,texts:[safeSentence],ackSensitive:!!(ST[synCtx.p]&&ST[synCtx.p].sensitiveAck)}, {thinking:"minimal",operation:"synonym-suggestions",modelProfile:"economy"}
+      "Jsi "+helper+" jazykový pomocník. Vracíš jen synonyma ve správném tvaru a stejném jazyce jako zadané slovo. Odpověz VÝHRADNĚ platným JSON: {\"synonyma\":[\"…\",\"…\"]}", "synonyms", {pane:synCtx.p,texts:[safeSentence],ackSensitive:!!(ST[synCtx.p]&&ST[synCtx.p].sensitiveAck)}, {thinking:"minimal",operation:"synonym-suggestions"}
     );
     const opts=(d&&d.synonyma)||[];
     if(synCtx) ST[synCtx.p].syn[synCtx.word.toLowerCase()]=opts;
@@ -431,7 +431,7 @@ async function refineDraft(p, card, srcText, instruction, options){
     if(styleCtx===null)return false;
     const d=await callGemini(
       "Uprav tento koncept e-mailu podle pokynu, zachovej značky a podpis [podpis].\n"+senderPerspectivePrompt(senderMode)+profileLine()+styleCtx.line+"\nPokyn: "+safeInstruction+lockedLine+"\n\nKoncept:\n\"\"\"\n"+safeDraft+"\n\"\"\""+lLine,
-      SYS_REFINE+lSystem, "text", {pane:p,texts:[safeDraft,safeInstruction,...styleCtx.texts],ackSensitive:!!(ST[p]&&ST[p].sensitiveAck)||!!opts.trustedDraft}, {operation:"draft-refinement",modelProfile:"balanced"}
+      SYS_REFINE+lSystem, "text", {pane:p,texts:[safeDraft,safeInstruction,...styleCtx.texts],ackSensitive:!!(ST[p]&&ST[p].sensitiveAck)||!!opts.trustedDraft}, {operation:"draft-refinement"}
     );
     if(d&&d.text){ if(card.__setSrc) card.__setSrc(d.text,"AI úprava",{trusted:true}); mergeSyn(p,d.synonyma); toast("Upraveno ✓"); return true; }
     return false;
@@ -471,7 +471,7 @@ async function toneCheck(p, srcText, wrap, btn, options){
   wrap.classList.remove("error");
   const loading=document.createElement("div"),loadingSpin=document.createElement("span");loading.className="loading";loadingSpin.className="spin";loading.append(loadingSpin,document.createTextNode("Čtu, jak text působí…"));wrap.replaceChildren(loading);
   try{
-    const d=await callGemini("Koncept:\n\"\"\"\n"+safeText+"\n\"\"\"", SYS_TONECHECK, "tone", {pane:p,texts:[safeText],ackSensitive:reviewedGenerated||!!(ST[p]&&ST[p].sensitiveAck)}, {thinking:"minimal",operation:"tone-check",modelProfile:"economy"});
+    const d=await callGemini("Koncept:\n\"\"\"\n"+safeText+"\n\"\"\"", SYS_TONECHECK, "tone", {pane:p,texts:[safeText],ackSensitive:reviewedGenerated||!!(ST[p]&&ST[p].sensitiveAck)}, {thinking:"minimal",operation:"tone-check"});
     const st=(d.naladeni&&d.naladeni.stupen)||"neutral";
     const rizika=Array.isArray(d.rizika)?d.rizika.filter(Boolean):[];
     const natural=(d.prirozenost&&d.prirozenost.stupen)||"prirozeny";

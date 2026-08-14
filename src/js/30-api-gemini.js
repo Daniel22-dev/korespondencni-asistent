@@ -4,11 +4,12 @@ function testMockAvailable(){ return (IS_TEST_MODE||TEST_RUN_ACTIVE) && !!window
 function currentAiMode(){return window.GHRABRuntime?GHRABRuntime.getMode():"direct-gemini";}
 function isAiServiceReady(){return currentAiMode()==="school-gateway"||!!geminiApiKey||testMockAvailable();}
 function applyAiRuntimeUi(){
-  const school=currentAiMode()==="school-gateway",direct=$("directGeminiSettings"),schoolBox=$("schoolGatewayStatus"),title=$("apiTitle"),toggle=$("apiToggle");
+  const school=currentAiMode()==="school-gateway",direct=$("directGeminiSettings"),schoolBox=$("schoolGatewayStatus"),title=$("apiTitle"),toggle=$("apiToggle"),profileHint=$("modelProfileHint");
   if(direct)direct.hidden=school;
   if(schoolBox)schoolBox.hidden=!school;
   if(title)title.textContent=school?"⚡ Generování přes školní AI službu":"⚡ Generování přes Gemini";
   if(toggle)toggle.textContent=school?"Připojení ke školní AI ▾":"Připojení k AI ▾";
+  if(profileHint)profileHint.textContent=school?"Školní režim: aplikace předává pouze profil AI; konkrétní model vybírá školní AI služba.":"Serverless režim: aplikace předává pouze profil AI; runtime jej mapuje na odpovídající model Gemini.";
   updateKeyStatus();
 }
 window.addEventListener("ghrab:runtime-config-changed",applyAiRuntimeUi);
@@ -62,19 +63,35 @@ function setBusy(btn, label){
   return ()=>{ btn.classList.remove("is-busy"); btn.disabled=false; btn.removeAttribute("aria-busy"); if(btn.dataset.prevHtml!=null) btn.innerHTML=btn.dataset.prevHtml; delete btn.dataset.busy; delete btn.dataset.prevHtml; };
 }
 
-function migrateStoredModel(n){const v=String(n||"").trim().toLowerCase();if(v==="gemini-2.5-flash")return MODEL_DEFAULT;if(v==="gemini-2.5-flash-lite"||v==="gemini-3.1-flash-lite")return FALLBACK_MODELS[0];return v;}
-function isValidModel(n){ return /^gemini[-a-z0-9.]+$/i.test(String(n||"").trim()); }
-function setModel(n){ const v=String(n||"").trim().toLowerCase(); geminiModel=isValidModel(v)?v:MODEL_DEFAULT; $("modelInput").value=geminiModel; try{localStorage.setItem(MODEL_SK,geminiModel);}catch(_){} updateModelUI(); }
-function loadModel(){ let s=""; try{s=localStorage.getItem(MODEL_SK)||"";}catch(_){} s=migrateStoredModel(s); geminiModel=isValidModel(s)?s:MODEL_DEFAULT; $("modelInput").value=geminiModel; updateModelUI(); }
-function updateModelUI(){
-  $("qmStrong").classList.toggle("active",geminiModel===MODEL_DEFAULT); $("qmQuality").classList.toggle("active",geminiModel===QUALITY_MODEL); $("qmLite").classList.toggle("active",geminiModel===FALLBACK_MODELS[0]);
-  const ph=$("modelInput"); if(ph) ph.placeholder=MODEL_DEFAULT;
-  const s=$("qmStrong")&&$("qmStrong").querySelector(".sub"); if(s) s.textContent=MODEL_DEFAULT;
-  const q=$("qmQuality")&&$("qmQuality").querySelector(".sub"); if(q) q.textContent=QUALITY_MODEL;
-  const l=$("qmLite")&&$("qmLite").querySelector(".sub"); if(l) l.textContent=FALLBACK_MODELS[0];
+function normalizeModelProfile(n){ const v=String(n||"").trim().toLowerCase(); return MODEL_PROFILES.includes(v)?v:MODEL_PROFILE_DEFAULT; }
+function migrateStoredModelProfile(n){
+  const v=String(n||"").trim().toLowerCase();
+  if(MODEL_PROFILES.includes(v)) return v;
+  // Jednorázová kompatibilita se starými uloženými providerovými ID.
+  if(/flash-lite/.test(v)) return "economy";
+  if(v==="gemini-3.5-flash") return "quality";
+  if(/^gemini-.*flash/.test(v)) return "balanced";
+  return MODEL_PROFILE_DEFAULT;
 }
-$("modelInput").addEventListener("change",(e)=>setModel(e.target.value));
-$("qmStrong").onclick=()=>setModel(MODEL_DEFAULT); $("qmQuality").onclick=()=>setModel(QUALITY_MODEL); $("qmLite").onclick=()=>setModel(FALLBACK_MODELS[0]);
+function setModelProfile(n){
+  selectedModelProfile=normalizeModelProfile(n);
+  try{localStorage.setItem(MODEL_PROFILE_SK,selectedModelProfile);}catch(_){}
+  updateModelUI();
+}
+function loadModelProfile(){
+  let s=""; try{s=localStorage.getItem(MODEL_PROFILE_SK)||"";}catch(_){}
+  selectedModelProfile=migrateStoredModelProfile(s);
+  try{localStorage.setItem(MODEL_PROFILE_SK,selectedModelProfile);}catch(_){}
+  updateModelUI();
+}
+function updateModelUI(){
+  document.querySelectorAll("[data-model-profile]").forEach(btn=>{
+    const active=btn.dataset.modelProfile===selectedModelProfile;
+    btn.classList.toggle("active",active);
+    btn.setAttribute("aria-pressed",active?"true":"false");
+  });
+}
+document.querySelectorAll("[data-model-profile]").forEach(btn=>{ btn.onclick=()=>setModelProfile(btn.dataset.modelProfile); });
 
 const GEMINI_TIMEOUT_MS=45000;
 const LAST_PROMPT_SK="rozbor_last_prompt_debug";
@@ -121,7 +138,7 @@ function loadOpsLog(){ try{ const a=JSON.parse(localStorage.getItem(OPS_LOG_SK)|
 function saveOpsLog(items){ try{ localStorage.setItem(OPS_LOG_SK, JSON.stringify((items||[]).slice(0,80))); }catch(_){} }
 function logOp(type,status,meta){
   try{
-    const rec={d:Date.now(),type:String(type||"akce").slice(0,40),status:String(status||"ok").slice(0,30),model:geminiModel||"",meta:cleanLogMeta(meta||{})};
+    const rec={d:Date.now(),type:String(type||"akce").slice(0,40),status:String(status||"ok").slice(0,30),modelProfile:selectedModelProfile||MODEL_PROFILE_DEFAULT,meta:cleanLogMeta(meta||{})};
     const a=loadOpsLog(); a.unshift(rec); saveOpsLog(a);
   }catch(_){}
 }
@@ -198,9 +215,9 @@ function validateModelJson(obj, schema){
   }
   return obj;
 }
-function saveLastPromptDebug(prompt, system, model, schema){
+function saveLastPromptDebug(prompt, system, modelProfile, schema){
   if(isStrictScenarioActive() || hasSensitiveSchoolTerms(prompt) || hasSensitiveSchoolTerms(system)){ try{ sessionStorage.removeItem(LAST_PROMPT_SK); localStorage.removeItem(LAST_PROMPT_SK); }catch(_){} return; }
-  const rec={d:Date.now(),model:model||geminiModel,schema:schema||"object",prompt:String(prompt||"").slice(0,30000),system:String(system||"").slice(0,12000)};
+  const rec={d:Date.now(),modelProfile:normalizeModelProfile(modelProfile||selectedModelProfile),schema:schema||"object",prompt:String(prompt||"").slice(0,30000),system:String(system||"").slice(0,12000)};
   try{ sessionStorage.setItem(LAST_PROMPT_SK, JSON.stringify(rec)); localStorage.removeItem(LAST_PROMPT_SK); }catch(_){}
 }
 function loadLastPromptDebug(){ try{ return JSON.parse(sessionStorage.getItem(LAST_PROMPT_SK)||"null"); }catch(_){ return null; } }
@@ -244,17 +261,15 @@ function inferAiOperation(schema,system){
   if(/uprav|přeformul|preformul/i.test(text))return "draft-refinement";
   return "outgoing-proofread";
 }
-function defaultProfileForOperation(operation){return /synonym|tone-check/.test(operation)?"economy":"balanced";}
-
 async function callGemini(prompt,system,schema,safetyContext,opts){
   schema=schema||inferSchema(system);opts=opts||{};
   if(currentAiMode()==="direct-gemini"&&!geminiApiKey&&!testMockAvailable())throw GHRAB_AI.createError("API_KEY_MISSING");
   const pane=safetyContext&&safetyContext.pane;
   const exactPrompt=typeof toModelPersonTokens==="function"?toModelPersonTokens(pane,prompt):String(prompt||"");
   assertGeminiSafety(safetyContext,exactPrompt);
-  const operation=String(opts.operation||inferAiOperation(schema,system)),modelProfile=String(opts.modelProfile||defaultProfileForOperation(operation));
+  const operation=String(opts.operation||inferAiOperation(schema,system)),modelProfile=normalizeModelProfile(opts.modelProfile||selectedModelProfile);
   const thinking=opts.thinking||(schema==="synonyms"||schema==="tone"?"minimal":"medium");
-  const diagnostic=currentAiMode()==="school-gateway"?("school-gateway/"+modelProfile):geminiModel;
+  const diagnostic=modelProfile;
   saveLastPromptDebug(exactPrompt,system,diagnostic,schema);
   const response=await GHRAB_AI.generate({
     clientRequestId:opts.clientRequestId,workflowId:opts.workflowId,operation,modelProfile,

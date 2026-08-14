@@ -1,32 +1,30 @@
 # Korespondenční asistent
 
-**Aktuální verze:** 5.10.3  
+**Aktuální verze:** 5.10.4  
 **Platforma:** GHRAB Platform 1.1.0 · etapa P3
 
 
 Samostatná PWA aplikace ekosystému AI Studio Gymnázia Ostrava-Hrabůvka.
 
-- **Verze aplikace:** 5.10.3
+- **Verze aplikace:** 5.10.4
 - **GHRAB AI Core:** 1.0.0
 - **Doporučený repozitář:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
 - **Interaktivní manuál:** 1.3.10 (manuál 1.3.10)
 
-## Co přináší verze 5.10.3
+## Co přináší verze 5.10.4
 
-Verze 5.10.3 opravuje zobrazení pomocného živého obrazu při pořizování snímků k hlášení chyby. Video používané pouze jako technický zdroj snímku je nyní vložené dovnitř reportéru a skryté současně přes CSS i nezávislou inline pojistku. Při sdílení stejné karty a následném posouvání stránky proto už nevzniká rekurzivní „zrcadlová chodba“ s opakovaným záhlavím, spodní lištou a panelem snímání. Všechny opravy verze 5.10.2 zůstávají zachovány: jasnější sestavení nového e-mailu ze zadání nebo bodů, robustnější import Gmail `.eml`, odstranění duplicitního oznámení o aktualizaci a dvoukrokové stažení ZIP před otevřením Gmailu. Cache je `ghrab-correspondence-v5.10.3`; interní sada má 151 testů a samostatnou regresní kontrolu neviditelnosti pomocného videa.
+Verze 5.10.4 dělá z KS referenční implementaci společných modelových profilů AI Studia. Uživatel vybírá pouze **◇ Úsporný / ⚡ Doporučený / ★ Důkladný** a aplikační kód pracuje jen s `economy / balanced / quality`. Konkrétní Gemini model je pouze ve veřejné Direct Gemini runtime konfiguraci; školní build posílá stejný `modelProfile` do School Gateway, kde konkrétní provider a model určuje server.
 
-### Hlášení chyby ve verzi 5.10.3
+- odstraněno ruční pole s providerovým ID modelu;
+- odstraněn `modelOverride` z `credentialProvider`;
+- všechny AI operace povolují všechny tři společné profily;
+- staré uložené Gemini modely se jednorázově migrují na odpovídající profil;
+- přidána explicitní `runtime-config.school-server.js`;
+- `npm run qa:profiles` a regresní testy hlídají, že UI/aplikační AI vrstva zůstávají provider-neutrální, všechny operace povolují tři profily a zvolený profil se skutečně propíše do Core requestu.
 
-- pomocný živý obraz pro snímání je mimo viditelnou plochu, nereaguje na ukazatel a je skrytý i pro asistivní technologie;
-- reportér obsahuje dvojitou ochranu proti zobrazení videa: pravidlo ve stylech i inline nastavení ještě před vložením prvku do stránky;
-- automatická prohlížečová kontrola ověřuje umístění videa přímo v reportéru, nulovou viditelnost a polohu mimo obrazovku;
-- hlášení chyby používá dvoukrok: nejprve vytvoří explicitní odkaz ke stažení ZIP a až po jeho kliknutí zpřístupní předvyplněný Gmail;
-- Gmail i text zprávy jasně připomínají, že místní ZIP nelze připojit automaticky a musí se vložit kancelářskou sponkou;
-- životní cyklus konceptu ze 5.9.10 zůstává beze změny.
-
-Technický souhrn vydání je v `RELEASE-NOTES-5.10.3-SCREEN-CAPTURE.md`.
+Technický souhrn vydání je v `RELEASE-NOTES-5.10.4-MODEL-PROFILES.md`. Oprava snímání obrazovky z 5.10.3 zůstává beze změny.
 
 ## GHRAB AI Core
 
@@ -56,7 +54,7 @@ prohlížeč
 → Gemini API
 ```
 
-Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže nasazení verze 5.10.3 samo o sobě nezapíná školní server.
+Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže standardní build 5.10.4 sám o sobě nezapíná školní server. School-server build aktivuje samostatnou `runtime-config.school-server.js`.
 
 ### Budoucí migrační režim
 
@@ -144,3 +142,7 @@ npm test
 - Klientské `privacy` příznaky jsou pouze diagnostická tvrzení, nikoli serverové oprávnění.
 - Prompty, odpovědi, osobní údaje a anonymizační mapy se neukládají do provozní telemetrie.
 - Citlivé údaje studentů je nutné před vložením anonymizovat.
+## Referenční AI profily
+
+Od verze **5.10.4** je KS referenční implementací tří provider-neutrálních profilů pro AI Studio GHRAB: `economy` (**Úsporný**), `balanced` (**Doporučený**) a `quality` (**Důkladný**). Aplikační kód neposílá konkrétní model ani `modelOverride`; Direct Gemini mapování je pouze v `src/runtime-config.js` a školní build používá `src/runtime-config.school-server.js`, kde konkrétní provider/model určuje server.
+

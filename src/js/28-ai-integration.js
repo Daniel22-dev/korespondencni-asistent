@@ -19,14 +19,14 @@ const KS_AI_OPERATIONS=Object.freeze({
   schema:"ghrab-ai-operations-v1",
   appId:"correspondence",
   operations:Object.freeze({
-    "incoming-analysis":{outputSchemaId:KS_AI_SCHEMA_IDS.analyze,defaultModelProfile:"balanced",allowedModelProfiles:["balanced","quality"],inputTypes:["text"],streaming:false,requiredCapabilities:[],expectedOutputs:1,maxOutputTokensHint:32768},
-    "reply-draft":{outputSchemaId:KS_AI_SCHEMA_IDS.reply,defaultModelProfile:"balanced",allowedModelProfiles:["balanced","quality"],inputTypes:["text"],streaming:false,requiredCapabilities:[],expectedOutputs:3,maxOutputTokensHint:32768},
-    "outgoing-rewrite":{outputSchemaId:KS_AI_SCHEMA_IDS.text,defaultModelProfile:"balanced",allowedModelProfiles:["balanced","quality"],inputTypes:["text"],streaming:false,requiredCapabilities:[],expectedOutputs:1,maxOutputTokensHint:32768},
-    "outgoing-compose":{outputSchemaId:KS_AI_SCHEMA_IDS.text,defaultModelProfile:"balanced",allowedModelProfiles:["balanced","quality"],inputTypes:["text"],streaming:false,requiredCapabilities:[],expectedOutputs:1,maxOutputTokensHint:32768},
-    "outgoing-proofread":{outputSchemaId:KS_AI_SCHEMA_IDS.text,defaultModelProfile:"balanced",allowedModelProfiles:["balanced","quality"],inputTypes:["text"],streaming:false,requiredCapabilities:[],expectedOutputs:1,maxOutputTokensHint:32768},
-    "draft-refinement":{outputSchemaId:KS_AI_SCHEMA_IDS.text,defaultModelProfile:"balanced",allowedModelProfiles:["balanced","quality"],inputTypes:["text"],streaming:false,requiredCapabilities:[],expectedOutputs:1,maxOutputTokensHint:32768},
-    "tone-check":{outputSchemaId:KS_AI_SCHEMA_IDS.tone,defaultModelProfile:"economy",allowedModelProfiles:["economy","balanced"],inputTypes:["text"],streaming:false,requiredCapabilities:[],expectedOutputs:1,maxOutputTokensHint:8192},
-    "synonym-suggestions":{outputSchemaId:KS_AI_SCHEMA_IDS.synonyms,defaultModelProfile:"economy",allowedModelProfiles:["economy","balanced"],inputTypes:["text"],streaming:false,requiredCapabilities:[],expectedOutputs:1,maxOutputTokensHint:4096}
+    "incoming-analysis":{outputSchemaId:KS_AI_SCHEMA_IDS.analyze,defaultModelProfile:"balanced",allowedModelProfiles:["economy","balanced","quality"],inputTypes:["text"],streaming:false,requiredCapabilities:[],expectedOutputs:1,maxOutputTokensHint:32768},
+    "reply-draft":{outputSchemaId:KS_AI_SCHEMA_IDS.reply,defaultModelProfile:"balanced",allowedModelProfiles:["economy","balanced","quality"],inputTypes:["text"],streaming:false,requiredCapabilities:[],expectedOutputs:3,maxOutputTokensHint:32768},
+    "outgoing-rewrite":{outputSchemaId:KS_AI_SCHEMA_IDS.text,defaultModelProfile:"balanced",allowedModelProfiles:["economy","balanced","quality"],inputTypes:["text"],streaming:false,requiredCapabilities:[],expectedOutputs:1,maxOutputTokensHint:32768},
+    "outgoing-compose":{outputSchemaId:KS_AI_SCHEMA_IDS.text,defaultModelProfile:"balanced",allowedModelProfiles:["economy","balanced","quality"],inputTypes:["text"],streaming:false,requiredCapabilities:[],expectedOutputs:1,maxOutputTokensHint:32768},
+    "outgoing-proofread":{outputSchemaId:KS_AI_SCHEMA_IDS.text,defaultModelProfile:"balanced",allowedModelProfiles:["economy","balanced","quality"],inputTypes:["text"],streaming:false,requiredCapabilities:[],expectedOutputs:1,maxOutputTokensHint:32768},
+    "draft-refinement":{outputSchemaId:KS_AI_SCHEMA_IDS.text,defaultModelProfile:"balanced",allowedModelProfiles:["economy","balanced","quality"],inputTypes:["text"],streaming:false,requiredCapabilities:[],expectedOutputs:1,maxOutputTokensHint:32768},
+    "tone-check":{outputSchemaId:KS_AI_SCHEMA_IDS.tone,defaultModelProfile:"economy",allowedModelProfiles:["economy","balanced","quality"],inputTypes:["text"],streaming:false,requiredCapabilities:[],expectedOutputs:1,maxOutputTokensHint:8192},
+    "synonym-suggestions":{outputSchemaId:KS_AI_SCHEMA_IDS.synonyms,defaultModelProfile:"economy",allowedModelProfiles:["economy","balanced","quality"],inputTypes:["text"],streaming:false,requiredCapabilities:[],expectedOutputs:1,maxOutputTokensHint:4096}
   })
 });
 function ksCoreTestModeFor(mode){
@@ -45,10 +45,10 @@ function ksServerAuthContext(){
 }
 GHRAB_AI.configure({
   app:{id:"correspondence",version:(typeof RELEASE!=="undefined"&&RELEASE.version)||"0.0.0"},
-  runtimeConfig:window.GHRAB_PLATFORM?.createAiRuntimeConfig?window.GHRAB_PLATFORM.createAiRuntimeConfig({timeoutMs:120000,maxRequestBytes:18*1024*1024,maxPartBytes:14*1024*1024,models:{economy:'gemini-3.5-flash-lite',balanced:(typeof geminiModel!=='undefined'?geminiModel:'gemini-3.6-flash'),quality:(typeof geminiModel!=='undefined'?geminiModel:'gemini-3.6-flash')}}):window.__GHRAB_RUNTIME_CONFIG__,
+  runtimeConfig:window.__GHRAB_RUNTIME_CONFIG__,
   operations:KS_AI_OPERATIONS,
   outputSchemas:KS_AI_OUTPUT_SCHEMAS,
-  credentialProvider:async({mode})=>mode==="direct-gemini"?{apiKey:(typeof geminiApiKey!=="undefined"?geminiApiKey:""),modelOverride:(typeof geminiModel!=="undefined"?geminiModel:"")}:null,
+  credentialProvider:async({mode})=>mode==="direct-gemini"?{apiKey:(typeof geminiApiKey!=="undefined"?geminiApiKey:"")}:null,
   authProvider:async()=>await ksServerAuthContext(),
   telemetrySink:event=>{try{window.GHRABTelemetry?.recordAiUsage?.(event);}catch(_){}},
   providerEventSink:event=>{try{if(typeof logOp==="function")logOp("api",event.type,event);}catch(_){}},

@@ -38,7 +38,7 @@ function openChangelog(){
 /* ===================== DEBUG PROMPT + AUTOMATICKÉ TESTY ===================== */
 function openLastPromptDebug(){
   const rec=loadLastPromptDebug();
-  const body=rec?('<p class="hint">Uloženo lokálně: '+esc(new Date(rec.d).toLocaleString("cs-CZ"))+' · model '+esc(rec.model)+' · schéma '+esc(rec.schema)+'</p><textarea class="mono" style="width:100%;min-height:280px" readonly>'+esc("SYSTEM:\n"+rec.system+"\n\nPROMPT:\n"+rec.prompt)+'</textarea>'):'<p class="empty">Zatím není uložený žádný anonymizovaný prompt.</p>';
+  const body=rec?('<p class="hint">Uloženo lokálně: '+esc(new Date(rec.d).toLocaleString("cs-CZ"))+' · profil AI '+esc(rec.modelProfile||rec.model||"—")+' · schéma '+esc(rec.schema)+'</p><textarea class="mono" style="width:100%;min-height:280px" readonly>'+esc("SYSTEM:\n"+rec.system+"\n\nPROMPT:\n"+rec.prompt)+'</textarea>'):'<p class="empty">Zatím není uložený žádný anonymizovaný prompt.</p>';
   const m=openModal("Debug prompt", body+'<div class="row"><button class="btn ghost small" id="dbgClear">Smazat debug prompt</button></div>', {label:"Debug prompt"});
   const clr=m.body.querySelector("#dbgClear"); if(clr) clr.onclick=()=>{ try{sessionStorage.removeItem(LAST_PROMPT_SK);localStorage.removeItem(LAST_PROMPT_SK);}catch(_){} m.close(); toast("Debug prompt smazán"); };
 }
@@ -88,10 +88,10 @@ function closeTestSideEffects(){
     if(close)close.click();else overlay.remove();
   });
 }
-function snapshotTestState(){ return {storage:snapshotAppStorage(),st:JSON.parse(JSON.stringify(ST)),inRaw:E("in","raw").value,myRaw:E("my","raw").value,key:geminiApiKey,scope:geminiKeyScope,model:geminiModel,mock:window.__TEST_MOCK_GEMINI,gatewayMock:window.__TEST_MOCK_GATEWAY,runtime:GHRABRuntime.getConfig(),ui:snapshotTestUiState()}; }
+function snapshotTestState(){ return {storage:snapshotAppStorage(),st:JSON.parse(JSON.stringify(ST)),inRaw:E("in","raw").value,myRaw:E("my","raw").value,key:geminiApiKey,scope:geminiKeyScope,modelProfile:selectedModelProfile,mock:window.__TEST_MOCK_GEMINI,gatewayMock:window.__TEST_MOCK_GATEWAY,runtime:GHRABRuntime.getConfig(),ui:snapshotTestUiState()}; }
 function restoreTestState(snap){
   restoreAppStorage(snap.storage);
-  ST.in=snap.st.in; ST.my=snap.st.my; E("in","raw").value=snap.inRaw; E("my","raw").value=snap.myRaw; geminiApiKey=snap.key; geminiKeyScope=snap.scope; geminiModel=snap.model; window.__TEST_MOCK_GEMINI=snap.mock; window.__TEST_MOCK_GATEWAY=snap.gatewayMock; GHRABRuntime.replaceForTesting(snap.runtime);
+  ST.in=snap.st.in; ST.my=snap.st.my; E("in","raw").value=snap.inRaw; E("my","raw").value=snap.myRaw; geminiApiKey=snap.key; geminiKeyScope=snap.scope; selectedModelProfile=snap.modelProfile; window.__TEST_MOCK_GEMINI=snap.mock; window.__TEST_MOCK_GATEWAY=snap.gatewayMock; GHRABRuntime.replaceForTesting(snap.runtime);
   publishActiveKeyReals("in"); publishActiveKeyReals("my");
   closeTestSideEffects();
   try{
@@ -158,6 +158,7 @@ async function runKorespTests(){
         assertTest(result.text==="Ze serveru"&&captured.schema==="ghrab-ai-request-v1"&&captured.operation==="outgoing-proofread","gateway nedostal jednotný požadavek");
         assertTest(!serialized.includes("localContext")&&!serialized.includes("requestedGeminiModel")&&!serialized.includes(geminiApiKey||"__never__"),"gateway payload obsahuje lokální kontext nebo API klíč");
         assertTest($("directGeminiSettings").hidden&&!$("schoolGatewayStatus").hidden,"UI se nepřepnulo do školního režimu");
+        assertTest(!$("modelProfileSettings").hidden&&captured.modelProfile==="balanced","školní režim skryl společné profily nebo neposlal modelProfile");
         assertTest(usage.providerRequests===2&&usage.retryRequests===1&&usage.totalTokens===33,"serverová usage metadata se nepropsala");
       }finally{window.__TEST_MOCK_GATEWAY=oldGateway;GHRABRuntime.replaceForTesting(previous);}
     });
@@ -1220,11 +1221,24 @@ async function runKorespTests(){
       assertTest(E("my","step2").hidden===true,"stará anonymizační část zůstala otevřená");
     });
     await test("Připojení a modely mají správné režimy", async()=>{
-      assertTest(!!$("qmLite")&&!!$("qmStrong")&&!!$("qmQuality"),"serverless režim nemá tři modelové volby");
-      assertTest($("qmLite").textContent.includes("◇")&&!$("qmLite").textContent.includes("🪶"),"úsporný model má rozbitý symbol");
+      assertTest(!!$("profileEconomy")&&!!$("profileBalanced")&&!!$("profileQuality"),"serverless režim nemá tři modelové volby");
+      assertTest($("profileEconomy").textContent.includes("◇")&&!$("profileEconomy").textContent.includes("🪶"),"úsporný model má rozbitý symbol");
       const css=[...document.querySelectorAll("style")].map(x=>x.textContent).join("\n");
       assertTest(css.includes('.school-ai-status[hidden],#directGeminiSettings[hidden]'),"hidden atribut režimů může být přebit CSS");
       assertTest($("schoolGatewayStatus").textContent.includes("Režim školní AI služby")&&!$("schoolGatewayStatus").textContent.includes("Připojeno"),"školní režim nepravdivě tvrdí aktivní připojení");
+    });
+    await test("Profily AI jsou provider-neutrální a řídí request", async()=>{
+      const buttons=[...document.querySelectorAll("[data-model-profile]")];
+      assertTest(buttons.map(b=>b.dataset.modelProfile).join(",")==="economy,balanced,quality","UI nemá přesně economy / balanced / quality");
+      assertTest(!$("modelProfileSettings").textContent.includes("gemini-"),"UI profilu odhaluje konkrétní providerový model");
+      assertTest(migrateStoredModelProfile("gemini-3.5-flash-lite")==="economy"&&migrateStoredModelProfile("gemini-3.6-flash")==="balanced"&&migrateStoredModelProfile("gemini-3.5-flash")==="quality","migrace starých modelů na profily není úplná");
+      const previous=selectedModelProfile;
+      try{
+        setModelProfile("quality"); geminiApiKey="test"; let captured=null;
+        window.__TEST_MOCK_GEMINI=async payload=>{captured=payload;return {text:"Hotovo",zmeny:[],synonyma:{}};};
+        await callGemini("Bezpečný text.","Vrať JSON {\"text\":\"…\"}.","text",{pane:"in",texts:["Bezpečný text."]},{operation:"outgoing-proofread"});
+        assertTest(captured&&captured.modelProfile==="quality","zvolený profil quality se nepropsal do Core requestu");
+              }finally{ setModelProfile(previous); }
     });
     await test("Rozsah odpovědi je předvybraný a poznámka je nahoře", async()=>{
       ST.in.pozadavky=["Potvrdit termín","Zkontrolovat zařízení"];
@@ -1499,8 +1513,8 @@ function clearAllLocalData(){
   [localStorage,sessionStorage].forEach(store=>{
     appStorageKeys(store).forEach(k=>{ try{ store.removeItem(k); }catch(_){} });
   });
-  geminiApiKey=""; geminiKeyScope=""; geminiModel=MODEL_DEFAULT;
-  try{ $("keyInput").value=""; $("modelInput").value=MODEL_DEFAULT; }catch(_){}
+  geminiApiKey=""; geminiKeyScope=""; selectedModelProfile=MODEL_PROFILE_DEFAULT;
+  try{ $("keyInput").value=""; }catch(_){}
   updateKeyStatus(); updateModelUI(); renderTemplates();
   try{renderMyProfileContext();renderWritingStyleControls();}catch(_){}
   toast("Lokální data smazána ✓");
@@ -1511,7 +1525,7 @@ function collectSettings(){
     profil: loadProfile(),
     slovnikJmen: loadDict(),
     sablony: loadTpls(),
-    model: geminiModel,
+    modelProfile: selectedModelProfile,
     rezimUI: (function(){ try{ return localStorage.getItem(UI_MODE_SK)||"simple"; }catch(_){ return "simple"; } })(),
     neukladatHistorii: isNoHistory()
     // ZÁMĚRNĚ neexportujeme API klíč ani historii e-mailů (citlivé)
@@ -1535,7 +1549,7 @@ function applyImportedSettings(obj){
   if(obj.profil && typeof obj.profil==="object"){ try{ localStorage.setItem("rozbor_profile", JSON.stringify(typeof sanitizeProfile==="function"?sanitizeProfile(obj.profil):{})); }catch(_){} }
   if(Array.isArray(obj.slovnikJmen)){ try{ localStorage.setItem("rozbor_dict", JSON.stringify(obj.slovnikJmen)); }catch(_){} }
   if(Array.isArray(obj.sablony)){ try{ saveTpls(obj.sablony); }catch(_){} }
-  if(obj.model && isValidModel(obj.model)){ try{ setModel(obj.model); }catch(_){} }
+  if(obj.modelProfile || obj.model){ try{ setModelProfile(migrateStoredModelProfile(obj.modelProfile||obj.model)); }catch(_){} }
   if(obj.rezimUI){ try{ setUiMode(obj.rezimUI); }catch(_){} }
   try{ setNoHistory(!!obj.neukladatHistorii); }catch(_){}
   try{ renderTemplates(); }catch(_){}
@@ -1564,7 +1578,7 @@ function openDataManager(){
     '<label class="data-switch"><input type="checkbox" id="dmNoHistory" '+(noHist?'checked':'')+'><span><b>Neukládat historii výstupů</b><br><span class="hint">Bezpečná výchozí volba. Po vypnutí se může uložit jen anonymizovaná verze se značkami, nikdy text se skutečnými jmény.</span></span></label>'+
     '<div class="data-switch"><span>↔</span><span><b>Přenos mezi zařízeními</b><br><span class="hint">Exportuje profil, slovník jmen, šablony, model a nastavení do souboru. <b>Soubor může obsahovat skutečná jména ze slovníku; chraň ho jako citlivý. API klíč ani historii e-mailů neobsahuje.</b></span></span></div>'+
     '<div class="row"><button class="btn ghost small" id="dmExport">Exportovat nastavení</button><button class="btn ghost small" id="dmImport">Importovat ze souboru</button><input type="file" id="dmImportFile" accept="application/json,.json" style="display:none"></div>'+
-    '<div class="data-switch data-danger"><span>⚠️</span><span><b>Smazat všechna lokální data</b><br>API klíč, historii, profil, slovník jmen, šablony, model, debug prompt, technický log, nastavení bezpečnostního průvodce a také uložené koncepty, vlastní textové bloky, podpisy a připomínky z pracovního stolu.</span></div>'+
+    '<div class="data-switch data-danger"><span>⚠️</span><span><b>Smazat všechna lokální data</b><br>API klíč, historii, profil, slovník jmen, šablony, profil AI, debug prompt, technický log, nastavení bezpečnostního průvodce a také uložené koncepty, vlastní textové bloky, podpisy a připomínky z pracovního stolu.</span></div>'+
     '<div class="row"><button class="btn ghost" id="dmSave">Uložit nastavení</button><button class="btn danger" id="dmClear"><span class="action-icon" data-ic="warn"></span>Smazat všechna lokální data</button></div>';
   const m=openModal("Správa lokálních dat", html, {label:"Správa lokálních dat"});
   m.body.querySelector("#dmSave").onclick=()=>{ setNoHistory(m.body.querySelector("#dmNoHistory").checked); m.close(); toast("Nastavení uloženo ✓"); };
@@ -1572,7 +1586,7 @@ function openDataManager(){
   const fileInp=m.body.querySelector("#dmImportFile");
   m.body.querySelector("#dmImport").onclick=()=>fileInp.click();
   fileInp.onchange=()=>{ if(fileInp.files&&fileInp.files[0]){ importSettings(fileInp.files[0]); fileInp.value=""; } };
-  m.body.querySelector("#dmClear").onclick=()=>{ confirmActionModal({title:"Smazat všechna lokální data",message:"Opravdu smazat API klíč, anonymizovanou historii, profil, slovník jmen, šablony, model, debug data a technický log z tohoto prohlížeče? Tuto akci nelze vrátit.",confirmText:"Smazat data",danger:true,onConfirm(){clearAllLocalData();m.close();}}); };
+  m.body.querySelector("#dmClear").onclick=()=>{ confirmActionModal({title:"Smazat všechna lokální data",message:"Opravdu smazat API klíč, anonymizovanou historii, profil, slovník jmen, šablony, profil AI, debug data a technický log z tohoto prohlížeče? Tuto akci nelze vrátit.",confirmText:"Smazat data",danger:true,onConfirm(){clearAllLocalData();m.close();}}); };
 }
 
 
@@ -1585,9 +1599,9 @@ function openOpsLog(){
   const rows=loadOpsLog();
   const list=rows.length?rows.map(r=>{
     const when=new Date(r.d||Date.now()).toLocaleString("cs-CZ");
-    return '<div class="ops-row"><b>'+esc(r.type||"akce")+' · '+esc(r.status||"ok")+'</b><div class="ops-meta">'+esc(when)+' · model: '+esc(r.model||"—")+'</div><pre>'+esc(JSON.stringify(r.meta||{},null,2))+'</pre></div>';
+    return '<div class="ops-row"><b>'+esc(r.type||"akce")+' · '+esc(r.status||"ok")+'</b><div class="ops-meta">'+esc(when)+' · profil AI: '+esc(r.modelProfile||r.model||"—")+'</div><pre>'+esc(JSON.stringify(r.meta||{},null,2))+'</pre></div>';
   }).join(""):'<p class="empty">Technický log je prázdný.</p>';
-  const html='<p class="hint">Log ukládá pouze technické stavy aplikace: čas, typ akce, model, výsledek, kód chyby nebo timeout. <b>Neukládá texty e-mailů, prompty ani hotové odpovědi.</b></p><div class="ops-log">'+list+'</div><div class="row"><button class="btn ghost small" id="opsClear">Smazat technický log</button></div>';
+  const html='<p class="hint">Log ukládá pouze technické stavy aplikace: čas, typ akce, profil AI, výsledek, kód chyby nebo timeout. <b>Neukládá texty e-mailů, prompty ani hotové odpovědi.</b></p><div class="ops-log">'+list+'</div><div class="row"><button class="btn ghost small" id="opsClear">Smazat technický log</button></div>';
   const m=openModal("Technický provozní log", html, {label:"Technický provozní log"});
   const clr=m.body.querySelector("#opsClear"); if(clr) clr.onclick=()=>{ clearOpsLog(); m.close(); toast("Technický log smazán"); };
   return m;

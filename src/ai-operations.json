@@ -1,7 +1,7 @@
 {
   "schema": "ghrab-ai-operations-v1",
   "appId": "correspondence",
-  "appVersion": "5.10.3",
+  "appVersion": "5.10.4",
   "registryVersion": "1.1.0",
   "coreVersion": "1.0.0",
   "contractVersion": "1",
@@ -12,6 +12,7 @@
       "schemaId": "correspondence.analysis.v1",
       "defaultModelProfile": "balanced",
       "allowedModelProfiles": [
+        "economy",
         "balanced",
         "quality"
       ],
@@ -27,6 +28,7 @@
       "schemaId": "correspondence.reply.v1",
       "defaultModelProfile": "balanced",
       "allowedModelProfiles": [
+        "economy",
         "balanced",
         "quality"
       ],
@@ -42,6 +44,7 @@
       "schemaId": "correspondence.text.v1",
       "defaultModelProfile": "balanced",
       "allowedModelProfiles": [
+        "economy",
         "balanced",
         "quality"
       ],
@@ -57,6 +60,7 @@
       "schemaId": "correspondence.text.v1",
       "defaultModelProfile": "balanced",
       "allowedModelProfiles": [
+        "economy",
         "balanced",
         "quality"
       ],
@@ -72,6 +76,7 @@
       "schemaId": "correspondence.text.v1",
       "defaultModelProfile": "balanced",
       "allowedModelProfiles": [
+        "economy",
         "balanced",
         "quality"
       ],
@@ -87,6 +92,7 @@
       "schemaId": "correspondence.text.v1",
       "defaultModelProfile": "balanced",
       "allowedModelProfiles": [
+        "economy",
         "balanced",
         "quality"
       ],
@@ -103,7 +109,8 @@
       "defaultModelProfile": "economy",
       "allowedModelProfiles": [
         "economy",
-        "balanced"
+        "balanced",
+        "quality"
       ],
       "inputTypes": [
         "text"
@@ -118,7 +125,8 @@
       "defaultModelProfile": "economy",
       "allowedModelProfiles": [
         "economy",
-        "balanced"
+        "balanced",
+        "quality"
       ],
       "inputTypes": [
         "text"

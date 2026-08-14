@@ -59,17 +59,17 @@
       <details class="advanced-only"><summary>Pokročilé · bezpečné uložení</summary><div class="key-actions"><button class="btn ghost small" id="btnPermanent" title="Kompatibilní volba; klíč se uloží pouze pro relaci.">Uložit bezpečně pro relaci</button></div><p class="hint">P1 nepovoluje trvalé ukládání klíče poskytovatele. Po zavření prohlížeče se klíč zapomene.</p></details>
       <p class="hint"><strong>Relace</strong> = klíč se po zavření prohlížeče sám zapomene. API klíč: <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">aistudio.google.com</a> → Get API key.</p>
 
-      <div class="model-row advanced-only">
-        <label for="modelInput" title="Měň jen když generování přestane fungovat s chybou o modelu.">Model</label>
-        <input id="modelInput" type="text" placeholder="gemini-3.6-flash" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-        <div class="model-quick">
-          <button class="qm" id="qmLite" title="Nejnižší spotřeba. Pro jednoduché jazykové úkoly.">◇ Úsporný<span class="sub">gemini-3.5-flash-lite</span></button>
-          <button class="qm" id="qmStrong" title="Vyvážená rychlost a kvalita. Výchozí volba.">⚡ Doporučený<span class="sub">gemini-3.6-flash</span></button>
-          <button class="qm" id="qmQuality" title="Důkladnější model pro náročnější rozbor a formulace.">★ Důkladný<span class="sub">gemini-3.5-flash</span></button>
-        </div>
-        <p class="hint"><strong>Serverless režim:</strong> používá tvůj Gemini API klíč přímo v prohlížeči. Při nedostupnosti zvoleného modelu se jednou zkusí úsporný model.</p>
-        <details class="model-terms"><summary>Fakturace a práce s daty</summary><p class="hint">Pro aplikaci zpřístupněnou uživatelům v ČR/EHP používej projekt s aktivní fakturací, i když může být část provozu pokryta bezplatnou kvótou. Do AI vždy posílej pouze ručně zkontrolovaný anonymizovaný náhled.</p></details>
       </div>
+
+      <div class="model-row advanced-only" id="modelProfileSettings">
+        <label>Profil AI</label>
+        <div class="model-quick" role="group" aria-label="Profil AI">
+          <button class="qm" id="profileEconomy" data-model-profile="economy" aria-pressed="false" title="Nižší spotřeba a rychlá odpověď pro jednodušší úkoly.">◇ Úsporný<span class="sub">nižší spotřeba</span></button>
+          <button class="qm" id="profileBalanced" data-model-profile="balanced" aria-pressed="true" title="Vyvážená rychlost a kvalita. Výchozí volba.">⚡ Doporučený<span class="sub">výchozí volba</span></button>
+          <button class="qm" id="profileQuality" data-model-profile="quality" aria-pressed="false" title="Vyšší kvalita pro náročnější rozbor a formulace.">★ Důkladný<span class="sub">vyšší kvalita</span></button>
+        </div>
+        <p class="hint" id="modelProfileHint">Aplikace používá pouze profil Úsporný / Doporučený / Důkladný. Konkrétní model vybírá aktivní AI transport.</p>
+        <details class="model-terms"><summary>Fakturace a práce s daty</summary><p class="hint">V serverless režimu se používá osobní Gemini API klíč. Ve školním režimu vybírá konkrétní model školní AI služba. Do AI vždy posílej pouze ručně zkontrolovaný anonymizovaný náhled.</p></details>
       </div>
 
       <div class="model-row advanced-only">

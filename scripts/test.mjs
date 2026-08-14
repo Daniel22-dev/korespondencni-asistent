@@ -6,7 +6,7 @@ import {spawn,execSync} from "node:child_process";
 import {setTimeout as sleep} from "node:timers/promises";
 const ROOT=join(dirname(fileURLToPath(import.meta.url)),".."),BASE=join(ROOT,"dist");
 const CORE_VERSION="1.0.0",CORE_DIR=join(ROOT,"vendor",`ghrab-ai-core-${CORE_VERSION}`),CONFORMANCE_SOURCE=readFileSync(join(CORE_DIR,`ghrab-ai-conformance-${CORE_VERSION}.js`),"utf-8");
-const REPO="korespondencni-asistent",APP_ID="correspondence",APP_VERSION="5.10.3",SUITE="openTestRunner(false); runKorespTests()",ITEM="#testOut .test-result",FAIL="#testOut .test-result.fail",CACHE_PREFIX="ghrab-correspondence-v";
+const REPO="korespondencni-asistent",APP_ID="correspondence",APP_VERSION="5.10.4",SUITE="openTestRunner(false); runKorespTests()",ITEM="#testOut .test-result",FAIL="#testOut .test-result.fail",CACHE_PREFIX="ghrab-correspondence-v";
 let failures=0;const ok=m=>console.log("  ✓ "+m),bad=m=>{console.error("  ✗ "+m);failures++};
 if(!existsSync(join(BASE,"index.html"))){console.error("Chybí dist. Spusť nejdřív npm run build.");process.exit(1)}
 function testHtml(raw){return raw.replace('type="application/ghrab-protected" data-ghrab-protected','type="text/javascript" data-ghrab-test-executable').replace(/<script type="module" data-ghrab-access-bootstrap>[\s\S]*?<\/script>/,'')}
@@ -58,6 +58,11 @@ if(!runtime.conformance)bad("Core conformance suite nevrátila výsledek");else 
 if(raw.includes('thinkingLevel:"low"'))bad("Gemini stále používá thinkingLevel low");else ok("Gemini nepoužívá thinkingLevel low");
 if(!raw.includes("GEMINI_MAX_OUTPUT_TOKENS=32768"))bad("Gemini nemá výstupní limit 32768");else ok("Gemini má výstupní limit 32768");
 if(!raw.includes('ghrab-ai-request-v1')||!raw.includes('GHRAB AI Core 1.0.0')||!raw.includes('school-gateway')||!raw.includes('direct-gemini'))bad("chybí vydaný GHRAB AI Core nebo oba transporty");else ok("vydaný GHRAB AI Core a oba transporty");
+const sourceIntegration=readFileSync(join(ROOT,"src","js","28-ai-integration.js"),"utf-8"),sourceApi=readFileSync(join(ROOT,"src","js","30-api-gemini.js"),"utf-8"),sourceBody=readFileSync(join(ROOT,"src","body.html"),"utf-8"),directRuntime=readFileSync(join(ROOT,"src","runtime-config.js"),"utf-8"),schoolRuntime=readFileSync(join(ROOT,"src","runtime-config.school-server.js"),"utf-8");
+if(sourceIntegration.includes("modelOverride")||sourceIntegration.includes("gemini-3.")||/gemini-[0-9]/.test(sourceBody))bad("aplikační AI vrstva nebo UI znovu obsahuje providerový model");else ok("aplikační AI vrstva a UI jsou provider-neutrální");
+if(!sourceBody.includes('data-model-profile="economy"')||!sourceBody.includes('data-model-profile="balanced"')||!sourceBody.includes('data-model-profile="quality"'))bad("UI nemá všechny tři centrální profily");else ok("UI má Úsporný / Doporučený / Důkladný jako centrální profily");
+if(!directRuntime.includes('economy: "gemini-3.5-flash-lite"')||!directRuntime.includes('balanced: "gemini-3.6-flash"')||!directRuntime.includes('quality: "gemini-3.5-flash"'))bad("Direct Gemini runtime nemá referenční mapování tří profilů");else ok("Direct Gemini runtime mapuje všechny tři profily");
+if(!schoolRuntime.includes('defaultMode: "school-gateway"')||/gemini-|openai|anthropic/i.test(schoolRuntime))bad("školní runtime není provider-neutrální school-gateway");else ok("školní runtime je provider-neutrální school-gateway");
 if(!raw.includes("recipientAddressingPrompt")||!raw.includes("dám ti vědět")||!raw.includes("Vážený pane + příjmení"))bad("chybí pravidla přímého adresáta a českého oslovení");else ok("pravidla přímého adresáta a českého oslovení");
 const reporterJsPath=join(BASE,"access","error-reporter.js"),reporterCssPath=join(BASE,"access","error-reporter.css"),reporterAdapterPath=join(BASE,"access","error-reporter-adapter.js");
 if(!existsSync(reporterJsPath)||!existsSync(reporterCssPath)||!existsSync(reporterAdapterPath))bad("v dist chybí společný reportér, CSS nebo adaptér");else{
@@ -67,7 +72,7 @@ if(!existsSync(reporterJsPath)||!existsSync(reporterCssPath)||!existsSync(report
   if(!reporterJs.includes("Smazat hlášení a zavřít")||!reporterJs.includes("Ponechat rozepsané a zavřít")||!reporterJs.includes("resetDraft()")||!reporterJs.includes("state.screenshots.forEach(revokeScreenshot)"))bad("zavření reportu neumí bezpečně smazat nebo ponechat koncept");else ok("zavření reportu nabízí smazání nebo ponechání konceptu");
   if(!reporterJs.includes('"Přejít do aplikace"')||!reporterJs.includes('"Pořídit snímek"')||!reporterJs.includes('"Zpět k hlášení"')||!reporterJs.includes('"Ukončit snímání"'))bad("chybí sjednocený workflow snímání");else ok("sjednocený workflow snímání je přítomen");
   if(!reporterCss.includes('[data-theme="light"]')||!reporterCss.includes('color-scheme: dark')||!reporterCss.includes("safe-area-inset-bottom"))bad("společné CSS nepokrývá oba motivy a bezpečné okraje");else ok("společné CSS pokrývá oba motivy a bezpečné okraje");
-  if(!reporterAdapter.includes("document.body.classList.contains('dark')")||!reporterAdapter.includes("appVersion: '5.10.3'"))bad("adaptér KS nesleduje body.dark nebo nemá správnou verzi");else ok("adaptér KS respektuje skutečný motiv a verzi");
+  if(!reporterAdapter.includes("document.body.classList.contains('dark')")||!reporterAdapter.includes("appVersion: '5.10.4'"))bad("adaptér KS nesleduje body.dark nebo nemá správnou verzi");else ok("adaptér KS respektuje skutečný motiv a verzi");
   try{execSync(`node --check "${reporterJsPath}"`,{stdio:"ignore"});ok("společný reportér je syntakticky platný")}catch{bad("společný reportér má syntaktickou chybu")}
 }
 if(existsSync(join(ROOT,"src","access","error-reporter-ks.js"))||existsSync(join(ROOT,"src","access","error-reporter-ks.css"))||existsSync(join(ROOT,"src","js","26-error-reporter-compat.js")))bad("v projektu zůstala stará paralelní implementace KS");else ok("stará paralelní implementace KS byla odstraněna");

@@ -1,3 +1,13 @@
+## 5.10.4 — 2026-08-14 — sjednocení AI profilů / referenční vzor
+
+- Uživatelská volba je provider-neutrální: **◇ Úsporný / ⚡ Doporučený / ★ Důkladný** = `economy / balanced / quality`.
+- Konkrétní Gemini ID zmizela z aplikačního UI a aplikační logiky; zůstávají pouze ve veřejné Direct Gemini runtime konfiguraci.
+- `credentialProvider` už neposílá `modelOverride`; GHRAB AI Core vybírá model z runtime mapování podle `modelProfile`.
+- Stejný profil se posílá i do `school-gateway`, kde konkrétní provider/model určuje server.
+- Všechny operace přijímají všechny tři profily, takže globální volba uživatele není v konfliktu s registrem operací.
+- Přidána explicitní `runtime-config.school-server.js` a build školního profilu ji aktivuje.
+- Přidány regresní kontroly proti návratu konkrétních providerových modelů do UI/aplikační vrstvy.
+
 ## 5.10.3 — oprava rekurzivního obrazu při snímání (2026-08-13)
 
 - pomocné video pro snímání obrazovky se nyní vkládá přímo do kořene reportéru, na který platí jeho skryté styly;

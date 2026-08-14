@@ -39,6 +39,14 @@ for (const manifestPath of files.filter((file) => file.endsWith(`${path.sep}mani
   writeJson(manifestPath, manifest);
 }
 
+// School-server build must not retain a direct-provider network allowance. The
+// shared Core still contains both adapters, but runtime permits only school-gateway.
+for (const htmlPath of files.filter((file) => file.endsWith('.html'))) {
+  const raw = fs.readFileSync(htmlPath, 'utf8');
+  const hardened = raw.replace(/connect-src 'self' https:\/\/generativelanguage\.googleapis\.com;/g, "connect-src 'self';");
+  fs.writeFileSync(htmlPath, hardened);
+}
+
 const deployment = readJson(path.join(path.dirname(schoolProfiles[0]), "deployment.json"));
 if (!deployment.appId || deployment.profile !== "school-server" || deployment.authMode !== "server-session") {
   throw new Error("Aktivní school-server deployment kontrakt není úplný.");
@@ -62,6 +70,16 @@ for (const manifestPath of files.filter((file) => file.endsWith(`${path.sep}stud
 
 for (const stale of files.filter((file) => file.endsWith(`${path.sep}deployment.school-server-p0.json`))) {
   fs.rmSync(stale, { force: true });
+}
+
+for (const htmlPath of walk(targetDist).filter((file) => file.endsWith('.html'))) {
+  const raw = fs.readFileSync(htmlPath, 'utf8');
+  const csp = raw.match(/<meta\s+[^>]*http-equiv=["']Content-Security-Policy["'][^>]*content=["']([^"']*)["']/i)?.[1] || '';
+  if (/generativelanguage\.googleapis\.com/i.test(csp)) throw new Error(`School-server CSP stále povoluje přímý Gemini endpoint: ${path.relative(targetDist, htmlPath)}`);
+}
+const schoolRuntimeText = fs.readFileSync(path.join(targetDist, 'runtime-config.js'), 'utf8');
+if (!schoolRuntimeText.includes('defaultMode: "school-gateway"') || /gemini-|openai|anthropic/i.test(schoolRuntimeText)) {
+  throw new Error('School-server runtime není provider-neutrální school-gateway konfigurace.');
 }
 
 const pkg = readJson(path.join(root, "package.json"));
