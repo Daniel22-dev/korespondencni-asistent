@@ -2,12 +2,12 @@
   "schema": "ghrab-p5-xss-baseline-v1",
   "appId": "correspondence",
   "counts": {
-    "innerHTML": 100,
+    "innerHTML": 99,
     "insertAdjacentHTML": 2,
     "outerHTML": 0,
     "documentWrite": 0,
     "eval": 0,
     "newFunction": 0
   },
-  "note": "P5 R2 baseline; increases fail. Existing sinks still require review and CSP hardening."
+  "note": "P5 R9 sentence-start gate baseline; increases fail. Existing sinks still require review and CSP hardening."
 }

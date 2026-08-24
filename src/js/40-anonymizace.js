@@ -554,7 +554,10 @@ function clickedNameRange(words,index){
 function clickedNamePhrase(words,index){ return clickedNameRange(words,index).phrase; }
 function suggestionKey(phrase){ return String(phrase||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim().toLocaleLowerCase("cs-CZ"); }
 const ANALYSIS_CACHE={suggestion:new Map(),preflight:new Map()};
-function analysisCacheKey(p,text){ const st=ST[p]||{}; return p+"|"+String(text||"")+"|"+JSON.stringify(st.km||[])+"|"+JSON.stringify(st.reviewedSuggestions||{}); }
+function analysisCacheKey(p,text,options){
+  const st=ST[p]||{},opts=options||{},mode={includeReviewed:!!opts.includeReviewed,includeSentenceStart:!!opts.includeSentenceStart};
+  return p+"|"+String(text||"")+"|"+JSON.stringify(st.km||[])+"|"+JSON.stringify(st.reviewedSuggestions||{})+"|"+JSON.stringify(mode);
+}
 function clearAnalysisCache(){ ANALYSIS_CACHE.suggestion.clear(); ANALYSIS_CACHE.preflight.clear(); }
 function wordStartsSentence(parsed,w){
   if(!w)return false; const prefix=parsed.segs.slice(0,w.pi).join("");
@@ -576,29 +579,35 @@ function structuredInstitutionSuggestions(parsed){
   }
   return out;
 }
-function suggestionData(p){
-  const cacheKey=analysisCacheKey(p,ST[p]&&ST[p].raw); if(ANALYSIS_CACHE.suggestion.has(cacheKey)) return ANALYSIS_CACHE.suggestion.get(cacheKey);
-  const st=ST[p], parsed=wordObjs(st.raw||""), words=parsed.words;
+function computeSuggestionData(p,raw,options){
+  const opts=options||{},st=ST[p]||{km:[],reviewedSuggestions:{}}, parsed=wordObjs(raw||""), words=parsed.words;
   const wtok=matchWordArray(buildMatchers((st.km||[]).filter(k=>k.real&&k.token)),words);
-  const suggestions=[], byWord=new Map(), seen=new Set();
+  const suggestions=[], byWord=new Map(), seen=new Set(), ignoredWords=new Set();
+  const isKept=key=>!opts.includeReviewed&&/^keep(?:-|$)/.test(String(st.reviewedSuggestions&&st.reviewedSuggestions[key]||""));
   structuredInstitutionSuggestions(parsed).forEach(item=>{
-    if(!item.phrase||seen.has(item.key)||(st.reviewedSuggestions&&st.reviewedSuggestions[item.key]==="keep"))return;
+    if(!item.phrase||seen.has(item.key))return;
+    if(isKept(item.key)){for(let x=item.start;x<=item.end;x++)ignoredWords.add(x);return;}
     for(let x=item.start;x<=item.end;x++)if(wtok[x])return;
     seen.add(item.key);suggestions.push(item);for(let x=item.start;x<=item.end;x++)byWord.set(x,item);
   });
   words.forEach((w,i)=>{
-    if(wtok[i] || byWord.has(i) || !isNamePart(w)) return;
+    if(wtok[i] || byWord.has(i) || ignoredWords.has(i) || !isNamePart(w)) return;
     const r=clickedNameRange(words,i), phrase=String(r.phrase||"").trim(), key=suggestionKey(phrase);
-    if(!phrase||phrase.length<2||seen.has(key)||(st.reviewedSuggestions&&st.reviewedSuggestions[key]==="keep")) return;
+    if(!phrase||phrase.length<2||seen.has(key)) return;
     if(r.start<0||r.end>=words.length) return;
+    if(isKept(key)){for(let x=r.start;x<=r.end;x++)ignoredWords.add(x);return;}
     // Jednoslovné výrazy na začátku věty jsou velmi často běžná slova, ne jména.
-    if(r.start===r.end && wordStartsSentence(parsed,words[r.start]) && !KNOWN_PROPER_WORDS.has(words[r.start].core)) return;
+    if(!opts.includeSentenceStart && r.start===r.end && wordStartsSentence(parsed,words[r.start]) && !KNOWN_PROPER_WORDS.has(words[r.start].core)) return;
     for(let x=r.start;x<=r.end;x++) if(wtok[x]) return;
     seen.add(key);
     const item={phrase,key,start:r.start,end:r.end}; suggestions.push(item);
     for(let x=r.start;x<=r.end;x++) byWord.set(x,item);
   });
-  const result={suggestions,byWord,words,wtok,segs:parsed.segs}; ANALYSIS_CACHE.suggestion.set(cacheKey,result); return result;
+  return {suggestions,byWord,words,wtok,segs:parsed.segs};
+}
+function suggestionData(p){
+  const options={includeReviewed:false,includeSentenceStart:false},cacheKey=analysisCacheKey(p,ST[p]&&ST[p].raw,options); if(ANALYSIS_CACHE.suggestion.has(cacheKey)) return ANALYSIS_CACHE.suggestion.get(cacheKey);
+  const result=computeSuggestionData(p,ST[p]&&ST[p].raw,options); ANALYSIS_CACHE.suggestion.set(cacheKey,result); return result;
 }
 function categoryToken(st,kind){
   const bases={institution:"instituce",place:"místo",title:"název",contact:"kontakt",sensitive:"citlivý údaj",docnum:"číslo dokladu"};
@@ -743,14 +752,14 @@ function addPhraseAs(p, phrase, kind){
 }
 function addPhrase(p, phrase){ addPhraseAs(p,phrase,"person"); }
 function keepSuggestion(p,phrase){
-  const st=ST[p]; st.reviewedSuggestions=st.reviewedSuggestions||{}; st.reviewedSuggestions[suggestionKey(phrase)]="keep";
+  const st=ST[p]; st.reviewedSuggestions=st.reviewedSuggestions||{}; st.reviewedSuggestions[suggestionKey(phrase)]="keep-explicit";
   resetReview(p); renderView(p); renderPreview(p); toast("Výraz ponechán beze změny. Přesto ještě pročti celý text.");
 }
 function keepSuggestionRows(p,rows){
   const st=ST[p], list=(rows||suggestionData(p).suggestions).filter(x=>x&&x.phrase);
   if(!list.length) return 0;
   st.reviewedSuggestions=st.reviewedSuggestions||{};
-  list.forEach(x=>{ st.reviewedSuggestions[suggestionKey(x.phrase)]="keep"; });
+  list.forEach(x=>{ st.reviewedSuggestions[suggestionKey(x.phrase)]="keep-bulk"; });
   st.selectedPhrase="";
   resetReview(p); renderView(p); renderPreview(p);
   return list.length;
@@ -1001,8 +1010,44 @@ function likelyDocumentNumber(text){
   if(/(?:rodn[ée]\s+číslo|(?:^|[^\p{L}])r\.?\s*č\.?)(?:[^\p{L}]|$)/iu.test(stripped))return "";
   return (stripped.match(reBirthId("g"))||[]).find(x=>!x.includes("/"))||"";
 }
+function dictionaryPersonWordMatch(words){
+  const observed=new Set((words||[]).map(normName).filter(Boolean));if(!observed.size)return false;
+  return loadDict().some(entry=>{
+    const variants=new Set();
+    coreWords(entry.real).forEach(part=>nameVariants(part).forEach(value=>variants.add(normName(value))));
+    const forms=cleanStoredPersonForms(entry.forms);
+    if(forms)for(let c=1;c<=7;c++)coreWords(forms[c]).forEach(part=>variants.add(normName(part)));
+    return [...observed].some(word=>variants.has(word));
+  });
+}
+function likelyCzechSurnameShape(word){return /(?:ová|ové|ovi|ovou)$/u.test(String(word||"").normalize("NFC").toLocaleLowerCase("cs-CZ"));}
+function explicitlyKeptSingleSuggestion(p,item,observed){return observed.length===1&&ST[p]&&ST[p].reviewedSuggestions&&ST[p].reviewedSuggestions[item.key||suggestionKey(item.phrase)]==="keep-explicit";}
+function strongPersonalNameCandidates(text,p,suggestionRows){
+  const source=String(text||""),rows=suggestionRows||computeSuggestionData(p,source,{includeReviewed:true,includeSentenceStart:true}).suggestions,out=[];
+  rows.forEach(item=>{
+    if(!item||!item.phrase||item.kind==="institution")return;
+    const observed=coreWords(item.phrase).filter(part=>!NAME_TITLES.has(normName(part)));if(!observed.length)return;
+    if(explicitlyKeptSingleSuggestion(p,item,observed))return;
+    let normalized={real:item.phrase};try{normalized=canonicalizePersonPhrase(source,item.phrase);}catch(_){}
+    const base=coreWords(normalized.real||item.phrase),knownGiven=base.some(knownGivenSpelling),knownSurname=base.some(knownSurnameSpelling);
+    const reverseKnown=observed.some(part=>[1,2,3,4,5,6,7].some(caseNo=>reverseNameCandidates(part,caseNo).some(candidate=>knownGivenSpelling(candidate)||knownSurnameSpelling(candidate))));
+    const surnameShape=observed.some(likelyCzechSurnameShape);
+    const strong=observed.length>=2||knownGiven||knownSurname||reverseKnown||surnameShape||dictionaryPersonWordMatch(observed);
+    if(strong&&!out.includes(item.phrase))out.push(item.phrase);
+  });
+  return out;
+}
+function untrustedPersonalNameCandidates(text,p){
+  const rows=computeSuggestionData(p,String(text||""),{includeReviewed:true,includeSentenceStart:true}).suggestions,out=[];
+  rows.forEach(item=>{
+    if(!item||!item.phrase||item.kind==="institution")return;
+    const observed=coreWords(item.phrase).filter(part=>!NAME_TITLES.has(normName(part)));if(!observed.length||explicitlyKeptSingleSuggestion(p,item,observed))return;
+    if(!out.includes(item.phrase))out.push(item.phrase);
+  });
+  return out;
+}
 function preflightIssues(text,p){
-  const cacheKey=analysisCacheKey(p,text); if(ANALYSIS_CACHE.preflight.has(cacheKey)) return ANALYSIS_CACHE.preflight.get(cacheKey);
+  const strictOptions={includeReviewed:true,includeSentenceStart:true},cacheKey=analysisCacheKey(p,text,strictOptions); if(ANALYSIS_CACHE.preflight.has(cacheKey)) return ANALYSIS_CACHE.preflight.get(cacheKey);
   const stripped=stripSafeTokens(text);
   const danger=[], warn=[], names=[];
   const addD=(x)=>{ if(!danger.includes(x)) danger.push(x); };
@@ -1020,8 +1065,11 @@ function preflightIssues(text,p){
   const addrW=stripped.match(new RegExp("(?<![\\p{L}\\p{M}])[\\p{Lu}][\\p{Ll}\\p{M}]*(?:ní|ová|ova|ská|cká|ého)\\s+\\d{1,4}(?!\\d)","gu"));
   if(addrW) addW("možná adresa (ulice + číslo, heuristika): "+addrW.slice(0,2).join(", "));
   if(hasSensitiveSchoolTerms(stripped)) addD("citlivé školní/zdravotní nebo kázeňské údaje");
-  // Možná jména zobrazuje jediný zdroj pravdy: suggestionData().
-  try{suggestionData(p).suggestions.forEach(x=>{if(x&&x.phrase&&!names.includes(x.phrase))names.push(x.phrase);});}catch(_){}
+  // Odesílací kontrola čte znovu přesný text. Hromadné „ponechat“ neuznává;
+  // výjimkou je pouze samostatně potvrzený jednoslovný výraz.
+  let exactSuggestionRows=[];
+  try{exactSuggestionRows=computeSuggestionData(p,stripped,strictOptions).suggestions;exactSuggestionRows.forEach(x=>{if(x&&x.phrase&&!names.includes(x.phrase))names.push(x.phrase);});}catch(_){}
+  const personalNames=strongPersonalNameCandidates(stripped,p,exactSuggestionRows);
   // uložená jména (slovník) — chytni i malými písmeny / nezakrytá, nezávisle na velikosti
   try{
     const lo=stripped.toLowerCase(); const dictHits=[];
@@ -1049,7 +1097,7 @@ function preflightIssues(text,p){
       if(missed.length) addD("nezakrytý tvar již skrytého jména: "+missed.slice(0,3).join(", "));
     }
   }catch(_){}
-  const result={danger,warn,names}; ANALYSIS_CACHE.preflight.set(cacheKey,result); return result;
+  const result={danger,warn,names,personalNames}; ANALYSIS_CACHE.preflight.set(cacheKey,result); return result;
 }
 function normName(value){return String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("cs-CZ");}
 function editDistance(a,b){

@@ -3,11 +3,14 @@ const IS_TEST_MODE=new URLSearchParams(window.location.search).get("test")==="1"
 "use strict";
 
 const RELEASE = {
-  version: "5.10.4",
-  date: "2026-08-13",
+  version: "5.10.7",
+  date: "2026-08-23",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.10.7: poslední otevřený bezpečnostní nález — přísná odesílací brána kontroluje i jednoslovná jména na začátku věty, zatímco našeptávač zůstává stejně klidný. Cache výslovně rozlišuje UI a přísný režim; Nguyen, Halama, Svobodou a Nováková už na začátku věty neprojdou ani po hromadném ponechání. Regresní sada má 158 testů.",
+    "5.10.6: druhé ověřovací kolo bezpečnostního GARP — opraveno rozpoznání příjmení na -ová/-ové, hromadné ponechání už nepropustí žádný jednoslovný návrh z uživatelského obsahu a konkrétní bezpečný výraz lze ponechat pouze samostatně. JSON kódovaná nedůvěryhodná datová zóna nyní chrání jak rozbor příchozího e-mailu, tak tvorbu tří odpovědí. Regresní sada má 155 testů.",
+    "5.10.5: bezpečnostní GARP po nezávislém ověření auditu — odesílací brána znovu prověřuje pravděpodobná osobní jména i po volbě Ponechat všechny, příchozí e-mail je do analytického promptu vložen jako JSON kódovaná nedůvěryhodná datová zóna, privacy příznaky vznikají pouze z úspěšného preflightu a XSS baseline byla zpřesněna podle skutečného stavu. Přidán hostile-corpus test prompt injection a regresní scénáře obcházení jmenné brány; interní sada má 154 testů.",
     "5.10.4: sjednocení modelových profilů napříč AI Studiem — aplikace používá pouze Úsporný / Doporučený / Důkladný (economy / balanced / quality), konkrétní Gemini model je pouze v runtime konfiguraci a školní gateway dostává stejný abstraktní profil. Odstraněno ruční providerové ID modelu i modelOverride; všechny AI operace přijímají všechny tři profily a regresní test hlídá jejich propsání do Core requestu.",
     "5.10.3: oprava snímání obrazovky při hlášení chyby — pomocné živé video je nyní vložené přímo uvnitř reportéru a skryté současně přes CSS i nezávislou inline pojistku. Při sdílení stejné karty a posouvání stránky už nemůže vzniknout rekurzivní zrcadlová chodba s opakovaným záhlavím, spodní lištou a panelem snímání. Regresní kontrola ověřuje neviditelnost, umístění mimo obrazovku i skrytí pro asistivní technologie.",
     "5.10.2: dokončení oprav z uživatelského testování — úvod už nezobrazuje duplicitní oznámení o dostupné aktualizaci, volba pro vytvoření nového e-mailu jasně přijímá souvislé zadání i body a import Gmail .eml spolehlivěji čte kódované hlavičky, vícečástové zprávy i běžná středoevropská kódování. Hlášení chyby nyní vede bezpečným dvoukrokem: nejprve připraví skutečný odkaz ke stažení ZIP a po jeho stažení zpřístupní předvyplněný Gmail s výslovnou připomínkou ručního přiložení. Regresní sada má 151 interních testů.",

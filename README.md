@@ -1,30 +1,30 @@
 # Korespondenční asistent
 
-**Aktuální verze:** 5.10.4  
+**Aktuální verze:** 5.10.7  
 **Platforma:** GHRAB Platform 1.1.0 · etapa P3
 
 
 Samostatná PWA aplikace ekosystému AI Studio Gymnázia Ostrava-Hrabůvka.
 
-- **Verze aplikace:** 5.10.4
+- **Verze aplikace:** 5.10.7
 - **GHRAB AI Core:** 1.0.0
 - **Doporučený repozitář:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
-- **Interaktivní manuál:** 1.3.10 (manuál 1.3.10)
+- **Interaktivní manuál:** 1.3.13 (manuál 1.3.13)
 
-## Co přináší verze 5.10.4
+## Co přináší verze 5.10.7
 
-Verze 5.10.4 dělá z KS referenční implementaci společných modelových profilů AI Studia. Uživatel vybírá pouze **◇ Úsporný / ⚡ Doporučený / ★ Důkladný** a aplikační kód pracuje jen s `economy / balanced / quality`. Konkrétní Gemini model je pouze ve veřejné Direct Gemini runtime konfiguraci; školní build posílá stejný `modelProfile` do School Gateway, kde konkrétní provider a model určuje server.
+Verze 5.10.7 uzavírá poslední otevřený nález bezpečnostního auditu: jméno na začátku věty už nemůže projít odesílací branou jen proto, že našeptávač v rozhraní potlačuje šum.
 
-- odstraněno ruční pole s providerovým ID modelu;
-- odstraněn `modelOverride` z `credentialProvider`;
-- všechny AI operace povolují všechny tři společné profily;
-- staré uložené Gemini modely se jednorázově migrují na odpovídající profil;
-- přidána explicitní `runtime-config.school-server.js`;
-- `npm run qa:profiles` a regresní testy hlídají, že UI/aplikační AI vrstva zůstávají provider-neutrální, všechny operace povolují tři profily a zvolený profil se skutečně propíše do Core requestu.
+- přísná odesílací větev kontroluje také jednoslovné kandidáty na začátku věty;
+- našeptávač zůstává beze změny a dál potlačuje běžná větná slova;
+- cache klíč rozlišuje režim UI a přísný režim, takže si výsledky nemohou přepsat;
+- `Nguyen`, `Halama`, `Svobodou` a `Nováková` na začátku věty vždy zastaví preflight, a to i po stavu `keep-bulk`;
+- názvy bodů vytvořených předchozí AI analýzou se ve druhém kroku nepovažují za nový uživatelský vstup;
+- regresní sada obsahuje 158 interních testů a 17 testů GHRAB AI Core conformance.
 
-Technický souhrn vydání je v `RELEASE-NOTES-5.10.4-MODEL-PROFILES.md`. Oprava snímání obrazovky z 5.10.3 zůstává beze změny.
+Technický souhrn vydání je v `RELEASE-NOTES-5.10.7-SENTENCE-START-GATE.md`; ověření nálezu a přejímacích testů je v `docs/GARP-REVIEW-5.10.7-SENTENCE-START.md`.
 
 ## GHRAB AI Core
 
@@ -54,7 +54,7 @@ prohlížeč
 → Gemini API
 ```
 
-Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže standardní build 5.10.4 sám o sobě nezapíná školní server. School-server build aktivuje samostatnou `runtime-config.school-server.js`.
+Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže standardní build 5.10.7 sám o sobě nezapíná školní server. School-server build aktivuje samostatnou `runtime-config.school-server.js`.
 
 ### Budoucí migrační režim
 
@@ -131,7 +131,7 @@ npm ci
 npm test
 ```
 
-`npm test` nejprve sestaví `dist/`, ověří přesnou Core verzi a SHA-256, spustí 151 aplikačních regresních testů a poté společnou konformitní sadu.
+`npm test` nejprve sestaví `dist/`, ověří přesnou Core verzi a SHA-256, spustí 155 aplikačních regresních testů a poté společnou konformitní sadu.
 
 ## Bezpečnost
 
@@ -145,4 +145,3 @@ npm test
 ## Referenční AI profily
 
 Od verze **5.10.4** je KS referenční implementací tří provider-neutrálních profilů pro AI Studio GHRAB: `economy` (**Úsporný**), `balanced` (**Doporučený**) a `quality` (**Důkladný**). Aplikační kód neposílá konkrétní model ani `modelOverride`; Direct Gemini mapování je pouze v `src/runtime-config.js` a školní build používá `src/runtime-config.school-server.js`, kde konkrétní provider/model určuje server.
-

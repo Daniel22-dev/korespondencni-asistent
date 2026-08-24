@@ -244,11 +244,13 @@ function assertGeminiSafety(context, exactPrompt){
   const text=[String(exactPrompt||""),...context.texts.map(x=>String(x||""))].filter(Boolean).join("\n");
   const iss=preflightIssues(text,context.pane);
   const danger=context.ackSensitive ? iss.danger.filter(x=>!/citlivé/.test(x)) : iss.danger;
-  if(danger.length){
-    const findings=danger;
+  const strictNames=[],strictTexts=Array.isArray(context.strictNameTexts)?context.strictNameTexts:context.texts;strictTexts.forEach(value=>untrustedPersonalNameCandidates(value,context.pane).forEach(name=>{if(!strictNames.includes(name))strictNames.push(name);}));
+  const personalNames=[...new Set([...(iss.personalNames||[]),...strictNames])].map(x=>"pravděpodobné osobní jméno: "+x);
+  if(danger.length||personalNames.length){
+    const findings=danger.concat(personalNames);
     throw makeAppError("Odeslání zastaveno: bezpečnostní kontrola přesného promptu našla možný osobní nebo citlivý údaj („"+findings.join(", ")+"“). Uprav text nebo použij anonymizované značky.","PREFLIGHT_BLOCKED",findings);
   }
-  return text;
+  return Object.freeze({text,clientAnonymized:true,preflightPassed:true});
 }
 const GEMINI_MAX_OUTPUT_TOKENS=32768;
 function inferAiOperation(schema,system){
@@ -266,7 +268,7 @@ async function callGemini(prompt,system,schema,safetyContext,opts){
   if(currentAiMode()==="direct-gemini"&&!geminiApiKey&&!testMockAvailable())throw GHRAB_AI.createError("API_KEY_MISSING");
   const pane=safetyContext&&safetyContext.pane;
   const exactPrompt=typeof toModelPersonTokens==="function"?toModelPersonTokens(pane,prompt):String(prompt||"");
-  assertGeminiSafety(safetyContext,exactPrompt);
+  const safetyResult=assertGeminiSafety(safetyContext,exactPrompt);
   const operation=String(opts.operation||inferAiOperation(schema,system)),modelProfile=normalizeModelProfile(opts.modelProfile||selectedModelProfile);
   const thinking=opts.thinking||(schema==="synonyms"||schema==="tone"?"minimal":"medium");
   const diagnostic=modelProfile;
@@ -276,7 +278,7 @@ async function callGemini(prompt,system,schema,safetyContext,opts){
     instructions:String(system||""),inputParts:[{type:"text",text:exactPrompt}],
     outputSchemaId:KS_AI_SCHEMA_IDS[schema]||KS_AI_SCHEMA_IDS.object,
     options:{reasoningHint:thinking,maxOutputTokensHint:GEMINI_MAX_OUTPUT_TOKENS},
-    privacy:{clientAnonymized:true,preflightPassed:true},
+    privacy:{clientAnonymized:safetyResult.clientAnonymized,preflightPassed:safetyResult.preflightPassed},
     usageContext:{userActions:1,expectedOutputs:Number(opts.generatedOutputs)||(schema==="reply"?3:1)},
     localContext:{pane,startedAt:Date.now(),validateResult:(raw)=>{
       const object=typeof raw==="string"?parseModelJson(raw):raw;
@@ -287,4 +289,3 @@ async function callGemini(prompt,system,schema,safetyContext,opts){
   return response.result;
 }
 function bumpReq(){return GHRAB_AI.getLastUsage();}
-

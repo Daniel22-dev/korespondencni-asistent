@@ -1,3 +1,36 @@
+## 5.10.7 — 2026-08-23 — přísná kontrola začátku věty
+
+- UI heuristika pro potlačení běžných slov na začátku věty zůstala beze změny.
+- Přísná odesílací větev používá `includeSentenceStart`, a proto kontroluje také jednoslovné kandidáty, které se v našeptávači nezobrazují.
+- Cache klíč obsahuje režimy `includeReviewed` a `includeSentenceStart`; UI a preflight si nemohou zaměnit výsledek.
+- `Nguyen`, `Halama`, `Svobodou` a `Nováková` na začátku věty zastaví `assertGeminiSafety`, včetně varianty se stavem `keep-bulk`.
+- Při tvorbě odpovědi se přísná kontrola jmen vztahuje na uživatelský text, poznámku a osobní styl, nikoli podruhé na body vytvořené předchozí AI analýzou.
+- UI regrese ověřuje, že `Prosím` ani `Zítra` nezačnou zaplavovat panel návrhů.
+- Dotčené performance limity byly kvůli nové bezpečnostní logice a testům zvýšeny o 5 kB (nejvýše 0,83 %); všechny zůstávají blokující.
+- Interní sada má 158 testů.
+
+## 5.10.6 — 2026-08-23 — druhé ověření bezpečnostních oprav
+
+- Opravena koncovková heuristika českých příjmení: pracuje s původním NFC tvarem, takže spolehlivě zachytí také `Nováková` a `Kučerové`.
+- Jednoslovné návrhy z uživatelského obsahu jsou po hromadném `Ponechat všechny` blokující; bezpečný konkrétní výraz lze propustit pouze samostatnou volbou `Ponechat` u daného slova.
+- Starý stav `keep` a nový hromadný stav `keep-bulk` se při preflightu považují za nedostatečné; pouze `keep-explicit` může potvrdit jednoslovný výraz.
+- JSON kódovaná zóna `untrusted-email-data` se používá v rozboru i při tvorbě tří návrhů odpovědi. Trojité uvozovky už příchozí e-mail neohraničují.
+- Hostile corpus testuje obě promptové cesty; regresní příklady zahrnují `Nováková`, `Kučerové`, `Halama`, `Nguyen` a `Müller`.
+- XSS sink baseline zůstává beze změny na 99 `innerHTML` a 2 `insertAdjacentHTML`; druhé kolo žádný nový sink nepřidalo.
+- Dotčené performance limity byly kvůli nové bezpečnostní logice a regresním testům řízeně zvýšeny o 2–4 kB (nejvýše 0,5 %); nejde o prominutí kontroly a všechny limity zůstávají blokující.
+- Interní sada má 155 testů.
+
+## 5.10.5 — 2026-08-23 — bezpečnostní GARP
+
+- Odesílací preflight znovu vyhodnocuje přesný prompt a kontext nezávisle na UI stavu `Ponechat`; silní kandidáti osobních jmen jsou blokující nález.
+- Hromadné `Ponechat všechny` už nemůže samo o sobě propustit známé, víceslovné nebo pravděpodobně skloňované osobní jméno.
+- Příchozí e-mail se analytickému modelu předává uvnitř jasně označené datové zóny jako jeden JSON řetězec; systémový prompt výslovně zakazuje interpretovat jeho obsah jako instrukce.
+- Klientské `privacy.clientAnonymized` a `privacy.preflightPassed` se odvozují z úspěšného návratu bezpečnostní brány, nejsou bezpodmínečně zapsané v requestu.
+- Dřívější přirozenojazykové příklady se skutečnými tvary jmen byly nahrazeny anonymními značkami, aby přísná kontrola celého promptu nezpůsobovala falešnou stopku.
+- XSS sink baseline byla snížena z 100 na skutečných 99 použití `innerHTML`; CSP výjimka `unsafe-inline` zůstává evidovaným architektonickým dluhem, bez nového doloženého exploitovatelného sinku.
+- Celkový `dist` rozpočet byl kvůli nové blokující kontrole a testům řízeně zvýšen o 2 kB (0,16 %); ostatní dílčí limity se nemění.
+- Přidány cílené regresní testy pro čtyři pokusy obejít jmennou bránu, propsání privacy příznaků a hostile corpus deseti prompt-injection vstupů. Interní sada má 154 testů.
+
 ## 5.10.4 — 2026-08-14 — sjednocení AI profilů / referenční vzor
 
 - Uživatelská volba je provider-neutrální: **◇ Úsporný / ⚡ Doporučený / ★ Důkladný** = `economy / balanced / quality`.

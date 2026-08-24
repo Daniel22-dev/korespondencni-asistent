@@ -57,7 +57,7 @@ GHRAB_AI.configure({
     directGemini:async({request,reasoningHint,operation,modelProfile})=>{
       const alias=ksSchemaAliasFromId(request.output.schemaId);
       const prompt=request.input.parts.filter(part=>part.type==="text").map(part=>part.text).join("\n");
-      return await window.__TEST_MOCK_GEMINI({prompt,system:request.instructions,schema:alias,schemaId:request.output.schemaId,thinking:reasoningHint,operation,modelProfile});
+      return await window.__TEST_MOCK_GEMINI({prompt,system:request.instructions,schema:alias,schemaId:request.output.schemaId,thinking:reasoningHint,operation,modelProfile,privacy:request.privacy});
     },
     schoolGateway:async payload=>await window.__TEST_MOCK_GATEWAY(payload),
     health:async()=>typeof window.__TEST_MOCK_GATEWAY_HEALTH==="function"?await window.__TEST_MOCK_GATEWAY_HEALTH():{schema:"ghrab-ai-health-v1",status:"ok",supportedRequestSchemas:["ghrab-ai-request-v1"],supportedResponseSchemas:["ghrab-ai-response-v1"],supportedCoreVersions:[">=1.0.0 <2.0.0"],modelProfiles:["economy","balanced","quality"],capabilities:{streaming:false,inputTypes:["text"]},limits:{maxRequestBytes:10485760}}

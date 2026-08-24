@@ -6,7 +6,7 @@ import {spawn,execSync} from "node:child_process";
 import {setTimeout as sleep} from "node:timers/promises";
 const ROOT=join(dirname(fileURLToPath(import.meta.url)),".."),BASE=join(ROOT,"dist");
 const CORE_VERSION="1.0.0",CORE_DIR=join(ROOT,"vendor",`ghrab-ai-core-${CORE_VERSION}`),CONFORMANCE_SOURCE=readFileSync(join(CORE_DIR,`ghrab-ai-conformance-${CORE_VERSION}.js`),"utf-8");
-const REPO="korespondencni-asistent",APP_ID="correspondence",APP_VERSION="5.10.4",SUITE="openTestRunner(false); runKorespTests()",ITEM="#testOut .test-result",FAIL="#testOut .test-result.fail",CACHE_PREFIX="ghrab-correspondence-v";
+const REPO="korespondencni-asistent",APP_ID="correspondence",APP_VERSION="5.10.7",SUITE="openTestRunner(false); runKorespTests()",ITEM="#testOut .test-result",FAIL="#testOut .test-result.fail",CACHE_PREFIX="ghrab-correspondence-v";
 let failures=0;const ok=m=>console.log("  ✓ "+m),bad=m=>{console.error("  ✗ "+m);failures++};
 if(!existsSync(join(BASE,"index.html"))){console.error("Chybí dist. Spusť nejdřív npm run build.");process.exit(1)}
 function testHtml(raw){return raw.replace('type="application/ghrab-protected" data-ghrab-protected','type="text/javascript" data-ghrab-test-executable').replace(/<script type="module" data-ghrab-access-bootstrap>[\s\S]*?<\/script>/,'')}
@@ -20,7 +20,7 @@ async function runWithJsdom(raw){
   await sleep(300);
   const ids=[...doc.querySelectorAll('[id]')].map(x=>x.id),dup=[...new Set(ids.filter((v,i,a)=>a.indexOf(v)!==i))];
   const items=[...doc.querySelectorAll(ITEM)],fails=[...doc.querySelectorAll(FAIL)];
-  const result={errors,dup,fatal,conformance,count:items.length,fails:fails.map(x=>x.textContent.replace(/\s+/g," ").slice(0,180))};dom.window.close();return result;
+  const result={errors,dup,fatal,conformance,count:items.length,fails:fails.map(x=>x.textContent.replace(/\s+/g," ").slice(0,1000))};dom.window.close();return result;
 }
 function storageShim(){return `<script>(function(){function makeStore(){const m=new Map(),api={get length(){return m.size},key(i){return [...m.keys()][i]??null},getItem(k){k=String(k);return m.has(k)?m.get(k):null},setItem(k,v){m.set(String(k),String(v))},removeItem(k){m.delete(String(k))},clear(){m.clear()}};return new Proxy(api,{ownKeys(){return [...m.keys()]},getOwnPropertyDescriptor(t,k){if(m.has(String(k)))return {enumerable:true,configurable:true};return Object.getOwnPropertyDescriptor(t,k)},get(t,k,r){if(typeof k==="string"&&m.has(k))return m.get(k);return Reflect.get(t,k,r)}})}try{Object.defineProperty(window,"localStorage",{value:makeStore(),configurable:true});Object.defineProperty(window,"sessionStorage",{value:makeStore(),configurable:true});}catch(e){window.__storageShimError=String(e)}})();<\/script>`}
 async function runWithChromium(raw){
@@ -63,7 +63,7 @@ if(sourceIntegration.includes("modelOverride")||sourceIntegration.includes("gemi
 if(!sourceBody.includes('data-model-profile="economy"')||!sourceBody.includes('data-model-profile="balanced"')||!sourceBody.includes('data-model-profile="quality"'))bad("UI nemá všechny tři centrální profily");else ok("UI má Úsporný / Doporučený / Důkladný jako centrální profily");
 if(!directRuntime.includes('economy: "gemini-3.5-flash-lite"')||!directRuntime.includes('balanced: "gemini-3.6-flash"')||!directRuntime.includes('quality: "gemini-3.5-flash"'))bad("Direct Gemini runtime nemá referenční mapování tří profilů");else ok("Direct Gemini runtime mapuje všechny tři profily");
 if(!schoolRuntime.includes('defaultMode: "school-gateway"')||/gemini-|openai|anthropic/i.test(schoolRuntime))bad("školní runtime není provider-neutrální school-gateway");else ok("školní runtime je provider-neutrální school-gateway");
-if(!raw.includes("recipientAddressingPrompt")||!raw.includes("dám ti vědět")||!raw.includes("Vážený pane + příjmení"))bad("chybí pravidla přímého adresáta a českého oslovení");else ok("pravidla přímého adresáta a českého oslovení");
+if(!raw.includes("recipientAddressingPrompt")||!raw.includes("dám ti vědět")||!raw.includes("Vážený pane + příjmení")||raw.includes("dám Pavle Tlolkové vědět")||raw.includes("Vážený pane Danieli Baláži"))bad("chybí pravidla přímého adresáta a českého oslovení nebo obsahují skutečná jména");else ok("pravidla přímého adresáta a českého oslovení používají bezpečné značky");
 const reporterJsPath=join(BASE,"access","error-reporter.js"),reporterCssPath=join(BASE,"access","error-reporter.css"),reporterAdapterPath=join(BASE,"access","error-reporter-adapter.js");
 if(!existsSync(reporterJsPath)||!existsSync(reporterCssPath)||!existsSync(reporterAdapterPath))bad("v dist chybí společný reportér, CSS nebo adaptér");else{
   const reporterJs=readFileSync(reporterJsPath,"utf-8"),reporterCss=readFileSync(reporterCssPath,"utf-8"),reporterAdapter=readFileSync(reporterAdapterPath,"utf-8");
@@ -72,7 +72,7 @@ if(!existsSync(reporterJsPath)||!existsSync(reporterCssPath)||!existsSync(report
   if(!reporterJs.includes("Smazat hlášení a zavřít")||!reporterJs.includes("Ponechat rozepsané a zavřít")||!reporterJs.includes("resetDraft()")||!reporterJs.includes("state.screenshots.forEach(revokeScreenshot)"))bad("zavření reportu neumí bezpečně smazat nebo ponechat koncept");else ok("zavření reportu nabízí smazání nebo ponechání konceptu");
   if(!reporterJs.includes('"Přejít do aplikace"')||!reporterJs.includes('"Pořídit snímek"')||!reporterJs.includes('"Zpět k hlášení"')||!reporterJs.includes('"Ukončit snímání"'))bad("chybí sjednocený workflow snímání");else ok("sjednocený workflow snímání je přítomen");
   if(!reporterCss.includes('[data-theme="light"]')||!reporterCss.includes('color-scheme: dark')||!reporterCss.includes("safe-area-inset-bottom"))bad("společné CSS nepokrývá oba motivy a bezpečné okraje");else ok("společné CSS pokrývá oba motivy a bezpečné okraje");
-  if(!reporterAdapter.includes("document.body.classList.contains('dark')")||!reporterAdapter.includes("appVersion: '5.10.4'"))bad("adaptér KS nesleduje body.dark nebo nemá správnou verzi");else ok("adaptér KS respektuje skutečný motiv a verzi");
+  if(!reporterAdapter.includes("document.body.classList.contains('dark')")||!reporterAdapter.includes("appVersion: '5.10.7'"))bad("adaptér KS nesleduje body.dark nebo nemá správnou verzi");else ok("adaptér KS respektuje skutečný motiv a verzi");
   try{execSync(`node --check "${reporterJsPath}"`,{stdio:"ignore"});ok("společný reportér je syntakticky platný")}catch{bad("společný reportér má syntaktickou chybu")}
 }
 if(existsSync(join(ROOT,"src","access","error-reporter-ks.js"))||existsSync(join(ROOT,"src","access","error-reporter-ks.css"))||existsSync(join(ROOT,"src","js","26-error-reporter-compat.js")))bad("v projektu zůstala stará paralelní implementace KS");else ok("stará paralelní implementace KS byla odstraněna");
