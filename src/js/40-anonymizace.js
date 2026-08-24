@@ -509,7 +509,7 @@ function applyKeyToText(p,text,preservePersonCase){
 function cleanFromKey(p){ return applyKeyToText(p, ST[p].raw); }
 
 /* ---- pomocníci pro interaktivní náhled (#3, #4, #6) ---- */
-const NAME_CAND_STOP=new Set(["Od","Komu","Kopie","Skrytá","Předmět","Re","Fw","Fwd","Dobrý","Dobrá","Dobré","Milá","Milý","Vážená","Vážený","Vážení","Pane","Paní","Slečno","Prosím","Děkuji","Děkuju","Dobry","Kontakt","Telefon","Tel","Zdravím","Zdraví","Mává","Mávám","Mávejte","Ahoj","Pozdravem","Srdečně","Tématem","Téma","Mimochodem","Podle","Navíc","Každopádně","Přitom","Proto","Tedy","Takže","Jinak","Například","Konkrétně","Kromě","Včetně","Během","Kvůli","Díky","Místo","Na","V","Ve","S","Se","K","Ke","Do","U","Bez","Pro","O","Po","Před","Za","Mezi","Nad","Pod","Přes","Při","Skrz"]);
+const NAME_CAND_STOP=new Set(["Od","Komu","Kopie","Skrytá","Předmět","Re","Fw","Fwd","Dobrý","Dobrá","Dobré","Milá","Milý","Vážená","Vážený","Vážení","Pane","Paní","Slečno","Prosím","Děkuji","Děkuju","Dobry","Kontakt","Telefon","Tel","Zdravím","Zdraví","Mává","Mávám","Mávejte","Ahoj","Pozdravem","Srdečně","Tématem","Téma","Částka","Mimochodem","Podle","Navíc","Každopádně","Přitom","Proto","Tedy","Takže","Jinak","Například","Konkrétně","Kromě","Včetně","Během","Kvůli","Díky","Místo","Na","V","Ve","S","Se","K","Ke","Do","U","Bez","Pro","O","Po","Před","Za","Mezi","Nad","Pod","Přes","Při","Skrz"]);
 const NAME_TITLES=new Set(["mgr","ing","bc","mudr","rndr","phdr","judr","doc","prof"]);
 function isNameCandidate(core){
   if(!/^\p{L}+$/u.test(core)) return false;

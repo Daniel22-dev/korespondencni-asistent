@@ -1,30 +1,30 @@
 # Korespondenční asistent
 
-**Aktuální verze:** 5.10.7  
+**Aktuální verze:** 5.10.8  
 **Platforma:** GHRAB Platform 1.1.0 · etapa P3
 
 
 Samostatná PWA aplikace ekosystému AI Studio Gymnázia Ostrava-Hrabůvka.
 
-- **Verze aplikace:** 5.10.7
+- **Verze aplikace:** 5.10.8
 - **GHRAB AI Core:** 1.0.0
 - **Doporučený repozitář:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
 - **Interaktivní manuál:** 1.3.13 (manuál 1.3.13)
 
-## Co přináší verze 5.10.7
+## Co přináší verze 5.10.8
 
-Verze 5.10.7 uzavírá poslední otevřený nález bezpečnostního auditu: jméno na začátku věty už nemůže projít odesílací branou jen proto, že našeptávač v rozhraní potlačuje šum.
+Verze 5.10.8 opravuje chyby nalezené při reálném použití Korespondenčního asistenta, aniž by oslabila ochranu osobních údajů.
 
-- přísná odesílací větev kontroluje také jednoslovné kandidáty na začátku věty;
-- našeptávač zůstává beze změny a dál potlačuje běžná větná slova;
-- cache klíč rozlišuje režim UI a přísný režim, takže si výsledky nemohou přepsat;
-- `Nguyen`, `Halama`, `Svobodou` a `Nováková` na začátku věty vždy zastaví preflight, a to i po stavu `keep-bulk`;
-- názvy bodů vytvořených předchozí AI analýzou se ve druhém kroku nepovažují za nový uživatelský vstup;
-- regresní sada obsahuje 158 interních testů a 17 testů GHRAB AI Core conformance.
+- slovo `Částka` se už nepovažuje za možné osobní jméno a anonymizovaný e-mail o odměnách projde finální kontrolou;
+- skutečná jména na začátku věty zůstávají blokovaná podle pravidel verze 5.10.7;
+- test úvodní obrazovky funguje i při spuštění z otevřené pracovní plochy;
+- test dočasné pracovní relace nepřebírá potlačený stav z přísného režimu;
+- testovací běh po skončení obnoví také původní stav potlačení relace;
+- regresní sada obsahuje 159 interních testů a 17 testů GHRAB AI Core conformance.
 
-Technický souhrn vydání je v `RELEASE-NOTES-5.10.7-SENTENCE-START-GATE.md`; ověření nálezu a přejímacích testů je v `docs/GARP-REVIEW-5.10.7-SENTENCE-START.md`.
+Technický souhrn vydání je v `RELEASE-NOTES-5.10.8-USER-TESTING-HOTFIX.md`.
 
 ## GHRAB AI Core
 
@@ -54,7 +54,7 @@ prohlížeč
 → Gemini API
 ```
 
-Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže standardní build 5.10.7 sám o sobě nezapíná školní server. School-server build aktivuje samostatnou `runtime-config.school-server.js`.
+Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže standardní build 5.10.8 sám o sobě nezapíná školní server. School-server build aktivuje samostatnou `runtime-config.school-server.js`.
 
 ### Budoucí migrační režim
 

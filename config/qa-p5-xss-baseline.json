@@ -9,5 +9,5 @@
     "eval": 0,
     "newFunction": 0
   },
-  "note": "P5 R9 sentence-start gate baseline; increases fail. Existing sinks still require review and CSP hardening."
+  "note": "P5 R10 user-testing hotfix baseline; increases fail. Existing sinks still require review and CSP hardening."
 }

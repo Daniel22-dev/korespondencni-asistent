@@ -1,3 +1,17 @@
+## 5.10.8 — 2026-08-24 — oprava přísné kontroly a testovací izolace
+
+### Opraveno
+
+- běžné slovo `Částka` už přísná kontrola nepovažuje za možné osobní jméno;
+- test úvodní obrazovky se nejprve přepne na úvod, takže neselhává při spuštění z rozpracovaného e-mailu;
+- test relace si výslovně obnoví ukládání a používá bezpečné ověření struktury, takže nepřebírá potlačený stav z přísného režimu;
+- testovací snapshot uchovává a po běhu obnoví také stav potlačení pracovní relace.
+
+### Ověření
+
+- přidán regresní scénář s anonymizovaným e-mailem o odměnách a slovem `Částka`;
+- interní sada má 159 testů.
+
 ## 5.10.7 — 2026-08-23 — přísná kontrola začátku věty
 
 - UI heuristika pro potlačení běžných slov na začátku věty zůstala beze změny.

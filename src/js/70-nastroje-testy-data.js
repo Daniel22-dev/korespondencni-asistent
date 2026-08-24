@@ -88,10 +88,11 @@ function closeTestSideEffects(){
     if(close)close.click();else overlay.remove();
   });
 }
-function snapshotTestState(){ return {storage:snapshotAppStorage(),st:JSON.parse(JSON.stringify(ST)),inRaw:E("in","raw").value,myRaw:E("my","raw").value,key:geminiApiKey,scope:geminiKeyScope,modelProfile:selectedModelProfile,mock:window.__TEST_MOCK_GEMINI,gatewayMock:window.__TEST_MOCK_GATEWAY,runtime:GHRABRuntime.getConfig(),ui:snapshotTestUiState()}; }
+function snapshotTestState(){ return {storage:snapshotAppStorage(),st:JSON.parse(JSON.stringify(ST)),inRaw:E("in","raw").value,myRaw:E("my","raw").value,key:geminiApiKey,scope:geminiKeyScope,modelProfile:selectedModelProfile,mock:window.__TEST_MOCK_GEMINI,gatewayMock:window.__TEST_MOCK_GATEWAY,runtime:GHRABRuntime.getConfig(),workSessionSuppressed,ui:snapshotTestUiState()}; }
 function restoreTestState(snap){
   restoreAppStorage(snap.storage);
   ST.in=snap.st.in; ST.my=snap.st.my; E("in","raw").value=snap.inRaw; E("my","raw").value=snap.myRaw; geminiApiKey=snap.key; geminiKeyScope=snap.scope; selectedModelProfile=snap.modelProfile; window.__TEST_MOCK_GEMINI=snap.mock; window.__TEST_MOCK_GATEWAY=snap.gatewayMock; GHRABRuntime.replaceForTesting(snap.runtime);
+  workSessionSuppressed=!!snap.workSessionSuppressed;
   publishActiveKeyReals("in"); publishActiveKeyReals("my");
   closeTestSideEffects();
   try{
@@ -175,6 +176,8 @@ async function runKorespTests(){
       }finally{window.__TEST_MOCK_GATEWAY=oldGateway;window.__TEST_MOCK_GEMINI=oldGemini;GHRABRuntime.replaceForTesting(previous);}
     });
     await test("Úvodní obrazovka nabízí dvě hlavní pracovní cesty", async()=>{
+      // Test smí být spuštěn i z otevřené pracovní plochy.
+      showStartScreen();
       const choices=[...document.querySelectorAll('#teacherDesk [data-start]')];
       assertTest(choices.length===2,"úvodní obrazovka nemá přesně dvě hlavní volby");
       const labels=choices.map(x=>x.textContent.replace(/\s+/g," ").trim()).join(" | ");
@@ -1120,9 +1123,10 @@ async function runKorespTests(){
       box.querySelector("button").click();assertTest(input.value.includes("osoba B")&&!input.value.includes("Cecilia"),"štítek vložil skutečné jméno do poznámky");
     });
     await test("Rozpracovaná anonymizace se ukládá jen do relace", async()=>{
+      resumeWorkingSession();clearWorkingSession();
       E("in","raw").value="Cecilia píše.";ST.in.raw=E("in","raw").value;ST.in.clean="osoba B píše.";ST.in.km=[{real:"Cecilia",token:"osoba B",auto:false}];saveWorkingSessionNow();
       const rec=JSON.parse(sessionStorage.getItem(WORK_SESSION_KEY)||"null");
-      assertTest(rec&&rec.format===2&&rec.in.state.km[0].real==="Cecilia"&&localStorage.getItem(WORK_SESSION_KEY)===null,"rozpracovaný stav není správně omezen na sessionStorage");
+      assertTest(rec&&rec.format===2&&rec.in?.state?.km?.[0]?.real==="Cecilia"&&localStorage.getItem(WORK_SESSION_KEY)===null,"rozpracovaný stav není správně omezen na sessionStorage");
     });
     await test("Import EML: vnořené MIME a kódované hlavičky", async()=>{
       const eml='From: =?UTF-8?Q?Petr_Nov=C3=A1k?= <petr@example.cz>\nSubject: =?UTF-8?Q?P=C5=99edm=C4=9Bt_test?=\nContent-Type: multipart/mixed; boundary="outer"\n\n--outer\nContent-Type: multipart/alternative; boundary="inner"\n\n--inner\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: quoted-printable\n\nDobr=C3=BD den.\n--inner--\n--outer--';
@@ -1405,6 +1409,16 @@ async function runKorespTests(){
           let blocked=false;try{assertGeminiSafety({pane:"in",texts:[text]},text);}catch(e){blocked=e.code==="PREFLIGHT_BLOCKED"&&e.detail&&e.detail.some(x=>/osobní jméno/.test(x));}
           assertTest(blocked,"jméno na začátku věty prošlo odesílací branou: "+text);
         }
+      }finally{ST.in.raw=previous.raw;ST.in.clean=previous.clean;ST.in.km=previous.km;ST.in.reviewedSuggestions=previous.reviewedSuggestions;clearAnalysisCache();}
+    });
+    await test("Částka v běžném e-mailu není osobní jméno", async()=>{
+      const text="Ahoj osoba A,\n\npíšu ti ohledně nedávných odměn. Částka v minulé výplatě tvořila jen zlomek toho, co jsem očekával.\n\nChtěl jsem se tě proto zeptat na nevykázané hodiny.\n\nS pozdravem\nosoba B";
+      const previous={raw:ST.in.raw,clean:ST.in.clean,km:ST.in.km,reviewedSuggestions:ST.in.reviewedSuggestions};
+      try{
+        ST.in.raw=text;ST.in.clean=text;ST.in.km=[];ST.in.reviewedSuggestions={};clearAnalysisCache();
+        const strictNames=untrustedPersonalNameCandidates(text,"in");
+        assertTest(!strictNames.includes("Částka"),"běžné slovo Částka je stále považováno za jméno: "+strictNames.join(" | "));
+        assertGeminiSafety({pane:"in",texts:[text]},text);
       }finally{ST.in.raw=previous.raw;ST.in.clean=previous.clean;ST.in.km=previous.km;ST.in.reviewedSuggestions=previous.reviewedSuggestions;clearAnalysisCache();}
     });
     await test("Hromadné ponechání neotevře bránu jménu na začátku věty", async()=>{
