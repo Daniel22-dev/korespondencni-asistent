@@ -1,6 +1,6 @@
 {
   "name": "ghrab-korespondencni-asistent",
-  "version": "5.10.8",
+  "version": "5.10.9",
   "private": true,
   "description": "Korespondenční asistent — samostatná PWA pro GitHub Pages",
   "type": "module",
@@ -9,7 +9,7 @@
     "pretest": "npm run build",
     "test": "node scripts/qa-ai-profiles.mjs && node scripts/test.mjs && node scripts/test-ui-interactions.mjs",
     "test:reporter": "node scripts/test-error-reporter.mjs",
-    "build:school-server": "npm run build && node scripts/build-school-profile.mjs",
+    "build:school-server": "npm run build && node scripts/build-school-profile.mjs && node scripts/qa-school-profile.mjs",
     "verify:platform": "node scripts/ghrab-platform-conformance.mjs",
     "postbuild": "node scripts/ghrab-platform-conformance.mjs",
     "qa:platform": "node scripts/ghrab-platform-conformance.mjs",
@@ -24,15 +24,16 @@
     "qa:a11y": "node scripts/qa-p5-runtime.mjs",
     "qa:p4": "npm run qa:p5",
     "qa:p4:ci": "npm run qa:p5:ci",
-    "qa:p5": "npm run qa:lock && npm run qa:profiles && npm run build && npm run verify:platform && npm run qa:quality && npm run qa:browser && npm run qa:runtime && npm run qa:ui && npm run qa:xss && node scripts/qa-p5-release.mjs && node scripts/qa-p5-acceptance.mjs",
-    "qa:p5:ci": "npm run qa:lock && npm run qa:profiles && npm run build && npm run verify:platform && npm run qa:quality && npm run qa:browser && npm run qa:runtime && npm run qa:ui && npm run qa:xss && npm run qa:axe && AXE_REQUIRED=1 node scripts/qa-p5-release.mjs && node scripts/qa-p5-acceptance.mjs",
+    "qa:p5": "npm run qa:lock && npm run qa:profiles && npm run build && npm run qa:school-profile && npm run verify:platform && npm run qa:quality && npm run qa:browser && npm run qa:runtime && npm run qa:ui && npm run qa:xss && node scripts/qa-p5-release.mjs && node scripts/qa-p5-acceptance.mjs",
+    "qa:p5:ci": "npm run qa:lock && npm run qa:profiles && npm run build && npm run qa:school-profile && npm run verify:platform && npm run qa:quality && npm run qa:browser && npm run qa:runtime && npm run qa:ui && npm run qa:xss && npm run qa:axe && AXE_REQUIRED=1 node scripts/qa-p5-release.mjs && node scripts/qa-p5-acceptance.mjs",
     "test:p5": "npm run qa:p5",
     "qa:runtime": "node scripts/qa-p5-runtime.mjs",
     "qa:xss": "node scripts/qa-p5-xss-sinks.mjs",
     "qa:lock": "node scripts/qa-p5-lock.mjs",
     "pretest:reporter": "npm run build",
     "qa:ui": "node scripts/test-ui-interactions.mjs",
-    "qa:profiles": "node scripts/qa-ai-profiles.mjs"
+    "qa:profiles": "node scripts/qa-ai-profiles.mjs",
+    "qa:school-profile": "node scripts/build-school-profile.mjs && node scripts/qa-school-profile.mjs"
   },
   "engines": {
     "node": ">=18"

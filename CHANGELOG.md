@@ -1,3 +1,18 @@
+## 5.10.9 — 2026-08-27 — průřezové hardening opravy ekosystému
+
+### Opraveno
+
+- school-server build už neponechává natvrdo zapsanou GitHub Pages cestu `/AI-Studio-GHRAB/`; centrální Studio bootstrap, access gate a reportér používají `studioBaseUrl` z aktivního školního deployment kontraktu;
+- build failuje, pokud ve školním runtime zůstane standalone Studio cesta nebo pokud hlavní aplikace či manuál nepoužívají očekávaný `app-guard.js`;
+- `sharedAccessVersion` v běžném i školním profilu je synchronizována na aktuální podepsaný bundle AI Studia `access-p1-20260824175535Z-k_wtm7Zj`;
+- všechny externí GitHub Actions jsou připnuté na plný commit SHA při zachování dosavadních major řad.
+
+### Regrese
+
+- přidán samostatný `qa:school-profile`;
+- P5 a P5 CI gate nově po standardním buildu vytvářejí a kontrolují school-server artefakt;
+- GitHub Pages runtime zůstává na `/AI-Studio-GHRAB/`, takže změna school-server profilu nemění současný serverless provoz.
+
 ## 5.10.8 — 2026-08-24 — oprava přísné kontroly a testovací izolace
 
 ### Opraveno

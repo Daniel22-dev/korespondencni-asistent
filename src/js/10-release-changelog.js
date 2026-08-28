@@ -3,12 +3,13 @@ const IS_TEST_MODE=new URLSearchParams(window.location.search).get("test")==="1"
 "use strict";
 
 const RELEASE = {
-  version: "5.10.8",
-  date: "2026-08-24",
+  version: "5.10.9",
+  date: "2026-08-27",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
-    "5.10.8: oprava po reálném testování — běžné slovo Částka už přísná odesílací brána nepovažuje za osobní jméno, takže anonymizovaný e-mail s údaji o odměnách lze znovu sestavit. Automatické testy si nově samy nastaví úvodní obrazovku a izolují stav dočasného ukládání, takže je lze spouštět i z otevřené práce nebo po přísném režimu. Regresní sada má 159 testů.",
+    "5.10.9: hardening — školní build používá deployment cestu k AI Studiu; sharedAccessVersion je synchronizována a GitHub Actions pinované na SHA.",
+    "5.10.9: oprava po reálném testování — běžné slovo Částka už přísná odesílací brána nepovažuje za osobní jméno, takže anonymizovaný e-mail s údaji o odměnách lze znovu sestavit. Automatické testy si nově samy nastaví úvodní obrazovku a izolují stav dočasného ukládání, takže je lze spouštět i z otevřené práce nebo po přísném režimu. Regresní sada má 159 testů.",
     "5.10.7: poslední otevřený bezpečnostní nález — přísná odesílací brána kontroluje i jednoslovná jména na začátku věty, zatímco našeptávač zůstává stejně klidný. Cache výslovně rozlišuje UI a přísný režim; Nguyen, Halama, Svobodou a Nováková už na začátku věty neprojdou ani po hromadném ponechání. Regresní sada má 158 testů.",
     "5.10.6: druhé ověřovací kolo bezpečnostního GARP — opraveno rozpoznání příjmení na -ová/-ové, hromadné ponechání už nepropustí žádný jednoslovný návrh z uživatelského obsahu a konkrétní bezpečný výraz lze ponechat pouze samostatně. JSON kódovaná nedůvěryhodná datová zóna nyní chrání jak rozbor příchozího e-mailu, tak tvorbu tří odpovědí. Regresní sada má 155 testů.",
     "5.10.5: bezpečnostní GARP po nezávislém ověření auditu — odesílací brána znovu prověřuje pravděpodobná osobní jména i po volbě Ponechat všechny, příchozí e-mail je do analytického promptu vložen jako JSON kódovaná nedůvěryhodná datová zóna, privacy příznaky vznikají pouze z úspěšného preflightu a XSS baseline byla zpřesněna podle skutečného stavu. Přidán hostile-corpus test prompt injection a regresní scénáře obcházení jmenné brány; interní sada má 154 testů.",

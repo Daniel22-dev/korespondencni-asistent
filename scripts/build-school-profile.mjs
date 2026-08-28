@@ -53,6 +53,19 @@ if (!deployment.appId || deployment.profile !== "school-server" || deployment.au
 }
 const appBaseUrl = trailingSlash(deployment.appBaseUrl || deployment.appBaseUrls?.[deployment.appId]);
 if (!appBaseUrl.startsWith("/")) throw new Error("School-server appBaseUrl musí být same-origin absolutní cesta.");
+const studioBaseUrl = trailingSlash(deployment.studioBaseUrl || deployment.appBaseUrls?.["ai-studio"]);
+if (!studioBaseUrl.startsWith("/")) throw new Error("School-server studioBaseUrl musí být same-origin absolutní cesta.");
+
+// The standalone source intentionally points to the GitHub Pages Studio path.
+// In the school-server artifact every runtime reference must follow the active
+// deployment contract instead of retaining that standalone path.
+const standaloneStudioBaseUrl = "/AI-Studio-GHRAB/";
+const schoolTextExtensions = new Set([".html", ".js", ".json", ".css", ".webmanifest"]);
+for (const runtimeFile of walk(targetDist).filter((file) => schoolTextExtensions.has(path.extname(file)))) {
+  const raw = fs.readFileSync(runtimeFile, "utf8");
+  if (!raw.includes(standaloneStudioBaseUrl)) continue;
+  fs.writeFileSync(runtimeFile, raw.split(standaloneStudioBaseUrl).join(studioBaseUrl));
+}
 
 for (const manifestPath of files.filter((file) => file.endsWith(`${path.sep}studio-manifest.json`))) {
   const manifest = readJson(manifestPath);
@@ -82,6 +95,20 @@ if (!schoolRuntimeText.includes('defaultMode: "school-gateway"') || /gemini-|ope
   throw new Error('School-server runtime není provider-neutrální school-gateway konfigurace.');
 }
 
+const staleStandaloneRefs = [];
+for (const runtimeFile of walk(targetDist).filter((file) => schoolTextExtensions.has(path.extname(file)))) {
+  const raw = fs.readFileSync(runtimeFile, "utf8");
+  if (raw.includes(standaloneStudioBaseUrl)) staleStandaloneRefs.push(path.relative(targetDist, runtimeFile));
+}
+if (staleStandaloneRefs.length) {
+  throw new Error(`School-server build obsahuje standalone Studio cestu: ${staleStandaloneRefs.join(", ")}`);
+}
+const expectedGuardUrl = `${studioBaseUrl}access/app-guard.js`;
+for (const entry of [path.join(targetDist, "index.html"), path.join(targetDist, "manual", "index.html")]) {
+  const raw = fs.readFileSync(entry, "utf8");
+  if (!raw.includes(expectedGuardUrl)) throw new Error(`School-server bootstrap nepoužívá ${expectedGuardUrl}: ${path.relative(targetDist, entry)}`);
+}
+
 const pkg = readJson(path.join(root, "package.json"));
 writeJson(path.join(targetDist, "server-ready-build-info.json"), {
   schema: "ghrab-server-ready-build-v1",
@@ -95,6 +122,7 @@ writeJson(path.join(targetDist, "server-ready-build-info.json"), {
   activeAiTransport: deployment.aiTransport,
   telemetryMode: deployment.telemetryMode,
   appBaseUrl,
+  studioBaseUrl,
   apiBaseUrl: deployment.apiBaseUrl,
   containsSecrets: false,
   localProviderKeysAllowed: false,

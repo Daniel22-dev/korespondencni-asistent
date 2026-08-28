@@ -1,0 +1,62 @@
+KORESPONDENCNI ASISTENT - OVERENI PATCH VERZE 5.10.9
+Datum: 27. 8. 2026
+Vstup: korespondencni-asistent-main(20260827-193008).zip
+Vystup: korespondencni-asistent-main-v5.10.9-ecosystem-hardening.zip
+
+UCEL PATCH VERZE
+Tato verze neopravuje pedagogicke funkce ani vzhled. Resi potvrzene prurezove odchylky nalezene pri ekosystemovem auditu GARP.
+
+PROVEDENE ZMENY
+1. School-server bootstrap
+- scripts/build-school-profile.mjs nyni prepisuje standalone cestu /AI-Studio-GHRAB/ podle studioBaseUrl aktivniho school-server deployment kontraktu.
+- Pro aktualni school-server profil se pouziva /ai-studio/.
+- Build failuje, pokud ve school-server artefaktu zustane /AI-Studio-GHRAB/ nebo pokud index/manual nepouzivaji ocekavany /ai-studio/access/app-guard.js.
+- Pridan scripts/qa-school-profile.mjs a kontrola je zapojena do P5 gate.
+
+2. sharedAccessVersion
+- src/config/deployment.json a src/config/deployment.school-server.json jsou synchronizovany na:
+  access-p1-20260824175535Z-k_wtm7Zj
+- Hodnota odpovida aktualnimu podepsanemu bundle AI Studia z kontrolovaneho zdrojoveho balicku.
+
+3. GitHub Actions supply-chain hardening
+- vsechny externi actions/* reference ve .github/workflows jsou pripnute na plny 40znakovy commit SHA pri zachovani puvodnich major rad.
+- qa-p5-release.mjs nove blokuje navrat plovouci action reference.
+- Pouzite piny byly overeny proti aktualnim major tagum GitHubu dne 27. 8. 2026.
+
+4. Verze
+- patch verze zvysena jednou: 5.10.8 -> 5.10.9.
+- synchronizovany package, lockfile, consumer manifesty, PWA manifest/cache, service worker, release acceptance, reporter a manual.
+
+PROVEDENE KONTROLY
+PASS - npm run build
+PASS - npm run build:school-server
+PASS - qa:school-profile; school-server artefakt nema zadnou runtime referenci /AI-Studio-GHRAB/
+PASS - standardni GitHub Pages build nadale pouziva /AI-Studio-GHRAB/access/app-guard.js
+PASS - school-server build pouziva /ai-studio/access/app-guard.js v aplikaci i manualu
+PASS - npm run verify:platform: 124/124
+PASS - npm run qa:quality: 31/31, vsechny performance budgety zachovany bez zvyseni limitu
+PASS - npm run qa:browser: vsechny platformni browser kontroly bez nalezu
+PASS - npm run qa:lock: status passed, 67 locknutych balicku
+PASS - npm run qa:profiles: 15/15
+PASS - npm run qa:xss: status passed, zadne nove XSS sink selhani
+PASS - npm run test:reporter: 51 PASS / 0 FAIL ve staticke casti
+PASS - scan workflow: zadna externi GitHub Action nezustala na @vN tagu
+PASS - zakazane secret-like soubory (.env, id_rsa, server.key, private-key.pem) nenalezeny
+
+NEPROVEDENE / OMEZENE KONTROLY
+NOT TESTED - npm test: lokalni balicek neobsahuje node_modules a prostredi nema dostupny jsdom/playwright; sit v containeru neumoznila npm ci.
+NOT TESTED - prohlizecova cast test:reporter: spravovana Chromium URLBlocklist blokuje lokalni testovaci stranky; staticka cast 51/51 prosla.
+ENVIRONMENT FAILURE - qa:runtime: lokalni Chromium audit skonci timeoutem na index.html. Stejny timeout byl reprodukovan na puvodnim nezmenenem ZIPu 5.10.8, tedy nejde o regresi patch verze.
+ENVIRONMENT LIMIT - qa:ui: samostatny lokalni beh se v tomto prostredi nedokoncil v casovem limitu.
+
+DULEZITE
+- GitHub Pages runtime nebyl prepnout na school-server cestu; soucasny serverless provoz zustava beze zmeny.
+- School-server profil je pripraveny, ale stale neni zivy skolni server. Dokumentace nesmi tvrdit opak.
+- Po nahrani na GitHub musi probehnout GitHub Actions. CI ma dostupne npm ci, Playwright a spravovane release gate, a proto je rozhodujici pro finalni post-upload kontrolu.
+
+VERDIKT
+CILENE EKOSYSTEMOVE NALEZY: OPRAVENO.
+LOKALNI PATCH GATE: GREEN pro provedene a dostupne kontroly.
+FINALNI DEPLOYMENT GATE: PENDING - vyzaduje zeleny GitHub Actions beh po uploadu.
+
+Balicek ani tento protokol zamerne neobsahuji soukromy podpisovy klic, API klic ani skutecne uzivatelske opravneni.
