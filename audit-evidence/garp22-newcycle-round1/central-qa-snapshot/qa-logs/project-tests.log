@@ -1,0 +1,143 @@
+
+> ai-studio-ghrab@0.21.35 test
+> npm run generate:changelog && npm run qa:doc-versions && npm run qa:ecosystem && npm run format:check && node scripts/verify-ai-core.mjs && node scripts/generate-ai-readiness.mjs && node scripts/test.mjs && node scripts/test-platform-bootstrap.mjs && npm run test:audit-regressions && npm run test:security-regressions && npm run test:release-policy && npm run test:studio-ux
+
+
+> ai-studio-ghrab@0.21.35 generate:changelog
+> node scripts/generate-changelog.mjs
+
+Prettier není v tomto archivu nainstalován; CHANGELOG.md byl vytvořen deterministicky bez kosmetického přeformátování.
+
+> ai-studio-ghrab@0.21.35 qa:doc-versions
+> node scripts/sync-doc-app-versions.mjs --check
+
+Dokumentace aplikací odpovídá registru (8 aplikací).
+
+> ai-studio-ghrab@0.21.35 qa:ecosystem
+> node scripts/sync-platform-consumers.mjs --check && node scripts/qa-ecosystem.mjs
+
+Platform consumers: PASS (9 zaznamu, bez driftu).
+GHRAB ecosystem gate: PASS (8 aplikaci + AI Studio, registry/readiness/access bez driftu).
+
+> ai-studio-ghrab@0.21.35 format:check
+> node scripts/verify-ai-core.mjs && node scripts/format-check.mjs --ignore-path .prettierignore
+
+GHRAB AI Core 1.0.0 ověřen: verze, manifest a SHA-256 souhlasí.
+Prettier není nainstalován; hermetický fallback ověřil syntaxi a JSON strukturu 154 souborů. Doplňkový formátovací běh může použít Prettier, hlavní P4 certifikace je bez externí závislosti.
+GHRAB AI Core 1.0.0 ověřen: verze, manifest a SHA-256 souhlasí.
+AI readiness: 5 nasazeno, 0 certifikováno před nasazením, 0 bez migrace, 2 mimo rozsah AI Core.
+Access bundle access-p1-20260824175535Z-k_wtm7Zj: 93.5 h / limit 30 dní.
+AI Studio GHRAB 0.21.35 built to dist/
+[P5] ai-studio 0.21.35: platform 1.1.0, HTML 23, cache ghrab-ai-studio-v0.21.35
+
+Všechny kontroly AI Studio GHRAB prošly.
+platform bootstrap race regression: PASS
+service-worker transition regression: PASS
+
+> ai-studio-ghrab@0.21.35 test:audit-regressions
+> node scripts/test-audit-regressions.mjs
+
+PASS SW network-first access/app-guard.js
+PASS SW network-first access/access-control.js
+PASS SW network-first access/platform-runtime.js
+PASS SW runtime-only list excludes gate code
+PASS SW bypasses config/access-config-bundle.json
+PASS SW bypasses config/access-config-bundle.sig.json
+PASS SW has network-first fetch branch
+PASS SW has no dead runtime-config contract
+PASS Precache keeps offline fallback ./access/app-guard.js
+PASS Precache keeps offline fallback ./access/access-control.js
+PASS Precache keeps offline fallback ./access/platform-runtime.js
+PASS Deployment profile is not precached as required
+PASS Changelog is excluded from install precache
+PASS Access bundle is excluded from install precache
+PASS Build bakes deployment profile
+PASS Build checks signed bundle freshness
+PASS P5 CI blocks stale signed bundle
+PASS Deploy blocks stale signed bundle before build
+PASS Deployment loader prefers build-time profile
+PASS Deployment fallback is fail-closed
+PASS Local keys require explicit allow
+PASS Unavailable profile disables AI transport
+PASS Prepaint reads canonical motion key first
+PASS Language sync listener is persistent
+PASS Stale src consumer removed
+PASS PWA platform version matches consumer
+PASS PWA platform range matches consumer
+PASS Theme contract is truthful dark-only
+PASS Visual gate includes 390x844
+PASS Runtime gate includes width 390
+PASS Static CSP has no unsafe-inline
+PASS School CSP has no unsafe-inline
+PASS School profile has HSTS
+PASS School build derives P5 phase from consumer
+PASS School build derives provider-key flag
+PASS School build derives gateway flag
+PASS School build removes example profile
+PASS School build bakes fail-closed deployment
+PASS Workflow actions are SHA-pinned: axe-supplemental.yml
+PASS Workflow actions are SHA-pinned: deploy.yml
+PASS Workflow actions are SHA-pinned: distribute-ai-core.yml
+PASS Workflow actions are SHA-pinned: p3-quality.yml
+PASS Workflow actions are SHA-pinned: p4-release.yml
+PASS Workflow actions are SHA-pinned: p5-release-gate.yml
+PASS School build validates stale SW references
+PASS P3 quality report exposes release status
+PASS Precache budget comes from consumer
+PASS No legacy 1536 KiB precache constant
+PASS Security validator compares CSP profile
+audit regressions: 49/49 PASS
+
+> ai-studio-ghrab@0.21.35 test:security-regressions
+> node scripts/test-security-regressions.mjs && node scripts/test-security-center.mjs && node scripts/test-deployed-revocation.mjs
+
+PASS Service worker registruje fetch listener.
+PASS Service worker obchází access-config-bundle.json.
+PASS Service worker obchází access-config-bundle.sig.json.
+PASS Zapečený školní profil nikdy nepřepne AI do direct-gemini.
+PASS Zapečený školní profil direct-gemini ani nenabízí.
+PASS Školní profil behaviorálně zakazuje lokální API klíče.
+PASS Školní profil odstraní nalezené lokální API klíče.
+PASS Podepsaný access bundle má platný čas vydání.
+PASS Release kontrola se skutečným časem odmítne bundle starší než 30 dní.
+PASS První ověření podepsaného bundle je online.
+PASS Bundle podepsaný před 48 hodinami funguje bezprostředně po online ověření offline.
+PASS Offline režim používá podepsaný LKG mód.
+PASS Po 25 hodinách bez online ověření LKG selže fail-closed.
+PASS Limit posledního online ověření se vynucuje samostatně.
+PASS Podvržený fetchedAt neobnoví bundle starší než 30 dní.
+PASS Stáří podepsaného bundle se vynucuje nezávisle na fetchedAt.
+security regressions: 16/16 PASS
+PASS security-center: podpis, revokace, obnova a ochrana klíče
+PASS deployed-revocation: platný podpis, přesné JTI a shodné deployment profily
+
+> ai-studio-ghrab@0.21.35 test:release-policy
+> node scripts/qa-p5-release.mjs --policy-self-test
+
+{
+  "schema": "ghrab-p5-release-policy-self-test-v1",
+  "cases": [
+    {
+      "id": "required failed status is rejected",
+      "ok": true
+    },
+    {
+      "id": "required not-ready is rejected",
+      "ok": true
+    },
+    {
+      "id": "optional not-ready is tolerated",
+      "ok": true
+    },
+    {
+      "id": "browser failed list is rejected",
+      "ok": true
+    }
+  ],
+  "status": "passed"
+}
+
+> ai-studio-ghrab@0.21.35 test:studio-ux
+> node scripts/test-studio-ux.mjs
+
+Studio UX/regression test passed: navigation, colleague preview, Top 4 drag, per-app testing status, footer/changelog, reporting, safety traffic light, PR presentation, materials inbound handoff and Bridge v2 contract.

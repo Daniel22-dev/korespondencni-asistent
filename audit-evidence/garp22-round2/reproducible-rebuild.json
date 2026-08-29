@@ -1,0 +1,55 @@
+{
+  "schema": "garp22-reproducible-rebuild-v1",
+  "generatedAt": "2026-08-28T14:12:27.041Z",
+  "appVersion": "5.10.11",
+  "freshBuildLocation": "disposable-copy",
+  "files": [
+    {
+      "rel": "index.html",
+      "current": "d5fbd2f7d5e928af611798e4cf4ce64bb51cae17b8f5caf5cca0c0163fc2ed25",
+      "rebuild": "d5fbd2f7d5e928af611798e4cf4ce64bb51cae17b8f5caf5cca0c0163fc2ed25",
+      "match": true
+    },
+    {
+      "rel": "sw.js",
+      "current": "c1ee2e2c3e366e4559969ee434bb52f7208a459bf7a2a5565b98eb94d52b3678",
+      "rebuild": "c1ee2e2c3e366e4559969ee434bb52f7208a459bf7a2a5565b98eb94d52b3678",
+      "match": true
+    },
+    {
+      "rel": "manifest.webmanifest",
+      "current": "0bca4ed4e396023d128572547f9e3eeccf7fd908d22469a1386e155619df69d2",
+      "rebuild": "0bca4ed4e396023d128572547f9e3eeccf7fd908d22469a1386e155619df69d2",
+      "match": true
+    },
+    {
+      "rel": "ai-operations.json",
+      "current": "4259bf27af8136f92f5c24258d24bdcd1d6afb55a6133473e87feef9fcaefc05",
+      "rebuild": "4259bf27af8136f92f5c24258d24bdcd1d6afb55a6133473e87feef9fcaefc05",
+      "match": true
+    },
+    {
+      "rel": "config/security-headers.json",
+      "current": "a4325e86b812b0b0b634144cb104c1fcd82a1463d502baa4f48ebe0a1aacbfc5",
+      "rebuild": "a4325e86b812b0b0b634144cb104c1fcd82a1463d502baa4f48ebe0a1aacbfc5",
+      "match": true
+    },
+    {
+      "rel": "config/data-manifest.json",
+      "current": "d31c8cd991b251614c73459e1aaa4130c8f9b59e01b2a0cf180a9f5dcb2627e1",
+      "rebuild": "d31c8cd991b251614c73459e1aaa4130c8f9b59e01b2a0cf180a9f5dcb2627e1",
+      "match": true
+    },
+    {
+      "rel": "ghrab-platform.consumer.json",
+      "current": "d624ce2227b0370b49fc8c63ec65ce7d37024e19e8729622c203e77c418b6192",
+      "rebuild": "d624ce2227b0370b49fc8c63ec65ce7d37024e19e8729622c203e77c418b6192",
+      "match": true
+    }
+  ],
+  "allSelectedBitIdentical": true,
+  "knownTimestampFiles": [
+    "studio-manifest.json",
+    "platform-build-info.json"
+  ]
+}

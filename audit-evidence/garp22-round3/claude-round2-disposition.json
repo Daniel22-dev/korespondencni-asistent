@@ -1,0 +1,119 @@
+{
+  "schema": "garp22-claude-round2-disposition-v1",
+  "generatedAt": "2026-08-28T19:25:36.087Z",
+  "appVersion": "5.10.12",
+  "inputVersion": "5.10.11",
+  "governance": {
+    "secondClaudeRoundCompleted": true,
+    "confirmedHighAfterSecondRound": [
+      "C-13"
+    ],
+    "automaticLoopMayContinue": false,
+    "deployAllowed": false,
+    "newExplicitUserCycleRequired": true,
+    "currentCycleOverall": "RED"
+  },
+  "findings": {
+    "C-08": {
+      "severity": "MEDIUM",
+      "verification": "CONFIRMED",
+      "state": "FIXED",
+      "evidence": [
+        "production-test-boundary.json 8/8",
+        "negative-control-c08.log expected FAIL",
+        "static-surface-assertions.json 28/28"
+      ],
+      "summary": "Produkční test runner odstraněn z window API a fail-closed build+origin gate."
+    },
+    "C-09": {
+      "severity": "MEDIUM",
+      "verification": "CONFIRMED",
+      "state": "FIXED",
+      "evidence": [
+        "production-test-boundary.json 8/8",
+        "ui-test-report-testbuild.json 42/42"
+      ],
+      "summary": "Automatické testy skryty v produkčním admin UI; dostupné jen lokálním testovacím buildem."
+    },
+    "C-10": {
+      "severity": "LOW",
+      "verification": "CONFIRMED",
+      "state": "FIXED",
+      "evidence": [
+        "static-surface-assertions.json",
+        "canary-artifact-sweep.json"
+      ],
+      "summary": "Pevné canary A/B odstraněny; syntetické markery vznikají runtime."
+    },
+    "C-11": {
+      "severity": "LOW",
+      "verification": "CONFIRMED",
+      "state": "FIXED",
+      "evidence": [
+        "secret-scan.json 130",
+        "canary-artifact-sweep.json 130",
+        "scan-scope-verification.json 130/130"
+      ],
+      "summary": "Finální scany běží po QA artefaktech a jejich scope odpovídá aktuálnímu stromu."
+    },
+    "C-12": {
+      "severity": "MEDIUM",
+      "verification": "CONFIRMED",
+      "state": "FIXED",
+      "evidence": [
+        "core-tests-testbuild.log 164/164 + 17/17",
+        "garp-singlepage-testbuild.log 12/12",
+        "negative-control-c12.log expected FAIL"
+      ],
+      "summary": "Selhání enumerace storage se propaguje jako unverified/failure, nikoli success."
+    },
+    "C-13": {
+      "severity": "HIGH",
+      "verification": "CONFIRMED",
+      "state": "EVIDENCE_REPAIRED_BUT_GOVERNANCE_BLOCK_REMAINS",
+      "evidence": [
+        "core-tests-testbuild.log successful latest",
+        "garp-singlepage-testbuild.log successful latest",
+        "README.txt evidence chronology"
+      ],
+      "summary": "Stará rozporná evidence nahrazena aktuálními úspěšnými logy. Protože HIGH byl potvrzen po druhém Claude kole a distribuovaný kód se změnil, GARP 2.2 vyžaduje RED/no deploy a nový výslovně zahájený cyklus."
+    },
+    "C-14": {
+      "severity": "INFO",
+      "verification": "CONFIRMED_AS_STRUCTURAL_LIMIT",
+      "state": "TRACKED",
+      "evidence": [
+        "build-parity.json"
+      ],
+      "summary": "Runtime privacy evidence běží na test buildu; parity důkaz potvrzuje jen dva zamýšlené rozdíly."
+    },
+    "C-15": {
+      "severity": "INFO",
+      "verification": "CONFIRMED",
+      "state": "PARTIALLY_RESOLVED",
+      "evidence": [
+        "ui-test-testbuild.log 42/42",
+        "final-runtime.log environment timeout"
+      ],
+      "summary": "Aktuální UI evidence 42/42 obnovena na test buildu; navigovaný produkční runtime zůstává environment-limited."
+    },
+    "C-06-followup": {
+      "severity": "INFO",
+      "verification": "CONFIRMED_EVIDENCE_LIMIT",
+      "state": "NOT_FULLY_RUNTIME_VERIFIED",
+      "evidence": [
+        "error-reporter.log 52/0 static-unit; browser NOT_READY"
+      ],
+      "summary": "Skutečný clearDraft je implementován, ale navigovaná browser integrace je v tomto prostředí nedostupná."
+    }
+  },
+  "pc01": {
+    "result": "PASS_WITH_ENVIRONMENT_LIMITS",
+    "additionalFindings": [],
+    "notes": [
+      "Destruktivní test-runner entry point zahrnut do produkční boundary.",
+      "AI mock/runtime replacement/Core __testing zůstávají produkčně inertní.",
+      "Síťové a storage cesty znovu enumerovány; nový neopravený app-local exploit nepotvrzen."
+    ]
+  }
+}

@@ -809,6 +809,7 @@ export function setupErrorReporter(options = {}) {
     version: REPORTER_VERSION,
     appId: options.appId,
     recordTechnicalError: (payload) => pushTechnicalError(payload || {}),
+    clearDraft: () => { resetDraft(); return true; },
   };
 
   const root = element("div", "ghrab-error-reporter");

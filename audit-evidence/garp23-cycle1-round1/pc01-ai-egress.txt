@@ -1,0 +1,65 @@
+GARP 2.3 — PC-01 PATH COVERAGE / AI EGRESS / PROMPT-INJECTION ENTRY POINTS
+Release: Korespondenční asistent 5.10.13
+
+PRODUCTION AI EGRESS
+- Jediný provider egress: src/js/30-api-gemini.js -> GHRAB_AI.generate(...)
+- Počet produkčních GHRAB_AI.generate call-site: 1
+- callGemini je jediná aplikační fasáda před tímto egress bodem.
+
+PRODUKČNÍ AI OPERACE / ENTRY POINTS
+1. incoming-analysis
+   UI path: src/js/60-prichozi-a-muj-email.js
+   Untrusted source: příchozí e-mail/importovaný text
+   Ochrana 5.10.13: buildIncomingAnalysisPrompt -> JSON-encoded <untrusted-data> + system PROMPT_INJECTION_RULE.
+
+2. reply-draft
+   UI path: src/js/60-prichozi-a-muj-email.js
+   Untrusted source: příchozí e-mail + AI-extracted requirements + poznámka/styl
+   Ochrana 5.10.13: incoming e-mail a model-derived requirements jsou <untrusted-data>; povolené user preference jsou <user-directive>.
+
+3. outgoing-rewrite
+   UI path: src/js/60-prichozi-a-muj-email.js
+   Untrusted source: vlastní/vložený e-mailový text
+   Ochrana 5.10.13: <untrusted-data kind=outgoing-rewrite-source>.
+
+4. outgoing-compose
+   UI path: src/js/60-prichozi-a-muj-email.js
+   Untrusted source: volné zadání/body
+   Ochrana 5.10.13: <untrusted-data kind=outgoing-compose-source>.
+
+5. outgoing-proofread
+   UI path: src/js/60-prichozi-a-muj-email.js
+   Untrusted source: vlastní/vložený e-mailový text
+   Ochrana 5.10.13: <untrusted-data kind=outgoing-proofread-source>.
+
+6. synonym-suggestions
+   UI path: src/js/50-koncept-a-prompty.js
+   Untrusted source: vybrané slovo + okolní věta, které mohou pocházet z e-mailu/AI outputu
+   Ochrana 5.10.13: buildSynonymPrompt -> <untrusted-data>; buildSynonymSystemPrompt zahrnuje PROMPT_INJECTION_RULE.
+
+7. draft-refinement
+   UI path: src/js/50-koncept-a-prompty.js
+   Untrusted source: draft, locked formulations; uživatelský pokyn
+   Ochrana 5.10.13: draft/locked = <untrusted-data>; refinement instruction = <user-directive>.
+
+8. tone-check
+   UI path: src/js/50-koncept-a-prompty.js
+   Untrusted source: koncept e-mailu
+   Ochrana 5.10.13: <untrusted-data kind=draft-for-tone-check>.
+
+DALŠÍ TRUST-BOUNDARY VSTUPY
+- lokální profil role/předměty/škola -> <untrusted-data kind=local-profile-context>;
+- dlouhodobý osobní styl -> <user-directive>;
+- vlastní označení adresáta/poznámky -> <user-directive> tam, kde vstupují do prompt assembly;
+- předchozí AI výstup při dalším zpracování je považován za lower-trust data.
+
+IMPORT / HIDDEN CONTENT
+- HTML preprocessing odstraňuje style/script/noscript/template a zjevně skryté [hidden], aria-hidden=true, display:none, visibility:hidden prvky.
+- Zbytek importovaného textu je i tak nedůvěryhodný obsah, nikoli systémová instrukce.
+
+OUTPUT / BLAST RADIUS
+- AI operace mají requiredCapabilities=[].
+- Výstup se renderuje jako nedůvěryhodný/inertní text; hostile HTML test je PASS.
+- Žádný automatický shell/filesystem/send-email/tool-call sink z AI odpovědi nebyl nalezen.
+
+PC-01 ZÁVĚR: PASS pro mapování známých produkčních AI entry pointů. Identifikováno 8 deklarovaných operací, 6 produkčních callGemini call-site a 1 provider egress. Po opravě nebyla nalezena další produkční AI cesta mimo tento inventář.

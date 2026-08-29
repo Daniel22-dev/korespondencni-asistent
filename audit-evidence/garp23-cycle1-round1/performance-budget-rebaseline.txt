@@ -1,0 +1,26 @@
+GARP 2.3 / KS 5.10.13 — measured security-hardening size rebaseline
+
+Baseline 5.10.12 dist/index.html: 782780 B
+Current 5.10.13 before rebaseline: 790269 B
+Delta: +7489 B (+0.96%)
+
+Old budget failures on exact 5.10.13 production build:
+- entryHtmlBytes 790269 > 785000
+- entryCriticalBytes 939470 > 935000
+- largestInlineScriptBytes 629186 > 625000
+- precacheBytes 1247797 > 1245000
+- largestFileBytes 790269 > 785000
+
+New narrow static limits:
+- entryHtmlBytes 793000
+- entryCriticalBytes 942500
+- largestInlineScriptBytes 632000
+- precacheBytes 1251000
+- largestFileBytes 793000
+
+Unchanged:
+- distBytes 1275000
+- duplicateLargeBytes 20000
+- all runtime budgets
+
+Rationale: measured AI-RED security code and regression tests, no feature/content expansion. Old-fail log: v513-quality.log.

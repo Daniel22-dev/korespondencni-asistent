@@ -1,0 +1,10 @@
+
+> ghrab-korespondencni-asistent@5.10.14 qa:garp:bootstrap
+> node scripts/qa-garp22-app-bootstrap-integration.mjs
+
+{
+  "status": "passed",
+  "passed": 5,
+  "failed": 0,
+  "total": 5
+}

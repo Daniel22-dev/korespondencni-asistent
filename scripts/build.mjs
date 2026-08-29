@@ -6,6 +6,7 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT=join(dirname(fileURLToPath(import.meta.url)),"..");
+const TEST_HOOKS_BUILD=process.argv.includes("--test-hooks");
 const SRC=join(ROOT,"src"), DIST=join(ROOT,"dist");
 const CORE_VERSION="1.0.0",CORE_DIR=join(ROOT,"vendor",`ghrab-ai-core-${CORE_VERSION}`);
 const CORE_FILE=`ghrab-ai-core-${CORE_VERSION}.js`,CONFORMANCE_FILE=`ghrab-ai-conformance-${CORE_VERSION}.js`,CORE_MANIFEST=`ghrab-ai-core-manifest-${CORE_VERSION}.json`;
@@ -25,11 +26,34 @@ for(const file of [CORE_FILE,CONFORMANCE_FILE]){
 rmSync(DIST,{recursive:true,force:true});mkdirSync(DIST,{recursive:true});cpSync(SRC,DIST,{recursive:true});
 const tplPath=join(DIST,"index.template.html");if(!existsSync(tplPath))fail("chybí src/index.template.html");
 let tpl=readFileSync(tplPath,"utf-8");for(const [name,token] of Object.entries(TOKENS))if(!tpl.includes(token))fail("šablona neobsahuje token "+name);
+const securityHeadersPath=join(SRC,"config","security-headers.json");
+let securityHeaders;try{securityHeaders=JSON.parse(readFileSync(securityHeadersPath,"utf-8"));}catch{fail("security-headers.json není platný JSON");}
+const staticCsp=String(securityHeaders?.staticProfile?.contentSecurityPolicy||"").trim();
+if(securityHeaders?.schema!=="ghrab-security-headers-v1"||securityHeaders?.appId!==APP_ID||!staticCsp)fail("security-headers.json nemá platný staticProfile CSP");
+if(!tpl.includes("__GHRAB_STATIC_CSP__"))fail("index.template.html neobsahuje CSP build token");
+tpl=tpl.replaceAll("__GHRAB_STATIC_CSP__",staticCsp);
 const css=readFileSync(join(DIST,"styles.css"),"utf-8"),body=readFileSync(join(DIST,"body.html"),"utf-8"),jsDir=join(DIST,"js");
 const jsFiles=readdirSync(jsDir).filter(f=>f.endsWith(".js")).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));if(!jsFiles.length)fail("složka js je prázdná");
-const appJs=jsFiles.map(f=>readFileSync(join(jsDir,f),"utf-8")).join("\n;\n");
+let appJs=jsFiles.map(f=>readFileSync(join(jsDir,f),"utf-8")).join("\n;\n");
+appJs=appJs.replaceAll("__GHRAB_TEST_HOOKS_BUILD_ENABLED__",TEST_HOOKS_BUILD?"1":"0");
+if(appJs.includes("__GHRAB_TEST_HOOKS_BUILD_ENABLED__"))fail("v aplikačním JS zůstal test-hook build token");
+const TEST_RUNNER_START="/*__GHRAB_TEST_RUNNER_START__*/",TEST_RUNNER_END="/*__GHRAB_TEST_RUNNER_END__*/";
+if(!TEST_HOOKS_BUILD){
+  const start=appJs.indexOf(TEST_RUNNER_START),end=appJs.indexOf(TEST_RUNNER_END);
+  if(start<0||end<0||end<=start)fail("produkční stripping nenalezl jednoznačné hranice test runneru");
+  const stub='function testRunnerAvailable(){return TEST_HOOKS_BUILD_ENABLED&&isTrustedLocalTestOrigin();}\nconst openTestRunner=function(){return false;};\nconst runKorespTests=async function(){if(!testRunnerAvailable())throw new Error("TEST_RUNNER_DISABLED");throw new Error("TEST_RUNNER_NOT_INCLUDED_IN_PRODUCTION");};';
+  appJs=appJs.slice(0,start)+stub+appJs.slice(end+TEST_RUNNER_END.length);
+  if(appJs.includes('__GHRAB_KORESP_TESTS__=')||appJs.includes('AI-RED tone-check výstup zůstává'))fail("produkční build stále obsahuje test-runner payload");
+}
+
 if(/(?:window|globalThis)\.GHRAB_AI\s*=|registerAdapter\s*\(/.test(appJs))fail("aplikační kód obsahuje vlastní implementaci GHRAB_AI nebo adaptéru");
-const coreJs=readFileSync(join(CORE_DIR,CORE_FILE),"utf-8");
+let coreJs=readFileSync(join(CORE_DIR,CORE_FILE),"utf-8");
+if(!TEST_HOOKS_BUILD){
+  const testingExport=/,\s*__testing:\s*testing\s*\n\s*}/;
+  if(!testingExport.test(coreJs))fail("Core neobsahuje očekávaný __testing export pro produkční stripping");
+  coreJs=coreJs.replace(testingExport,"\n  }");
+  if(/__testing\s*:/.test(coreJs.slice(coreJs.indexOf("const api ="))))fail("produkční Core stále zveřejňuje __testing");
+}
 const js=coreJs+"\n;\n"+appJs;
 const out=tpl.split(TOKENS.css).join(css).split(TOKENS.body).join(body).split(TOKENS.js).join(js);if(out.includes("==SEM_BUILD_VLOZI_"))fail("ve výstupu zůstal build token");
 writeFileSync(join(DIST,"index.html"),out);rmSync(tplPath);rmSync(join(DIST,"styles.css"));rmSync(join(DIST,"body.html"));rmSync(jsDir,{recursive:true});rmSync(join(DIST,"README_PWA.md"),{force:true});
@@ -45,7 +69,7 @@ if(operations.schema!=="ghrab-ai-operations-v1"||operations.appId!==APP_ID||oper
 if(!Array.isArray(operations.operations)||operations.operations.length!==8)fail("ai-operations.json musí obsahovat přesně osm operací KS");
 const operationKeys=new Set();for(const operation of operations.operations){if(!operation||typeof operation.operation!=="string"||!operation.schemaId)fail("ai-operations.json obsahuje neplatnou operaci");if(operationKeys.has(operation.operation))fail("ai-operations.json obsahuje duplicitní operaci "+operation.operation);operationKeys.add(operation.operation);if(!appJs.includes(`"${operation.operation}"`)||!appJs.includes(operation.schemaId))fail("veřejný registr operací se rozešel s aplikační integrací: "+operation.operation);}
 const smt=join(DIST,"studio-manifest.template.json");if(existsSync(smt)){const manifestText=readFileSync(smt,"utf-8").replaceAll("__APP_VERSION__",rel[1]).replaceAll("__BUILD_TIME__",new Date().toISOString());let studioManifest;try{studioManifest=JSON.parse(manifestText);}catch{fail("studio-manifest není platný JSON");}const aiCore=studioManifest.aiCore;if(studioManifest.id!==APP_ID||studioManifest.version!==rel[1]||aiCore?.schema!=="ghrab-ai-app-integration-v1"||aiCore.coreVersion!==CORE_VERSION||String(aiCore.contractVersion)!=="1"||aiCore.serverReady!==true||aiCore.conformancePassed!==true||aiCore.runtimeSchema!=="ghrab-runtime-config-v1"||aiCore.operationsManifestUrl!=="https://daniel22-dev.github.io/korespondencni-asistent/ai-operations.json")fail("studio-manifest nemá platná metadata GHRAB AI Core");writeFileSync(join(DIST,"studio-manifest.json"),manifestText);rmSync(smt)}
-writeFileSync(join(DIST,".nojekyll"),"");log(`${APP_NAME}: verze ${rel[1]} · Core ${CORE_VERSION} ověřen SHA-256 · ${operations.operations.length} AI operací · ${jsFiles.length} aplikačních JS modulů · dist připraven`);
+writeFileSync(join(DIST,".nojekyll"),"");log(`${APP_NAME}: verze ${rel[1]} · Core ${CORE_VERSION} ověřen SHA-256 · ${operations.operations.length} AI operací · ${jsFiles.length} aplikačních JS modulů · test hooks ${TEST_HOOKS_BUILD?"LOCAL TEST ONLY":"OFF"} · dist připraven`);
 
 // P2: canonical cross-application platform post-processing.
 await import("./apply-ghrab-platform.mjs");

@@ -1,0 +1,15 @@
+{
+  "appId": "correspondence",
+  "appVersion": "5.10.13",
+  "axeRequired": false,
+  "summary": {
+    "total": 41,
+    "passed": 39,
+    "failed": 2
+  },
+  "status": "failed",
+  "failed": [
+    "report.runtime.exists",
+    "report.ui.exists"
+  ]
+}

@@ -1,0 +1,9 @@
+FREE ADVERSARIAL SEARCH – current corrective round
+1. Re-enumerated all production callGemini sites and prompt builders after C-01. No second tone/model-derived instruction path found outside untrusted-data.
+2. Searched trustedInstruction uses: remains only for fixed app-owned quick action buttons; tone model-derived path does not use it.
+3. Searched raw dictionary fallbacks that could land in prompts. Claude C-07 pattern fixed and outgoing rewrite/compose hardened to safe known defaults as well.
+4. Tested production test-only attack surface: full internal runner was still unnecessarily shipped even though inaccessible. Hardened build now strips ~147 kB test-only payload and keeps fail-closed stubs; negative control proves static gate detects regression.
+5. Re-ran hidden HTML variants, encoding/Unicode/multilingual/context stuffing and multipath AIR-12; no new structural escape.
+6. Secret/canary scanners promoted into P5 and given explicit negative controls.
+7. No new confirmed HIGH/CRITICAL or additional MEDIUM code issue found after corrections.
+Residual external/architectural debts: live model behavior, SIM-03/04/07, RT-16 account/key custody, CSP unsafe-inline compatibility, provider retention.

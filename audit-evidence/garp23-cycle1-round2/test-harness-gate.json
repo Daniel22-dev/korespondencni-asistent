@@ -1,0 +1,16 @@
+{
+  "schema": "garp23-test-harness-gate-v1",
+  "generatedAt": "2026-08-29T10:34:13.534Z",
+  "clean": {
+    "jsdomUrl": true,
+    "autoQuery": false,
+    "manualSuite": true,
+    "passed": true
+  },
+  "negativeControl": {
+    "mutation": "restore ?test=1 on JSDOM URL",
+    "expected": "FAIL",
+    "observed": "FAIL"
+  },
+  "status": "passed"
+}

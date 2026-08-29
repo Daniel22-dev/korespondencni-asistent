@@ -30,6 +30,7 @@ const KS_AI_OPERATIONS=Object.freeze({
   })
 });
 function ksCoreTestModeFor(mode){
+  if(!TEST_HOOKS_BUILD_ENABLED||!isTrustedLocalTestOrigin())return false;
   const active=(typeof IS_TEST_MODE!=="undefined"&&IS_TEST_MODE)||(typeof TEST_RUN_ACTIVE!=="undefined"&&TEST_RUN_ACTIVE);
   if(!active)return false;
   return mode==="school-gateway"?typeof window.__TEST_MOCK_GATEWAY==="function":typeof window.__TEST_MOCK_GEMINI==="function";
@@ -98,6 +99,7 @@ window.GHRABRuntime=Object.freeze({
   getDefaultModelProfile:()=>"balanced",
   isSchoolGateway:()=>GHRAB_AI.getState().activeMode==="school-gateway",
   replaceForTesting:raw=>{
+    if(!TEST_HOOKS_BUILD_ENABLED||!isTrustedLocalTestOrigin())return false;
     const current=GHRAB_AI.getState().runtimeConfig,src=raw&&raw.ai||{},mode=src.mode||src.selectedMode||src.defaultMode||current.ai.defaultMode;
     const allowed=Array.isArray(src.allowedModes)?src.allowedModes.slice():current.ai.allowedModes.slice();
     if(!allowed.includes(mode))allowed.push(mode);

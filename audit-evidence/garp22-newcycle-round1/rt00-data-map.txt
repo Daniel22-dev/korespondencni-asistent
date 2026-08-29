@@ -1,0 +1,40 @@
+RT-00 DATA MAP & SCOPE — NEW GARP 2.2 CYCLE
+app=ghrab-korespondencni-asistent version=5.10.12
+deployment.profile=github-pages authMode=signed-permit aiMode=n/a
+synthetic_only=true
+
+[Declared categories]
+
+[Declared stores]
+{"kind":"localStorage","category":"application-data","patterns":["ghrab.correspondence.*","ghrab.correspondence.ks5.*"],"sensitivity":"potentially-personal","authority":"client","clearOnEndWork":true}
+{"kind":"sessionStorage","category":"session-data","patterns":["ghrab.correspondence.gemini_key_session","ghrab.correspondence.work_session_v2"],"sensitivity":"confidential","authority":"client","clearOnEndWork":true}
+{"kind":"localStorage","category":"credential","patterns":["ghrab.correspondence.gemini_key","ghrab.correspondence.gemini_key_session"],"sensitivity":"secret","authority":"client-direct-mode-only","clearOnEndWork":true}
+{"kind":"sessionStorage","category":"credential","patterns":["ghrab.correspondence.gemini_key","ghrab.correspondence.gemini_key_session"],"sensitivity":"secret","authority":"client-direct-mode-only","clearOnEndWork":true}
+{"kind":"cacheStorage","category":"application-cache","patterns":["ghrab-correspondence-v*","correspondence*"],"sensitivity":"non-content-cache","authority":"client","clearOnEndWork":false}
+{"kind":"sessionStorage","category":"ai-prompt-debug","patterns":["rozbor_last_prompt_debug"],"sensitivity":"potentially-personal","authority":"client","clearOnEndWork":true,"note":"Exact anonymized prompt/system debug is stored only outside strict/sensitive scenarios; capped and cleared by end-work."}
+{"kind":"localStorage+sessionStorage","category":"studio-bridge","patterns":["ghrab.handoff.v1","ghrab.pilot.events.v2"],"sensitivity":"potentially-personal","authority":"shared-platform-client","clearOnEndWork":true}
+
+[Declared data flows]
+{"id":"ai-egress","path":"callGemini -> GHRAB_AI.generate -> fetch","content":"anonymized prompt + system instructions + output schema","preflightRequired":true}
+{"id":"error-reporter-fetch-wrapper","path":"window.fetch wrapper in access/error-reporter.js","observes":["method","origin+path","status","duration","sanitized error/stack"],"doesNotRecord":["request body","request headers","query string","API key"]}
+{"id":"studio-bridge","path":"ghrab.handoff.v1 / ghrab.pilot.events.v2","storage":"localStorage/sessionStorage","clearOnEndWork":true}
+{"id":"prompt-debug","path":"rozbor_last_prompt_debug","storage":"sessionStorage","maxPromptChars":30000,"maxSystemChars":12000,"disabledForStrictSensitiveScenarios":true,"clearOnEndWork":true}
+
+[Observed additional explicit user egress/export]
+- Gmail compose: final exportable draft -> URL-encoded body/subject -> window.open(mail.google.com, _blank, noopener); requires canExport().
+- Copy to clipboard / TXT download / DOCX-or-settings exports are explicit user actions; not model egress.
+
+[Observed AI egress]
+- Exactly one production code sink: src/js/30-api-gemini.js -> GHRAB_AI.generate(). data-manifest contains only descriptive duplicate.
+- Error reporter fetch wrapper observes technical URL path only and is declared doesNotRecord body/headers/query/API key.
+
+[Imports]
+- incoming EML/file import; settings JSON import; school-library import; error-reporter screenshot FileReader (diagnostic attachment, separate from app import).
+
+[Lifecycle/privacy]
+- local/session storage app namespaces; transient ST/DOM; error-reporter draft/screenshot memory; SW static cache; explicit exports.
+- automaticExpiryImplemented=false; serverDeleteConnected=false in current serverless profile; shared-device control is endWorkAndClearData().
+
+[Scope consequences]
+- RT-17/SIM-03/SIM-04 require real navigated browser lifecycle across reload/new-tab/reopen/multi-tab. Managed URLBlocklist prevents this locally -> NOT TESTED here.
+- RT-20 app-local deletion can be runtime tested, but full RT-20 inherits SIM-03 lifecycle dependency for GREEN.

@@ -1,0 +1,17 @@
+{
+  "schema": "garp22-runtime-source-compare-v1",
+  "generatedAt": "2026-08-29T08:17:43.720976Z",
+  "inputCandidate": "5.10.12 new-cycle Claude round1",
+  "currentVersion": "5.10.12",
+  "current": {
+    "sha256": "cd5e5d80f73bcca28fabb40f5b6037f5680b6a37bdf137663bf8af78fbf20714",
+    "files": 58
+  },
+  "previous": {
+    "sha256": "cd5e5d80f73bcca28fabb40f5b6037f5680b6a37bdf137663bf8af78fbf20714",
+    "files": 58
+  },
+  "changedRuntimeFiles": [],
+  "status": "passed",
+  "note": "Only audit/QA/CI tooling changed in corrective round; application runtime source/config/vendor remains byte-identical."
+}

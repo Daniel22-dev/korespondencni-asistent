@@ -1,0 +1,11 @@
+{
+  "checks": [
+    {"script":"qa-garp22-secret-scan.mjs","exit":1,"rejected":true,"stderr":"file:///mnt/data/ka_final_close/korespondencni-asistent-main/scripts/lib/garp-evidence-path.mjs:7     throw new Error('Invalid GARP_EVIDENCE_DIR');           ^  Error: Invalid GARP"},
+    {"script":"qa-garp22-canary-scan.mjs","exit":1,"rejected":true,"stderr":"file:///mnt/data/ka_final_close/korespondencni-asistent-main/scripts/lib/garp-evidence-path.mjs:7     throw new Error('Invalid GARP_EVIDENCE_DIR');           ^  Error: Invalid GARP"},
+    {"script":"qa-garp22-static-surface.mjs","exit":1,"rejected":true,"stderr":"file:///mnt/data/ka_final_close/korespondencni-asistent-main/scripts/lib/garp-evidence-path.mjs:7     throw new Error('Invalid GARP_EVIDENCE_DIR');           ^  Error: Invalid GARP"},
+    {"script":"qa-garp22-singlepage.mjs","exit":1,"rejected":true,"stderr":"file:///mnt/data/ka_final_close/korespondencni-asistent-main/scripts/lib/garp-evidence-path.mjs:7     throw new Error('Invalid GARP_EVIDENCE_DIR');           ^  Error: Invalid GARP"},
+    {"script":"qa-garp22-production-test-boundary.mjs","exit":1,"rejected":true,"stderr":"file:///mnt/data/ka_final_close/korespondencni-asistent-main/scripts/lib/garp-evidence-path.mjs:7     throw new Error('Invalid GARP_EVIDENCE_DIR');           ^  Error: Invalid GARP"},
+    {"script":"qa-garp22-app-bootstrap-integration.mjs","exit":1,"rejected":true,"stderr":"file:///mnt/data/ka_final_close/korespondencni-asistent-main/scripts/lib/garp-evidence-path.mjs:7     throw new Error('Invalid GARP_EVIDENCE_DIR');           ^  Error: Invalid GARP"}
+  ],
+  "rootSecretScanCreated": false
+}

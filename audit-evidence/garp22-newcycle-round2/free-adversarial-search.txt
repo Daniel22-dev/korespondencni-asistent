@@ -1,0 +1,9 @@
+VOLNÉ ADVERSARIÁLNÍ HLEDÁNÍ — NOVÝ CYKLUS / OPRAVNÉ KOLO
+1) Stale PASS po selhání access harnessu -> potvrzeno jako N-01, opraveno; NC nyní zapisuje failed artifact.
+2) QA metadata nafouknou budget / budou publikována -> potvrzeno jako N-02, opraveno; budget order-independent + deploy cleanup.
+3) Bootstrap aplikace ignoruje deny z guardu -> negativní mutace if(true) byla testem zachycena; čistý bootstrap 5/5 PASS.
+4) Evidence se zapisuje do starého kola -> N-03 opraveno jednotným GARP_EVIDENCE_DIR a stejným canary input/output adresářem.
+5) GARP_EVIDENCE_DIR path traversal -> nově nalezeno AD-02; opraveno allowlist validací; ../../src negative control exit 1.
+6) Deploy cleanup smaže skutečný app asset -> testováno v disposable kopii; index.html zůstává, QA reporty mizí.
+7) Runtime aplikace se změnil nechtěně při opravě audit toolingu -> runtime-source-unchanged.json: src/config/vendor tree hash shodný, 0 changed runtime files.
+Závěr: žádný nový produkční HIGH/CRITICAL nález.

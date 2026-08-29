@@ -1,0 +1,37 @@
+{
+  "schema": "garp22-free-adversarial-v1",
+  "generatedAt": "2026-08-28T12:49:24.571761+00:00",
+  "attempts": [
+    {
+      "hypothesis": "A second hidden AI egress path could bypass anonymization/preflight.",
+      "method": "Enumerated all GHRAB_AI.generate call sites in production source and followed call chain.",
+      "result": "One production egress call found (src/js/30-api-gemini.js:276 if present); it is behind callGemini/assertGeminiSafety. No duplicate egress found.",
+      "finding": "none beyond fixed redaction issue."
+    },
+    {
+      "hypothesis": "A secondary file import could bypass newly added size/schema limits.",
+      "method": "Enumerated every new FileReader in src/js and reviewed/runtime-tested each import family with synthetic oversized/malformed data where harness allowed.",
+      "result": "Exactly three paths found; EML had existing limits, settings and school-library paths were hardened and regression-tested.",
+      "finding": "confirmed and fixed two missing import-hardening paths."
+    },
+    {
+      "hypothesis": "End-work could leave data in AI Studio bridge/event keys or workbench draft state outside normal namespace.",
+      "method": "Searched storage namespaces and bridge code; seeded synthetic canaries into app-owned local/session/workbench/DOM state and ran endWork.",
+      "result": "Bridge handoff/event keys are included in deletion regex; workbench transient state is explicitly cleared; runtime test removed canaries.",
+      "finding": "confirmed duplicate retention surfaces and fixed end-work path."
+    },
+    {
+      "hypothesis": "Service worker/cache could retain student request bodies or dynamic AI traffic.",
+      "method": "Inspected service-worker fetch/cache strategy and source-wide IndexedDB use.",
+      "result": "SW bypasses non-GET requests and caches GET responses/static runtime assets; no IndexedDB source references found.",
+      "finding": "no additional finding; true update/recovery drill remains NOT TESTED due browser policy."
+    },
+    {
+      "hypothesis": "New-tab/URL integrations could expose opener/postMessage/iframe surfaces.",
+      "method": "Source-wide scan for postMessage/message listeners/iframes/target=_blank/window.open plus same-origin Studio URL guard.",
+      "result": "No application window.postMessage listeners/calls or iframes found; HTML new-tab links use noopener; Gmail window.open uses noopener; Studio URL resolver enforces same-origin AI-Studio path.",
+      "finding": "no additional finding."
+    }
+  ],
+  "note": "All active payloads and canaries were synthetic. No real student data were used."
+}

@@ -1,0 +1,15 @@
+{
+  "schema": "garp22-free-adversarial-search-v1",
+  "appId": "correspondence",
+  "appVersion": "5.10.11",
+  "syntheticDataOnly": true,
+  "searchAreas":["alternate AI/test-hook activation paths","duplicate network egress","untracked storage paths","unsafe browser sinks","CSP/source-of-truth mismatches","privacy deletion success claims","reporter memory state"],
+  "confirmedFindings":[
+    {"id":"AD-01","severity":"MEDIUM","status":"FIXED","description":"Production GHRAB AI Core publicly exported __testing, enabling setTestHooks/replaceRuntimeConfig as a sibling route around app-level mock gating."}
+  ],
+  "openArchitecturalDebts":[
+    {"id":"D-CSP-INLINE","severity":"MEDIUM-LOW","status":"OPEN","description":"script-src/style-src still require unsafe-inline for compatibility. No unsafe-eval, eval, or new Function found; production test hooks are independently disabled."},
+    {"id":"D-ACCESS-ECOSYSTEM","status":"NOT_TESTED","description":"Central app-guard, real account/session boundaries and multi-tab/reopen scenarios are outside this ZIP/environment and remain gating evidence gaps."}
+  ],
+  "result":"No additional unresolved app-local confirmed exploit found beyond known architectural/environment debts."
+}

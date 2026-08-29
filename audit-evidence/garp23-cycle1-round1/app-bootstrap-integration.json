@@ -1,0 +1,122 @@
+{
+  "schema": "garp22-app-bootstrap-integration-v1",
+  "generatedAt": "2026-08-29T09:42:58.658Z",
+  "syntheticOnly": true,
+  "source": "dist/index.html actual bootstrap with only dynamic imports injected",
+  "checks": [
+    {
+      "id": "N06.bootstrap-protected-script-present",
+      "ok": true,
+      "detail": {
+        "protectedCount": 1
+      }
+    },
+    {
+      "id": "N06.guard-before-unlock",
+      "ok": true,
+      "detail": {
+        "guardCallIndex": 1242,
+        "unlockIndex": 1650
+      }
+    },
+    {
+      "id": "N06.denial-does-not-unlock",
+      "ok": true,
+      "detail": {
+        "name": "deny-no-permit",
+        "mode": "deny",
+        "unlockCalls": 0,
+        "access": null,
+        "ghrabAccess": "denied",
+        "body": "<main class=\"ghrab-access-gate\"><div class=\"ghrab-access-gate-mark\">⬡</div><p class=\"ghrab-access-gate-eyebrow\">AI STUDIO GHRAB</p><h1>Přístup nebyl povolen</h1><p>Tato aplikace nebyla pro tento účet nebo zařízení odemčena. Vraťte se do AI Studia a zkontrolujte oprávnění.</p><div class=\"ghrab-access-gate-actions\"><a class=\"ghrab-access-gate-primary\" href=\"/AI-Studio-GHRAB/\">Otevřít AI Studio</a></div></main>",
+        "logs": []
+      }
+    },
+    {
+      "id": "N06.guard-import-failure-does-not-unlock",
+      "ok": true,
+      "detail": {
+        "name": "guard-load-failure",
+        "mode": "loader-error",
+        "unlockCalls": 0,
+        "access": null,
+        "ghrabAccess": "denied",
+        "body": "<main class=\"ghrab-access-gate\"><div class=\"ghrab-access-gate-mark\">⬡</div><p class=\"ghrab-access-gate-eyebrow\">AI STUDIO GHRAB</p><h1>Spuštění aplikace nelze dokončit</h1><p>Ověření přístupu nebo inicializace aplikace selhala. Otevřete aplikaci znovu přes AI Studio.</p><div class=\"ghrab-access-gate-actions\"><a class=\"ghrab-access-gate-primary\" href=\"/AI-Studio-GHRAB/\">Otevřít AI Studio</a></div></main>",
+        "logs": [
+          [
+            "error",
+            "AI Studio access bootstrap failed:",
+            "SyntheticGuardLoadError"
+          ]
+        ]
+      }
+    },
+    {
+      "id": "N06.allow-path-requires-guard-and-unlock",
+      "ok": true,
+      "detail": {
+        "name": "allow-valid-permit",
+        "mode": "allow",
+        "unlockCalls": 1,
+        "access": {
+          "appId": "correspondence",
+          "permit": {
+            "role": "teacher",
+            "apps": [
+              "correspondence"
+            ],
+            "synthetic": true
+          }
+        },
+        "ghrabAccess": "checking",
+        "body": "",
+        "logs": []
+      }
+    }
+  ],
+  "cases": [
+    {
+      "name": "deny-no-permit",
+      "mode": "deny",
+      "unlockCalls": 0,
+      "access": null,
+      "ghrabAccess": "denied",
+      "body": "<main class=\"ghrab-access-gate\"><div class=\"ghrab-access-gate-mark\">⬡</div><p class=\"ghrab-access-gate-eyebrow\">AI STUDIO GHRAB</p><h1>Přístup nebyl povolen</h1><p>Tato aplikace nebyla pro tento účet nebo zařízení odemčena. Vraťte se do AI Studia a zkontrolujte oprávnění.</p><div class=\"ghrab-access-gate-actions\"><a class=\"ghrab-access-gate-primary\" href=\"/AI-Studio-GHRAB/\">Otevřít AI Studio</a></div></main>",
+      "logs": []
+    },
+    {
+      "name": "guard-load-failure",
+      "mode": "loader-error",
+      "unlockCalls": 0,
+      "access": null,
+      "ghrabAccess": "denied",
+      "body": "<main class=\"ghrab-access-gate\"><div class=\"ghrab-access-gate-mark\">⬡</div><p class=\"ghrab-access-gate-eyebrow\">AI STUDIO GHRAB</p><h1>Spuštění aplikace nelze dokončit</h1><p>Ověření přístupu nebo inicializace aplikace selhala. Otevřete aplikaci znovu přes AI Studio.</p><div class=\"ghrab-access-gate-actions\"><a class=\"ghrab-access-gate-primary\" href=\"/AI-Studio-GHRAB/\">Otevřít AI Studio</a></div></main>",
+      "logs": [
+        [
+          "error",
+          "AI Studio access bootstrap failed:",
+          "SyntheticGuardLoadError"
+        ]
+      ]
+    },
+    {
+      "name": "allow-valid-permit",
+      "mode": "allow",
+      "unlockCalls": 1,
+      "access": {
+        "appId": "correspondence",
+        "permit": {
+          "role": "teacher",
+          "apps": [
+            "correspondence"
+          ],
+          "synthetic": true
+        }
+      },
+      "ghrabAccess": "checking",
+      "body": "",
+      "logs": []
+    }
+  ],
+  "status": "passed"
+}

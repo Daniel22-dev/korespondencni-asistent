@@ -1,6 +1,6 @@
 /* ===================== KLÍČ + MODEL ===================== */
-window.__setTestRunActive=v=>{ TEST_RUN_ACTIVE=!!v; };
-function testMockAvailable(){ return (IS_TEST_MODE||TEST_RUN_ACTIVE) && !!window.__TEST_MOCK_GEMINI; }
+window.__setTestRunActive=v=>{ TEST_RUN_ACTIVE=TEST_HOOKS_BUILD_ENABLED&&isTrustedLocalTestOrigin()&&!!v; return TEST_RUN_ACTIVE; };
+function testMockAvailable(){ return TEST_HOOKS_BUILD_ENABLED&&isTrustedLocalTestOrigin()&&(IS_TEST_MODE||TEST_RUN_ACTIVE)&&!!window.__TEST_MOCK_GEMINI; }
 function currentAiMode(){return window.GHRABRuntime?GHRABRuntime.getMode():"direct-gemini";}
 function isAiServiceReady(){return currentAiMode()==="school-gateway"||!!geminiApiKey||testMockAvailable();}
 function applyAiRuntimeUi(){
@@ -248,7 +248,7 @@ function assertGeminiSafety(context, exactPrompt){
   const personalNames=[...new Set([...(iss.personalNames||[]),...strictNames])].map(x=>"pravděpodobné osobní jméno: "+x);
   if(danger.length||personalNames.length){
     const findings=danger.concat(personalNames);
-    throw makeAppError("Odeslání zastaveno: bezpečnostní kontrola přesného promptu našla možný osobní nebo citlivý údaj („"+findings.join(", ")+"“). Uprav text nebo použij anonymizované značky.","PREFLIGHT_BLOCKED",findings);
+    throw makeAppError("Odeslání zastaveno: bezpečnostní kontrola přesného promptu našla možný neanonymizovaný osobní nebo citlivý údaj. Uprav text nebo použij anonymizované značky.","PREFLIGHT_BLOCKED",findings);
   }
   return Object.freeze({text,clientAnonymized:true,preflightPassed:true});
 }

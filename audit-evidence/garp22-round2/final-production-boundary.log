@@ -1,0 +1,72 @@
+{
+  "schema": "ghrab-garp22-production-test-boundary-v1",
+  "generatedAt": "2026-08-28T14:11:29.897Z",
+  "checks": [
+    {
+      "id": "harness.production-ready",
+      "ok": true,
+      "detail": {
+        "unlockCount": 1,
+        "ready": true
+      }
+    },
+    {
+      "id": "c03.production-build-flag-off",
+      "ok": true,
+      "detail": {
+        "buildFlag": false,
+        "setActive": false,
+        "mockAvailable": false,
+        "coreTestMode": false,
+        "replace": false,
+        "modeUnchanged": true,
+        "coreTestingType": "undefined"
+      }
+    },
+    {
+      "id": "c03.global-activation-inert",
+      "ok": true,
+      "detail": {
+        "buildFlag": false,
+        "setActive": false,
+        "mockAvailable": false,
+        "coreTestMode": false,
+        "replace": false,
+        "modeUnchanged": true,
+        "coreTestingType": "undefined"
+      }
+    },
+    {
+      "id": "c03.runtime-replacement-inert",
+      "ok": true,
+      "detail": {
+        "buildFlag": false,
+        "setActive": false,
+        "mockAvailable": false,
+        "coreTestMode": false,
+        "replace": false,
+        "modeUnchanged": true,
+        "coreTestingType": "undefined"
+      }
+    },
+    {
+      "id": "c03.core-testing-api-not-exported",
+      "ok": true,
+      "detail": {
+        "buildFlag": false,
+        "setActive": false,
+        "mockAvailable": false,
+        "coreTestMode": false,
+        "replace": false,
+        "modeUnchanged": true,
+        "coreTestingType": "undefined"
+      }
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "status": "passed"
+  }
+}

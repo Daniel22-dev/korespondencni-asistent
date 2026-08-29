@@ -1,0 +1,210 @@
+{
+  "schema": "ghrab-p5-release-certification-v2",
+  "appId": "correspondence",
+  "appVersion": "5.10.12",
+  "generatedAt": "2026-08-29T08:19:02.376Z",
+  "axeRequired": false,
+  "checks": [
+    {
+      "id": "version.package-consumer",
+      "ok": true,
+      "detail": "5.10.12 / 5.10.12"
+    },
+    {
+      "id": "stage.p5",
+      "ok": true,
+      "detail": "P5"
+    },
+    {
+      "id": "dependencies.declared",
+      "ok": true,
+      "detail": "axe-core,jsdom,playwright"
+    },
+    {
+      "id": "dependencies.axe-pinned",
+      "ok": true,
+      "detail": "4.12.1"
+    },
+    {
+      "id": "dependencies.playwright-pinned",
+      "ok": true,
+      "detail": "1.61.1"
+    },
+    {
+      "id": "lock.has-packages",
+      "ok": true,
+      "detail": 68
+    },
+    {
+      "id": "lock.version",
+      "ok": true,
+      "detail": "5.10.12"
+    },
+    {
+      "id": "dist.exists",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "report.quality.exists",
+      "ok": true,
+      "detail": "quality-report.json"
+    },
+    {
+      "id": "report.quality.passed",
+      "ok": true,
+      "detail": "{\"total\":31,\"passed\":31,\"failed\":0,\"warnings\":0}"
+    },
+    {
+      "id": "report.quality.version",
+      "ok": true,
+      "detail": "5.10.12"
+    },
+    {
+      "id": "report.browser.exists",
+      "ok": true,
+      "detail": "qa-p3-browser-report.json"
+    },
+    {
+      "id": "report.browser.passed",
+      "ok": true,
+      "detail": "passed"
+    },
+    {
+      "id": "report.browser.version",
+      "ok": true,
+      "detail": "5.10.12"
+    },
+    {
+      "id": "report.runtime.exists",
+      "ok": false,
+      "detail": "qa-p5-runtime-report.json"
+    },
+    {
+      "id": "report.ui.exists",
+      "ok": false,
+      "detail": "qa-p5-ui-interactions-report.json"
+    },
+    {
+      "id": "report.xss.exists",
+      "ok": true,
+      "detail": "qa-p5-xss-sinks-report.json"
+    },
+    {
+      "id": "report.xss.passed",
+      "ok": true,
+      "detail": "passed"
+    },
+    {
+      "id": "report.xss.version",
+      "ok": true,
+      "detail": "n/a"
+    },
+    {
+      "id": "xss.no-regression",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "id": "report.axe.exists",
+      "ok": true,
+      "detail": "qa-p5-axe-runtime-report.json"
+    },
+    {
+      "id": "platform.js",
+      "ok": true,
+      "detail": "37fd57bf35e1bcb46cdcfe84267275ee9beaea7ea6a34d9a03af0923c9d6e251"
+    },
+    {
+      "id": "platform.css",
+      "ok": true,
+      "detail": "eb465488df46f3d1672d721094800b0be3eb1278924b7699873a483f130b07ad"
+    },
+    {
+      "id": "source.no-src-platform",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "source.no-public-platform",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "source.vendor-platform",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "pwa.manifest",
+      "ok": true,
+      "detail": "manifest.webmanifest"
+    },
+    {
+      "id": "pwa.id",
+      "ok": true,
+      "detail": "/korespondencni-asistent/"
+    },
+    {
+      "id": "pwa.start-url-stable",
+      "ok": true,
+      "detail": "./"
+    },
+    {
+      "id": "pwa.scope",
+      "ok": true,
+      "detail": "./"
+    },
+    {
+      "id": "pwa.service-worker",
+      "ok": true,
+      "detail": "sw.js"
+    },
+    {
+      "id": "pwa.no-install-skipwaiting",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "pwa.no-store-aware",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "secrets.no-forbidden-files",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "ci.p5-workflow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "ci.clean-install",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "ci.browser-install",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "ci.p5-gate",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "ci.actions-pinned-sha",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "summary": {
+    "total": 39,
+    "passed": 37,
+    "failed": 2
+  },
+  "status": "failed"
+}

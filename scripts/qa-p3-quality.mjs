@@ -20,7 +20,18 @@ const walk = (dir) => fs.existsSync(dir) ? fs.readdirSync(dir, { withFileTypes: 
   const target = path.join(dir, entry.name);
   return entry.isDirectory() ? walk(target) : [target];
 }) : [];
-const generatedQualityArtifacts = new Set(['quality-report.json', 'config/quality-manifest.json']);
+const generatedQualityArtifacts = new Set([
+  'quality-report.json',
+  'config/quality-manifest.json',
+  'qa-p3-browser-report.json',
+  'qa-p5-acceptance-report.json',
+  'qa-p5-release-report.json',
+  'qa-p5-xss-sinks-report.json',
+  'qa-p5-runtime-report.json',
+  'qa-p5-axe-runtime-report.json',
+  'qa-ui-interactions-report.json',
+  'qa-p5-ui-interactions-report.json',
+]);
 const files = walk(dist).filter((file) => !generatedQualityArtifacts.has(posix(path.relative(dist, file))));
 const rel = (file) => posix(path.relative(dist, file));
 const size = (file) => fs.statSync(file).size;

@@ -1,0 +1,31 @@
+old-quality-negative-control-exit=1
+    },
+    {
+      "id": "budget.precacheBytes",
+      "ok": true,
+      "detail": "1240062 <= 1245000"
+    },
+    {
+      "id": "budget.largestFileBytes",
+      "ok": true,
+      "detail": "782780 <= 785000"
+    },
+    {
+      "id": "budget.duplicateLargeBytes",
+      "ok": true,
+      "detail": "12830 <= 20000"
+    },
+    {
+      "id": "budget.minimum-count",
+      "ok": true,
+      "detail": "7"
+    }
+  ],
+  "warnings": [],
+  "summary": {
+    "total": 31,
+    "passed": 30,
+    "failed": 1,
+    "warnings": 0
+  }
+}

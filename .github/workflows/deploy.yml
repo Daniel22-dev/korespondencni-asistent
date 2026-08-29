@@ -44,6 +44,14 @@ jobs:
       - name: Enforce P5 R2 release gate
         run: npm run qa:p5:ci
 
+      - name: Remove QA-only reports from deploy artifact
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          rm -f dist/quality-report.json
+          rm -f dist/qa-*-report.json
+          rm -f dist/config/quality-manifest.json
+
       - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
         if: github.event_name != 'pull_request'
 

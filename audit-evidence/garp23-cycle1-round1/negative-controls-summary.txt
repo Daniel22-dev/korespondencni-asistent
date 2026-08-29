@@ -1,0 +1,13 @@
+GARP 2.3 — NEGATIVE CONTROLS — syntetické/disposable pouze
+
+NC-AIRED-TRUST-BOUNDARY
+- očekávání: oslabená/raw trust boundary -> FAIL; hardened boundary -> PASS
+- výsledek: unsafe FAIL / hardened PASS
+- důkaz: ai-red-structural.json
+
+NC-RT20-SCOPE
+- očekávání: záměrně neúplný rozsah mazání ponechá syntetický canary -> FAIL; clean -> PASS
+- výsledek: mutated FAIL / clean PASS
+- důkaz: singlepage-runtime.json
+
+Přenesené/aktuálně znovu relevantní infrastrukturní negative controls z GARP 2.2 evidence zůstávají v balíčku jako historické důkazy; pro nový RT-09 je hlavním current-cycle negative control právě NC-AIRED-TRUST-BOUNDARY.

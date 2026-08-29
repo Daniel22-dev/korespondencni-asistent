@@ -1,0 +1,68 @@
+{
+  "schema": "garp23-rt00-pc01-v1",
+  "generatedAt": "2026-08-29T09:48:00.120Z",
+  "syntheticOnly": true,
+  "architecture": {
+    "current": "SERVERLESS direct-gemini",
+    "futureSchoolServer": "prepared-not-connected"
+  },
+  "aiEgress": {
+    "productionGeneratePaths": [
+      {
+        "file": "src/js/30-api-gemini.js",
+        "offset": 19372
+      }
+    ],
+    "count": 1,
+    "operations": [
+      "incoming-analysis",
+      "reply-draft",
+      "outgoing-rewrite",
+      "outgoing-compose",
+      "outgoing-proofread",
+      "synonym-suggestions",
+      "draft-refinement",
+      "tone-check"
+    ],
+    "operationCount": 8,
+    "requiredCapabilitiesAllEmpty": true
+  },
+  "fileReaders": {
+    "all": [
+      {
+        "file": "src/access/error-reporter.js",
+        "offset": 15792
+      },
+      {
+        "file": "src/js/60-prichozi-a-muj-email.js",
+        "offset": 69781
+      },
+      {
+        "file": "src/js/70-nastroje-testy-data.js",
+        "offset": 154328
+      },
+      {
+        "file": "src/js/75-pracovni-stul.js",
+        "offset": 33337
+      }
+    ],
+    "count": 4,
+    "applicationCount": 3,
+    "reporterCount": 1
+  },
+  "serviceWorker": {
+    "nonGetBypass": true,
+    "cacheApi": true
+  },
+  "guardBootstrap": {
+    "protectedScript": true,
+    "protectAppCall": true
+  },
+  "aiRed": {
+    "promptAssemblyFingerprint": "ae17ffe6023eb9176c7583eb9d66c7c321a86ac6988ac910865337ed9467e046",
+    "structuralChecks": "32/32",
+    "behavioral": "NOT_TESTED"
+  },
+  "sourceTreeSha256": "e2fd67f10994528ed8ea0b034a9344ac72c1ed8bbcf46b252101f7bc9bc33b2d",
+  "status": "passed"
+}

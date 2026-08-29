@@ -1,0 +1,120 @@
+{
+  "schema": "ghrab-garp22-final-technical-closure-v1",
+  "app": "Korespondenční asistent",
+  "version": "5.10.12",
+  "status": "TECHNICALLY_CLOSED_EXTERNAL_GREEN_PENDING",
+  "provenance": {
+    "claudeRound2InputZip": {
+      "sha256": "83028078b2974a5faf387f5707644dc7253a30bde20abd41d77792014f0284a6"
+    },
+    "claudeRound2Verification": {
+      "sha256": "03b7659380e3622ce453f23b76a0d30fb2d77e81af5f10435c480b6e97adb257"
+    },
+    "runtimeSourceUnchangedFromClaudeRound2": true,
+    "srcDiffCount": 0,
+    "vendorDiffCount": 0,
+    "distHashes": {
+      "index.html": "516051e18dc96a63e312d50c97896cdeb0f56b1fb0bbe240b37ed1cc65e87407",
+      "sw.js": "a450bbfd1039988790af5dbabc257958d38d3a34f280680177ab16921b53fc71",
+      "manifest.webmanifest": "406fb4818a0a1ee916090f0d21fcdc96b60dced55db427c8e5963eed89f11339"
+    }
+  },
+  "claudeDisposition": {
+    "technicalLoopClosed": true,
+    "furtherClaudeRoundRequired": false,
+    "newFindingsAfterRound2": [
+      "M-01 LOW audit tooling",
+      "M-02 LOW deploy cleanup"
+    ],
+    "distributedRuntimeChangeRequired": false
+  },
+  "closures": {
+    "M-01": {
+      "status": "FIXED",
+      "detail": "Central path resolver rejects dot/dotdot, separator traversal and existing symlink escape; all six GARP scripts use it.",
+      "negativeControl": "All six scripts reject GARP_EVIDENCE_DIR=.. with exit 1; no root secret-scan.json created.",
+      "selfTest": "passed"
+    },
+    "M-02": {
+      "status": "FIXED",
+      "detail": "Pages cleanup removes dist/config/quality-manifest.json in addition to quality-report and qa-*-report.",
+      "negativeControl": "Removing the cleanup line in a disposable copy makes static gate 28/29 FAIL.",
+      "deployCleanupSimulation": "passed"
+    }
+  },
+  "tests": {
+    "internal": "164/164 PASS",
+    "coreConformance": "17/17 PASS",
+    "singlepage": "12/12 PASS",
+    "platform": "124/124 PASS",
+    "aiProfiles": "15/15 PASS",
+    "appBootstrap": "5/5 PASS",
+    "staticSurface": "29/29 PASS",
+    "productionBoundary": "8/8 PASS",
+    "quality": "31/31 PASS",
+    "browser": "19/19 PASS",
+    "xss": "PASSED",
+    "lock": "67 locked PASS",
+    "schoolProfile": "PASSED",
+    "secretScan": "135 files / 0 findings PASS",
+    "canarySweep": "135 files / 0 unexpected hits PASS",
+    "reporter": "52 PASS / 0 FAIL; navigated browser portion NOT READY (managed policy)",
+    "p5Release": "37/39 (missing runtime/UI reports)",
+    "p5Acceptance": "13/16"
+  },
+  "gates": {
+    "security": "AMBER",
+    "privacy": "AMBER",
+    "redTeam": "AMBER",
+    "releaseIntegrity": "AMBER",
+    "overall": "AMBER"
+  },
+  "rtStatus": {
+    "RT-00": "PASS",
+    "RT-01": "PASS",
+    "RT-02": "PASS",
+    "RT-03": "PASS",
+    "RT-04": "PASS",
+    "RT-05": "NOT TESTED (SIM-07 pending)",
+    "RT-06": "PASS",
+    "RT-07": "PASS",
+    "RT-08": "PASS",
+    "RT-09": "PASS",
+    "RT-10": "PASS",
+    "RT-11": "PASS",
+    "RT-12": "PASS",
+    "RT-13": "PASS with unsafe-inline debt",
+    "RT-14": "PASS",
+    "RT-15": "NOT TESTED (SIM-04 pending)",
+    "RT-16": "NOT TESTED (key custody/account hardening + SIM-07 pending)",
+    "RT-17": "NOT TESTED (SIM-03/SIM-04 pending)",
+    "RT-18": "PASS",
+    "RT-19": "PASS",
+    "RT-20": "NOT TESTED (SIM-03 + provider retention pending)"
+  },
+  "simStatus": {
+    "SIM-01": "PASS",
+    "SIM-02": "PASS",
+    "SIM-03": "NOT TESTED",
+    "SIM-04": "NOT TESTED",
+    "SIM-05": "PASS",
+    "SIM-06": "PASS",
+    "SIM-07": "NOT TESTED",
+    "SIM-08": "PASS"
+  },
+  "externalGreenBlockers": [
+    "SIM-03 Browser Back / Restore / Reopen on unrestricted browser",
+    "SIM-04 Multi-Tab State Collision on unrestricted browser",
+    "SIM-07 Service Worker Update / Recovery Drill on unrestricted browser",
+    "RT-16 key custody and account hardening attestation: strong MFA, custody/backup/rotation, branch protection/approval, secret scanning/push protection where available",
+    "Provider retention remains an external operational boundary; document the production provider policy."
+  ],
+  "environment": {
+    "managedChromiumPolicyPath": "/etc/chromium/policies/managed/000_policy_merge.json",
+    "managedChromiumPolicySha256": "3b740260e337305aaef268e6c63af8fa2796057ce46f43df5ae5a3949e085e86",
+    "urlBlocklistAll": true,
+    "qaP5RuntimeResult": "FAIL/NOT TESTED for release purposes: Runtime page timeout: index.html",
+    "uiLifecycleStatus": "NOT TESTED in this environment"
+  },
+  "dataRule": "REÁLNÁ STUDENTSKÁ DATA: NEPOUŽÍVAT until all GREEN blockers are closed. TESTOVACÍ PROVOZ POUZE SE SYNTETICKÝMI DATY."
+}

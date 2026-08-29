@@ -113,6 +113,7 @@ function staticAudit() {
 
   check('Ochrana jediné instance používá ghrab-error-reporter', reporter.includes('const REPORTER_ID = "ghrab-error-reporter"'));
   check('Kanonický reportér má verzi 1.1.0', reporter.includes('const REPORTER_VERSION = "1.1.0"'));
+  check('Reportér zveřejňuje clearDraft pro bezpečné Ukončit práci', reporter.includes('clearDraft: () => { resetDraft(); return true; }'));
   check('Limit je přesně pět screenshotů', reporter.includes('const MAX_SCREENSHOTS = 5'));
   check('Finální compose URL je omezena na 7000 znaků', reporter.includes('const MAX_COMPOSE_URL_LENGTH = 7000') && reporter.includes('export function fitMailBodyToComposeUrl'));
   check('Zkracování zachovává plné tělo a krátí diagnostiku jako první', reporter.includes('const fullBody = makeBody') && reporter.includes('currentDiagnostics = currentDiagnostics.slice(0, 3)'));
@@ -853,6 +854,21 @@ async function runBrowserTests() {
       await sleep(50);
     }
     check('Druhý Gmail se opět otevře až po samostatném kliknutí', secondOpened);
+
+    const publicClear = await client.evaluate(`(() => {
+      const root = document.getElementById('ghrab-error-reporter');
+      const result = window.GHRABErrorReporter.clearDraft();
+      const textareas = root.querySelectorAll('textarea');
+      return {
+        result,
+        description: textareas[0]?.value || '',
+        steps: textareas[1]?.value || '',
+        screenshots: root.querySelectorAll('.ghrab-screenshot-card').length,
+        finalHidden: root.querySelector('.ghrab-report-final')?.hidden === true,
+        preparedLink: Boolean(root.querySelector('a[data-report-download=zip]')),
+      };
+    })()`);
+    check('Veřejné clearDraft skutečně vyčistí runtime koncept, snímky a připravený balíček', publicClear.result === true && publicClear.description === '' && publicClear.steps === '' && publicClear.screenshots === 0 && publicClear.finalHidden === true && publicClear.preparedLink === false, JSON.stringify(publicClear));
 
     await client.call('Emulation.setDeviceMetricsOverride', { width: 360, height: 800, deviceScaleFactor: 1, mobile: true });
     const mobile = await client.evaluate(`(async () => {

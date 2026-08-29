@@ -1,0 +1,10 @@
+file:///mnt/data/ka_garp23_cycle1/app/korespondencni-asistent-main/scripts/test-ui-interactions.mjs:116
+      throw new Error(response.exceptionDetails.exception?.description || response.exceptionDetails.text || 'Runtime evaluation failed');
+            ^
+
+Error: TypeError: Cannot read properties of undefined (reading 'run')
+    at <anonymous>:1:31
+    at Cdp.eval (file:///mnt/data/ka_garp23_cycle1/app/korespondencni-asistent-main/scripts/test-ui-interactions.mjs:116:13)
+    at async file:///mnt/data/ka_garp23_cycle1/app/korespondencni-asistent-main/scripts/test-ui-interactions.mjs:244:24
+
+Node.js v22.16.0

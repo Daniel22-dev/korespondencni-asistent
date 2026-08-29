@@ -1,0 +1,105 @@
+GARP 2.3 — Korespondenční asistent 5.10.13 — FÁZE A / KANDIDÁT PRO CLAUDE KOLO 1
+Pouze syntetická data: ANO
+
+RT-00 PASS — Data Map & Scope
+Důkaz: rt00-pc01.json + pc01-ai-egress.txt. 1 produkční GHRAB_AI.generate egress; 8 deklarovaných AI operací; 4 FileReader cesty (3 app + 1 reporter); guard/SW/import/output povrch zmapován.
+
+RT-01 PASS — Access Bypass
+Důkaz: access-runtime.json 17/17 + app-bootstrap-integration.json 5/5. No-permit/missing config fail-closed; app bootstrap deny respektuje.
+
+RT-02 PASS — Client Storage Tampering
+Důkaz: access-runtime.json RT02-storage-tamper-does-not-authorize.
+
+RT-03 PASS — Authorization Token
+Důkaz: access-runtime.json invalid signature, audience, role, expirace/90d, revokace; current central main HEAD odpovídá snapshot SHA 328701510c0cad4005d935a95b8c28c04255fe71.
+
+RT-04 PASS — Time Manipulation
+Důkaz: access-runtime.json expired/too-long + revocation/LKG checks.
+
+RT-05 NOT TESTED — Offline / Rollback
+Částečně PASS: sharedAccessVersion mismatch fail-closed; SIM-02 revocation/LKG PASS.
+Blokátor: SIM-07 skutečný SW update/recovery na navigovaném release NOT TESTED.
+
+RT-06 PASS — Student Data Leakage
+Důkaz: singlepage-runtime.json 12/12, final-canary-sweep.log 0 unexpected exact hits; AI-RED canary je pouze v autoritativní audit evidence.
+
+RT-07 PASS — XSS / Untrusted Rendering
+Důkaz: hostile AI output inert; final-xss.log PASS; eval/new Function inventory bez regresního nálezu.
+
+RT-08 PASS — Malicious Import
+Důkaz: 168/168 interní sada; HTML preprocessing; import limity; SIM-08 PASS.
+
+RT-09 NOT TESTED — AI Prompt Injection / Jailbreak
+Structural/application boundary: PASS 32/32; byly nalezeny a opraveny AR-01 až AR-04. Negative control PASS (unsafe FAIL -> hardened PASS).
+Behavioral live-model: NOT TESTED — auditní prostředí nemá produkční Gemini/school-gateway credential. AIR-01/02/03/09/10/11/12 proto nejsou agregovaný PASS. Viz air-matrix.txt.
+
+RT-10 PASS — Secret Exposure
+Důkaz: final-secret-scan.log 0 findings / 0 risky filenames. Finální ZIP musí být po zabalení znovu scanován.
+
+RT-11 PASS — Role Escalation
+Důkaz: access-runtime.json teacher-not-admin, invalid-role, app-scope deny + bootstrap deny.
+
+RT-12 PASS — postMessage / iframe / URL / unsafe action boundary
+Důkaz: final-static.log, output inertness, žádný privilegovaný tool/action scope v AI operacích.
+
+RT-13 PASS S DLUHEM — CSP / Browser Boundary
+Důkaz: production boundary 8/8, XSS audit, CSP parity. Dluh: unsafe-inline compatibility debt zůstává.
+
+RT-14 PASS — Error Data Leakage
+Důkaz: singlepage preflight error neechoje canary; reporter static/unit 52 PASS / 0 FAIL. Navigovaný browser reporter je environment-limited.
+
+RT-15 NOT TESTED — Concurrency / State
+SIM-06 PASS; SIM-04 skutečný multi-tab A/B NOT TESTED.
+
+RT-16 NOT TESTED — Supply Chain / Release + Key Custody & Account Hardening
+Technické části: lock 67, SHA-pinned Actions/static checks, žádný private key v distribuci, reproducible build/security gates.
+Blokátor: MFA/passkey, signing-key custody/backup/rotation a branch protection nejsou bezpečně doložené. Nový 5.10.13 navíc čeká na nezávislou Claude kontrolu.
+
+RT-17 NOT TESTED — Cross-Student Data Isolation
+Částečně: AIR-10 structural PASS, SIM-08 PASS, local end-work PASS.
+Blokátor: SIM-03 + SIM-04 navigovaný lifecycle NOT TESTED; behaviorální AIR-10 NOT TESTED.
+KRITICKÉ PRO GREEN.
+
+RT-18 PASS — School-Server Readiness
+Důkaz: final-school.log PASS; school-server profil připraven, bez automatického direct-provider fallbacku.
+
+RT-19 PASS — AI Data Minimization
+Důkaz: jediný provider egress, preflight blokuje raw synthetic privacy canary bez provider call, 8 operací bez privileged capabilities, pc01-ai-egress.txt.
+
+RT-20 NOT TESTED — Data Retention / Deletion
+App-local: endWork clear PASS + fail-safe enumeration/remove + reporter clearDraft.
+Blokátor: SIM-03 restore/reopen + externí provider retention boundary; kompletní shared-device lifecycle není uzavřen.
+KRITICKÉ PRO GREEN.
+
+SIM-01 PASS — signed permit; app A allowed/B denied; audience/scope/role; access-runtime.json.
+SIM-02 PASS — online revocation -> offline signed LKG keeps revocation; access-runtime.json.
+SIM-03 NOT TESTED — Back / Restore / Reopen; managed Chromium URLBlocklist ["*"] blokuje navigaci.
+SIM-04 NOT TESTED — Multi-Tab A/B; stejné environmentální omezení.
+SIM-05 PASS — hostile AI output inert; singlepage + AI-RED structural evidence.
+SIM-06 PASS — interrupted AI request + explicit retry bez prompt leakage; singlepage-runtime.json.
+SIM-07 NOT TESTED — Service Worker update/recovery vyžaduje unrestricted navigovaný browser.
+SIM-08 PASS — export/reimport druhý logický kontext bez A markeru; singlepage-runtime.json.
+
+AI-RED AIR-01 až AIR-12:
+Všechny relevantní: structural PASS / behavioral NOT TESTED -> agregovaný status NOT TESTED. Detail air-matrix.txt.
+
+GATE:
+SECURITY GATE:          AMBER
+PRIVACY GATE:           AMBER
+RED TEAM GATE:          AMBER
+RELEASE INTEGRITY GATE: AMBER
+OVERALL:                AMBER
+
+Důvod AMBER, nikoli RED:
+- v aktuálním stromu není potvrzený neopravený HIGH/CRITICAL;
+- AR-01 až AR-04 byly opraveny a regresně ověřeny;
+- access/secret/canary/XSS/build/test boundaries jsou bez nového blokujícího nálezu.
+
+Důvod, proč nelze GREEN:
+- RT-09 behavioral AI-RED a povinné AIR-01/02/03/09/10/11/12 jsou NOT TESTED;
+- SIM-03/SIM-04/SIM-07 a z nich plynoucí RT-05/15/17/20 nejsou plně PASS;
+- RT-16 key custody/account hardening není uzavřen;
+- 5.10.13 je nový distribuovaný kód a před Integrity GREEN vyžaduje nezávislou Claude kontrolu.
+
+REÁLNÁ STUDENTSKÁ DATA: NEPOUŽÍVAT
+TESTOVACÍ PROVOZ POUZE SE SYNTETICKÝMI DATY

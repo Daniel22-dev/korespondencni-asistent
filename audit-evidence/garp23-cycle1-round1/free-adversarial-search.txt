@@ -1,0 +1,35 @@
+GARP 2.3 — VOLNÉ ADVERSARIÁLNÍ HLEDÁNÍ MIMO CHECKLIST
+Release: Korespondenční asistent 5.10.13
+
+Prohledané třídy povrchu:
+- všechny production callGemini entry pointy a jediný GHRAB_AI.generate egress;
+- user/email/import/profile/previous-AI-output -> prompt assembly;
+- secondary AI helper Synonyma;
+- HTML/EML preprocessing a hidden content;
+- AI output rendering / HTML/Markdown/link/action sinks;
+- local/session storage, endWork, reporter clearDraft;
+- test/debug hooks a production boundary;
+- service worker/cache a release/version boundary;
+- access guard/app bootstrap a central sharedAccessVersion;
+- requiredCapabilities/tool scope osmi AI operací;
+- model profile/provider mapping a live-credential availability.
+
+Nálezy z volného hledání:
+1. AR-01 — nejednotná trust boundary u outgoing/refine/tone: opraveno.
+2. AR-02 — second-order injection přes AI-extracted requirements: opraveno.
+3. AR-03 — sekundární synonymní AI cesta měla slabší prompt boundary/system policy: opraveno.
+4. AR-04 — zjevně hidden HTML content před text extraction: defense-in-depth opraveno.
+
+Po opravách:
+- nebyl nalezen další production AI egress;
+- nebyl nalezen AI tool/action scope s privilegovanou schopností;
+- nebyl nalezen další raw prompt call-site, kde by untrusted e-mail/profile/AI-derived text vstupoval bez explicitního trust označení;
+- finální secret/canary scany jsou 0;
+- žádný nový potvrzený HIGH/CRITICAL kódový blocker nebyl nalezen.
+
+Přenesené dluhy/omezení:
+- live provider behaviorální AI-RED NOT TESTED;
+- managed browser: SIM-03/04/07 a P5 navigovaný runtime/UI/axe;
+- RT-16 custody/MFA/branch protection;
+- CSP unsafe-inline compatibility debt;
+- externí provider retention/privacy hranice.

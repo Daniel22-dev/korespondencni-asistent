@@ -33,12 +33,12 @@ footBtn("Správa dat", "🧹", "Historie, export nastavení a smazání lokáln�
 const ADMIN_ACCESS=!!(window.__GHRAB_STUDIO_ACCESS__&&window.__GHRAB_STUDIO_ACCESS__.permit&&window.__GHRAB_STUDIO_ACCESS__.permit.role==="admin");
 const LOCAL_DEV=(location.hostname==="localhost"||location.hostname==="127.0.0.1")&&new URLSearchParams(location.search).has("dev");
 const DEV_MODE=ADMIN_ACCESS||LOCAL_DEV;
-if(DEV_MODE) footBtn("Vývojářské nástroje", "🧪", "Automatické testy, debug prompt a technický log", openDeveloperTools);
+if(DEV_MODE) footBtn("Vývojářské nástroje", "🧪", testRunnerAvailable()?"Automatické testy, debug prompt a technický log":"Debug prompt, technický log a diagnostika AI", openDeveloperTools);
 compactAdvancedParams();
 buildFooterTools();
 paintIcons(); applyFsIcon();
 updateProgress("in");
-if(new URLSearchParams(location.search).get("test")==="1") openTestRunner(true);
+if(testRunnerAvailable()&&new URLSearchParams(location.search).get("test")==="1") openTestRunner(true);
 
 if(typeof initAccessibleTooltips==="function") initAccessibleTooltips();
 document.documentElement.dataset.ksAppReady="true";

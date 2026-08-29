@@ -1,0 +1,36 @@
+{
+  "schema":"garp22-round2-final-test-summary-v1",
+  "appVersion":"5.10.11",
+  "syntheticDataOnly":true,
+  "passes": {
+    "internalRegression":"164/164",
+    "coreConformance":"17/17",
+    "platformConformance":"124/124",
+    "aiProfiles":"15/15",
+    "quality":"31/31",
+    "browser":"19/19",
+    "garpSinglePage":"11/11",
+    "garpStatic":"25/25",
+    "productionTestBoundary":"5/5",
+    "schoolProfile":"PASS",
+    "reporterStaticUnit":"52 PASS / 0 FAIL",
+    "secretScan":"0 findings",
+    "canaryArtifactSweep":"0 unexpected hits",
+    "actionsPinning":"17/17",
+    "lockfile":"67/67 controlled",
+    "reproducibleRebuild":"7/7 selected release files bit-identical"
+  },
+  "environmentLimited": {
+    "fullUiHarness":"NOT TESTED / did not complete in available managed Chromium run; click-only remainder was diagnostic only and is not counted as PASS",
+    "runtimeReflow":"NOT TESTED / Runtime page timeout: index.html",
+    "axe":"NOT READY ENVIRONMENT / exact axe-core 4.12.1 unavailable",
+    "reporterNavigatedBrowser":"NOT TESTED / managed URLBlocklist",
+    "SIM03":"NOT TESTED",
+    "SIM04":"NOT TESTED",
+    "SIM07":"NOT TESTED"
+  },
+  "p5Aggregate": {
+    "release":"39/41; failed only report.runtime.exists and report.ui.exists",
+    "acceptance":"13/16; missing runtime/UI report and therefore release aggregate is not passed"
+  }
+}

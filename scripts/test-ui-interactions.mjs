@@ -241,7 +241,7 @@ try {
   check('onboarding.not-auto-blocking', !(await client.eval(`Boolean(document.querySelector('.guide-overlay'))`)), 'automatic .guide-overlay');
 
   await client.eval(`localStorage.setItem('rozbor_profile',JSON.stringify({name:'Profil před testy',role:'učitel',gender:'male',subjects:'angličtina',school:'Testovací škola',writingStyle:'civilni',sign:'pozdrav'}))`);
-  const inAppResults = await client.eval(`window.runKorespTests()`);
+  const inAppResults = await client.eval(`window.__GHRAB_KORESP_TESTS__.run()`);
   const inAppFailures = Array.isArray(inAppResults) ? inAppResults.filter(item => !item.ok) : [];
   check('in-app-tests.completed', Array.isArray(inAppResults) && inAppResults.length > 0, String(inAppResults?.length || 0));
   check('in-app-tests.passed', inAppFailures.length === 0, JSON.stringify(inAppFailures));

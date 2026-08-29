@@ -1,0 +1,139 @@
+{
+  "schema": "garp22-audit-matrix-v1",
+  "generatedAt": "2026-08-28T12:51:25.856682+00:00",
+  "app": "Korespondenční asistent",
+  "version": "5.10.10",
+  "round": "A / ChatGPT první audit",
+  "rt": {
+    "RT-00": {
+      "status": "PASS",
+      "reason": "Datová mapa a skutečný scope odvozeny ze zdroje, buildu, runtime testů a storage/egress cest."
+    },
+    "RT-01": {
+      "status": "NOT TESTED",
+      "reason": "Centrální /AI-Studio-GHRAB/access/app-guard.js není součástí dodaného ZIPu; SIM-01 nebylo možné provést."
+    },
+    "RT-02": {
+      "status": "NOT TESTED",
+      "reason": "Bez implementace centrální autorizace nelze runtime prokázat, že manipulace klientského storage nemůže vytvořit oprávnění."
+    },
+    "RT-03": {
+      "status": "NOT TESTED",
+      "reason": "Podpis/audience/issuer/expiry/revocation tokenu patří do chybějícího centrálního guardu; SIM-01/02 NOT TESTED."
+    },
+    "RT-04": {
+      "status": "NOT TESTED",
+      "reason": "Časové/LKG/revokační chování je v centrální auth vrstvě mimo ZIP; SIM-02 NOT TESTED."
+    },
+    "RT-05": {
+      "status": "NOT TESTED",
+      "reason": "Statická SW kontrola je příznivá, ale offline/rollback/revocation a SIM-07 nebylo možné plně runtime provést."
+    },
+    "RT-06": {
+      "status": "PASS",
+      "reason": "Čerstvý syntetický canary sweep: console/URL/API/preflight/error/export/build/fixtures/source bez neočekávaného úniku; SIM-08 PASS."
+    },
+    "RT-07": {
+      "status": "PASS",
+      "reason": "Hostile AI HTML zůstal inertní v runtime; XSS sink inventory bez eval/new Function; SIM-05 PASS."
+    },
+    "RT-08": {
+      "status": "PASS",
+      "reason": "Všechny 3 FileReader importní cesty zmapovány; syntetické malformed/oversize kontroly a nové limity/sanitizace prošly; SIM-08 PASS."
+    },
+    "RT-09": {
+      "status": "PASS",
+      "reason": "Interní testy obsahují prompt-injection obranu/nedůvěryhodná data a SIM-05 ověřil hostile AI output lokálně bez útoku na externí službu."
+    },
+    "RT-10": {
+      "status": "PASS",
+      "reason": "Secret scan zdroje/buildů/workflows bez nálezu + negativní kontrola; distribuovaný ZIP se skenuje po zabalení a výsledek je v předávacím TXT."
+    },
+    "RT-11": {
+      "status": "NOT TESTED",
+      "reason": "Role teacher/deputy-admin/admin jsou v centrální access vrstvě mimo ZIP; SIM-01/02 NOT TESTED."
+    },
+    "RT-12": {
+      "status": "PASS",
+      "reason": "Automatická statická assertions: žádný window postMessage/iframe, new-tab noopener, same-origin Studio URL guard; SW message pouze update trigger."
+    },
+    "RT-13": {
+      "status": "PASS",
+      "reason": "Skutečný build/CSP zkontrolován: žádné unsafe-eval, eval ani new Function; unsafe-inline zůstává zdůvodněný architektonický defense-in-depth dluh."
+    },
+    "RT-14": {
+      "status": "PASS",
+      "reason": "Canary v preflight chybě se po opravě nepropíše do message; error-reporter sanitizer 51/51 static/unit; negativní kontrola očekávaně selhala."
+    },
+    "RT-15": {
+      "status": "NOT TESTED",
+      "reason": "SIM-06 PASS, ale povinná relevantní SIM-04 multi-tab je blokována spravovaným Chromium URLBlocklist."
+    },
+    "RT-16": {
+      "status": "NOT TESTED",
+      "reason": "Lock/actions/build supply-chain část příznivá; chybí ověřitelná key custody/MFA/branch protection/push protection a SIM-07."
+    },
+    "RT-17": {
+      "status": "NOT TESTED",
+      "reason": "SIM-08 PASS, ale povinné browser restore/reopen a multi-tab scénáře SIM-03/04 nejsou provedeny kvůli URLBlocklist."
+    },
+    "RT-18": {
+      "status": "PASS",
+      "reason": "Serverless profil je pravdivý; school-server profil se sestavil a QA prošla; schoolServerConnected=false a bez klientského provider secret fallbacku."
+    },
+    "RT-19": {
+      "status": "PASS",
+      "reason": "AI EGRESS INSPECTION nad testovacím requestem: pouze potřebný anonymizovaný payload; raw canary = 0 egress; retry řízen; negativní kontrola prošla."
+    },
+    "RT-20": {
+      "status": "NOT TESTED",
+      "reason": "Klientské end-work mazání runtime PASS a SIM-06/08 PASS, ale agregace GARP nedovoluje PASS při SIM-03 NOT TESTED; provider retention není lokálně ověřena."
+    }
+  },
+  "sim": {
+    "SIM-01": {
+      "status": "NOT TESTED",
+      "reason": "Chybí centrální access guard a druhá aplikační auth hranice v dodaném ZIPu."
+    },
+    "SIM-02": {
+      "status": "NOT TESTED",
+      "reason": "Revokace/permission propagation je součást centrální auth vrstvy mimo ZIP."
+    },
+    "SIM-03": {
+      "status": "NOT TESTED",
+      "reason": "Managed Chromium policy URLBlocklist=[\"*\"] blokuje skutečný Back/Forward/reopen/session restore na navigovaném originu."
+    },
+    "SIM-04": {
+      "status": "NOT TESTED",
+      "reason": "Stejná policy blokuje reálné dvě karty na stejném testovacím originu."
+    },
+    "SIM-05": {
+      "status": "PASS",
+      "reason": "Syntetická hostile AI odpověď s HTML-like aktivním obsahem byla vykreslena inertně."
+    },
+    "SIM-06": {
+      "status": "PASS",
+      "reason": "Syntetický první AI request selhal SERVER_UNAVAILABLE, explicitní retry uspěl; žádný prompt v ops logu a bez nekontrolovaného egressu."
+    },
+    "SIM-07": {
+      "status": "NOT TESTED",
+      "reason": "Skutečný service-worker update/recovery drill vyžaduje navigovaný origin; prostředí jej blokuje."
+    },
+    "SIM-08": {
+      "status": "PASS",
+      "reason": "Syntetický export A neobsahoval pracovní data; po end-work reimport nastavení do logického B neobnovil A."
+    }
+  },
+  "pc01": "PASS",
+  "gates": {
+    "SECURITY": "AMBER",
+    "PRIVACY": "AMBER",
+    "RED_TEAM": "AMBER",
+    "RELEASE_INTEGRITY": "AMBER",
+    "OVERALL": "AMBER"
+  },
+  "mandatoryWarnings": [
+    "REÁLNÁ STUDENTSKÁ DATA: NEPOUŽÍVAT",
+    "TESTOVACÍ PROVOZ POUZE SE SYNTETICKÝMI DATY"
+  ]
+}

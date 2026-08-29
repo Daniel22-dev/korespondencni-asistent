@@ -1,0 +1,21 @@
+{
+  "schema": "ghrab-server-ready-build-v1",
+  "app": "ghrab-korespondencni-asistent",
+  "appId": "correspondence",
+  "version": "5.10.14",
+  "phase": "P3",
+  "profile": "school-server",
+  "builtAt": "2026-08-29T10:33:46.997Z",
+  "activeAuthMode": "server-session",
+  "activeAiTransport": "school-gateway",
+  "telemetryMode": "server",
+  "appBaseUrl": "/apps/korespondencni-asistent/",
+  "studioBaseUrl": "/ai-studio/",
+  "apiBaseUrl": "/api/v1/",
+  "containsSecrets": false,
+  "localProviderKeysAllowed": false,
+  "serverSessionReady": true,
+  "schoolGatewayReady": true,
+  "aiCoreVersion": "1.0.0",
+  "contractVersion": "1"
+}

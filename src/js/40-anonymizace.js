@@ -1,12 +1,14 @@
 /* ===================== TRVALÝ SLOVNÍK JMEN ===================== */
+const MAX_DICTIONARY_ENTRIES=200;
+const MAX_DICTIONARY_NAME_LENGTH=160;
 function cleanStoredPersonForms(forms){
   if(!forms||typeof forms!=="object")return null;
   const clean={};let count=0;
-  for(let c=1;c<=7;c++){const value=String(forms[c]||"").trim();if(value){clean[c]=value;count++;}}
+  for(let c=1;c<=7;c++){const value=String(forms[c]||"").trim().slice(0,MAX_DICTIONARY_NAME_LENGTH);if(value){clean[c]=value;count++;}}
   return count===7?clean:null;
 }
 function cleanDictionaryEntry(item){
-  const real=String(item&&item.real||"").trim();if(real.length<2)return null;
+  const real=String(item&&item.real||"").trim().slice(0,MAX_DICTIONARY_NAME_LENGTH);if(real.length<2)return null;
   const out={real},forms=cleanStoredPersonForms(item&&item.forms);if(forms)out.forms=forms;return out;
 }
 function loadDict(){
@@ -14,14 +16,14 @@ function loadDict(){
     const raw=JSON.parse(localStorage.getItem("rozbor_dict")||"[]");
     if(!Array.isArray(raw))return [];
     const seen=new Set(),clean=[];
-    raw.forEach(item=>{const entry=cleanDictionaryEntry(item);if(!entry)return;const key=entry.real.toLocaleLowerCase("cs-CZ");if(!seen.has(key)){seen.add(key);clean.push(entry);}});
+    raw.forEach(item=>{if(clean.length>=MAX_DICTIONARY_ENTRIES)return;const entry=cleanDictionaryEntry(item);if(!entry)return;const key=entry.real.toLocaleLowerCase("cs-CZ");if(!seen.has(key)){seen.add(key);clean.push(entry);}});
     return clean;
   }catch(_){return [];}
 }
 function saveDict(arr){
   try{
     const seen=new Set(),clean=[];
-    (Array.isArray(arr)?arr:[]).forEach(item=>{const entry=cleanDictionaryEntry(item);if(!entry)return;const key=entry.real.toLocaleLowerCase("cs-CZ");if(!seen.has(key)){seen.add(key);clean.push(entry);}});
+    (Array.isArray(arr)?arr:[]).forEach(item=>{if(clean.length>=MAX_DICTIONARY_ENTRIES)return;const entry=cleanDictionaryEntry(item);if(!entry)return;const key=entry.real.toLocaleLowerCase("cs-CZ");if(!seen.has(key)){seen.add(key);clean.push(entry);}});
     localStorage.setItem("rozbor_dict",JSON.stringify(clean));
   }catch(_){}
 }

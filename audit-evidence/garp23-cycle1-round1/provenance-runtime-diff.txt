@@ -1,0 +1,35 @@
+GARP 2.3 — PROVENANCE / SOURCE DIFF
+Input app SHA-256: ca3986a4dbfb545f53f2273e359ec17cbde8fb90e06e063992e0855e6b956d6c
+Input version: 5.10.12
+Current version: 5.10.13
+Current src+vendor+config tree SHA-256: e2fd67f10994528ed8ea0b034a9344ac72c1ed8bbcf46b252101f7bc9bc33b2d
+Baseline src+vendor+config tree SHA-256: b120f542d42a0c74ecdb43013d995cbd7d73f9c1202e434925fbd742b8864dd8
+Current vendor tree SHA-256: d3cd9d25c398ff396745e8f6ed1e62b9f69698e834df46ef6d7a71ce2e5395dc
+Baseline vendor tree SHA-256: d3cd9d25c398ff396745e8f6ed1e62b9f69698e834df46ef6d7a71ce2e5395dc
+Vendor/Core changed: NO
+
+Intentional runtime/security changes:
+- src/js/50-koncept-a-prompty.js — unified AI trust zones, synonym/refine/tone hardening, stronger system injection rule.
+- src/js/60-prichozi-a-muj-email.js — untrusted/user-directive wrapping, second-order requirements hardening, hidden HTML preprocessing.
+- src/js/70-nastroje-testy-data.js — AI-RED regression tests only (test code bundled by current single-page architecture but production hooks remain gated/off).
+
+Version/metadata/docs changes include release 5.10.13, manual 1.3.14, manifests, SW cache/version, release changelog, security/data metadata.
+QA/release tooling changes include GARP 2.3 structural harness and narrow measured performance-budget rebaseline.
+
+Changed files under src/ versus exact 5.10.12 baseline:
+- src/access/error-reporter-adapter.js
+- src/ai-operations.json
+- src/config/data-manifest.json
+- src/config/platform-manifest.json
+- src/config/release-acceptance.json
+- src/config/security-headers.json
+- src/ghrab-platform.consumer.json
+- src/index.template.html
+- src/js/10-release-changelog.js
+- src/js/50-koncept-a-prompty.js
+- src/js/60-prichozi-a-muj-email.js
+- src/js/70-nastroje-testy-data.js
+- src/manifest.webmanifest
+- src/manual/index.html
+- src/studio-manifest.template.json
+- src/sw.js

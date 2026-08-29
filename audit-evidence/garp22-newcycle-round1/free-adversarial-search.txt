@@ -1,0 +1,24 @@
+GARP 2.2 — VOLNÉ ADVERSARIÁLNÍ HLEDÁNÍ — NOVÝ CYKLUS
+
+Metody:
+- reference/grep inventář egress/storage/import/browser sinků;
+- produkční vs test-only boundary;
+- skutečný nasazený shared access snapshot + syntetické podepsané permity;
+- negativní kontroly v disposable kopiích;
+- finální build a QA reporty.
+
+Pokusy a výsledek:
+1. Hledán druhý produkční AI egress mimo GHRAB_AI.generate: nenalezen. Druhý textový výskyt je pouze deklarace data-manifestu.
+2. Hledána cesta k aktivaci AI mock/test runneru v produkčním buildu: production boundary 8/8 PASS; runner není window API a fail-closed vrací TEST_RUNNER_DISABLED.
+3. Hledána cross-app záměna syntetického permitu: skutečná access logika odmítla app B, špatné audience a neplatnou roli. Strong negative control po odstranění app-scope guardu prokazatelně selhal.
+4. Hledán storage fail-open při nemožné enumeraci: čistý 5.10.12 je fail-safe; disposable návrat k vadnému chování vyvolal očekávaný FAIL.
+5. Hledán canary mimo auditní evidenci: 128 relevantních textových souborů po finálních QA reportech bez nálezu. Disposable canary injection je detekována.
+6. Hledány tajné hodnoty/rizikové soubory: source/build scan bez nálezu; full ZIP scan následuje po zabalení.
+7. Hledány XSS execution cesty: eval=0, new Function=0; SIM-05 hostile AI HTML inert. Residual: legacy unsafe-inline CSP zůstává architektonický dluh.
+8. Hledány explicitní ne-AI egress cesty: Gmail compose je vědomý export finálního textu přes canExport() a noopener; clipboard/TXT/DOCX/settings exporty jsou explicitní akce uživatele.
+9. Hledána nedeklarovaná diagnostická retence: prompt-debug, studio bridge a error-reporter flow jsou v data-manifestu; endWork je zahrnuje podle deklarovaného rozsahu. Skutečný screenshot draft clear v navigovaném browseru zůstává součástí RT-20 lifecycle, který je kvůli URLBlocklist NOT TESTED.
+10. Hledána možnost falešně prohlásit release GREEN: P5 release gate sama zůstává failed kvůli chybějícím runtime/UI browser reportům; audit to nepřepisuje na PASS.
+
+Nový potvrzený HIGH/CRITICAL nález: ŽÁDNÝ.
+Nový potvrzený MEDIUM kódový blokátor: ŽÁDNÝ.
+Otevřené ověřovací dluhy: SIM-03, SIM-04, SIM-07; RT-15/16/17/20; account/key custody attestation; legacy unsafe-inline CSP.

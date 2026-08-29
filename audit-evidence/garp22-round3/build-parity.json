@@ -1,0 +1,13 @@
+{
+  "schema": "garp22-test-vs-production-build-parity-v1",
+  "generatedAt": "2026-08-28T19:22:08.440168+00:00",
+  "appVersion": "5.10.12",
+  "productionIndexSha256": "516051e18dc96a63e312d50c97896cdeb0f56b1fb0bbe240b37ed1cc65e87407",
+  "testBuildIndexSha256": "9f0af551ad6b3487652d604e2ce1bf1592ebdd2bd5f28d31a3518910c439ab6b",
+  "normalizedEqual": true,
+  "intentionalDifferences": [
+    "TEST_HOOKS_BUILD_ENABLED literal: production 0, local test build 1",
+    "GHRAB_AI.__testing public export: stripped in production, present in local test build"
+  ],
+  "note": "Runtime privacy/UI evidence that requires mocks runs on the local test build. Production-boundary probes run separately on the released production build."
+}

@@ -1,0 +1,59 @@
+{
+  "schema": "garp22-pc01-path-coverage-v1",
+  "appId": "correspondence",
+  "appVersion": "5.10.11",
+  "syntheticDataOnly": true,
+  "scope": "all confirmed Claude fixes plus sibling paths discovered during remediation",
+  "paths": [
+    {
+      "fix":"C-01/C-06 end-work fail-safe",
+      "entryPoints":["Data manager #dmEndWork -> endWorkAndClearData()","window.GHRABCorrespondencePrivacy.endWork","internal/runtime GARP calls with reload:false"],
+      "sinks":["localStorage owned namespaces","sessionStorage owned namespaces","ST.in/ST.my","input/result DOM","ACTIVE_KEY_REALS","GHRABCorrespondenceWorkbench transient state","GHRABErrorReporter draft/screenshots","page reload"],
+      "coverage":["all owned keys are enumerated before and after delete","removeItem exceptions recorded","enumeration inability becomes unverified failure","reporter clearDraft is called","runtime canary scan checks all storage values independently","NC-RT20-SCOPE proves the evidence detects out-of-namespace canary"],
+      "result":"COVERED"
+    },
+    {
+      "fix":"C-02 evidence independence",
+      "entryPoints":["qa-garp22-singlepage RT-20","canary scans across both storage objects","URL canary subscenario"],
+      "sinks":["every storage key/value, not only APP_STORAGE_KEY_RE","console/event stream","URL"],
+      "coverage":["storage assertion independent of deletion predicate","URL check removed from PASS because managed Chromium cannot navigate","environment note records NOT TESTED"],
+      "result":"COVERED_WITH_URL_ENVIRONMENT_LIMIT"
+    },
+    {
+      "fix":"C-03/AD-01 test-hook production boundary",
+      "entryPoints":["window.__setTestRunActive","window.__TEST_MOCK_GEMINI","window.__TEST_MOCK_GATEWAY","window.__TEST_MOCK_GATEWAY_HEALTH","GHRABRuntime.replaceForTesting","GHRAB_AI.__testing.setTestHooks","GHRAB_AI.__testing.replaceRuntimeConfig","?test=1"],
+      "sinks":["GHRAB AI Core testHooks.directGemini","testHooks.schoolGateway","testHooks.health","runtime mode/config replacement"],
+      "coverage":["compile-time TEST_HOOKS_BUILD_ENABLED false in production","trusted local origin required for app hooks","production Core __testing export stripped","replaceForTesting returns false in production","runtime adversarial boundary 5/5 PASS"],
+      "result":"COVERED"
+    },
+    {
+      "fix":"C-04 data-map truth",
+      "entryPoints":["saveLastPromptDebug","AI Studio bridge handoff/events","error-reporter window.fetch wrapper"],
+      "sinks":["sessionStorage rozbor_last_prompt_debug","local/session ghrab.handoff.v1 and ghrab.pilot.events.v2","sanitized technical metadata in reporter"],
+      "coverage":["all three are declared in data-manifest.json","fetch wrapper declaration states body/headers/query/API key are not recorded"],
+      "result":"COVERED"
+    },
+    {
+      "fix":"C-05 evidence durability",
+      "entryPoints":["audit-evidence/garp22-round1/*.log","audit-evidence/garp22-round2/*.log"],
+      "sinks":["git ignore matching"],
+      "coverage":["global *.log remains","specific !audit-evidence/**/*.log exception follows it","static assertion guards regression"],
+      "result":"COVERED"
+    },
+    {
+      "fix":"C-07 CSP source of truth",
+      "entryPoints":["src/config/security-headers.json staticProfile.contentSecurityPolicy","src/index.template.html __GHRAB_STATIC_CSP__ token","scripts/build.mjs","school-server post-processing"],
+      "sinks":["dist/index.html meta CSP","dist-school-server/index.html narrowed connect-src"],
+      "coverage":["build fails if canonical CSP/token missing","exact static profile parity asserted","school profile QA narrows direct Gemini egress"],
+      "result":"COVERED"
+    }
+  ],
+  "networkAndImportEnumeration": {
+    "productionAiGenerateCallSites": 1,
+    "fileReaderEntryPoints": 3,
+    "reporterFetchWrapperDeclared": true,
+    "serviceWorkerNonGetBypass": true,
+    "indexedDbPathsFound": 0
+  },
+  "overall":"PASS_WITH_ENVIRONMENT_LIMITS"
+}

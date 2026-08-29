@@ -1,0 +1,370 @@
+GARP 2.2 – NEZÁVISLÁ KONTROLA CLAUDE
+NOVÝ CYKLUS · FÁZE B · KOLO 1
+Korespondenční asistent 5.10.12
+Kontrolovaný artefakt:
+Korespondencni-asistent-5.10.12-GARP2.2-NOVY-CYKLUS-kandidat-Claude-kolo-1.zip
+
+======================================================================
+1. IDENTIFIKACE A PROVENANCE
+======================================================================
+Verze: 5.10.12
+SHA-256 kontrolovaného ZIPu:
+897e4ec472acc9e6000b8e7981026215c22ad313081df56b8dc0d6450ca0410c
+Shoda s hodnotou deklarovanou ChatGPT: ANO.
+
+Vstupní ZIP c9ff5948… nemám k dispozici, jeho hash tedy nepotvrzuji.
+Místo toho jsem provedl silnější kontrolu: rozdíl mezi kandidátem
+5.10.11 z minulého cyklu, který jsem sám auditoval, a tímto 5.10.12.
+
+Auditor: Claude – nezávislá kontrola, bez oprav kódu.
+EVIDENCE MODE: KOMBINACE – vlastní rebuild, vlastní spuštěné testy,
+vlastní adversariální sondy, vlastní negative controls, stažení
+skutečného centrálního repozitáře, čtení kódu.
+
+Prostředí: Node v22.22.2, jsdom 24.1.3, síťový přístup na github.com a
+codeload.github.com. Chromium NENÍ dostupné.
+
+REPRODUKOVATELNÝ REBUILD: POTVRZENO.
+  dist/index.html          516051e18dc96a63e312d50c97896cdeb0f56b1fb0bbe240b37ed1cc65e87407
+  dist/sw.js               a450bbfd1039988790af5dbabc257958d38d3a34f280680177ab16921b53fc71
+  dist/manifest.webmanifest 406fb4818a0a1ee916090f0d21fcdc96b60dced55db427c8e5963eed89f11339
+Všechny bitově shodné s dodaným buildem. Rozdíly pouze v builtAt a
+publishedAt.
+
+VLASTNÍ SCAN CELÉHO DISTRIBUOVANÉHO ZIPU:
+393 souborových položek, 268 textových prohledáno,
+0 secret nálezů, 0 rizikových názvů, 0 path-traversal cest.
+Čerstvý canary NC1-20260829T063649Z-DZXWW4MD se vyskytuje výhradně
+v canary-id.txt a canary-values.txt, tedy přesně tam, kde má.
+RT-10 potvrzuji jako PASS.
+
+Poznámka k číslům: protokol uvádí 436 položek a 263 textových souborů,
+já napočítal 393 a 268. Rozdíl je metodický (počítání adresářových
+položek a jiná sada přípon), nikoli obsahový — nálezy jsou v obou
+případech nulové.
+
+======================================================================
+2. NEJDŮLEŽITĚJŠÍ OVĚŘENÍ TOHOTO KOLA: JE CENTRÁLNÍ SNAPSHOT PRAVÝ?
+======================================================================
+Protokol převádí RT-01, RT-02, RT-03, RT-04, RT-11 a SIM-01, SIM-02
+z NOT TESTED na PASS na základě snapshotu sdílené access vrstvy a
+vlastního harnessu. To je největší jednorázový posun v celé historii
+tohoto auditu, a proto jsem jej ověřoval jako první.
+
+NESPOLEHL JSEM SE NA SNAPSHOT. Stáhl jsem skutečný centrální
+repozitář na deklarovaném head SHA:
+  codeload.github.com/Daniel22-dev/AI-Studio-GHRAB/zip/
+  328701510c0cad4005d935a95b8c28c04255fe71   (29 298 841 B)
+
+Porovnání skutečného zdroje se snapshotem v kandidátu:
+
+  access/access-control.js   658 řádků, JEDINÝ rozdíl:
+    zdroj:    import ... from "../config/deployment-baked.js";
+    snapshot: import ... from "../config/deployment-baked.js?v=0.21.35";
+
+  access/app-guard.js        647 řádků, JEDINÉ dva rozdíly:
+    stejné cache-busting ?v=0.21.35 u access-control.js
+    a u dynamického importu platform-runtime.js
+
+ZÁVĚR: snapshot JE autentická centrální access vrstva na deklarovaném
+commitu. Odchylky jsou výhradně cache-busting sufixy, které přidává
+deploy pipeline. Toto je silný nezávislý důkaz, který ChatGPT sám
+poskytnout nemohl.
+
+config/deployment-baked.js se liší legitimně: ve zdroji je
+BAKED_DEPLOYMENT_CONFIG = null (placeholder, fail-closed), ve snapshotu
+je vygenerovaný build-time profil. Prohledal jsem jej na private/secret/
+token/klíč/heslo — 0 nálezů. Deklarace, že nejsou přiloženy skutečné
+permity ani klíče, se potvrzuje.
+
+HARNESS: ověřil jsem, že access-runtime-harness.mjs skutečně importuje
+snapshot, nikoli vlastní přepis logiky. Jediná úprava je nahrazení
+ACCESS_BUNDLE_VERIFY_KEY syntetickým ES256 veřejným klíčem, což je
+nutné a v protokolu přiznané. Klíčové páry jsou ephemeral, generované
+v běhu přes webcrypto.
+
+VLASTNÍ SPUŠTĚNÍ HARNESSU: 15/15 PASS, stejné jako deklarováno.
+  RT01-no-permit-failclosed, RT02-storage-tamper-does-not-authorize,
+  SIM01-valid-signed-permit, RT01-set-valid-permit,
+  SIM01-app-A-allowed, SIM01-app-B-denied,
+  SIM01-app-B-no-training-policy-denied, RT11-teacher-not-admin,
+  SIM01-wrong-audience, RT11-invalid-role, RT04-expired,
+  RT04-too-long, SIM02-online-revocation-propagates,
+  SIM02-offline-LKG-keeps-revocation,
+  RT05-sharedAccessVersion-mismatch-failclosed
+
+VLASTNÍ NEGATIVE CONTROL (NC-CLAUDE-ACCESS-SCOPE):
+V disposable kopii /tmp/nc-access jsem do SKUTEČNÉ centrální
+hasAppAccess() vložil bezpodmínečné { enabled: true }. Harness
+okamžitě spadl na první kontrole:
+  Error: RT01-no-permit-failclosed: {"valid":false,"reason":"missing",
+         "access":{"enabled":true,"reason":"NC-CLAUDE-SCOPE-BYPASS"}}
+Harness tedy skutečně dokáže selhat a není samopotvrzující.
+Kandidátní strom nebyl mutován.
+
+Tento bod považuji za nejlépe podloženou část celého kandidáta.
+
+======================================================================
+3. DISPOZICE MÝCH NÁLEZŮ Z MINULÉHO CYKLU
+======================================================================
+C-12 (fail-safe enumerace) OPRAVENO – OVĚŘENO PĚTI SCÉNÁŘI.
+Nová storageKeySnapshot() vrací {keys, enumerable} a odstranila
+Object.keys() fallback, který dřív selhání maskoval.
+Vlastní izolovaná reprodukce proti skutečné implementaci 5.10.12:
+  A) store.length vyhodí   -> enumeration-before + <unverified>
+  B) store.length undefined-> enumeration-before + <unverified>
+  C) store.length = -1     -> enumeration-before + <unverified>
+  D) removeItem selže      -> failures + zbylý klíč v remaining
+  E) enumerace selže až po mazání -> enumeration-after + <unverified>
+Všech pět scénářů je fail-closed. Díra z minulého cyklu je uzavřená.
+
+C-08 a C-09 (test runner) OPRAVENO – OVĚŘENO VLASTNÍ SONDOU.
+runKorespTests i openTestRunner už nejsou globální; export je
+  if(testRunnerAvailable())window.__GHRAB_KORESP_TESTS__=...
+a testRunnerAvailable() = TEST_HOOKS_BUILD_ENABLED &&
+isTrustedLocalTestOrigin(). openTestRunner navíc vrací false hned na
+prvním řádku, pokud brána neplatí.
+Sonda proti produkčnímu buildu z veřejného originu s ?test=1:
+  global_runKorespTests: undefined
+  global_openTestRunner: undefined
+  namespacedExport:      undefined
+  runnerReachable:       nedosažitelný
+  setTestRunActive:      false
+  coreTesting:           undefined
+  replaceForTesting:     false
+  testMockAvailable:     false
+  profil učitele:        neporušen
+Destruktivní cesta z minulého cyklu je uzavřená.
+
+C-10 (canary v bundlu) OPRAVENO.
+Konstanty nahrazeny za "GARP-STUDENT-CANARY-ENDWORK-"+canarySeed();
+v dist zůstává jen neúplný prefix bez hodnoty. Static surface to nově
+hlídá assertion rt20.fixed-canary-values-not-bundled.
+
+C-11 (pořadí scanu) OPRAVENO PRO SCAN.
+Secret scan i canary sweep nyní hlásí 128 souborů a moje vlastní
+spuštění dává rovněž 128. Scan tedy proběhl po zápisu QA reportů.
+POZOR: totéž se NEudělalo pro rozpočet velikosti – viz nález N-02.
+
+C-13 (integrita evidence) OPRAVENO PRO HLAVNÍ ČÍSLA.
+core-testbuild.log skutečně obsahuje „164/164 interních testů prošlo“,
+„17/17 Core conformance testů prošlo“ a „CELKEM: vše zelené“.
+garp-singlepage-testbuild.log obsahuje summary 12/12 passed s výpisem
+všech dvanácti kontrol. Rozpor deklarace vs. důkaz, kvůli kterému
+minulý cyklus skončil governance RED, se v těchto dvou položkách
+neopakuje. Zbytkové problémy viz N-01 a N-03.
+
+C-14 (důkaz vs. artefakt) TRVÁ, protokol jej ale nyní přiznává.
+C-15 (úbytek UI důkazu) TRVÁ, viz sekce 5.
+
+======================================================================
+4. NEZÁVISLE REPRODUKOVANÉ TESTY
+======================================================================
+Test                          Deklarováno   Naměřeno mnou   Shoda
+qa-p5-lock                    67 locked     67 locked       ANO
+qa-garp22-static-surface      28/28         28/28           ANO
+qa-ai-profiles                15/15         15/15           ANO
+qa-p5-xss-sinks               eval 0, nF 0  totéž           ANO
+qa-garp22-secret-scan         128 / 0       128 / 0         ANO
+qa-garp22-canary-scan         128 / 0       128 / 0         ANO
+access harness                15/15         15/15           ANO
+qa-p5-acceptance              13/16         13/16           ANO
+reporter static/unit          52 PASS       85 PASS / 0 FAIL VYŠŠÍ
+qa-p3-quality                 31/31         30/31           NESHODA
+qa-p5-release                 37/39         36/39           NESHODA
+
+Nereprodukovatelné u mě (chybí Chromium): singlepage 12/12,
+production boundary 8/8, browser 19/19, platform 124/124.
+Produkční hranici jsem ale ověřil vlastní sondou nezávisle (sekce 3),
+a to napříč všemi osmi vlastnostmi, které boundary skript kontroluje.
+
+======================================================================
+5. NOVÉ NÁLEZY
+======================================================================
+
+N-01 / MEDIUM / OTEVŘENO – ARTEFAKT ACCESS HARNESSU NEUMÍ ZAZNAMENAT
+SELHÁNÍ A PŘI PÁDU PONECHÁ STARÝ „PASSED“
+V harnessu:
+  const check=(id,cond,detail)=>{results.push({id,ok:!!cond,detail});
+                                 if(!cond) throw new Error(...)};
+  ...
+  status: results.every(x=>x.ok)?'passed':'failed'
+  fs.writeFileSync('access-runtime.json', ...)
+Protože check() při selhání vyhodí, zápis JSON se nikdy neprovede a
+větev 'failed' je nedosažitelná. Ověřeno mou negative control:
+po vložení bypassu harness spadl s exit=1, ALE soubor
+access-runtime.json zůstal nedotčený a dál obsahoval
+  "status": "passed"
+z předchozího čistého běhu.
+Dopad: kdokoli po regresi jen otevře access-runtime.json a uvidí PASS,
+který k tomu běhu nepatří. To je přesně třída problému, kvůli které
+minulý cyklus skončil RED (C-13), jen v novém artefaktu.
+Zmírňující okolnost: access-runtime.log by pád zachytil, protokol se
+ale odvolává na JSON.
+
+N-02 / LOW-MEDIUM / OTEVŘENO – DEKLAROVANÉ 31/31 A 37/39 NEJSOU NA
+DODANÉM ARTEFAKTU REPRODUKOVATELNÁ
+qa-p3-quality vylučuje z rozpočtu velikosti pouze quality-report.json
+a config/quality-manifest.json:
+  const generatedQualityArtifacts =
+    new Set(['quality-report.json','config/quality-manifest.json']);
+Nevylučuje další čtyři QA reporty, které do dist zapisují jiné skripty:
+  qa-p3-browser-report.json        1 039 B
+  qa-p5-acceptance-report.json     1 787 B
+  qa-p5-release-report.json        4 057 B
+  qa-p5-xss-sinks-report.json      2 062 B
+Naměřeno:
+  čistý build bez QA reportů : 1 266 139 B  (pod limitem o 8 861 B)
+  dodaný dist s reporty      : 1 275 085 B  (NAD limitem o 85 B)
+  budget.distBytes           : 1275085 <= 1275000  -> FAIL
+Výsledek tedy závisí na pořadí spuštění. ChatGPT spustil quality nad
+čerstvým buildem (31/31); já nad dodaným artefaktem (30/31), a release
+gate proto padá i na report.quality.passed, tedy 36/39 místo 37/39.
+Jde o stejnou příčinu jako můj minulý nález C-11, který byl opraven
+pro scan, ale ne pro rozpočet velikosti.
+Věcná otázka navíc: QA reporty v dist se na GitHub Pages skutečně
+publikují, takže není zřejmé, že je správné je z rozpočtu vyjímat.
+
+N-03 / LOW / OTEVŘENO – CITOVANÝ DŮKAZ LEŽÍ MIMO AUTORITATIVNÍ ADRESÁŘ
+Protokol v části 1 stanoví: „AUTORITATIVNÍ evidence tohoto kola je
+výhradně adresář garp22-newcycle-round1.“ V části 5 pak jako důkaz
+12/12 uvádí singlepage-runtime.json.
+Tento soubor v garp22-newcycle-round1 NENÍ. Harness jej má natvrdo
+zapsaný do jiné cesty:
+  const out=path.join(root,'audit-evidence','garp22-round3',
+                      'singlepage-runtime.json');
+Soubor existuje a je z tohoto cyklu (06:37, shodně s core-testbuild.log)
+a obsahuje 12/12 i environmentNotes a NC-RT20-SCOPE. Obsah je tedy
+v pořádku; problém je, že podle vlastního pravidla protokolu by se
+k němu nemělo přihlížet, a že adresář garp22-round3 protiřečí rámování
+„nový cyklus, kolo 1“.
+
+N-04 / INFO – ZTRÁTA FALLBACKU PRO SPRAVOVANÉ IMPLEMENTACE STORAGE
+Oprava C-12 správně odstranila Object.keys(store) fallback, který
+maskoval selhání. Vedlejším efektem je, že Storage implementace bez
+funkčního .length/.key(i), ale s klíči jako vlastními vlastnostmi, je
+nyní vyhodnocena jako neenumerovatelná a ukončení práce ohlásí
+neúspěch. Směr je správný (fail-closed), ale může to v exotických
+spravovaných prohlížečích vyvolat falešné poplachy. Stojí za sledování,
+ne za opravu naslepo.
+
+N-05 / INFO – DROBNÁ NEKONZISTENCE ČÍSLOVÁNÍ
+- Static surface má assertion pc01.three-file-reader-paths s tvrdou
+  podmínkou fileReaders.length===3, zatímco RT-00 datová mapa nově
+  uvádí 4 FileReader cesty (3 aplikační + reportér). Není to rozpor
+  (assertion měří jen aplikační JS), ale názvy se rozcházejí.
+- RT-05 je v matici NOT TESTED, přitom harness obsahuje kontrolu
+  s ID RT05-sharedAccessVersion-mismatch-failclosed. Matice to
+  formuluje správně jako „částečně ověřeno“, číslování ale mate.
+
+======================================================================
+6. POSOUZENÍ NEJVĚTŠÍHO POSUNU: RT-01/02/03/04/11 A SIM-01/02
+======================================================================
+Přijímám RT-01, RT-02, RT-04, RT-11, SIM-01 a SIM-02 jako PASS.
+Snapshot je prokazatelně pravý, harness testuje skutečnou logiku,
+sám jsem jej spustil se stejným výsledkem a sám jsem ověřil, že
+dokáže selhat.
+
+RT-03 přijímám jako PASS S VÝHRADOU. V harnessu není žádná kontrola
+označená RT03; matice jej opírá o tytéž patnáct testů plus centrální
+CI log. Věcně to pokryté je (audience, role, expirace, 90 dní,
+revokace, hranice podpisu), ale mapování jednoho RT na testy pojmenované
+jinými RT čísly je slabší doložení, než jaké má zbytek matice.
+
+Podstatná systémová výhrada ke všem šesti:
+harness ověřuje CENTRÁLNÍ access vrstvu izolovaně, se syntetickým
+config klíčem a podvrženým fetch. NEOVĚŘUJE, že Korespondenční
+asistent tuto vrstvu ve svém vlastním bootstrapu správně volá a že se
+bez ní odmítne spustit. To je jiná otázka než správnost centrální
+logiky a v tomto kandidátu doložena není. Doporučuji ji vést zvlášť.
+
+======================================================================
+7. GATE
+======================================================================
+                     ChatGPT    Claude
+SECURITY GATE        AMBER      AMBER
+PRIVACY GATE         AMBER      AMBER
+RED TEAM GATE        AMBER      AMBER
+RELEASE INTEGRITY    AMBER      AMBER
+OVERALL              AMBER      AMBER
+
+Potvrzuji všechny čtyři gate i OVERALL jako AMBER.
+
+Nezhoršuji na RED. Rozpor deklarace vs. důkaz, který minulý cyklus
+srazil na governance RED, se u hlavních čísel neopakuje: 164/164,
+17/17 i 12/12 mají v tomto kole odpovídající úspěšný log. Nenašel jsem
+žádný secret, žádný neočekávaný canary, žádný druhý produkční AI
+egress, žádnou dosažitelnou produkční testovací cestu. Tři z mých
+nálezů z minulého cyklu jsou opravené a ověřené vlastním spuštěním.
+
+Nepovyšuji na GREEN a souhlasím s výčtem důvodů v protokolu.
+Přidávám k nim N-01: dokud artefakt access harnessu neumí zaznamenat
+selhání, opírá se šest nově povýšených statusů o soubor, který nemůže
+být jiný než „passed“.
+
+REÁLNÁ STUDENTSKÁ DATA: NEPOUŽÍVAT
+TESTOVACÍ PROVOZ POUZE SE SYNTETICKÝMI DATY
+
+======================================================================
+8. REGISTR DLUHŮ
+======================================================================
+UZAVŘENO A OVĚŘENO V TOMTO KOLE:
+C-08, C-09, C-10, C-11 (pro scan), C-12, C-13 (pro hlavní čísla).
+
+PŘENÁŠÍ SE:
+SIM-03, SIM-04, SIM-07, RT-05, RT-15, RT-16, RT-17, RT-20,
+navigované P5 runtime/UI/axe, CSP unsafe-inline, provider retence,
+C-14 (runtime důkaz běží na testovacím buildu),
+C-15 (úbytek UI důkazu proti kolu 1 minulého cyklu).
+
+NOVÉ:
+ID   | oblast                    | závažnost | stav
+N-01 | artefakt access harnessu  | MEDIUM    | OPEN
+N-02 | rozpočet velikosti / pořadí| LOW-MED  | OPEN
+N-03 | umístění citovaného důkazu| LOW       | OPEN
+N-04 | storage fallback          | INFO      | OPEN
+N-05 | nekonzistence číslování   | INFO      | OPEN
+N-06 | integrace app <-> guard   | INFO      | OPEN (sekce 6)
+
+======================================================================
+9. ZADÁNÍ PRO DALŠÍ KOLO
+======================================================================
+1. N-01: v access-runtime-harness.mjs oddělit sběr výsledků od
+   ukončení běhu. check() nesmí házet; artefakt zapsat vždy, včetně
+   status:"failed", a teprve pak process.exit(1). Přidat negative
+   control, která doloží, že artefakt umí obsahovat "failed".
+2. N-02: rozhodnout, zda QA reporty patří do rozpočtu velikosti.
+   Buď je všechny přidat do generatedQualityArtifacts, nebo je psát
+   mimo dist. Poté znovu změřit; dnes je výsledek závislý na pořadí
+   a na dodaném artefaktu vychází 30/31 a 36/39.
+3. N-03: nasměrovat výstup singlepage harnessu do adresáře aktuálního
+   kola, nebo cestu odvozovat z parametru. Sjednotit pojmenování
+   adresářů evidence s pojmenováním cyklů.
+4. N-06: doložit, že Korespondenční asistent se bez platného permitu
+   skutečně nespustí — tedy otestovat vlastní bootstrap aplikace,
+   nejen centrální vrstvu. Bez toho jsou RT-01/RT-11 uzavřeny pro
+   sdílenou vrstvu, ne pro tuto aplikaci.
+5. RT-03: buď doplnit do harnessu kontrolu s vlastním RT03 ID, nebo
+   v matici výslovně uvést, které z patnácti testů jej pokrývají.
+6. Beze změny platí priorita SIM-03, SIM-04 a SIM-07 — bez
+   unrestricted browseru zůstávají NOT TESTED a GREEN je nedosažitelný.
+   Doporučuji zvážit jednorázový běh na nespravovaném stroji.
+7. RT-16: branch protection přes API vrací 403 i mně. Bezpečná cesta
+   je screenshot nebo textový výpis nastavení bez hodnot tajemství,
+   ne API dotaz z auditního prostředí.
+
+======================================================================
+10. POTVRZENÍ PŘEDÁNÍ
+======================================================================
+[X] Protokol ChatGPT nebyl přebrán jako pravda.
+[X] Autenticita centrálního snapshotu ověřena stažením skutečného
+    repozitáře na deklarovaném commitu, nikoli přijetím tvrzení.
+[X] Kód nebyl opravován; role auditora dodržena.
+[X] Použita pouze syntetická data.
+[X] Vlastní negative control provedena; mutace jen v disposable kopii,
+    kandidátní strom ověřen jako nemutovaný.
+[X] Rozdíl mezi vlastním provedeným testem a posouzením dodaného
+    důkazu je v celém dokumentu rozlišen.
+[X] Nedostupné scénáře jsou NOT TESTED, nikoli domýšlené.
+[X] Neshody v číslech jsou uvedeny včetně příčiny, ne zamlčeny.
+[ ] Finální release — zatím ne. Nejprve N-01 a N-02, potom SIM-03/04/07.

@@ -1,0 +1,10 @@
+
+> ghrab-korespondencni-asistent@5.10.13 qa:school-profile
+> node scripts/build-school-profile.mjs && node scripts/qa-school-profile.mjs
+
+ghrab-korespondencni-asistent 5.10.13: dist-school-server/ sestaven jako same-origin P3 school-server profil.
+{
+  "schema": "ghrab-school-profile-qa-v1",
+  "status": "passed",
+  "failures": []
+}

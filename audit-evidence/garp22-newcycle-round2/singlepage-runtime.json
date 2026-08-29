@@ -1,0 +1,179 @@
+{
+  "schema": "ghrab-garp22-singlepage-evidence-v1",
+  "generatedAt": "2026-08-29T08:17:01.828Z",
+  "canary": {
+    "id": "MTE3XEO4-R8YNU3Q",
+    "marker": "GARP-STUDENT-CANARY-MTE3XEO4-R8YNU3Q",
+    "email": "garp.student.canary.mte3xeo4-r8ynu3q@example.invalid",
+    "markerA": "GARP-STUDENT-CANARY-MTE3XEO4-R8YNU3Q-A",
+    "markerB": "GARP-STUDENT-CANARY-MTE3XEO4-R8YNU3Q-B"
+  },
+  "checks": [
+    {
+      "id": "harness.platform-unlock",
+      "ok": true,
+      "detail": {
+        "protectedBefore": 1,
+        "unlockCount": 1,
+        "ready": true
+      }
+    },
+    {
+      "id": "sim08.export-excludes-working-student-data",
+      "ok": true,
+      "detail": {
+        "containsA": false,
+        "containsEmail": false,
+        "length": 207
+      }
+    },
+    {
+      "id": "rt19.ai-egress-minimization",
+      "ok": true,
+      "detail": {
+        "payloadKeys": [
+          "prompt",
+          "system",
+          "schema",
+          "schemaId",
+          "thinking",
+          "operation",
+          "modelProfile",
+          "privacy"
+        ],
+        "containsMarker": false,
+        "containsEmail": false,
+        "containsAuditKey": false
+      }
+    },
+    {
+      "id": "rt19.preflight-zero-egress-for-raw-canary",
+      "ok": true,
+      "detail": {
+        "callsAfterBlocked": 0,
+        "blockedCode": "PREFLIGHT_BLOCKED"
+      }
+    },
+    {
+      "id": "rt14.preflight-error-redacts-canary",
+      "ok": true,
+      "detail": {
+        "blockedCode": "PREFLIGHT_BLOCKED",
+        "messageContainsCanary": false
+      }
+    },
+    {
+      "id": "sim06.interrupted-ai-explicit-retry",
+      "ok": true,
+      "detail": {
+        "calls": 2,
+        "first": "SERVER_UNAVAILABLE",
+        "second": "RETRY-OK",
+        "opsContainsPrompt": false
+      }
+    },
+    {
+      "id": "sim05.hostile-ai-output-inert",
+      "ok": true,
+      "detail": {
+        "xss": 0,
+        "img": false,
+        "script": false,
+        "literal": true
+      }
+    },
+    {
+      "id": "sim08.reimport-second-logical-context-no-a",
+      "ok": true,
+      "detail": {
+        "hasA": false,
+        "hasB": true,
+        "inputValue": "GARP-STUDENT-CANARY-MTE3XEO4-R8YNU3Q-B"
+      }
+    },
+    {
+      "id": "rt20.end-work-clears-app-controlled-data",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "storageHasCanary": false,
+        "stateHas": false,
+        "domHas": false,
+        "remainingOwnedKeys": [],
+        "unrelatedPreserved": true,
+        "reporterClearCalls": 1
+      }
+    },
+    {
+      "id": "rt20.fail-safe-detects-remove-failure",
+      "ok": true,
+      "detail": {
+        "wouldReportSuccess": false,
+        "failures": [
+          "syntheticStorage:rozbor_profile"
+        ],
+        "remaining": [
+          "syntheticStorage:rozbor_profile"
+        ]
+      }
+    },
+    {
+      "id": "rt20.fail-safe-detects-enumeration-failure",
+      "ok": true,
+      "detail": {
+        "failures": [
+          "blockedStorage:enumeration-before"
+        ],
+        "remaining": [
+          "blockedStorage:<unverified>"
+        ]
+      }
+    },
+    {
+      "id": "rt06.canary-not-in-observed-console",
+      "ok": true,
+      "detail": {
+        "eventCount": 4
+      }
+    }
+  ],
+  "negativeControls": [
+    {
+      "id": "NC-RT20-SCOPE",
+      "synthetic": true,
+      "expectedMutatedStatus": "FAIL",
+      "observedMutatedStatus": "FAIL",
+      "expectedCleanStatus": "PASS",
+      "observedCleanStatus": "PASS",
+      "detail": {
+        "endWorkResult": true,
+        "mutated": {
+          "containsCanary": true,
+          "keys": [
+            "unrelated_other_app_key",
+            "correspondence_leak_v1"
+          ]
+        },
+        "clean": {
+          "containsCanary": false,
+          "keys": [
+            "unrelated_other_app_key"
+          ]
+        }
+      }
+    }
+  ],
+  "environmentNotes": [
+    {
+      "id": "rt06.url-canary-navigation",
+      "status": "NOT TESTED",
+      "reason": "Harness uses Page.setDocumentContent on about:blank because managed Chromium blocks navigation. URL subcheck is intentionally excluded from PASS count instead of being vacuous."
+    }
+  ],
+  "summary": {
+    "passed": 12,
+    "failed": 0,
+    "total": 12,
+    "status": "passed"
+  }
+}

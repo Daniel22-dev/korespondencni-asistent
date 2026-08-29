@@ -1,0 +1,59 @@
+GARP 2.3 — CURRENT-CYCLE EVIDENCE INDEX — Korespondenční asistent 5.10.13
+Autoritativní adresář: audit-evidence/garp23-cycle1-round1/
+
+PROVENANCE / SCOPE
+- cycle-meta.txt
+- provenance-runtime-diff.txt
+- rt00-pc01.json
+- pc01-ai-egress.txt
+- provider-model-context.txt
+- central-access-head.txt
+
+AI-RED / RT-09
+- ai-red-structural.json — 32/32 structural PASS; behavior NOT TESTED; RT09 NOT TESTED; max AMBER
+- ai-red-structural.log / v513-ai-red-structural.log
+- air-matrix.txt
+- ai-red-findings-disposition.txt
+- negative-controls-summary.txt
+- scripts/fixtures/garp23-ai-red-corpus.json — source corpus (v app tree)
+- scripts/qa-garp23-ai-red-structural.mjs — executable harness
+
+CORE / GARP
+- v513-core-valid-testbuild.log — 168/168 internal + 17/17 Core PASS
+- singlepage-runtime.json — 12/12 PASS + NC-RT20-SCOPE
+- v513-garp-singlepage-testbuild.log
+- access-runtime.json / access-runtime.log — 17/17 PASS
+- app-bootstrap-integration.json — 5/5 PASS
+
+PRODUCTION REGRESSION
+- final-ai-profiles.log — 15/15 PASS
+- final-platform.log — 124/124 PASS
+- final-static.log — 29/29 PASS
+- final-bootstrap.log — 5/5 PASS
+- final-prod-boundary.log — 8/8 PASS
+- final-quality.log — 31/31 PASS
+- final-browser.log — 19 browser contract checks PASS
+- final-xss.log — XSS regression inventory PASS; eval/new Function 0
+- final-lock.log — 67 locked packages PASS
+- final-reporter.log — 52 PASS / 0 FAIL static/unit
+- final-school.log — school-server build/profile PASS
+- performance-budget-rebaseline.txt — measured narrow 5.10.13 security-code size rebaseline
+
+P5 ENVIRONMENT LIMITATIONS
+- final-p5-runtime.log — NOT TESTED / Runtime page timeout under managed policy
+- final-p5-ui.log — NOT TESTED under managed navigation policy
+- final-p5-axe.log — not-ready-environment
+- final-p5-release.log — 39/41; only runtime/ui evidence absent
+- final-p5-acceptance.log — 13/16; derivative missing runtime/ui/release pass
+- environment-limitations.txt
+
+SECRET / PRIVACY ARTIFACT SWEEPS
+- final-secret-scan.log — 0 findings, 0 risky filenames
+- final-canary-sweep.log — 0 unexpected exact hits
+
+MATRICES / ADVERSARIAL
+- rt-sim-matrix.txt
+- air-matrix.txt
+- free-adversarial-search.txt
+
+Historical audit-evidence directories are NOT current-cycle PASS evidence. They remain in the candidate for provenance/history only unless a current-cycle file explicitly references a stable unchanged artifact and reruns it (e.g. current access harness/snapshot).

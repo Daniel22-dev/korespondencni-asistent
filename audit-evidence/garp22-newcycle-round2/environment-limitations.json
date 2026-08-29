@@ -1,0 +1,23 @@
+{
+  "schema": "garp22-environment-limitations-v1",
+  "generatedAt": "2026-08-29T08:17:43.720976Z",
+  "chromiumManagedPolicy": {
+    "urlBlocklist": [
+      "*"
+    ],
+    "policyFile": "/etc/chromium/policies/managed/000_policy_merge.json"
+  },
+  "effects": {
+    "navigatedRuntime": "NOT TESTED",
+    "uiInteractions": "NOT TESTED",
+    "axeRuntime": "NOT TESTED",
+    "sim03": "NOT TESTED",
+    "sim04": "NOT TESTED",
+    "sim07": "NOT TESTED"
+  },
+  "releaseGate": {
+    "p5Release": "37/39",
+    "acceptance": "13/16"
+  },
+  "status": "documented"
+}

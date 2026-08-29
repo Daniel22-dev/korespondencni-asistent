@@ -1,0 +1,33 @@
+GARP 2.3 – vypořádání Claude kolo 1 – Korespondenční asistent 5.10.14
+
+C-01 / MEDIUM / POTVRZENO A OPRAVENO
+- Claude správně našel second-order cestu tone-check -> selectedToneInstruction -> refineDraft.
+- Oprava: uživatel potvrzuje pouze indexy; modelové texty jsou samostatně v <untrusted-data kind="model-derived-tone-findings">.
+- Tone cesta nepoužívá trustedInstruction:true. App-generated direktiva nese jen povolenou volbu indexů.
+- Negative control: po záměrném vrácení modelového textu do direktivy AIR-03 FAIL a AIR-12 toneDerived 0/24. Čistý kandidát: AI-RED 33/33 structural PASS.
+
+C-02 / LOW / POTVRZENO A OPRAVENO
+- Rozšířen stripHtml na opacity:0, font-size:0, off-screen absolute/fixed, transparent color a whitespace varianty display/visibility.
+- Negative control s oslabeným filtrem: AIR-05 FAIL a skryté syntetické markery přežily. Čistý kandidát PASS.
+
+C-03 / LOW-MEDIUM RELEASE INTEGRITY / POTVRZENO A OPRAVENO
+- scripts/test.mjs jsdom URL je bez ?test=1, takže auto-run nekoliduje s ručním SUITE.
+- qa-garp23-test-harness.mjs má negative control: syntetický návrat ?test=1 => FAIL.
+- V tomto prostředí není lokální jsdom modul dostupný, proto skutečná jsdom runtime cesta zůstává lokálně NOT TESTED; Chromium fallback má 169/169 + 17/17 PASS. Claude kolo 2 má jsdom cestu znovu nezávisle spustit.
+
+C-04 / INFO / POTVRZENO A OPRAVENO
+- AIR-12 už netestuje jedinou helper funkci: 24 mutací / 6 rodin běží přes generic, incoming, replyScope, synonym, userDirective a toneDerived.
+
+C-05 / INFO / POTVRZENO A OPRAVENO
+- secret/canary scan jsou npm scripts a součást qa:p5 i qa:p5:ci.
+- oba mají vlastní negative control a po P5 byly spuštěny ještě jednou; 0 nálezů.
+
+C-06 / INFO / POTVRZENO A VYŘEŠENO BEZ DALŠÍHO REBASELINE
+- Místo zvýšení limitů produkční build stripuje celý interní test-runner payload a nechává fail-closed stuby. Test build zachovává plný runner.
+- Produkční index.html ~647 kB; obnoven přísnější size budget z 5.10.12; quality 31/31.
+- Negative control po vypnutí strippingu správně shodí rt09.production-test-runner-payload-stripped.
+
+C-07 / INFO / POTVRZENO JAKO HARDENING A OPRAVENO
+- Neznámé statické hodnoty v promptových volbách používají známé bezpečné defaulty místo raw fallbacku, včetně outgoing rewrite/compose.
+
+Nový HIGH/CRITICAL nález v opravném kole: NENÍ.

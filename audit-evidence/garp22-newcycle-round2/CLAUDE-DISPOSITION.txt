@@ -1,0 +1,39 @@
+GARP 2.2 — NOVÝ CYKLUS — OPRAVNÉ KOLO PO CLAUDE KOLE 1
+Aplikace: Korespondenční asistent 5.10.12
+Autoritativní evidence: audit-evidence/garp22-newcycle-round2/
+
+N-01 / MEDIUM / POTVRZENO -> OPRAVENO
+- Původní access-runtime-harness mohl při selhání ponechat starý access-runtime.json se status:"passed".
+- Oprava: check() již nevyhazuje výjimku; výsledek se vždy zapíše, neočekávané výjimky/rejection jsou zachyceny a zapisují failed artifact před exit 1.
+- Důkaz: access-runtime.json = passed, 17 kontrol; negative-control-n01.log = exit 1 + artifact-status=failed po syntetickém bypassu; čistý rerun = passed.
+
+N-02 / LOW-MEDIUM / POTVRZENO -> OPRAVENO
+- Původní quality budget závisel na pořadí QA reportů v dist.
+- Oprava: qa-p3-quality explicitně vylučuje generovaná QA metadata z performance payload budgetu. Deploy workflow je po úspěšné QA před upload-pages odstraňuje, takže se nepublikují jako součást Pages artefaktu.
+- Důkaz: quality-clean.log = 31/31; quality-after-reports.log = 31/31 se syntetickými QA reporty; negative-control-n02.log = starý checker 30/31 FAIL; deploy-cleanup-test.json = passed.
+
+N-03 / LOW / POTVRZENO -> OPRAVENO
+- Původní singlepage evidence byla zapisována do garp22-round3 mimo deklarovaný nový cyklus.
+- Oprava: všechny GARP evidence skripty používají GARP_EVIDENCE_DIR; canary sweep čte singlepage evidence ze stejného adresáře.
+- Důkaz: singlepage-runtime.json, static-surface-assertions.json, production-test-boundary.json, secret-scan.json, canary-artifact-sweep.json jsou přímo v garp22-newcycle-round2.
+
+N-04 / INFO / POTVRZENO -> BEZ OPRAVY
+- Storage implementace bez standardních length/key může vyvolat false alarm.
+- Fail-closed chování je záměrně bezpečnější než fallback Object.keys, který dříve maskoval chybu. Sledovat, neopravovat naslepo.
+
+N-05 / INFO / POTVRZENO -> VYJASNĚNO
+- Static assertion přejmenována na pc01.three-app-file-reader-paths; RT-00 samostatně eviduje 4 FileReader cesty celkem (3 aplikační + 1 reporter screenshot).
+- Access harness přejmenoval RT05 kontrolu na RT05-partial-sharedAccessVersion-mismatch-failclosed, aby neimplikovala celý RT-05 PASS.
+
+N-06 / INFO / POTVRZENO -> OPRAVENO DŮKAZEM INTEGRACE
+- Přidán executed test skutečného bootstrapu z dist/index.html.
+- Ověřuje: protected script existuje; protectApp je volán před unlock; deny/no-permit neodemkne runtime; import failure neodemkne runtime; validní allow cesta vyžaduje guard + unlock.
+- Důkaz: app-bootstrap-integration.json = 5/5 PASS.
+- Negative control: syntetické if(true) v disposable kopii -> 4/5 FAIL; čistý bootstrap -> 5/5 PASS (negative-control-n06.log).
+
+AD-02 / AUDIT TOOLING / POTVRZENO -> OPRAVENO
+- Volné adversariální hledání zjistilo, že nově přidaný GARP_EVIDENCE_DIR nebyl validován proti ../ path traversal.
+- Oprava: evidenceDir musí odpovídat ^[A-Za-z0-9._-]+$ ve všech dotčených GARP skriptech.
+- Negative control: GARP_EVIDENCE_DIR='../../src' -> exit 1 (negative-control-evidence-path.log).
+
+Závěr: žádný nový HIGH/CRITICAL nález. Runtime aplikace src/config/vendor je proti vstupnímu kandidátu byte-identický; změny jsou audit/QA/CI/release-tooling.

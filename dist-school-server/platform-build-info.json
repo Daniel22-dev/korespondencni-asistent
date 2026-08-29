@@ -1,0 +1,16 @@
+{
+  "schema": "ghrab-platform-build-v1",
+  "appId": "correspondence",
+  "appVersion": "5.10.14",
+  "platformVersion": "1.1.0",
+  "platformContract": "ghrab-platform-v1",
+  "brandVersion": "1.0.0",
+  "cacheName": "ghrab-correspondence-v5.10.14",
+  "processedHtmlFiles": 2,
+  "qualityContracts": {
+    "accessibility": "ghrab-a11y-v1",
+    "performance": "ghrab-performance-v1",
+    "modules": "ghrab-lazy-modules-v1"
+  },
+  "builtAt": "2026-08-29T10:33:46.332Z"
+}

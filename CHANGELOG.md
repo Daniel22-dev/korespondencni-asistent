@@ -1,3 +1,54 @@
+## 5.10.14 — GARP 2.3 corrective round po Claude kolo 1 (2026-08-29)
+
+- opraven C-01: výstup tone-checku se při následné úpravě konceptu už nikdy nepovyšuje na uživatelskou direktivu; uživatel potvrzuje pouze indexy a modelová zjištění zůstávají v `<untrusted-data kind="model-derived-tone-findings">`;
+- opraven C-02: HTML import odstraňuje i `opacity:0`, `font-size:0`, off-screen absolutní/fixní prvky a whitespace varianty `display : none`;
+- opraven C-03: výchozí jsdom cesta `scripts/test.mjs` už neaktivuje automatický `?test=1` runner; samostatný gate obsahuje negative control;
+- AIR-12 nyní mutuje 24 payloadů přes více skutečných prompt builderů včetně incoming, reply-scope, synonym, user-directive a tone-derived cest;
+- secret/canary scany jsou součástí P5 release orchestrace, nikoli ruční doplněk;
+- neznámé hodnoty statických promptových voleb už nemají raw fallback do promptu;
+- produkční build odstraňuje celý interní test-runner payload a ponechává jen fail-closed stuby; test build jej zachovává. Tím se produkční `index.html` zmenšil přibližně o 147 kB a bylo možné vrátit přísnější performance budget z 5.10.12 bez rebaseline;
+- live behaviorální AIR proti produkčnímu Gemini zůstává NOT TESTED bez bezpečně dostupného credentialu.
+
+## 5.10.13 — GARP 2.3 AI-RED prompt-injection hardening (2026-08-29)
+- performance budget byl po změřeném AI-RED nárůstu 7 489 B (0,96 % index.html) úzce přebaselinován; runtime limity zůstaly beze změny.
+
+- všechny volné nebo importované texty vstupující do AI jsou rozlišeny jako nedůvěryhodná data nebo níže-prioritní uživatelské preference;
+- opraven delimiter-injection povrch u vlastního e-mailu, následných úprav a kontroly tónu;
+- AI-vytěžené požadavky z příchozího e-mailu se při tvorbě odpovědi vracejí jen jako nedůvěryhodná data (ochrana proti second-order prompt injection);
+- synonymní sekundární AI cesta nově používá JSON trust boundary a plná prompt-injection pravidla;
+- import HTML zahazuje zjevně skrytý obsah před dalším zpracováním;
+- přidán GARP 2.3 strukturální AIR-01 až AIR-12 harness s canary, cross-context kontrolou, 24 mutacemi a negative control;
+- live behaviorální odolnost externího modelu není bez produkčního credentialu vydávána za PASS.
+
+## 5.10.12 — GARP 2.2 post-Claude kolo 2 hardening (2026-08-28)
+
+- opraven fail-safe RT-20: nemožnost vyjmenovat storage se nyní propaguje jako selhání a nesmí skončit úspěšným potvrzením smazání;
+- destruktivní interní test runner je dostupný pouze v lokálním testovacím buildu a v produkci je fail-closed;
+- pevné testovací canary hodnoty byly nahrazeny runtime generovanými syntetickými markery;
+- GARP round-3 evidence se generuje nově a finální secret/canary scan se provádí až po vzniku QA artefaktů;
+- nejde o finální release: GARP 2.2 po druhé Claude kontrole nedovoluje automaticky prodloužit nezávislou smyčku.
+
+## 5.10.11 — GARP 2.2 corrective round 1 (2026-08-28)
+
+- RT-20 end-work is fail-safe: deletion is verified and failure is surfaced instead of unconditional success.
+- Error reporter exposes `clearDraft()` and end-work clears the in-memory report draft before reload.
+- GARP RT-20 evidence scans all storage values for the synthetic canary; negative control covers a canary under a key outside the app namespace.
+- AI mock hooks are disabled in the production build by a build-time flag and are available only in explicit local test builds.
+- `data-manifest.json` documents prompt-debug storage, Studio bridge keys and the fetch diagnostic wrapper.
+- Audit `.log` evidence is explicitly trackable despite the general `*.log` ignore rule.
+- Static meta CSP is generated from `security-headers.json`; QA checks exact parity.
+
+## 5.10.10 — 2026-08-28 — GARP 2.2 security/privacy hardening
+
+- omezeny importované soubory na 1 MB a sanitizovány importované slovníky i bloky školní knihovny,
+- blokovaný AI preflight již ve své chybové zprávě neopakuje nalezený citlivý řetězec,
+- access bootstrap nevypisuje raw text výjimky,
+- doplněna funkce `GHRABCorrespondencePrivacy.endWork()` a uživatelské „Ukončit práci“ s vymazáním storage, pracovního DOM/stavu a reloadem,
+- datový manifest již netvrdí neimplementovanou 30denní automatickou retenci, logout mazání ani nepřipojený server delete endpoint,
+- testovací fixture s identifikovatelně vypadajícím jménem byla nahrazena syntetickými údaji,
+- přidány regresní testy pro privacy preflight, importní limity, sanitaci školní knihovny a end-work mazání.
+- performance budget byl po změřeném bezpečnostním nárůstu jednorázově přebaselinován v úzkém rozsahu; runtime budget zůstává beze změny.
+
 ## 5.10.9 — 2026-08-27 — průřezové hardening opravy ekosystému
 
 ### Opraveno

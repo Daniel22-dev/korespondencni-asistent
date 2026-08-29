@@ -11,6 +11,16 @@ const jset=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true;}ca
 const clean=s=>String(s||"").trim();
 const safeText=t=>clean(t).replace(/\r\n?/g,"\n").replace(/\n{3,}/g,"\n\n");
 const uid=p=>(p||"id")+"-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,7);
+const MAX_LIBRARY_BLOCKS=40,MAX_LIBRARY_BLOCK_NAME=100,MAX_LIBRARY_BLOCK_CATEGORY=80,MAX_LIBRARY_BLOCK_TEXT=4000;
+function sanitizeLibraryBlock(item){
+  if(!item||typeof item!=="object")return null;
+  const name=safeText(item.name).slice(0,MAX_LIBRARY_BLOCK_NAME),text=safeText(item.text).slice(0,MAX_LIBRARY_BLOCK_TEXT);
+  if(!name||!text)return null;
+  const category=safeText(item.category||"Vlastní").slice(0,MAX_LIBRARY_BLOCK_CATEGORY)||"Vlastní";
+  const rawId=clean(item.id),id=/^[a-z0-9._:-]{1,80}$/i.test(rawId)?rawId:uid("block");
+  return {id,name,category,text};
+}
+function sanitizeLibraryBlocks(items){const out=[];for(const item of Array.isArray(items)?items:[]){if(out.length>=MAX_LIBRARY_BLOCKS)break;const cleanItem=sanitizeLibraryBlock(item);if(cleanItem)out.push(cleanItem);}return out;}
 let activeDraft=null,activePaneName="in";
 
 const defaultBlocks=[
@@ -23,7 +33,7 @@ const defaultBlocks=[
   {id:"decline",name:"Zdvořilé odmítnutí",category:"Reakce",text:"V této podobě bohužel nemohu žádosti vyhovět. Mohu však navrhnout jiné možné řešení."},
   {id:"agreement",name:"Potvrzení domluvy",category:"Organizace",text:"Pro jistotu shrnuji naši domluvu: [doplňte body, odpovědnosti a termíny]."}
 ];
-function getCustomBlocks(){const a=jget(LS.blocks,[]);return Array.isArray(a)?a.filter(x=>x&&x.id&&x.name&&x.text):[];}
+function getCustomBlocks(){return sanitizeLibraryBlocks(jget(LS.blocks,[]));}
 function getBlocks(){return defaultBlocks.concat(getCustomBlocks());}
 function profileSignature(){
   const p=typeof loadProfile==="function"?loadProfile():{};const name=clean(p.name);if(!name)return "";
@@ -224,9 +234,10 @@ window.openFollowupsManager=openFollowupsManager;
 async function downloadJson(name,obj){if(window.GHRABArtifact?.download)return window.GHRABArtifact.download({appId:"correspondence",appVersion:RELEASE.version,artifactType:"correspondence-library",sensitivity:"restricted",contentManifest:[{kind:"library",schema:"ks-school-library-v1"}],payload:obj,filename:name.replace(/\.json$/i,".ghrab.json")});const blob=new Blob([JSON.stringify(obj,null,2)],{type:"application/json;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1200);return null;}
 function openSchoolLibraryManager(){
   const html='<p>Vytvoř přenositelný balíček vlastních šablon a formulací pro kolegy. Balíček neobsahuje API klíč, historii, osobní profil, podpisy ani texty e-mailů.</p><div class="library-summary"><b>Součást balíčku</b><span>Vlastní šablony nastavení · vlastní textové bloky</span></div><div class="dialog-actions"><button class="btn" id="libExport">Exportovat školní balíček</button><button class="btn ghost" id="libImport">Importovat balíček</button><input type="file" id="libFile" accept="application/json,.json" hidden></div><div class="info">Centrální automatická synchronizace pro celou školu vyžaduje přihlášení a školní backend. Tato verze proto používá bezpečný export/import bez účtů a bez odesílání dat.</div>';
-  openModal("Sdílená školní knihovna",html,{onMount(body,close){body.querySelector("#libExport").onclick=()=>{void downloadJson("KS-skolni-knihovna.json",{app:"Korespondencni asistent",format:1,created:new Date().toISOString(),templates:loadTpls(),blocks:getCustomBlocks()}).catch(()=>toast("Export se nepovedl."));};const f=body.querySelector("#libFile");body.querySelector("#libImport").onclick=()=>f.click();f.onchange=()=>{const file=f.files&&f.files[0];if(!file)return;const r=new FileReader();r.onload=async()=>{try{const raw=String(r.result||"{}");const unpacked=window.GHRABArtifact?.unwrapMaybe?await window.GHRABArtifact.unwrapMaybe(raw,{allowLegacy:true,expectedAppId:"correspondence",verifyChecksum:true}):{payload:JSON.parse(raw)};const d=unpacked.payload;if(d.app!=="Korespondencni asistent"||d.format!==1)throw new Error("Neplatný formát");if(Array.isArray(d.templates))saveTpls(d.templates.slice(0,30));if(Array.isArray(d.blocks))jset(LS.blocks,d.blocks.filter(x=>x&&x.name&&x.text).slice(0,40));renderTemplates();close();toast("Školní knihovna importována ✓");}catch(e){toast("Soubor není platný nebo má poškozený kontrolní součet.");}};r.readAsText(file,"utf-8");};}});
+  openModal("Sdílená školní knihovna",html,{onMount(body,close){body.querySelector("#libExport").onclick=()=>{void downloadJson("KS-skolni-knihovna.json",{app:"Korespondencni asistent",format:1,created:new Date().toISOString(),templates:loadTpls(),blocks:getCustomBlocks()}).catch(()=>toast("Export se nepovedl."));};const f=body.querySelector("#libFile");body.querySelector("#libImport").onclick=()=>f.click();f.onchange=()=>{const file=f.files&&f.files[0];if(!file)return;if(typeof importFileWithinLimit!=="function"||!importFileWithinLimit(file)){toast("Soubor není platný: maximální velikost je 1 MB.");f.value="";return;}const r=new FileReader();r.onload=async()=>{try{const raw=String(r.result||"{}");if(typeof importTextWithinLimit!=="function"||!importTextWithinLimit(raw))throw new Error("Soubor je příliš velký");const unpacked=window.GHRABArtifact?.unwrapMaybe?await window.GHRABArtifact.unwrapMaybe(raw,{allowLegacy:true,expectedAppId:"correspondence",verifyChecksum:true}):{payload:JSON.parse(raw)};const d=unpacked.payload;if(!d||typeof d!=="object"||d.app!=="Korespondencni asistent"||d.format!==1)throw new Error("Neplatný formát");if(Array.isArray(d.templates))saveTpls(d.templates.slice(0,30));if(Array.isArray(d.blocks))jset(LS.blocks,sanitizeLibraryBlocks(d.blocks));renderTemplates();close();toast("Školní knihovna importována ✓");}catch(e){toast("Soubor není platný nebo má poškozený kontrolní součet.");}finally{f.value="";}};r.onerror=()=>{f.value="";toast("Soubor se nepovedlo načíst.");};r.readAsText(file,"utf-8");};}});
 }
 window.openSchoolLibraryManager=openSchoolLibraryManager;
+window.GHRABCorrespondenceWorkbench=Object.freeze({clearTransientState(){activeDraft=null;activePaneName="in";syncBar();}});
 function syncBar(){const enabled=!!activeDraft;["barSave","barCheck","barCopy"].forEach(id=>{const b=$(id);if(b)b.disabled=!enabled;});}
 function renderWorkspaceNav(p){
   const nav=$("workspaceNav"); if(!nav)return;

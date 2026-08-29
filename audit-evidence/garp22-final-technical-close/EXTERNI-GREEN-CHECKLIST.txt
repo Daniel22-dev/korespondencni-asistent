@@ -1,0 +1,72 @@
+GARP 2.2 – EXTERNÍ CHECKLIST K DOSAŽENÍ GREEN
+Korespondenční asistent 5.10.12
+Stav: technická auditní smyčka uzavřena; externí GREEN důkazy čekají.
+
+DŮLEŽITÉ
+- Další kolo Claude není potřeba.
+- Všechny testy níže používat POUZE se syntetickými daty.
+- Reálná studentská data nepoužívat, dokud všechny body nejsou uzavřené.
+
+A. TESTOVAT PŘESNÝ RELEASE
+Ověřované produkční soubory:
+- dist/index.html SHA-256 516051e18dc96a63e312d50c97896cdeb0f56b1fb0bbe240b37ed1cc65e87407
+- dist/sw.js SHA-256 a450bbfd1039988790af5dbabc257958d38d3a34f280680177ab16921b53fc71
+- dist/manifest.webmanifest SHA-256 406fb4818a0a1ee916090f0d21fcdc96b60dced55db427c8e5963eed89f11339
+
+B. SIM-03 – BACK / RESTORE / REOPEN
+Na běžném nespravovaném Chrome/Chromium:
+1. Otevřít finální 5.10.12.
+2. Použít syntetického Studenta A a výrazný marker, např. GARP-SIM03-A-<datum>.
+3. Projít relevantní pracovní cestu aplikace.
+4. Použít „Ukončit práci / smazat data“.
+5. Vyzkoušet Back, Forward a reload.
+6. Zavřít kartu a znovu otevřít aplikaci.
+7. Pokud prohlížeč nabízí obnovení zavřené karty/session restore, provést i to.
+8. Otevřít kontext syntetického Studenta B.
+PASS: marker ani data A se neobjeví v UI, storage, exportu ani kontextu B.
+
+C. SIM-04 – MULTI-TAB STATE COLLISION
+1. Otevřít dvě karty stejného finálního release.
+2. Karta 1 = syntetický Student A, karta 2 = syntetický Student B; použít odlišné canary markery.
+3. V obou kartách provést relevantní pracovní/AI akce.
+4. Dokončit akce v opačném pořadí, než byly zahájeny.
+5. Zkontrolovat UI, exporty a stav obou karet.
+6. Provést ukončení práce v jedné kartě a ověřit definované bezpečné chování druhé.
+PASS: žádné promíchání A/B, žádný export B s daty A ani naopak.
+
+D. SIM-07 – SERVICE WORKER UPDATE / RECOVERY
+Poznámka: při auditu byl GitHub main stále na 5.10.9, takže přechod na finální 5.10.12 lze použít jako skutečný update drill.
+1. Na testovacím PC před nasazením 5.10.12 jednou otevřít stávající release a nechat jednu kartu otevřenou.
+2. Nasadit přesný finální 5.10.12.
+3. Otevřít novou kartu, reloadnout starou kartu a ověřit, že se bezpečně přejde na 5.10.12.
+4. V Chrome DevTools > Application zkontrolovat Service Worker a Cache Storage.
+5. Ověřit, že staré nepovolené cache nejsou používány a dynamická studentská data nejsou v cache.
+6. Ověřit recovery: po reloadu/novém otevření aplikace lze bezpečně pokračovat bez smíšeného starého/nového runtime.
+PASS: bezpečný přechod, žádná citlivá data ve SW cache, žádná neřízená stará verze.
+
+E. RT-16 – KEY CUSTODY & ACCOUNT HARDENING
+Bez zasílání jakéhokoli secretu doložit pouze ANO/NE + bezpečný screenshot/text:
+[ ] Účet s release pravomocí má silné MFA – passkey nebo hardware key; ne pouze SMS.
+[ ] Je určeno, kdo/role drží soukromý podpisový klíč.
+[ ] Klíč je v chráněné třídě úložiště; nezasílat jeho hodnotu.
+[ ] Existuje bezpečná záloha a recovery/rotation postup.
+[ ] Rotace/revokace byla procedurálně ověřena.
+[ ] main branch má ochranu/pravidla schválení podle možností GitHubu.
+[ ] Secret scanning a push protection jsou zapnuté, pokud je GitHub pro repozitář nabízí.
+[ ] Workflow používají minimální oprávnění a SHA-pinned Actions – kódový audit toto již potvrzuje.
+
+F. PROVIDER BOUNDARY
+[ ] Pro reálná studentská data se NEPOUŽÍVÁ Gemini Developer API Free Tier.
+[ ] Použit je schválený Paid Tier nebo school-server AI gateway.
+[ ] Dobrovolné sdílení logů/datasetů pro model improvement je vypnuté.
+[ ] Je zkontrolována potřebná retence/logging politika.
+[ ] Gemini klíč je authorization key; staré standard keys jsou před zářím 2026 migrovány.
+[ ] Škola má samostatně vyřešené GDPR/zpracovatelské podmínky poskytovatele.
+
+G. CO POSLAT ZPĚT DO CHATGPT PRO FINÁLNÍ GREEN ROZHODNUTÍ
+- výsledky SIM-03 / SIM-04 / SIM-07: PASS nebo přesný popis FAIL;
+- 1–3 bezpečné screenshoty relevantních GitHub security nastavení, bez secretů;
+- textovou RT-16 attestaci ANO/NE;
+- potvrzení, zda provider pro reálná data je Paid Tier nebo school-server a zda je logging/data-sharing nastaven bezpečně.
+
+Teprve potom lze znovu vyhodnotit RT-05, RT-15, RT-16, RT-17, RT-20 a všechny čtyři GARP gates na GREEN.

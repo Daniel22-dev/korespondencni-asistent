@@ -1,0 +1,80 @@
+{
+  "schema": "ghrab-p5-acceptance-result-v2",
+  "appId": "correspondence",
+  "appVersion": "5.10.12",
+  "stage": "P5-R11-ECOSYSTEM-HARDENING",
+  "summary": {
+    "total": 16,
+    "passed": 13,
+    "failed": 3
+  },
+  "status": "failed",
+  "passed": [
+    {
+      "id": "acceptance.source",
+      "detail": "release-acceptance.json"
+    },
+    {
+      "id": "acceptance.schema",
+      "detail": "ghrab-release-acceptance-v1"
+    },
+    {
+      "id": "acceptance.stage",
+      "detail": "P5"
+    },
+    {
+      "id": "acceptance.appId",
+      "detail": "correspondence"
+    },
+    {
+      "id": "acceptance.version",
+      "detail": "5.10.12 vs 5.10.12"
+    },
+    {
+      "id": "acceptance.server-optional",
+      "detail": "false"
+    },
+    {
+      "id": "acceptance.server-status",
+      "detail": "prepared-not-connected"
+    },
+    {
+      "id": "acceptance.github-pending",
+      "detail": "not-yet-uploaded"
+    },
+    {
+      "id": "file.dist/config/release-acceptance.json",
+      "detail": "dist/config/release-acceptance.json"
+    },
+    {
+      "id": "file.dist/qa-p3-browser-report.json",
+      "detail": "dist/qa-p3-browser-report.json"
+    },
+    {
+      "id": "status.dist/qa-p3-browser-report.json",
+      "detail": "passed"
+    },
+    {
+      "id": "file.dist/qa-p5-release-report.json",
+      "detail": "dist/qa-p5-release-report.json"
+    },
+    {
+      "id": "source.no-secret-files",
+      "detail": ""
+    }
+  ],
+  "failed": [
+    {
+      "id": "file.dist/qa-p5-runtime-report.json",
+      "detail": "dist/qa-p5-runtime-report.json"
+    },
+    {
+      "id": "file.dist/qa-p5-ui-interactions-report.json",
+      "detail": "dist/qa-p5-ui-interactions-report.json"
+    },
+    {
+      "id": "status.dist/qa-p5-release-report.json",
+      "detail": "failed"
+    }
+  ]
+}

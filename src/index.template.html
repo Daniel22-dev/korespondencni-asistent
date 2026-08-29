@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="cs" data-ghrab-access="checking" data-ghrab-app-id="correspondence" data-ghrab-app-version="5.10.9">
+<html lang="cs" data-ghrab-access="checking" data-ghrab-app-id="correspondence" data-ghrab-app-version="5.10.14">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="referrer" content="no-referrer">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://generativelanguage.googleapis.com; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="__GHRAB_STATIC_CSP__">
 <title>Korespondenční asistent</title>
 <meta name="theme-color" content="#2c6e6b">
 <meta name="application-name" content="Korespondenční asistent">
@@ -57,9 +57,9 @@ try {
     showAccessBootstrapFailure('Přístup nebyl povolen', 'Tato aplikace nebyla pro tento účet nebo zařízení odemčena. Vraťte se do AI Studia a zkontrolujte oprávnění.');
   }
 } catch (error) {
-  console.error('AI Studio access bootstrap failed', error);
-  const detail = error instanceof Error ? `${error.name}: ${error.message}` : String(error || 'unknown-error');
-  showAccessBootstrapFailure(undefined, undefined, detail);
+  const errorName = error instanceof Error && error.name ? error.name : 'AccessError';
+  console.error('AI Studio access bootstrap failed:', errorName);
+  showAccessBootstrapFailure(undefined, undefined, errorName);
 }
 </script>
 <noscript><style>html[data-ghrab-access="checking"] body{visibility:visible}</style><main style="max-width:42rem;margin:4rem auto;padding:1.5rem;font-family:system-ui">Tato aplikace vyžaduje zapnutý JavaScript a platný přístup z AI Studia GHRAB.</main></noscript>

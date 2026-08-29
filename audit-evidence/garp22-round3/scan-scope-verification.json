@@ -1,0 +1,17 @@
+{
+  "schema": "garp22-round3-independent-scope-check-v1",
+  "generatedAt": "2026-08-28T19:25:36.087Z",
+  "independentCounts": {
+    "src": 36,
+    "scripts": 27,
+    ".github": 6,
+    "dist": 34,
+    "dist-school-server": 27
+  },
+  "totalEligibleTextFiles": 130,
+  "secretScanFiles": 130,
+  "canaryScanFiles": 130,
+  "matchSecret": true,
+  "matchCanary": true,
+  "status": "passed"
+}

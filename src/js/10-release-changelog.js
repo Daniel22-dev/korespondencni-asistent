@@ -1,13 +1,23 @@
-const IS_TEST_MODE=new URLSearchParams(window.location.search).get("test")==="1";
-
 "use strict";
 
+const TEST_HOOKS_BUILD_ENABLED="__GHRAB_TEST_HOOKS_BUILD_ENABLED__"==="1";
+function isTrustedLocalTestOrigin(){
+  const p=String(window.location&&window.location.protocol||"").toLowerCase();
+  const h=String(window.location&&window.location.hostname||"").toLowerCase();
+  return p==="about:"||p==="file:"||h==="localhost"||h==="127.0.0.1"||h==="::1";
+}
+const IS_TEST_MODE=TEST_HOOKS_BUILD_ENABLED&&isTrustedLocalTestOrigin()&&new URLSearchParams(window.location.search).get("test")==="1";
 const RELEASE = {
-  version: "5.10.9",
-  date: "2026-08-27",
+  version: "5.10.14",
+  date: "2026-08-29",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.10.14: GARP 2.3 opravné kolo po Claude — uzavřen tone-check second-order injection, rozšířeno odstraňování skrytého HTML, opravena výchozí jsdom testovací cesta, AIR-12 pokrývá více prompt builderů, secret/canary scany jsou součást P5 a produkční build už nedistribuuje interní test runner.",
+    "5.10.13: GARP 2.3 AI-RED hardening — jednotné trust-zóny pro nedůvěryhodná data a uživatelské preference, ochrana second-order injection, zpevněná synonymní AI cesta, skrytý HTML obsah mimo model a samostatný AIR-01 až AIR-12 strukturální harness.",
+    "5.10.12: GARP 2.2 uzavírací opravy po druhé kontrole Claude — fail-safe enumerace úložišť, produkčně nedostupný destruktivní test runner, runtime canary bez pevných hodnot a zpřesněná auditní evidence.",
+    "5.10.11: GARP 2.2 opravné kolo po Claude — fail-safe ukončení práce s ověřením smazání a clearDraft reportéru, netautologický RT-20 canary test, produkční AI test hooks vypnuté build flagem, úplná datová mapa, trvanlivá audit evidence a CSP generovaná z jediného zdroje pravdy.",
+    "5.10.10: GARP 2.2 security/privacy hardening — importy mají velikostní a obsahové limity, blokovaný AI preflight nevypisuje nalezené citlivé řetězce, datový manifest pravdivě popisuje retenci a aplikace nabízí ověřitelnou funkci Ukončit práci pro vymazání klientských dat a paměťového stavu.",
     "5.10.9: hardening — školní build používá deployment cestu k AI Studiu; sharedAccessVersion je synchronizována a GitHub Actions pinované na SHA.",
     "5.10.9: oprava po reálném testování — běžné slovo Částka už přísná odesílací brána nepovažuje za osobní jméno, takže anonymizovaný e-mail s údaji o odměnách lze znovu sestavit. Automatické testy si nově samy nastaví úvodní obrazovku a izolují stav dočasného ukládání, takže je lze spouštět i z otevřené práce nebo po přísném režimu. Regresní sada má 159 testů.",
     "5.10.7: poslední otevřený bezpečnostní nález — přísná odesílací brána kontroluje i jednoslovná jména na začátku věty, zatímco našeptávač zůstává stejně klidný. Cache výslovně rozlišuje UI a přísný režim; Nguyen, Halama, Svobodou a Nováková už na začátku věty neprojdou ani po hromadném ponechání. Regresní sada má 158 testů.",

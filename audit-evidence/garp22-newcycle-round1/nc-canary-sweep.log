@@ -1,0 +1,12 @@
+{
+  "schema": "garp22-newcycle-canary-sweep-v1",
+  "filesScanned": 1,
+  "valuesChecked": 2,
+  "hits": [
+    {
+      "file": "src/nc-injected.js",
+      "kind": "marker"
+    }
+  ],
+  "status": "FAIL"
+}

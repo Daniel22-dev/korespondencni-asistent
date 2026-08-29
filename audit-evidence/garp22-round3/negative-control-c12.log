@@ -1,0 +1,45 @@
+  ℹ jsdom není lokálně dostupný, používám hermetický Chromium fallback
+  ✓ přístupová brána AI Studia
+  ✓ bez nativních blokujících dialogů
+  ✓ start bez runtime chyb
+  ✓ žádná duplicitní ID
+  ✗ 1/164 interních testů selhalo
+      Smazání dat je fail-safe při chybě úložiště · nemožnost ověřit obsah úložiště nebyla vyhodnocena jako selhání
+  ✓ 17/17 Core conformance testů prošlo
+  ✓ Gemini nepoužívá thinkingLevel low
+  ✓ Gemini má výstupní limit 32768
+  ✓ vydaný GHRAB AI Core a oba transporty
+  ✓ aplikační AI vrstva a UI jsou provider-neutrální
+  ✓ UI má Úsporný / Doporučený / Důkladný jako centrální profily
+  ✓ Direct Gemini runtime mapuje všechny tři profily
+  ✓ školní runtime je provider-neutrální school-gateway
+  ✓ pravidla přímého adresáta a českého oslovení používají bezpečné značky
+  ✓ KS používá jediný lokální společný reportér s pracovním e-mailem
+  ✓ ZIP se stahuje přímým kliknutím před otevřením Gmailu
+  ✓ zavření reportu nabízí smazání nebo ponechání konceptu
+  ✓ sjednocený workflow snímání je přítomen
+  ✓ společné CSS pokrývá oba motivy a bezpečné okraje
+  ✓ adaptér KS respektuje skutečný motiv a verzi
+  ✓ společný reportér je syntakticky platný
+  ✓ stará paralelní implementace KS byla odstraněna
+  ✓ automatický fallback je zakázaný
+  ✓ veřejná runtime konfigurace je načítaná
+  ✓ jednoznačná PWA identita a verze
+  ✓ Studio manifest deklaruje živou server-ready integraci
+  ✓ veřejný registr osmi AI operací je konzistentní
+  ✓ service worker spravuje jen vlastní a historické cache
+  ✓ runtime konfigurace, no-store požadavky a školní API jsou mimo PWA cache
+  ✓ service worker zahrnuje společný reportér, CSS i adaptér
+  ✓ manuál dědí oprávnění AI Studia
+  ✓ manuál nevytváří druhý reportér a odkazuje na centrální návod
+  ✓ manuál má návrat do aplikace
+  ✓ skloňování osob má jediný lokální zdroj pravdy
+  ✓ privacy-stage neruší skrývání kroku 2
+  ✓ starý nepřístupný školní návod není v sestavené aplikaci
+  ✓ bez osiřelých stylů po odstraněných průvodcích
+  ✓ obě pracovní cesty otevírají pravidla bez opuštění aplikace
+  ✓ verze manuálu, aplikace a README jsou sjednocené
+  ✓ bezpečnostní kapitola má stabilní ID, navigaci a strukturu
+  ✓ manuál dokumentuje omezení odvozených příjmení
+  ✓ generované dist je v .gitignore
+CELKEM: 1 problémů — release stopka.

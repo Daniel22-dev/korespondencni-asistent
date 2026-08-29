@@ -1,0 +1,193 @@
+{
+  "schema": "garp22-static-assertions-v2",
+  "generatedAt": "2026-08-29T09:41:25.964Z",
+  "checks": [
+    {
+      "id": "supply-chain.actions-pinned",
+      "ok": true,
+      "detail": {
+        "count": 17,
+        "unpinned": []
+      }
+    },
+    {
+      "id": "supply-chain.lock-integrity",
+      "ok": true,
+      "detail": {
+        "resolved": 67,
+        "missingIntegrity": [],
+        "offRegistry": []
+      }
+    },
+    {
+      "id": "release-integrity.deploy-removes-qa-metadata",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "id": "rt12.no-window-postmessage",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "id": "rt12.no-iframes",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "id": "rt12.target-blank-noopener",
+      "ok": true,
+      "detail": {
+        "links": 4
+      }
+    },
+    {
+      "id": "rt12.window-open-noopener",
+      "ok": true,
+      "detail": {
+        "note": "Reporter uses explicit noreferrer/noopener open helper; static heuristic guards regression."
+      }
+    },
+    {
+      "id": "rt13.no-unsafe-eval",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "id": "rt13.no-eval",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "id": "rt13.no-new-function",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "id": "rt13.csp-single-source-parity",
+      "ok": true,
+      "detail": {
+        "metaCsp": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://generativelanguage.googleapis.com; media-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'self'; manifest-src 'self'",
+        "configured": "default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://generativelanguage.googleapis.com; media-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'self'; manifest-src 'self'"
+      }
+    },
+    {
+      "id": "rt13.csp-build-source-of-truth",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "id": "rt09.production-ai-test-hooks-disabled",
+      "ok": true,
+      "detail": {
+        "prodFlag": true,
+        "testFlagOn": false
+      }
+    },
+    {
+      "id": "rt09.production-core-testing-api-not-exported",
+      "ok": true,
+      "detail": {
+        "note": "The vendor Core keeps its internal testing object lexically private; production build strips the public __testing export."
+      }
+    },
+    {
+      "id": "rt09.runtime-replace-for-testing-gated",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "id": "rt09.test-hooks-local-origin-gated",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "id": "rt19.single-production-egress",
+      "ok": true,
+      "detail": {
+        "count": 1
+      }
+    },
+    {
+      "id": "pc01.three-app-file-reader-paths",
+      "ok": true,
+      "detail": {
+        "count": 3,
+        "note": "Counts application src/js only; the reporter screenshot reader is inventoried separately in RT-00."
+      }
+    },
+    {
+      "id": "rt20.sw-bypasses-non-get",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "id": "rt20.no-indexeddb-path",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "id": "rt20.endwork-verifies-deletion",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "id": "rt20.reporter-clear-draft-public",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "id": "rt00.manifest-prompt-debug-declared",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "id": "rt00.manifest-studio-bridge-declared",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "id": "rt00.manifest-fetch-wrapper-declared",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "id": "evidence.audit-logs-trackable",
+      "ok": true,
+      "detail": {}
+    },
+    {
+      "id": "rt09.production-test-runner-not-window-exported",
+      "ok": true,
+      "detail": {
+        "note": "The destructive in-app runner is not exported on window."
+      }
+    },
+    {
+      "id": "rt09.test-runner-build-and-origin-gated",
+      "ok": true,
+      "detail": {
+        "note": "Even lexical access fails closed outside a local test build."
+      }
+    },
+    {
+      "id": "rt20.fixed-canary-values-not-bundled",
+      "ok": true,
+      "detail": {
+        "note": "End-work regression canaries are generated at runtime."
+      }
+    }
+  ],
+  "warnings": [
+    {
+      "id": "rt13.csp-unsafe-inline",
+      "detail": "Known compatibility debt; still present and tracked. Production test hooks are separately build-disabled."
+    }
+  ],
+  "summary": {
+    "passed": 29,
+    "failed": 0,
+    "total": 29,
+    "status": "passed"
+  }
+}
