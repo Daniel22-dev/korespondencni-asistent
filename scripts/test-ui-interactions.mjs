@@ -153,6 +153,7 @@ const chrome = spawn(chromiumPath(), [
 let client;
 const errors = [];
 const checks = [];
+let inAppTestApiAvailable = false;
 const check = (id, ok, detail = '') => checks.push({ id, ok: Boolean(ok), detail });
 
 async function elementPoint(id) {
@@ -241,13 +242,21 @@ try {
   check('onboarding.not-auto-blocking', !(await client.eval(`Boolean(document.querySelector('.guide-overlay'))`)), 'automatic .guide-overlay');
 
   await client.eval(`localStorage.setItem('rozbor_profile',JSON.stringify({name:'Profil před testy',role:'učitel',gender:'male',subjects:'angličtina',school:'Testovací škola',writingStyle:'civilni',sign:'pozdrav'}))`);
-  const inAppResults = await client.eval(`window.__GHRAB_KORESP_TESTS__.run()`);
-  const inAppFailures = Array.isArray(inAppResults) ? inAppResults.filter(item => !item.ok) : [];
-  check('in-app-tests.completed', Array.isArray(inAppResults) && inAppResults.length > 0, String(inAppResults?.length || 0));
-  check('in-app-tests.passed', inAppFailures.length === 0, JSON.stringify(inAppFailures));
-  const profileAfterTests = await client.eval(`JSON.parse(localStorage.getItem('rozbor_profile')||'{}')`);
-  check('in-app-tests.profile-preserved', profileAfterTests.name === 'Profil před testy' && profileAfterTests.school === 'Testovací škola', JSON.stringify(profileAfterTests));
-  check('in-app-tests.no-toast-noise', await client.eval(`document.getElementById('toasts')?.childElementCount===0`), 'temporary toast count');
+  inAppTestApiAvailable = Boolean(await client.eval(`typeof window.__GHRAB_KORESP_TESTS__?.run==='function'`));
+  if (inAppTestApiAvailable) {
+    const inAppResults = await client.eval(`window.__GHRAB_KORESP_TESTS__.run()`);
+    const inAppFailures = Array.isArray(inAppResults) ? inAppResults.filter(item => !item.ok) : [];
+    check('in-app-tests.completed', Array.isArray(inAppResults) && inAppResults.length > 0, String(inAppResults?.length || 0));
+    check('in-app-tests.passed', inAppFailures.length === 0, JSON.stringify(inAppFailures));
+    const profileAfterTests = await client.eval(`JSON.parse(localStorage.getItem('rozbor_profile')||'{}')`);
+    check('in-app-tests.profile-preserved', profileAfterTests.name === 'Profil před testy' && profileAfterTests.school === 'Testovací škola', JSON.stringify(profileAfterTests));
+    check('in-app-tests.no-toast-noise', await client.eval(`document.getElementById('toasts')?.childElementCount===0`), 'temporary toast count');
+  } else {
+    const productionBoundary = await client.eval(`({namespaceType:typeof window.__GHRAB_KORESP_TESTS__,available:testRunnerAvailable(),openResult:openTestRunner(false)})`);
+    check('in-app-tests.production-runner-stripped', productionBoundary.namespaceType === 'undefined' && productionBoundary.available === false && productionBoundary.openResult === false, JSON.stringify(productionBoundary));
+    const profileAfterBoundary = await client.eval(`JSON.parse(localStorage.getItem('rozbor_profile')||'{}')`);
+    check('in-app-tests.production-boundary-profile-preserved', profileAfterBoundary.name === 'Profil před testy' && profileAfterBoundary.school === 'Testovací škola', JSON.stringify(profileAfterBoundary));
+  }
 
   const darkBefore = await client.eval(`document.body.classList.contains('dark')`);
   const modePoint = await clickReal('btnMode');
@@ -276,11 +285,25 @@ try {
   check('click.compose.hit-target', myPoint.hit, `${myPoint.topId || myPoint.topClass}`);
   check('click.compose.opens-workspace', myState.workspaceHidden === false && myState.deskHidden === true && myState.tabActive === true && myState.paneActive === true, JSON.stringify(myState));
 
-  await clickReal('uiAdvanced');
-  await clickRealSelector('.chips[data-group="my_mode"] .chip[data-v="sestavit"]');
+  await replaceText('#my_raw', 'Dobrý den, prosím o potvrzení termínu schůzky ve čtvrtek.');
+  const anonPoint = await clickReal('my_anonBtn');
+  check('click.compose-anonymize.hit-target', anonPoint.hit, `${anonPoint.topId || anonPoint.topClass}`);
+  const composePrivacyReady = await client.eval(`document.getElementById('my_step2')?.hidden===false`);
+  check('click.compose-anonymize.opens-settings', composePrivacyReady, String(composePrivacyReady));
+  await sleep(450); // doAnon uses smooth scroll; let geometry settle before the next trusted click.
+
+  const advancedPoint = await clickReal('uiAdvanced');
+  check('click.advanced-mode.hit-target', advancedPoint.hit, `${advancedPoint.topId || advancedPoint.topClass}`);
+  check('click.advanced-mode.enabled', await client.eval(`document.body.classList.contains('ui-advanced')`), 'body.ui-advanced');
+  await sleep(80);
+  const composeModePoint = await clickRealSelector('.chips[data-group="my_mode"] .chip[data-v="sestavit"]');
+  check('click.compose-mode.hit-target', composeModePoint.hit, `${composeModePoint.topId || composeModePoint.topClass}`);
+  check('click.compose-mode.selected', await client.eval(`document.querySelector('.chips[data-group="my_mode"] .chip[data-v="sestavit"]')?.classList.contains('on')`), 'my_mode=sestavit');
   const resultFoldState = await client.eval(`({hidden:document.getElementById('my_resultFold')?.hidden,open:document.getElementById('my_resultFold')?.open})`);
   if (!resultFoldState.hidden && !resultFoldState.open) await clickRealSelector('#my_resultFold > summary');
-  await clickRealSelector('.chips[data-group="my_subj"] .chip[data-v="vlastni"]');
+  const subjectPoint = await clickRealSelector('.chips[data-group="my_subj"] .chip[data-v="vlastni"]');
+  check('click.custom-subject.hit-target', subjectPoint.hit, `${subjectPoint.topId || subjectPoint.topClass}`);
+  check('click.custom-subject.selected', await client.eval(`document.querySelector('.chips[data-group="my_subj"] .chip[data-v="vlastni"]')?.classList.contains('on')`), 'my_subj=vlastni');
   await replaceText('#my_customSubject', 'Konzultace ve čtvrtek');
   const subjectState = await client.eval(`({visible:document.getElementById('my_customSubject')?.offsetParent!==null,value:document.getElementById('my_customSubject')?.value,count:document.getElementById('my_customSubjectCount')?.textContent,max:document.getElementById('my_customSubject')?.maxLength})`);
   check('click.custom-subject.available', subjectState.visible && subjectState.value === 'Konzultace ve čtvrtek' && subjectState.max === 60, JSON.stringify(subjectState));
@@ -325,13 +348,18 @@ try {
   check('footer.developer-tools.admin-visible', devVisible, String(devVisible));
   if (devVisible) {
     await openFooterTool('Vývojářské nástroje');
-    check('developer.menu.complete', await client.eval(`document.querySelectorAll('.modal-overlay.open .dev-tool-card').length===4`), '4 tools');
-    await clickReal('devTests');
-    const runnerIdle = await client.eval(`({open:Boolean(document.querySelector('.modal-overlay.open [aria-label="Automatické testy"]')),enabled:!document.getElementById('runTestsNow')?.disabled,empty:!(document.getElementById('testOut')?.textContent||'').trim()})`);
-    check('developer.tests.wait-for-explicit-start', runnerIdle.open && runnerIdle.enabled && runnerIdle.empty, JSON.stringify(runnerIdle));
-    await clickRealSelector('.modal-overlay.open .modal-close');
-
-    await openFooterTool('Vývojářské nástroje'); await clickReal('devDebug');
+    const devToolState = await client.eval(`({count:document.querySelectorAll('.modal-overlay.open .dev-tool-card').length,hasTests:Boolean(document.getElementById('devTests'))})`);
+    const expectedDevToolCount = inAppTestApiAvailable ? 4 : 3;
+    check('developer.menu.complete', devToolState.count === expectedDevToolCount, JSON.stringify({ ...devToolState, expectedDevToolCount }));
+    check('developer.tests.matches-build-boundary', devToolState.hasTests === inAppTestApiAvailable, JSON.stringify({ ...devToolState, inAppTestApiAvailable }));
+    if (inAppTestApiAvailable) {
+      await clickReal('devTests');
+      const runnerIdle = await client.eval(`({open:Boolean(document.querySelector('.modal-overlay.open [aria-label="Automatické testy"]')),enabled:!document.getElementById('runTestsNow')?.disabled,empty:!(document.getElementById('testOut')?.textContent||'').trim()})`);
+      check('developer.tests.wait-for-explicit-start', runnerIdle.open && runnerIdle.enabled && runnerIdle.empty, JSON.stringify(runnerIdle));
+      await clickRealSelector('.modal-overlay.open .modal-close');
+      await openFooterTool('Vývojářské nástroje');
+    }
+    await clickReal('devDebug');
     check('developer.debug.opens', await client.eval(`Boolean(document.querySelector('.modal-overlay.open [aria-label="Debug prompt"]'))`), 'debug prompt');
     await clickRealSelector('.modal-overlay.open .modal-close');
 
