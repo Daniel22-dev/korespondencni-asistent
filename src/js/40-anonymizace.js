@@ -1024,6 +1024,27 @@ function dictionaryPersonWordMatch(words){
 }
 function likelyCzechSurnameShape(word){return /(?:ová|ové|ovi|ovou)$/u.test(String(word||"").normalize("NFC").toLocaleLowerCase("cs-CZ"));}
 function explicitlyKeptSingleSuggestion(p,item,observed){return observed.length===1&&ST[p]&&ST[p].reviewedSuggestions&&ST[p].reviewedSuggestions[item.key||suggestionKey(item.phrase)]==="keep-explicit";}
+const NON_PERSON_ENTITY_LINE_RE=/^(?:gymn\u00e1zium|st\u0159edn\u00ed\s+\u0161kola|z\u00e1kladn\u00ed\s+\u0161kola|mate\u0159sk\u00e1\s+\u0161kola|\u0161kola|univerzita|fakulta|ministerstvo|magistr\u00e1t|krajsk\u00fd\s+\u00fa\u0159ad|m\u011bstsk\u00fd\s+\u00fa\u0159ad|obecn\u00ed\s+\u00fa\u0159ad|\u00fa\u0159ad|organizace|spole\u010dnost|firma|centrum|institut|nemocnice|knihovna|muzeum|divadlo|z\u00e1kladn\u00ed\s+um\u011bleck\u00e1\s+\u0161kola)\b/iu;
+function suggestionLineContext(source,item){
+  const text=String(source||""),parsed=wordObjs(text),words=parsed.words||[];
+  const first=words[item&&Number.isInteger(item.start)?item.start:-1],last=words[item&&Number.isInteger(item.end)?item.end:-1]||first;
+  if(!first)return {line:"",prev:"",next:"",phrase:String(item&&item.phrase||"")};
+  const start=Math.max(0,Number(first.segmentStart)||0),end=Math.max(start,Number(last&&last.segmentEnd)||start);
+  const lineStart=text.lastIndexOf("\n",start-1)+1,lineEndRaw=text.indexOf("\n",end),lineEnd=lineEndRaw<0?text.length:lineEndRaw;
+  const prevEnd=Math.max(0,lineStart-1),prevStart=prevEnd?text.lastIndexOf("\n",prevEnd-1)+1:0;
+  const nextStart=lineEnd<text.length?lineEnd+1:text.length,nextEndRaw=text.indexOf("\n",nextStart),nextEnd=nextEndRaw<0?text.length:nextEndRaw;
+  return {line:text.slice(lineStart,lineEnd).trim(),prev:text.slice(prevStart,prevEnd).trim(),next:text.slice(nextStart,nextEnd).trim(),phrase:text.slice(start,end).trim()||String(item&&item.phrase||"")};
+}
+function likelyNonPersonProperPhrase(source,item){
+  const ctx=suggestionLineContext(source,item),phrase=String(item&&item.phrase||ctx.phrase||"").trim();
+  if(!phrase)return false;
+  if(NON_PERSON_ENTITY_LINE_RE.test(phrase)||NON_PERSON_ENTITY_LINE_RE.test(ctx.line))return true;
+  const addressMarker=/(?:\b\d{3}\s?\d{2}\b|\b(?:ul\.?|ulice|n\u00e1m\u011bst\u00ed|n\u00e1b\u0159e\u017e\u00ed|t\u0159\u00edda|ps\u010d)\b|\b\d{1,4}\b)/iu;
+  const norm=x=>String(x||"").replace(/[^\p{L}\p{M}]+/gu," ").replace(/\s+/g," ").trim().toLocaleLowerCase("cs-CZ");
+  const lineMostlyPhrase=norm(ctx.line)===norm(phrase);
+  if(lineMostlyPhrase&&(addressMarker.test(ctx.prev)||addressMarker.test(ctx.next)))return true;
+  return false;
+}
 function strongPersonalNameCandidates(text,p,suggestionRows){
   const source=String(text||""),rows=suggestionRows||computeSuggestionData(p,source,{includeReviewed:true,includeSentenceStart:true}).suggestions,out=[];
   rows.forEach(item=>{
@@ -1033,8 +1054,9 @@ function strongPersonalNameCandidates(text,p,suggestionRows){
     let normalized={real:item.phrase};try{normalized=canonicalizePersonPhrase(source,item.phrase);}catch(_){}
     const base=coreWords(normalized.real||item.phrase),knownGiven=base.some(knownGivenSpelling),knownSurname=base.some(knownSurnameSpelling);
     const reverseKnown=observed.some(part=>[1,2,3,4,5,6,7].some(caseNo=>reverseNameCandidates(part,caseNo).some(candidate=>knownGivenSpelling(candidate)||knownSurnameSpelling(candidate))));
-    const surnameShape=observed.some(likelyCzechSurnameShape);
-    const strong=observed.length>=2||knownGiven||knownSurname||reverseKnown||surnameShape||dictionaryPersonWordMatch(observed);
+    const surnameShape=observed.some(likelyCzechSurnameShape),dictionaryHit=dictionaryPersonWordMatch(observed);
+    const contextualNonPerson=likelyNonPersonProperPhrase(source,item);
+    const strong=!contextualNonPerson&&(observed.length>=2||knownGiven||knownSurname||reverseKnown||surnameShape||dictionaryHit);
     if(strong&&!out.includes(item.phrase))out.push(item.phrase);
   });
   return out;
@@ -1045,6 +1067,20 @@ function untrustedPersonalNameCandidates(text,p){
     if(!item||!item.phrase||item.kind==="institution")return;
     const observed=coreWords(item.phrase).filter(part=>!NAME_TITLES.has(normName(part)));if(!observed.length||explicitlyKeptSingleSuggestion(p,item,observed))return;
     if(!out.includes(item.phrase))out.push(item.phrase);
+  });
+  return out;
+}
+function strictPersonalNameCandidates(text,p){
+  const source=String(text||""),rows=computeSuggestionData(p,source,{includeReviewed:true,includeSentenceStart:true}).suggestions;
+  const out=strongPersonalNameCandidates(source,p,rows),parsed=wordObjs(source),words=parsed.words||[];
+  rows.forEach(item=>{
+    if(!item||!item.phrase||item.kind==="institution"||out.includes(item.phrase))return;
+    const observed=coreWords(item.phrase).filter(part=>!NAME_TITLES.has(normName(part)));if(observed.length!==1||explicitlyKeptSingleSuggestion(p,item,observed)||likelyNonPersonProperPhrase(source,item))return;
+    const after=words.slice((item.end|0)+1,(item.end|0)+5).map(w=>String(w&&w.core||"").toLocaleLowerCase("cs-CZ"));
+    const action=after.some(word=>/^(?:je|nen\u00ed|byl|byla|bylo|byli|byly|m\u00e1|nem\u00e1|m\u011bl|m\u011bla|chyb\u00ed|chyb\u011bl|chyb\u011bla|p\u0159ijde|p\u0159i\u0161el|p\u0159i\u0161la|odevzdal|odevzdala|omluvil|omluvila|\u017e\u00e1d\u00e1|po\u017e\u00e1dal|po\u017e\u00e1dala)$/u.test(word)||(/^[\p{Ll}\p{M}]{5,}(?:l|la|lo|li|ly)$/u.test(word)&&!/(?:\u0161kola|pravidla|kapitola)$/u.test(word)));
+    const first=words[item.start|0],pos=first?Math.max(0,Number(first.segmentStart)||0):0,prefix=source.slice(Math.max(0,pos-80),pos).toLocaleLowerCase("cs-CZ");
+    const lead=/(?:pan|pane|pan\u00ed|sle\u010dna|\u017e\u00e1k|\u017e\u00e1kyn\u011b|student|studentka|kolega|kolegyn\u011b|syn|dcera|preventista|preventistka|preventisty|u\u010ditel|u\u010ditelka|rodi\u010d|matka|otec|kontaktujte|oslovte|napi\u0161te)\s*(?:[,;:\-]\s*)?$/u.test(prefix);
+    if((action||lead)&&!out.includes(item.phrase))out.push(item.phrase);
   });
   return out;
 }

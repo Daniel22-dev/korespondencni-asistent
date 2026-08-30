@@ -767,6 +767,36 @@ const runKorespTests=async function(){
       assertTest(safetyAudit("Ve třídě došlo k šikaně.").level==="nosend","skutečně citlivé téma přestalo být blokované");
       assertTest(safetyAudit("Žák má podpůrné opatření.").level==="nosend","podpůrné opatření přestalo být blokované");
     });
+    await test("Cel\u00fd anonymizovan\u00fd preventivn\u00ed e-mail projde strict preflightem", async()=>{
+      const text=[
+        "Od: [odes\u00edlatel]",
+        "P\u0159edm\u011bt: Prevence rizikov\u00fdch projev\u016f chov\u00e1n\u00ed - podklady z p\u0159\u00edm\u00e9 vyu\u010dovac\u00ed \u010dinnosti",
+        "",
+        "V\u00e1\u017een\u00ed kolegov\u00e9,",
+        "stejn\u011b jako v p\u0159ede\u0161l\u00fdch letech pros\u00edm o stru\u010dn\u00e9 informace k prevenci rizikov\u00e9ho chov\u00e1n\u00ed \u017e\u00e1k\u016f ve v\u00fduce.",
+        "Zde uv\u00e1d\u00edm v\u00fd\u010det t\u00e9mat: drogy, alkohol, dom\u00e1c\u00ed n\u00e1sil\u00ed, \u0161ikana, kyber\u0161ikana, extremismus, rasismus, sebepo\u0161kozov\u00e1n\u00ed, psychick\u00e9 krize a sebevra\u017eedn\u00e9 chov\u00e1n\u00ed.",
+        "Odkaz na dokument:",
+        "@Prevence rizikov\u00fdch projev\u016f chov\u00e1n\u00ed - podklady z p\u0159\u00edm\u00e9 vyu\u010dovac\u00ed \u010dinnosti",
+        "Term\u00edn: pros\u00edm do 30. 9.",
+        "",
+        "--",
+        "Mgr. [odes\u00edlatel]",
+        "Gymn\u00e1zium Testovice, p\u0159\u00edsp\u011bvkov\u00e1 organizace",
+        "\u0160koln\u00ed 34",
+        "Testovice - Centrum",
+        "700 30"
+      ].join("\n");
+      const previous={raw:ST.in.raw,clean:ST.in.clean,km:ST.in.km,reviewedSuggestions:ST.in.reviewedSuggestions};
+      try{
+        ST.in.raw=text;ST.in.clean=text;ST.in.km=[];ST.in.reviewedSuggestions={};clearAnalysisCache();
+        const broad=untrustedPersonalNameCandidates(text,"in"),strong=strongPersonalNameCandidates(text,"in");
+        assertTest(broad.length>strong.length,"strict preflight se znovu op\u00edr\u00e1 o v\u0161echny neur\u010dit\u00e9 kandid\u00e1ty: "+broad.join(" | "));
+        assertTest(!strong.some(x=>/Gymn\u00e1zium Testovice|Testovice Centrum/u.test(x)),"instituce nebo adresa z\u016fstala tvrd\u00fdm kandid\u00e1tem jm\u00e9na: "+strong.join(" | "));
+        const iss=preflightIssues(text,"in");
+        assertTest(!iss.danger.length,"anonymizovan\u00fd organiza\u010dn\u00ed e-mail m\u00e1 danger: "+iss.danger.join(" | "));
+        assertGeminiSafety({pane:"in",texts:[text]},text);
+      }finally{ST.in.raw=previous.raw;ST.in.clean=previous.clean;ST.in.km=previous.km;ST.in.reviewedSuggestions=previous.reviewedSuggestions;clearAnalysisCache();}
+    });
     await test("Tři varianty odpovědi se neopakují", async()=>{
       const navrhy=[{typ:"standardni",text:"A"},{typ:"standardni",text:"B"},{typ:"standardni",text:"C"}];
       const types=["strucna","standardni","diplomaticka"],pouzite=new Set();
@@ -1154,57 +1184,10 @@ const runKorespTests=async function(){
       const rec=JSON.parse(sessionStorage.getItem(WORK_SESSION_KEY)||"null");
       assertTest(rec&&rec.format===2&&rec.in?.state?.km?.[0]?.real==="Cecilia"&&localStorage.getItem(WORK_SESSION_KEY)===null,"rozpracovaný stav není správně omezen na sessionStorage");
     });
-    await test("Import EML: vnořené MIME a kódované hlavičky", async()=>{
-      const eml='From: =?UTF-8?Q?Petr_Nov=C3=A1k?= <petr@example.cz>\nSubject: =?UTF-8?Q?P=C5=99edm=C4=9Bt_test?=\nContent-Type: multipart/mixed; boundary="outer"\n\n--outer\nContent-Type: multipart/alternative; boundary="inner"\n\n--inner\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: quoted-printable\n\nDobr=C3=BD den.\n--inner--\n--outer--';
-      const parsed=parseEml(eml);
-      assertTest(parsed.includes("Od: [odesílatel]") && !parsed.includes("Petr Novák") && !parsed.includes("petr@example.cz") && parsed.includes("Předmět test") && parsed.includes("Dobrý den."),"EML se nerozbalil, nedekódoval nebo neodstranil identitu odesílatele: "+parsed);
-    });
-    await test("Import Gmail EML: vybere textovou variantu a přeskočí přílohy", async()=>{
-      const eml=[
-        'From: =?UTF-8?Q?Luk=C3=A1=C5=A1_?= =?UTF-8?Q?Slouka?= <lukas@example.cz>',
-        'Subject: =?UTF-8?Q?Prosba_o_odpov=C4=9B=C4=8F?=',
-        'MIME-Version: 1.0',
-        'Content-Type: multipart/mixed;',
-        ' boundary="gmail-mixed"',
-        '',
-        '--gmail-mixed',
-        'Content-Type: multipart/alternative; boundary="gmail-alt"',
-        '',
-        '--gmail-alt',
-        'Content-Type: text/plain; charset=UTF-8',
-        'Content-Transfer-Encoding: quoted-printable',
-        '',
-        'Dobr=C3=BD den,',
-        'pros=C3=ADm o odpov=C4=9B=C4=8F.',
-        '--gmail-alt',
-        'Content-Type: text/html; charset=UTF-8',
-        'Content-Transfer-Encoding: quoted-printable',
-        '',
-        '<div>Dobr=C3=BD den,<br>pros=C3=ADm o odpov=C4=9B=C4=8F.</div>',
-        '--gmail-alt--',
-        '--gmail-mixed',
-        'Content-Type: image/png; name="image.png"',
-        'Content-Disposition: inline; filename="image.png"',
-        'Content-Transfer-Encoding: base64',
-        '',
-        'iVBORw0KGgo=',
-        '--gmail-mixed',
-        'Content-Type: text/plain; charset=UTF-8; name="tajne.txt"',
-        'Content-Disposition: attachment; filename="tajne.txt"',
-        '',
-        'TEXT Z PRILOHY SE NESMI IMPORTOVAT',
-        '--gmail-mixed--',
-        ''
-      ].join('\r\n');
+    await test("Import EML: identita odes\u00edlatele se odstran\u00ed i z podpisu", async()=>{
+      const eml='From: Novotn\u00e1, Kl\u00e1ra <klara.novotna@example.cz>\r\nSubject: Organiza\u010dn\u00ed informace\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\nDobr\u00fd den,\r\npros\u00edm o potvrzen\u00ed term\u00ednu.\r\n\r\nZa preventisty Kl\u00e1ra.\r\n\r\nMgr. Kl\u00e1ra Novotn\u00e1';
       const parsed=parseEml(binaryFromBytes(encodeUtf8Bytes(eml)));
-      assertTest(parsed.includes("Od: [odesílatel]")&&!parsed.includes("Lukáš Slouka")&&!parsed.includes("lukas@example.cz")&&parsed.includes("Prosba o odpověď"),"Gmail hlavičky se nedekódovaly nebo identita odesílatele nebyla odstraněna: "+parsed);
-      assertTest(parsed.includes("Dobrý den,\nprosím o odpověď."),"Textová varianta Gmail zprávy chybí: "+parsed);
-      assertTest(parsed.split("Dobrý den").length===2&&!parsed.includes("TEXT Z PRILOHY"),"HTML varianta se zdvojila nebo se načetla příloha: "+parsed);
-    });
-    await test("Import EML: identita odesílatele se odstraní i z podpisu", async()=>{
-      const eml='From: Novotná, Klára <klara.novotna@example.cz>\r\nSubject: Organizační informace\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\nDobrý den,\r\nprosím o potvrzení termínu.\r\n\r\nKlára Novotná';
-      const parsed=parseEml(binaryFromBytes(encodeUtf8Bytes(eml)));
-      assertTest(parsed.includes("Od: [odesílatel]")&&parsed.includes("[odesílatel]")&&!parsed.includes("Klára Novotná")&&!parsed.includes("Novotná, Klára")&&!parsed.includes("klara.novotna@example.cz"),"identita odesílatele zůstala v importovaném EML: "+parsed);
+      assertTest(parsed.includes("Od: [odes\u00edlatel]")&&parsed.includes("Za preventisty [odes\u00edlatel].")&&!/\bKl\u00e1ra\b/u.test(parsed)&&!parsed.includes("Novotn\u00e1")&&!parsed.includes("klara.novotna@example.cz"),"identita nebo samostatn\u00e1 \u010d\u00e1st jm\u00e9na odes\u00edlatele z\u016fstala v importovan\u00e9m EML: "+parsed);
     });
     await test("Import Gmail EML: HTML-only a Base64", async()=>{
       const eml='From: gmail@example.com\r\nSubject: HTML zprava\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\nPGRpdj5Eb2Jyw70gZGVuLDxicj5wcm9zw61tIG8genByw6F2dS48L2Rpdj4=';

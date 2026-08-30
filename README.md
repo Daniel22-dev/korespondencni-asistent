@@ -1,17 +1,23 @@
 # Korespondenční asistent
 
-**Aktuální verze:** 5.10.15  
+**Aktuální verze:** 5.10.16  
 **Platforma:** GHRAB Platform 1.1.0 · etapa P3
 
 
 Samostatná PWA aplikace ekosystému AI Studio Gymnázia Ostrava-Hrabůvka.
 
-- **Verze aplikace:** 5.10.15
+- **Verze aplikace:** 5.10.16
 - **GHRAB AI Core:** 1.0.0
 - **Doporučený repozitář:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
 - **Interaktivní manuál:** 1.3.15 (manuál 1.3.15)
+
+## Co přináší verze 5.10.16
+
+Verze 5.10.16 opravuje druhou falešně pozitivní privacy cestu nalezenou při osobním testování. Finální odesílací brána už nepovyšuje každý neurčitý kandidát s velkým písmenem na osobní jméno. Tvrdě blokuje vysokou jistotu osoby, zatímco instituce a adresní řádky zůstávají ke kontrole. Import Gmail `.eml` navíc lokálně odstraňuje i samostatné části jména odesílatele ze signatury.
+
+Technický souhrn je v `RELEASE-NOTES-5.10.16-STRICT-NAME-HOTFIX.md`.
 
 ## Co přináší verze 5.10.15
 

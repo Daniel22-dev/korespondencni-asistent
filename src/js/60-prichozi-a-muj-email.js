@@ -823,17 +823,25 @@ function extractMimeText(headers,body,depth){
   return "";
 }
 function importedEmlSenderIdentity(from){
-  const raw=String(from||"").trim();if(!raw)return {address:"",variants:[]};
+  const raw=String(from||"").trim();if(!raw)return {address:"",variants:[],parts:[]};
   const address=((raw.match(/<\s*([^<>\s]+@[^<>\s]+)\s*>/)||raw.match(/\b([A-Za-z0-9._%+\-]+@[\p{L}0-9.\-]+\.[A-Za-z]{2,})\b/u)||[])[1]||"").trim();
   let display=raw.replace(/<[^<>]*>/g," ").replace(/[A-Za-z0-9._%+\-]+@[\p{L}0-9.\-]+\.[A-Za-z]{2,}/gu," ").replace(/^\s*["']|["']\s*$/g,"").replace(/\s+/g," ").trim();
   const variants=[];const add=v=>{v=String(v||"").replace(/\s+/g," ").trim();if(v.length>=2&&!variants.some(x=>x.toLocaleLowerCase("cs-CZ")===v.toLocaleLowerCase("cs-CZ")))variants.push(v);};
   add(display);
-  if(display.includes(",")){const parts=display.split(",").map(x=>x.trim()).filter(Boolean);if(parts.length===2)add(parts[1]+" "+parts[0]);}
-  return {address,variants};
+  if(display.includes(",")){const ordered=display.split(",").map(x=>x.trim()).filter(Boolean);if(ordered.length===2)add(ordered[1]+" "+ordered[0]);}
+  const org=/(?:gymn\u00e1zium|\u0161kola|univerzita|fakulta|ministerstvo|\u00fa\u0159ad|organizace|spole\u010dnost|firma|sekretari\u00e1t|recepce|centrum|institut|nemocnice|knihovna)/iu;
+  const untitled=display.replace(/^(?:(?:Mgr|Ing|Bc|MUDr|RNDr|PhDr|JUDr|Doc|Prof)\.?\s*)+/iu,"").trim();
+  const rawParts=untitled.split(/[\s,]+/u).map(x=>x.replace(/^[^\p{L}\p{M}]+|[^\p{L}\p{M}\-]+$/gu,"")).filter(x=>/^\p{Lu}[\p{L}\p{M}\-]{1,}$/u.test(x));
+  const personLike=!org.test(untitled)&&rawParts.length>=1&&rawParts.length<=4&&(display.includes(",")||rawParts.length>=2||(typeof knownGivenSpelling==="function"&&rawParts.some(knownGivenSpelling))||(typeof knownSurnameSpelling==="function"&&rawParts.some(knownSurnameSpelling)));
+  const parts=personLike?[...new Set(rawParts.filter(x=>x.length>=3))]:[];
+  return {address,variants,parts};
 }
 function redactImportedEmlSender(text,identity){
-  let out=String(text||"");const vals=[identity&&identity.address,...((identity&&identity.variants)||[])].filter(Boolean).sort((a,b)=>b.length-a.length);
-  vals.forEach(value=>{const re=new RegExp(escRe(value).replace(/\\\s\+/g,"\\s+"),"giu");out=out.replace(re,"[odesílatel]");});
+  let out=String(text||"");
+  const full=[identity&&identity.address,...((identity&&identity.variants)||[])].filter(Boolean).sort((a,b)=>b.length-a.length);
+  full.forEach(value=>{const re=new RegExp(escRe(value).replace(/\\\s\+/g,"\\s+"),"giu");out=out.replace(re,"[odes\u00edlatel]");});
+  const parts=((identity&&identity.parts)||[]).filter(Boolean).sort((a,b)=>b.length-a.length);
+  parts.forEach(value=>{const re=new RegExp("(?<![\\p{L}\\p{M}])"+escRe(value)+"(?![\\p{L}\\p{M}])","giu");out=out.replace(re,"[odes\u00edlatel]");});
   return out;
 }
 function parseEmlDetails(raw,depth){

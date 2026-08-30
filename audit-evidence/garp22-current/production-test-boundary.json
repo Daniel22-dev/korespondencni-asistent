@@ -1,6 +1,6 @@
 {
   "schema": "ghrab-garp22-production-test-boundary-v1",
-  "generatedAt": "2026-08-29T18:40:55.139Z",
+  "generatedAt": "2026-08-30T09:29:01.425Z",
   "checks": [
     {
       "id": "harness.production-ready",

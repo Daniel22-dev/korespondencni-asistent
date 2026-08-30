@@ -1,6 +1,6 @@
 {
   "schema": "garp22-static-assertions-v2",
-  "generatedAt": "2026-08-29T18:40:55.109Z",
+  "generatedAt": "2026-08-30T09:28:35.982Z",
   "checks": [
     {
       "id": "supply-chain.actions-pinned",

@@ -8,11 +8,12 @@ function isTrustedLocalTestOrigin(){
 }
 const IS_TEST_MODE=TEST_HOOKS_BUILD_ENABLED&&isTrustedLocalTestOrigin()&&new URLSearchParams(window.location.search).get("test")==="1";
 const RELEASE = {
-  version: "5.10.15",
-  date: "2026-08-29",
+  version: "5.10.16",
+  date: "2026-08-30",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.10.16: opravena druhá falešně pozitivní privacy cesta - hard block jmen nyní používá pouze kandidáty s vysokou jistotou, instituce a adresní řádky zůstávají jen ke kontrole a import .eml lokálně odstraní i samostatné části jména odesílatele ze signatury.",
     "5.10.15: uživatelský privacy hotfix — Gmail .eml před anonymizací lokálně odstraní identitu odesílatele z From/podpisu a preflight rozlišuje obecné preventivní či kurikulární téma od konkrétního citlivého údaje; konkrétní osobní, zdravotní a kázeňské případy zůstávají blokované.",
     "5.10.14: GARP 2.3 opravné kolo po Claude — uzavřen tone-check second-order injection, rozšířeno odstraňování skrytého HTML, opravena výchozí jsdom testovací cesta, AIR-12 pokrývá více prompt builderů, secret/canary scany jsou součást P5 a produkční build už nedistribuuje interní test runner.",
     "5.10.13: GARP 2.3 AI-RED hardening — jednotné trust-zóny pro nedůvěryhodná data a uživatelské preference, ochrana second-order injection, zpevněná synonymní AI cesta, skrytý HTML obsah mimo model a samostatný AIR-01 až AIR-12 strukturální harness.",

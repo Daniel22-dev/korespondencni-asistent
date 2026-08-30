@@ -5,6 +5,13 @@
 - Konkrétní případy (např. individuální SPU/IVP, konkrétní šikana nebo závislost) zůstávají blokované.
 - Přidány regresní testy pro EML preprocessing a false-positive preventivní seznamy.
 
+## 5.10.16 - 2026-08-30
+
+- Opraven false-positive strict-name preflight u anonymizovaných organizačních e-mailů.
+- Hard block nyní rozlišuje high-confidence osobní jména od institucí a adresních míst.
+- `.eml` lokálně odstraňuje i samostatné části jména odesílatele ze signatury.
+- Přidána regrese na celý anonymizovaný preventivní e-mail; stávající blokace skutečných jmen zůstávají aktivní.
+
 ## 5.10.14 — GARP 2.3 corrective round po Claude kolo 1 (2026-08-29)
 
 - opraven C-01: výstup tone-checku se při následné úpravě konceptu už nikdy nepovyšuje na uživatelskou direktivu; uživatel potvrzuje pouze indexy a modelová zjištění zůstávají v `<untrusted-data kind="model-derived-tone-findings">`;

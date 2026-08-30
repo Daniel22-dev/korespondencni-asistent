@@ -262,7 +262,7 @@ function assertGeminiSafety(context, exactPrompt){
   const text=[String(exactPrompt||""),...context.texts.map(x=>String(x||""))].filter(Boolean).join("\n");
   const iss=preflightIssues(text,context.pane);
   const danger=context.ackSensitive ? iss.danger.filter(x=>!/citlivé/.test(x)) : iss.danger;
-  const strictNames=[],strictTexts=Array.isArray(context.strictNameTexts)?context.strictNameTexts:context.texts;strictTexts.forEach(value=>untrustedPersonalNameCandidates(value,context.pane).forEach(name=>{if(!strictNames.includes(name))strictNames.push(name);}));
+  const strictNames=[],strictTexts=Array.isArray(context.strictNameTexts)?context.strictNameTexts:context.texts;strictTexts.forEach(value=>strictPersonalNameCandidates(value,context.pane).forEach(name=>{if(!strictNames.includes(name))strictNames.push(name);}));
   const personalNames=[...new Set([...(iss.personalNames||[]),...strictNames])].map(x=>"pravděpodobné osobní jméno: "+x);
   if(danger.length||personalNames.length){
     const findings=danger.concat(personalNames);
