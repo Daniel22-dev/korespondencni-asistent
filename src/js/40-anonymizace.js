@@ -1066,7 +1066,10 @@ function preflightIssues(text,p){
   if(/ob[čc]ansk\S*\s+pr[uů]kaz/i.test(stripped) || /pr[uů]kaz\S*\s+totožnost/i.test(stripped) || /\bOP[\s.:]*\d{6,10}\b/.test(stripped)) addD("doklad totožnosti (OP / pas)");
   const addrW=stripped.match(new RegExp("(?<![\\p{L}\\p{M}])[\\p{Lu}][\\p{Ll}\\p{M}]*(?:ní|ová|ova|ská|cká|ého)\\s+\\d{1,4}(?!\\d)","gu"));
   if(addrW) addW("možná adresa (ulice + číslo, heuristika): "+addrW.slice(0,2).join(", "));
-  if(hasSensitiveSchoolTerms(stripped)) addD("citlivé školní/zdravotní nebo kázeňské údaje");
+  if(hasSensitiveSchoolTerms(stripped)){
+    if(hasBlockingSensitiveSchoolData(stripped)) addD("citlivé školní/zdravotní nebo kázeňské údaje");
+    else addW("obecné citlivé/preventivní téma – bez konkrétního osobního údaje");
+  }
   // Odesílací kontrola čte znovu přesný text. Hromadné „ponechat“ neuznává;
   // výjimkou je pouze samostatně potvrzený jednoslovný výraz.
   let exactSuggestionRows=[];

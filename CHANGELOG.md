@@ -1,3 +1,10 @@
+## 5.10.15 — user privacy hotfix: EML + obecná preventivní témata (2026-08-29)
+
+- `.eml` import lokálně odstraní identitu odesílatele z hlavičky `From:` a z přesných podpisových výskytů odvozených z této hlavičky; do anonymizačního workflow vstupuje `[odesílatel]`.
+- Privacy preflight rozlišuje obecné preventivní/edukační téma od konkrétního citlivého údaje nebo incidentu. Obecné seznamy témat jsou varování, nikoli hard stop.
+- Konkrétní případy (např. individuální SPU/IVP, konkrétní šikana nebo závislost) zůstávají blokované.
+- Přidány regresní testy pro EML preprocessing a false-positive preventivní seznamy.
+
 ## 5.10.14 — GARP 2.3 corrective round po Claude kolo 1 (2026-08-29)
 
 - opraven C-01: výstup tone-checku se při následné úpravě konceptu už nikdy nepovyšuje na uživatelskou direktivu; uživatel potvrzuje pouze indexy a modelová zjištění zůstávají v `<untrusted-data kind="model-derived-tone-findings">`;

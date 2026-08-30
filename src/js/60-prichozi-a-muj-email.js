@@ -822,6 +822,20 @@ function extractMimeText(headers,body,depth){
   if(ct==="text/plain"||ct==="text/html")return decodePart(headers,body);
   return "";
 }
+function importedEmlSenderIdentity(from){
+  const raw=String(from||"").trim();if(!raw)return {address:"",variants:[]};
+  const address=((raw.match(/<\s*([^<>\s]+@[^<>\s]+)\s*>/)||raw.match(/\b([A-Za-z0-9._%+\-]+@[\p{L}0-9.\-]+\.[A-Za-z]{2,})\b/u)||[])[1]||"").trim();
+  let display=raw.replace(/<[^<>]*>/g," ").replace(/[A-Za-z0-9._%+\-]+@[\p{L}0-9.\-]+\.[A-Za-z]{2,}/gu," ").replace(/^\s*["']|["']\s*$/g,"").replace(/\s+/g," ").trim();
+  const variants=[];const add=v=>{v=String(v||"").replace(/\s+/g," ").trim();if(v.length>=2&&!variants.some(x=>x.toLocaleLowerCase("cs-CZ")===v.toLocaleLowerCase("cs-CZ")))variants.push(v);};
+  add(display);
+  if(display.includes(",")){const parts=display.split(",").map(x=>x.trim()).filter(Boolean);if(parts.length===2)add(parts[1]+" "+parts[0]);}
+  return {address,variants};
+}
+function redactImportedEmlSender(text,identity){
+  let out=String(text||"");const vals=[identity&&identity.address,...((identity&&identity.variants)||[])].filter(Boolean).sort((a,b)=>b.length-a.length);
+  vals.forEach(value=>{const re=new RegExp(escRe(value).replace(/\\\s\+/g,"\\s+"),"giu");out=out.replace(re,"[odesílatel]");});
+  return out;
+}
 function parseEmlDetails(raw,depth){
   let source=String(raw||"").replace(/\r\n?/g,"\n");
   if(source.startsWith("\ufeff"))source=source.slice(1);
@@ -829,12 +843,13 @@ function parseEmlDetails(raw,depth){
   const entity=splitMimeEntity(source),head=unfoldMimeHeaders(entity.headers);
   const from=decodeMimeHeader(mimeHeaderValue(head,"from"));
   const subj=decodeMimeHeader(mimeHeaderValue(head,"subject"));
-  const bodyText=extractMimeText(head,entity.body,Number(depth)||0).trim();
+  const senderIdentity=importedEmlSenderIdentity(from);
+  const bodyText=redactImportedEmlSender(extractMimeText(head,entity.body,Number(depth)||0).trim(),senderIdentity);
   let out="";
-  if(from) out+="Od: "+from+"\n";
+  if(from) out+="Od: [odesílatel]\n";
   if(subj) out+="Předmět: "+subj+"\n";
   if(out) out+="\n";
-  return {text:(out+bodyText).trim(),bodyText};
+  return {text:(out+bodyText).trim(),bodyText,senderRedacted:!!from};
 }
 function parseEml(raw){ return parseEmlDetails(raw,0).text; }
 function isEmlFile(file){ return /\.eml$/i.test(String(file&&file.name||""))||/^message\/rfc822(?:;|$)/i.test(String(file&&file.type||"")); }

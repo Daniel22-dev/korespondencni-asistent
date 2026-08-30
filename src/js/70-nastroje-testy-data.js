@@ -745,6 +745,21 @@ const runKorespTests=async function(){
       assertTest(!falsePos.length,"provozní věty spustily přísný režim: "+falsePos.join(" | "));
       assertTest(!falseNeg.length,"citlivé věty přestaly blokovat: "+falseNeg.join(" | "));
     });
+    await test("Obecná prevence není osobní citlivý údaj", async()=>{
+      const safe=[
+        "V rámci prevence rizikového chování žáků probíráme témata: drogy, šikana, sebepoškozování a sebevražedné chování.",
+        "Do tematických plánů stručně uveďte, zda ve výuce probíráte alkohol, domácí násilí, kyberšikanu nebo hazardní hraní.",
+        "Seminář o prevenci šikany a rizikového sexuálního chování proběhne v říjnu."
+      ];
+      safe.forEach(text=>{
+        const iss=preflightIssues(text,"in");
+        assertTest(!iss.danger.some(x=>/citlivé/.test(x)),"obecné preventivní téma bylo blokováno: "+text+" · "+iss.danger.join(", "));
+        if(hasSensitiveSchoolTerms(text))assertTest(iss.warn.some(x=>/obecné citlivé/.test(x)),"rozpoznané obecné preventivní téma nemá kontrolní upozornění: "+text);
+        assertGeminiSafety({pane:"in",texts:[text],strictNameTexts:[]},text);
+      });
+      const blocked=["Ve třídě došlo k šikaně.","Žák má SPU a IVP.","Řešíme závislost na hazardu u syna."];
+      blocked.forEach(text=>assertTest(preflightIssues(text,"in").danger.some(x=>/citlivé/.test(x)),"konkrétní citlivý případ přestal blokovat: "+text));
+    });
     await test("Běžné školní věty neaktivují stopku", async()=>{
       const safe=["Prosím o zaslání organizačního opatření k výletu.","Žák byl omluven z důvodu nemoci.","Soutěž pořádá poradna pro volbu povolání.","Prosím o vyjádření k incidentu na chodbě.","Chemický pokus s alkoholem v laboratoři."];
       const blocked=safe.filter(x=>safetyAudit(x).level==="nosend");
@@ -1142,7 +1157,7 @@ const runKorespTests=async function(){
     await test("Import EML: vnořené MIME a kódované hlavičky", async()=>{
       const eml='From: =?UTF-8?Q?Petr_Nov=C3=A1k?= <petr@example.cz>\nSubject: =?UTF-8?Q?P=C5=99edm=C4=9Bt_test?=\nContent-Type: multipart/mixed; boundary="outer"\n\n--outer\nContent-Type: multipart/alternative; boundary="inner"\n\n--inner\nContent-Type: text/plain; charset=utf-8\nContent-Transfer-Encoding: quoted-printable\n\nDobr=C3=BD den.\n--inner--\n--outer--';
       const parsed=parseEml(eml);
-      assertTest(parsed.includes("Petr Novák") && parsed.includes("Předmět test") && parsed.includes("Dobrý den."),"EML se nerozbalil nebo nedekódoval správně: "+parsed);
+      assertTest(parsed.includes("Od: [odesílatel]") && !parsed.includes("Petr Novák") && !parsed.includes("petr@example.cz") && parsed.includes("Předmět test") && parsed.includes("Dobrý den."),"EML se nerozbalil, nedekódoval nebo neodstranil identitu odesílatele: "+parsed);
     });
     await test("Import Gmail EML: vybere textovou variantu a přeskočí přílohy", async()=>{
       const eml=[
@@ -1182,9 +1197,14 @@ const runKorespTests=async function(){
         ''
       ].join('\r\n');
       const parsed=parseEml(binaryFromBytes(encodeUtf8Bytes(eml)));
-      assertTest(parsed.includes("Lukáš Slouka")&&parsed.includes("Prosba o odpověď"),"Gmail hlavičky se nedekódovaly: "+parsed);
+      assertTest(parsed.includes("Od: [odesílatel]")&&!parsed.includes("Lukáš Slouka")&&!parsed.includes("lukas@example.cz")&&parsed.includes("Prosba o odpověď"),"Gmail hlavičky se nedekódovaly nebo identita odesílatele nebyla odstraněna: "+parsed);
       assertTest(parsed.includes("Dobrý den,\nprosím o odpověď."),"Textová varianta Gmail zprávy chybí: "+parsed);
       assertTest(parsed.split("Dobrý den").length===2&&!parsed.includes("TEXT Z PRILOHY"),"HTML varianta se zdvojila nebo se načetla příloha: "+parsed);
+    });
+    await test("Import EML: identita odesílatele se odstraní i z podpisu", async()=>{
+      const eml='From: Novotná, Klára <klara.novotna@example.cz>\r\nSubject: Organizační informace\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\nDobrý den,\r\nprosím o potvrzení termínu.\r\n\r\nKlára Novotná';
+      const parsed=parseEml(binaryFromBytes(encodeUtf8Bytes(eml)));
+      assertTest(parsed.includes("Od: [odesílatel]")&&parsed.includes("[odesílatel]")&&!parsed.includes("Klára Novotná")&&!parsed.includes("Novotná, Klára")&&!parsed.includes("klara.novotna@example.cz"),"identita odesílatele zůstala v importovaném EML: "+parsed);
     });
     await test("Import Gmail EML: HTML-only a Base64", async()=>{
       const eml='From: gmail@example.com\r\nSubject: HTML zprava\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\nPGRpdj5Eb2Jyw70gZGVuLDxicj5wcm9zw61tIG8genByw6F2dS48L2Rpdj4=';

@@ -120,6 +120,24 @@ function hasContextualSensitiveTerms(text){
   });
 }
 function hasSensitiveSchoolTerms(text){ const s=String(text||""); return SENSITIVE_ABBREVIATIONS_RE.test(s) || SENSITIVE_TERMS_RE.test(s) || SENSITIVE_TERMS_INTL_RE.test(s) || hasContextualSensitiveTerms(s); }
+// Rozlišuj obecné preventivní/edukační TÉMA od citlivého ÚDAJE nebo konkrétní události.
+// Broad detektor výše zůstává záměrně konzervativní (vypne historii/debug), ale sám o sobě
+// už není důvodem k blokaci odeslání. Blokujeme až osobní, případový nebo incidentní kontext.
+function hasBlockingSensitiveSchoolData(text){
+  const s=String(text||"");
+  if(!hasSensitiveSchoolTerms(s))return false;
+  const rows=s.split(/(?<=[.!?\n])\s*/u).filter(Boolean);
+  const sensitiveRow=row=>hasSensitiveSchoolTerms(row);
+  const individualRe=/(?:žák(?:a|ovi|yně|yni|yní)?(?![\p{L}\p{M}])|student(?:a|ovi|ka|ky|ce)?(?![\p{L}\p{M}])|dít(?:ě|ěte)(?![\p{L}\p{M}])|syn(?:a|ovi)?(?![\p{L}\p{M}])|dcer(?:a|y|u|ou|e)(?![\p{L}\p{M}])|rodič(?:e|ů|i)?(?![\p{L}\p{M}]))[^.!?\n]{0,100}(?:\bmá\b|\bměl[ao]?\b|\bje\b|\bjsou\b|trp|užív|bere|diagn|vyšetř|sebepošk|suicid|šikan|SPU|IVP|PPP|OSPOD|podpůrn|důtk|napomen|vylouč|agresiv|závisl)/iu;
+  const relationRe=/(?:\bu\s+(?:žáka|žákyně|studenta|studentky|dítěte|syna|dcery)|\bo\s+(?:žákovi|žákyni|studentovi|studentce|dítěti|synovi|dceři))[^.!?\n]{0,100}/iu;
+  const eventRe=/(?:došlo\s+k|došlo\s+ke|objevil[ayo]?\s+se|objevily\s+se|řešíme|řeším|řešili|incident|konkrétní\s+případ|případ\s+žák|byl[ao]?\s+zjištěn|proběhl[ao]?\s+vyšetření|doporučil[ao]?\s+(?:podpůrn|vyšetř)|zpráva\s+z\s+(?:PPP|poradn|psycholog)|rodiče\s+jsou\s+po\s+rozvodu)/iu;
+  if(rows.some(row=>sensitiveRow(row)&&(individualRe.test(row)||relationRe.test(row)||eventRe.test(row))))return true;
+  // Zjevně obecný/kurikulární kontext: seznam témat, prevence, výuka, školení apod.
+  const generalRe=/(?:preven|preventiv|výčet\s+témat|témat(?:a|em|ům|y)?|oblast(?:i|í)?|v\s+rámci\s+výuky|ve\s+výuce|výuk|učiv|tematick\w*\s+plán|seminář|workshop|školen|přednášk|metodik|osvět|program\s+prevence|materiál\s+k\s+preven|rizikov\w*\s+chován\w*\s+žák)/iu;
+  if(generalRe.test(s))return false;
+  // Bez jasného obecného rámce zachovej konzervativní historické chování.
+  return true;
+}
 
 function cleanLogMeta(meta){
   const deny=/prompt|text|body|content|system|raw|clean|email|mail/i;

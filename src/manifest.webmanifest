@@ -34,7 +34,7 @@
       "purpose": "maskable"
     }
   ],
-  "version": "5.10.14",
+  "version": "5.10.15",
   "ghrab_platform": {
     "contract": "ghrab-platform-v1",
     "version": "1.0.0",
@@ -42,6 +42,6 @@
     "brand_version": "1.0.0",
     "theme_contract": "ghrab-theme-v1",
     "sw_contract": "ghrab-sw-v1",
-    "cache_name": "ghrab-correspondence-v5.10.14"
+    "cache_name": "ghrab-correspondence-v5.10.15"
   }
 }

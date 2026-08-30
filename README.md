@@ -1,32 +1,29 @@
 # Korespondenční asistent
 
-**Aktuální verze:** 5.10.14  
+**Aktuální verze:** 5.10.15  
 **Platforma:** GHRAB Platform 1.1.0 · etapa P3
 
 
 Samostatná PWA aplikace ekosystému AI Studio Gymnázia Ostrava-Hrabůvka.
 
-- **Verze aplikace:** 5.10.14
+- **Verze aplikace:** 5.10.15
 - **GHRAB AI Core:** 1.0.0
 - **Doporučený repozitář:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
-- **Interaktivní manuál:** 1.3.14 (manuál 1.3.14)
+- **Interaktivní manuál:** 1.3.15 (manuál 1.3.15)
 
-## Co přináší verze 5.10.14
+## Co přináší verze 5.10.15
 
-Verze 5.10.14 je opravné vydání **GARP 2.3 po prvním nezávislém kole Claude**. Uzavírá potvrzenou second-order prompt-injection cestu z hodnocení tónu do následné úpravy konceptu, rozšiřuje obranu proti skrytému HTML a zpřesňuje release evidence. Behaviorální AIR testy proti skutečně používanému externímu modelu zůstávají bez bezpečně dostupného credentialu `NOT TESTED`, takže samotná verze neznamená GREEN pro reálná studentská data.
+Verze 5.10.15 je uživatelský privacy hotfix navazující na bezpečnostní kandidát 5.10.14. Opravuje dvě falešně pozitivní cesty zjištěné při osobním testování běžných školních e-mailů, aniž by uvolnila blokaci skutečných osobních nebo citlivých údajů.
 
-- modelová zjištění z kontroly tónu zůstávají jako `<untrusted-data>`; uživatelská volba nese pouze indexy vybraných položek a nezapíná `trustedInstruction`;
-- HTML import odstraňuje také `opacity:0`, `font-size:0`, off-screen absolutní/fixní prvky a whitespace varianty `display : none`;
-- výchozí jsdom cesta interního testu už nespouští souběžný automatický runner; samostatný gate má vlastní negative control;
-- AIR-12 používá 24 mutací v šesti rodinách přes více skutečných prompt builderů, nikoli pouze jednu helper funkci;
-- secret a canary scany jsou přímo součástí P5 release orchestrace;
-- produkční build už nedistribuuje rozsáhlý interní test runner a ponechává pouze fail-closed stuby, zatímco lokální `build:test` zachovává plnou testovací sadu;
-- díky odstranění test-only kódu z produkce bylo možné vrátit přísnější performance budget z 5.10.12 bez rozvolňování limitů;
-- interní regresní sada má 169 testů + 17 testů GHRAB AI Core conformance.
+- import Gmail `.eml` lokálně nahradí identitu z hlavičky `From:` značkou `[odesílatel]` a odstraní stejné přesné jméno/e-mail i z podpisu zprávy;
+- obecné preventivní a kurikulární seznamy témat (např. prevence šikany, závislostí nebo sebepoškozování) už nejsou automaticky považovány za konkrétní citlivý údaj;
+- konkrétní případový kontext, například individuální SPU/IVP, konkrétní šikana, vyšetření nebo závislost, zůstává blokující;
+- široký detektor citlivých termínů nadále vypíná historii/debug, takže obecné citlivé téma se neukládá do diagnostické historie;
+- přidány regresní scénáře se syntetickými osobami a doménami `example.cz`; interní sada má 171 testů + 17 testů GHRAB AI Core conformance.
 
-Technický souhrn vydání je v `RELEASE-NOTES-5.10.14-GARP-2.3-CLAUDE-KOLO-1.md`.
+Technický souhrn hotfixu je v `RELEASE-NOTES-5.10.15-USER-PRIVACY-HOTFIX.md`.
 
 ## GHRAB AI Core
 
@@ -56,7 +53,7 @@ prohlížeč
 → Gemini API
 ```
 
-Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže standardní build 5.10.14 sám o sobě nezapíná školní server. School-server build aktivuje samostatnou `runtime-config.school-server.js`.
+Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže standardní build 5.10.15 sám o sobě nezapíná školní server. School-server build aktivuje samostatnou `runtime-config.school-server.js`.
 
 ### Budoucí migrační režim
 
