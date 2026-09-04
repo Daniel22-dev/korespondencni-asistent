@@ -1,0 +1,1 @@
+Reference comparison against AI Studio 0.21.40 vendor/ghrab-platform-1.1.2: diff -qr returned no differences.

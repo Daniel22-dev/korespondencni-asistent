@@ -1,7 +1,7 @@
 {
   "schema": "ghrab-p3-browser-result-v1",
   "appId": "correspondence",
-  "appVersion": "5.10.17",
+  "appVersion": "5.10.18",
   "chromium": "system",
   "result": {
     "checks": {
@@ -29,9 +29,9 @@
     "activeElement": "launcher",
     "snapshot": {
       "contract": "ghrab-performance-v1",
-      "now": 342.80000000004657,
-      "domContentLoadedMs": 55,
-      "loadMs": 56.200000000186265,
+      "now": 345.39999999990687,
+      "domContentLoadedMs": 57.200000000186265,
+      "loadMs": 58.60000000009313,
       "transferBytes": 0,
       "decodedBytes": 0,
       "jsHeapUsedBytes": 10000000,

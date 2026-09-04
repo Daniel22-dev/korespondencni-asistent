@@ -1,0 +1,46 @@
+{
+  "schema": "garp22-evidence-path-selftest-v1",
+  "checks": [
+    {
+      "id": "valid-name-inside-audit-evidence",
+      "ok": true,
+      "detail": "/tmp/garp-evidence-path-HT2hRy/audit-evidence/garp22-final-close"
+    },
+    {
+      "id": "reject-\".\"",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "reject-\"..\"",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "reject-\"../../src\"",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "reject-\"evil/../../etc\"",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "reject-\"a/b\"",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "reject-\"../x\"",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "reject-symlink-outside-audit-evidence",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "status": "passed"
+}

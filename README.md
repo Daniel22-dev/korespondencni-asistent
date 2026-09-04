@@ -1,17 +1,25 @@
 # Korespondenční asistent
 
-**Aktuální verze:** 5.10.17  
+**Aktuální verze:** 5.10.18  
 **Platforma:** GHRAB Platform 1.1.2 · etapa P5 / ecosystem release-wave candidate
 
 
 Samostatná PWA aplikace ekosystému AI Studio Gymnázia Ostrava-Hrabůvka.
 
-- **Verze aplikace:** 5.10.17
+- **Verze aplikace:** 5.10.18
 - **GHRAB AI Core:** 1.0.0
 - **Doporučený repozitář:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
 - **Interaktivní manuál:** 1.3.15 (manuál 1.3.15)
+
+## Co přináší verze 5.10.18
+
+Verze 5.10.18 je bezpečnostní hotfix nad migrací Platform 1.1.2. Opravuje Browser Back/Forward / BFCache cestu, při níž Chromium mohlo po správném vyčištění storage znovu zobrazit starou hodnotu formuláře z uloženého DOM snapshotu.
+
+Při odchodu stránky do BFCache si child nově uloží stav suite generation, odloží zpracování nového suite signálu po dobu zmrazení a při `pageshow` s `persisted=true` drží obsah skrytý. Pokud během nepřítomnosti vznikla nová nebo dosud nezpracovaná suite generation, po skutečném obnovení DOM se provede nucený idempotentní lokální cleanup a teprve potom acknowledgement. Selhání zůstává fail-closed.
+
+Technický souhrn hotfixu je v `RELEASE-NOTES-5.10.18-SUITE-BFCACHE-HOTFIX.md`. Platforma zůstává **GHRAB Platform 1.1.2** a tento child hotfix sám neuzavírá ekosystémové E-01/F-02/F-03.
 
 ## Co přináší verze 5.10.17
 
@@ -67,7 +75,7 @@ prohlížeč
 → Gemini API
 ```
 
-Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže standardní build 5.10.17 sám o sobě nezapíná školní server. School-server build aktivuje samostatnou `runtime-config.school-server.js`.
+Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže standardní build 5.10.18 sám o sobě nezapíná školní server. School-server build aktivuje samostatnou `runtime-config.school-server.js`.
 
 ### Budoucí migrační režim
 

@@ -1,12 +1,12 @@
 {
   "schema": "ghrab-suite-session-simulation-v1",
-  "generatedAt": "2026-09-04T19:02:24.175Z",
+  "generatedAt": "2026-09-04T19:25:00.410Z",
   "appId": "correspondence",
-  "appVersion": "5.10.17",
+  "appVersion": "5.10.18",
   "platformVersion": "1.1.2",
   "contract": "ghrab-suite-session-v1",
   "syntheticDataOnly": true,
-  "canary": "GARP-STUDENT-CANARY-402530948FF92F2A",
+  "canary": "GARP-STUDENT-CANARY-44479FB3A5C7538D",
   "usesActualPlatformSource": true,
   "usesActualChildSuiteHandlerSource": true,
   "privacyCleanupFacade": "manifest-backed synthetic facade; browser/full-app validation remains separate",
@@ -78,7 +78,7 @@
         }
       ],
       "detail": {
-        "generation": "1788548543856-y9ok4jka",
+        "generation": "1788549900090-kxeiuxqd",
         "rm": 2,
         "cm": 8,
         "ack": 10
@@ -118,7 +118,7 @@
         }
       ],
       "detail": {
-        "generation": "1788548543883-c548uwtu"
+        "generation": "1788549900117-6ivlgazv"
       }
     },
     {
@@ -159,8 +159,8 @@
         }
       ],
       "detail": {
-        "generation": "1788548543962-jkr1p3hf",
-        "appWideSeen": "1788548543962-jkr1p3hf"
+        "generation": "1788549900197-fulqjp9l",
+        "appWideSeen": "1788549900197-fulqjp9l"
       }
     },
     {
@@ -193,7 +193,7 @@
         }
       ],
       "detail": {
-        "generation": "1788548544014-zhpkojj1"
+        "generation": "1788549900249-0ncsv0yu"
       }
     },
     {
@@ -222,7 +222,7 @@
         }
       ],
       "detail": {
-        "generation": "1788548544066-jgwaqtfk"
+        "generation": "1788549900302-kfcuou9c"
       }
     },
     {
@@ -243,7 +243,7 @@
         }
       ],
       "detail": {
-        "generation": "1788548544094-zufw65rn",
+        "generation": "1788549900330-x6ih0tw9",
         "expectedOutcome": "FAIL when handler registration is disabled"
       }
     },
@@ -273,7 +273,7 @@
         }
       ],
       "detail": {
-        "generation": "1788548544121-g0ycrqgn"
+        "generation": "1788549900357-lw2mf9lw"
       }
     },
     {
@@ -286,9 +286,9 @@
         }
       ],
       "detail": {
-        "generation": "1788548544148-7h92g1me",
-        "appWideSeen": "1788548544148-7h92g1me",
-        "tabASeen": "1788548544148-7h92g1me",
+        "generation": "1788549900384-urebyjee",
+        "appWideSeen": "1788549900384-urebyjee",
+        "tabASeen": "1788549900384-urebyjee",
         "tabBSeen": "",
         "tabBWorkRemaining": true,
         "demonstratesAppWideAckIsNotAllTabsProof": true,
@@ -314,9 +314,9 @@
     }
   ],
   "f02Diagnostic": {
-    "generation": "1788548544148-7h92g1me",
-    "appWideSeen": "1788548544148-7h92g1me",
-    "tabASeen": "1788548544148-7h92g1me",
+    "generation": "1788549900384-urebyjee",
+    "appWideSeen": "1788549900384-urebyjee",
+    "tabASeen": "1788549900384-urebyjee",
     "tabBSeen": "",
     "tabBWorkRemaining": true,
     "demonstratesAppWideAckIsNotAllTabsProof": true

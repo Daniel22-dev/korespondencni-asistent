@@ -1,7 +1,7 @@
 {
   "schema": "ks-ui-interaction-regression-v1",
   "appId": "correspondence",
-  "appVersion": "5.10.17",
+  "appVersion": "5.10.18",
   "actualProtectedUnlock": true,
   "trustedMouseClicks": true,
   "checks": [

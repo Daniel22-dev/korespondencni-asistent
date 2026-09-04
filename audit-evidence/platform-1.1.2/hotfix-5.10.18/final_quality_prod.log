@@ -1,7 +1,7 @@
 {
   "schema": "ghrab-p3-quality-result-v1",
   "appId": "correspondence",
-  "appVersion": "5.10.17",
+  "appVersion": "5.10.18",
   "contracts": {
     "accessibility": "ghrab-a11y-v1",
     "performance": "ghrab-performance-v1",
@@ -10,21 +10,21 @@
   "metrics": {
     "schema": "ghrab-performance-report-v1",
     "appId": "correspondence",
-    "appVersion": "5.10.17",
+    "appVersion": "5.10.18",
     "platformVersion": "1.1.2",
-    "measuredAt": "2026-09-04T19:02:26.124Z",
-    "distBytes": 1161825,
+    "measuredAt": "2026-09-04T19:25:51.102Z",
+    "distBytes": 1166810,
     "jsBytes": 138668,
     "cssBytes": 21736,
-    "htmlBytes": 739294,
+    "htmlBytes": 744279,
     "fileCount": 38,
     "fullHtmlCount": 2,
-    "entryHtmlBytes": 670088,
-    "entryCriticalBytes": 822271,
-    "largestInlineScriptBytes": 509005,
-    "precacheBytes": 1130598,
+    "entryHtmlBytes": 675073,
+    "entryCriticalBytes": 827256,
+    "largestInlineScriptBytes": 513350,
+    "precacheBytes": 1135583,
     "precacheAssetCount": 25,
-    "largestFileBytes": 670088,
+    "largestFileBytes": 675073,
     "largestFilePath": "index.html",
     "duplicateLargeBytes": 12830
   },
@@ -189,32 +189,32 @@
     {
       "id": "budget.distBytes",
       "ok": true,
-      "detail": "1161825 <= 1275000"
+      "detail": "1166810 <= 1275000"
     },
     {
       "id": "budget.entryHtmlBytes",
       "ok": true,
-      "detail": "670088 <= 785000"
+      "detail": "675073 <= 785000"
     },
     {
       "id": "budget.entryCriticalBytes",
       "ok": true,
-      "detail": "822271 <= 935000"
+      "detail": "827256 <= 935000"
     },
     {
       "id": "budget.largestInlineScriptBytes",
       "ok": true,
-      "detail": "509005 <= 625000"
+      "detail": "513350 <= 625000"
     },
     {
       "id": "budget.precacheBytes",
       "ok": true,
-      "detail": "1130598 <= 1245000"
+      "detail": "1135583 <= 1245000"
     },
     {
       "id": "budget.largestFileBytes",
       "ok": true,
-      "detail": "670088 <= 785000"
+      "detail": "675073 <= 785000"
     },
     {
       "id": "budget.duplicateLargeBytes",

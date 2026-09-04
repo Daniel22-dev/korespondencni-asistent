@@ -215,8 +215,9 @@ try{
 
   // 4) Browser Back / history restore.
   {
-    await resetOrigin(coord);const page=await openPage(base+'/app.html');await waitApp(page);const canary=await seedOwned(page,'BACK');await page.call('Page.navigate',{url:base+'/blank.html'});await waitExpr(page,"location.pathname==='/blank.html'&&document.readyState==='complete'",5000);const ended=await endSuite(coord,'qa-browser-back');await page.eval('history.back()');await waitExpr(page,"location.pathname==='/app.html'",5000);await waitApp(page);await sleep(160);const s=await snapshot(page);
+    await resetOrigin(coord);const page=await openPage(base+'/app.html');await waitApp(page);const canary=await seedOwned(page,'BACK');await page.call('Page.navigate',{url:base+'/blank.html'});await waitExpr(page,"location.pathname==='/blank.html'&&document.readyState==='complete'",5000);const ended=await endSuite(coord,'qa-browser-back');const seenBeforeRestore=String(await coord.eval(`localStorage.getItem(${JSON.stringify(appSeenKey)})||''`));await page.eval('history.back()');await waitExpr(page,"location.pathname==='/app.html'",5000);await waitApp(page);await sleep(160);const s=await snapshot(page);
     addResult('browser-back-forward',checksFrom({
+      'back-no-ack-before-restored-cleanup':seenBeforeRestore!==ended.generation,
       'back-local-cleared':s.profile===null,
       'back-session-cleared':s.work===null,
       'back-tab-marked':s.tabSeen===ended.generation,

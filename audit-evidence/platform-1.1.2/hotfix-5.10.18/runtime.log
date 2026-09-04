@@ -1,0 +1,9 @@
+[runtime] index.html @ 1280px
+file:///mnt/data/fix_5_10_17/korespondencni-asistent-5.10.17-platform-1.1.2-candidate/scripts/qa-p5-runtime.mjs:180
+        if(!ready)throw new Error(`Runtime page timeout: ${rel}`);
+                        ^
+
+Error: Runtime page timeout: index.html
+    at file:///mnt/data/fix_5_10_17/korespondencni-asistent-5.10.17-platform-1.1.2-candidate/scripts/qa-p5-runtime.mjs:180:25
+
+Node.js v22.16.0

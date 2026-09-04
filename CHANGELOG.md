@@ -1,3 +1,13 @@
+## 5.10.18 — suite-session BFCache / Browser Back-Forward hotfix (2026-09-04)
+
+- opraven CI reprodukovaný návrat starého pracovního textu z BFCache DOM snapshotu po suite end;
+- child při `pagehide.persisted` označí history restore jako pending a během zmrazení neumožní cleanup/ACK z neaktuálního DOM;
+- suite signal doručený během BFCache se odloží a zpracuje až po `pageshow.persisted`;
+- post-restore cesta vynutí znovu úplný lokální transient + storage cleanup a ACK zapíše až po jeho ověření;
+- obnovená stránka je do dokončení cleanupu vizuálně sealed; fail-closed stav obsah stránky nezobrazí;
+- opraven verzovací drift reporter test konfigurace na 5.10.18;
+- Platforma zůstává 1.1.2.
+
 ## 5.10.17 — GHRAB Platform 1.1.2 suite-session migrace (2026-09-04)
 
 - aplikace používá přesnou vendor vrstvu GHRAB Platform 1.1.2 a consumer range `>=1.1.2 <2.0.0`;

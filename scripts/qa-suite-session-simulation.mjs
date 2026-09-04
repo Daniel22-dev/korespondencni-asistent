@@ -55,7 +55,7 @@ function makeContext({appId='correspondence',sessionBackend=new Map(),negative=f
     clear(){for(const k of [...this.backend.keys()])this.removeItem(k);}
   }
   const localStorage=new StorageShim('local',sharedLocal),sessionStorage=new StorageShim('session',sessionBackend);
-  const documentElement={dataset:{ghrabAppId:appId,ghrabAppVersion:appId==='correspondence'?'5.10.17':'0.21.40'},hasAttribute:()=>false};
+  const documentElement={dataset:{ghrabAppId:appId,ghrabAppVersion:appId==='correspondence'?'5.10.18':'0.21.40'},hasAttribute:()=>false};
   const config={appId,appName:label,appVersion:documentElement.dataset.ghrabAppVersion,requiredPlatformRange:'>=1.1.2 <2.0.0',autoFooter:false,theme:{supported:['light','dark','system'],default:'system'}};
   if(appId==='correspondence') config.storageMigration={id:'p2-storage-namespace-v1',backup:'full',mappings:[]};
   const document={
