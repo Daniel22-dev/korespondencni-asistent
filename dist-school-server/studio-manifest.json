@@ -5,7 +5,7 @@
     "cs": "Korespondenční asistent",
     "en": "Correspondence Assistant"
   },
-  "version": "5.10.18",
+  "version": "5.10.19",
   "status": {
     "cs": "Pracovní pilotní verze",
     "en": "Working pilot release"
@@ -46,7 +46,7 @@
     "platformContract": "ghrab-platform-v1",
     "platformRange": ">=1.1.2 <2.0.0"
   },
-  "publishedAt": "2026-09-04T19:24:59.851Z",
+  "publishedAt": "2026-09-04T19:41:20.364Z",
   "aiCore": {
     "schema": "ghrab-ai-app-integration-v1",
     "status": "integrated-p1",
@@ -79,7 +79,7 @@
     "accessibilityContract": "ghrab-a11y-v1",
     "performanceContract": "ghrab-performance-v1",
     "moduleContract": "ghrab-lazy-modules-v1",
-    "cacheName": "ghrab-correspondence-v5.10.18"
+    "cacheName": "ghrab-correspondence-v5.10.19"
   },
   "deploymentProfile": "school-server",
   "serverReadyPhase": "P3"

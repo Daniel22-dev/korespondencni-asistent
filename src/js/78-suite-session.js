@@ -7,9 +7,16 @@
   const RECEIVED_KEY='ghrab.correspondence.suite-session-received.v1';
   const CLEANUP_KEY='ghrab.correspondence.suite-session-cleanup.v1';
   const TAB_SEEN_KEY='ghrab.correspondence.suite-session-tab-seen.v1';
+  function isHistoryTraversalBoot(){
+    try{
+      const entries=typeof performance!=='undefined'&&typeof performance.getEntriesByType==='function'?performance.getEntriesByType('navigation'):[];
+      if(Array.from(entries||[]).some(entry=>String(entry&&entry.type||'')==='back_forward'))return true;
+    }catch(_){}
+    try{return typeof performance!=='undefined'&&Number(performance.navigation&&performance.navigation.type)===2;}catch(_){return false;}
+  }
   let scheduledReloadGeneration='';
   let handlingGeneration='';
-  let historyRestorePending=false;
+  let historyRestorePending=isHistoryTraversalBoot();
   let historyRestoreSnapshot=null;
   let deferredSuiteDetail=null;
   let historyRestoreTimer=0;
@@ -127,28 +134,31 @@
       else setLifecycleState('');
     }
   }
-  function handlePageShow(event){
-    if(!event||event.persisted!==true){
-      historyRestorePending=false;
-      historyRestoreSnapshot=null;
-      deferredSuiteDetail=null;
-      guardCurrentTab('pageshow');
-      return;
-    }
-    // Keep the BFCache snapshot visually sealed until one post-restore task has run.
-    // This prevents a stale form value from being exposed between browser restoration
-    // and the child application's verified cleanup.
+  function scheduleHistoryRestoreFinish(){
     historyRestorePending=true;
     setLifecycleState('restoring');
     try{clearTimeout(historyRestoreTimer);}catch(_){}
     const schedule=()=>{historyRestoreTimer=setTimeout(finishHistoryRestore,0);};
     try{requestAnimationFrame(schedule);}catch(_){schedule();}
   }
+  function handlePageShow(event){
+    // History traversal can be restored either from BFCache (persisted=true) or by a
+    // fresh back_forward navigation. In the latter case Platform replay can fire while
+    // the new document is still loading, before Chromium restores form-control values.
+    // Keep replay deferred until after pageshow in both history paths.
+    if(event&&event.persisted===true){scheduleHistoryRestoreFinish();return;}
+    if(historyRestorePending){scheduleHistoryRestoreFinish();return;}
+    historyRestoreSnapshot=null;
+    deferredSuiteDetail=null;
+    guardCurrentTab('pageshow');
+  }
 
   if(!platform||platform.version!=='1.1.2'||platform.session?.contract!==CONTRACT||typeof platform.session.onEnd!=='function'||typeof platform.session.acknowledge!=='function'){
     failClosed('platform-1.1.2-suite-contract-unavailable');
     return;
   }
+
+  if(historyRestorePending)setLifecycleState('restoring');
 
   function registerSuiteSessionLifecycle(){
     platform.session.onEnd((detail)=>{

@@ -8,11 +8,12 @@ function isTrustedLocalTestOrigin(){
 }
 const IS_TEST_MODE=TEST_HOOKS_BUILD_ENABLED&&isTrustedLocalTestOrigin()&&new URLSearchParams(window.location.search).get("test")==="1";
 const RELEASE = {
-  version: "5.10.18",
+  version: "5.10.19",
   date: "2026-09-04",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.10.19: suite-session history traversal hotfix — fresh back_forward navigace je rozpoznána ještě před platformním replayem, cleanup/ACK se odloží za pageshow a browserem obnovený obsah formuláře se vyčistí až po dokončení history restore.",
     "5.10.18: suite-session BFCache hotfix — při Browser Back/Forward se signál během zmrazené stránky odloží, obnovený DOM se před zobrazením znovu vyčistí a acknowledgement vznikne až po post-restore cleanupu; fail-closed stav obsah stránky vizuálně uzamkne.",
     "5.10.17: migrace na GHRAB Platform 1.1.2 — integrován ghrab-suite-session-v1 lifecycle pro bezpečný shared-device cleanup, per-tab ochrana proti obnovení dat přes více karet a historii, fail-closed acknowledgement až po ověřeném úklidu, opraven data manifest a ownership sdíleného Studio handoff/event storage.",
     "5.10.16: opravena druhá falešně pozitivní privacy cesta - hard block jmen nyní používá pouze kandidáty s vysokou jistotou, instituce a adresní řádky zůstávají jen ke kontrole a import .eml lokálně odstraní i samostatné části jména odesílatele ze signatury.",

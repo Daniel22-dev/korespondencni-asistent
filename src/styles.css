@@ -1110,7 +1110,7 @@ body.workspace-open #appProgress{display:none!important}
 .foot .ghrab-platform-footer__brand span,
 .foot .ghrab-platform-footer__meta span{ opacity:1; color:var(--ink-soft); }
 
-/* 5.10.18 — fail-closed BFCache/history restore sealing for suite-session cleanup */
+/* 5.10.19 — fail-closed BFCache/history restore sealing for suite-session cleanup */
 html[data-ghrab-suite-session="restoring"] body,
 html[data-ghrab-suite-session="blocked"] body{visibility:hidden!important}
 html[data-ghrab-suite-session="blocked"]::before{

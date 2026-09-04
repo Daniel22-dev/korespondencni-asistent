@@ -1,17 +1,25 @@
 # Korespondenční asistent
 
-**Aktuální verze:** 5.10.18  
+**Aktuální verze:** 5.10.19  
 **Platforma:** GHRAB Platform 1.1.2 · etapa P5 / ecosystem release-wave candidate
 
 
 Samostatná PWA aplikace ekosystému AI Studio Gymnázia Ostrava-Hrabůvka.
 
-- **Verze aplikace:** 5.10.18
+- **Verze aplikace:** 5.10.19
 - **GHRAB AI Core:** 1.0.0
 - **Doporučený repozitář:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
 - **Interaktivní manuál:** 1.3.15 (manuál 1.3.15)
+
+## Co přináší verze 5.10.19
+
+Verze 5.10.19 navazuje na 5.10.18 a opravuje druhou Browser Back/Forward větev reprodukovanou v GitHub Actions. Chromium nemusí návrat provést jako čisté BFCache resume; může vytvořit nový dokument s `navigation.type = back_forward`. V takovém případě se platformní replay mohl spustit během načítání, aplikace uklidila ještě prázdný formulář a zapsala ACK, a browser následně obnovil starou hodnotu textarea z historie.
+
+Child nyní rozpozná history traversal už při bootu, před registrací suite replay handleru. Stránku drží v `restoring` stavu, replay/guard odloží a nucený cleanup provede až po `pageshow` a post-restore tasku. Stejná ochrana zůstává i pro `pageshow.persisted=true`. Přidána je deterministická regrese `browser-history-fresh-navigation-replay`.
+
+Technický souhrn je v `RELEASE-NOTES-5.10.19-SUITE-HISTORY-TRAVERSAL-HOTFIX.md`. Platforma zůstává **GHRAB Platform 1.1.2**; E-01/F-02/F-03 na úrovni celého ekosystému tím nejsou automaticky uzavřeny.
 
 ## Co přináší verze 5.10.18
 
@@ -75,7 +83,7 @@ prohlížeč
 → Gemini API
 ```
 
-Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže standardní build 5.10.18 sám o sobě nezapíná školní server. School-server build aktivuje samostatnou `runtime-config.school-server.js`.
+Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže standardní build 5.10.19 sám o sobě nezapíná školní server. School-server build aktivuje samostatnou `runtime-config.school-server.js`.
 
 ### Budoucí migrační režim
 

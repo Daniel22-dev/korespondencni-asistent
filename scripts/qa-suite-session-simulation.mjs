@@ -37,7 +37,7 @@ function marker(store,key){const raw=store.getItem(key);if(!raw)return '';try{re
 function isOwned(key){const k=String(key);return ((k.startsWith('ghrab.correspondence.')&&!RETAIN.has(k))||k.startsWith('rozbor_')||k.startsWith('ks5_'));}
 function handoffOwned(key,v){if(!v||typeof v!=='object')return false;return key===H2?String(v.target?.appId||'')==='correspondence':String(v.target||'')==='correspondence';}
 
-function makeContext({appId='correspondence',sessionBackend=new Map(),negative=false,storageEvents=true,name}={}){
+function makeContext({appId='correspondence',sessionBackend=new Map(),negative=false,storageEvents=true,historyNavigation=false,name}={}){
   const id=nextContextId++;
   const listeners=new Map();
   const ops=[];
@@ -55,7 +55,7 @@ function makeContext({appId='correspondence',sessionBackend=new Map(),negative=f
     clear(){for(const k of [...this.backend.keys()])this.removeItem(k);}
   }
   const localStorage=new StorageShim('local',sharedLocal),sessionStorage=new StorageShim('session',sessionBackend);
-  const documentElement={dataset:{ghrabAppId:appId,ghrabAppVersion:appId==='correspondence'?'5.10.18':'0.21.40'},hasAttribute:()=>false};
+  const documentElement={dataset:{ghrabAppId:appId,ghrabAppVersion:appId==='correspondence'?'5.10.19':'0.21.40'},hasAttribute:()=>false};
   const config={appId,appName:label,appVersion:documentElement.dataset.ghrabAppVersion,requiredPlatformRange:'>=1.1.2 <2.0.0',autoFooter:false,theme:{supported:['light','dark','system'],default:'system'}};
   if(appId==='correspondence') config.storageMigration={id:'p2-storage-namespace-v1',backup:'full',mappings:[]};
   const document={
@@ -67,16 +67,16 @@ function makeContext({appId='correspondence',sessionBackend=new Map(),negative=f
   };
   const windowObj={
     document,localStorage,sessionStorage,Storage:StorageShim,location:{href:'https://qa.invalid/app',reload(){reloadCount++}},navigator:{language:'cs-CZ'},
-    performance:{mark(){},measure(){},getEntriesByName(){return[]},now(){return Date.now()}},URL,TextEncoder,TextDecoder,Blob,crypto:crypto.webcrypto,
+    performance:{mark(){},measure(){},getEntriesByName(){return[]},getEntriesByType(type){return type==='navigation'&&historyNavigation?[{type:'back_forward'}]:[]},navigation:{type:historyNavigation?2:0},now(){return Date.now()}},URL,TextEncoder,TextDecoder,Blob,crypto:crypto.webcrypto,
     CustomEvent:class CustomEvent{constructor(type,opts={}){this.type=type;this.detail=opts.detail}},
     Event:class Event{constructor(type,opts={}){this.type=type;Object.assign(this,opts)}},
     addEventListener:(t,fn)=>{const a=listeners.get('window:'+t)||[];a.push(fn);listeners.set('window:'+t,a)},
     dispatchEvent:(e)=>{for(const fn of listeners.get('window:'+e.type)||[])fn(e)},
     matchMedia:()=>({matches:false,addEventListener(){},removeEventListener(){}}),
-    setTimeout,clearTimeout,console,alert(){},confirm(){return true},prompt(){return''},open(){return null}
+    setTimeout,clearTimeout,requestAnimationFrame:(fn)=>setTimeout(fn,0),console,alert(){},confirm(){return true},prompt(){return''},open(){return null}
   };
   windowObj.window=windowObj;windowObj.self=windowObj;windowObj.globalThis=windowObj;
-  const ctx=vm.createContext({...windowObj,window:windowObj,self:windowObj,globalThis:windowObj,document,localStorage,sessionStorage,Storage:StorageShim,location:windowObj.location,navigator:windowObj.navigator,performance:windowObj.performance,URL,TextEncoder,TextDecoder,Blob,crypto:crypto.webcrypto,CustomEvent:windowObj.CustomEvent,Event:windowObj.Event,setTimeout,clearTimeout,console});
+  const ctx=vm.createContext({...windowObj,window:windowObj,self:windowObj,globalThis:windowObj,document,localStorage,sessionStorage,Storage:StorageShim,location:windowObj.location,navigator:windowObj.navigator,performance:windowObj.performance,URL,TextEncoder,TextDecoder,Blob,crypto:crypto.webcrypto,CustomEvent:windowObj.CustomEvent,Event:windowObj.Event,setTimeout,clearTimeout,requestAnimationFrame:windowObj.requestAnimationFrame,console});
   // Ensure window/global aliases in the VM refer to the same object graph.
   ctx.window=ctx;ctx.self=ctx;ctx.globalThis=ctx;ctx.document=document;ctx.localStorage=localStorage;ctx.sessionStorage=sessionStorage;ctx.Storage=StorageShim;ctx.location=windowObj.location;
   const record={id,label,ctx,listeners,ops,removeFaults,setFaults,sessionBackend,storageEvents,get storageLock(){return storageLock},get cleanupCount(){return cleanupCount},get reloadCount(){return reloadCount}};
@@ -145,27 +145,53 @@ reset();{
   const coord=makeContext({appId:'ai-studio',name:'coordinator'}),child=makeContext({name:'back-forward',storageEvents:false});await settle();seed(child,'BACK');const end=coord.ctx.GHRAB_PLATFORM.session.end({reason:'qa-back'});await settle();let before=snap(child);child.storageEvents=true;for(const fn of child.listeners.get('window:pageshow')||[])fn({type:'pageshow'});await settle();const after=snap(child);
   add('browser-history-guard-simulation',{'not-cleaned-while-page-event-suppressed':before.profile!==null,'pageshow-clears-local':after.profile===null,'pageshow-clears-session':after.work===null,'pageshow-tab-marker':after.tabSeen===end.generation,'pageshow-ack':after.seen===end.generation,'pageshow-lock':after.locked},{generation:end.generation});
 }
-// 5 fail closed: relevant delete fails, no acknowledgement
+// 5 fresh back_forward boot: replay must stay deferred until pageshow because the browser
+// may restore form-control values after scripts have executed.
+reset();{
+  const coord=makeContext({appId:'ai-studio',name:'coordinator'}),session=new Map();
+  const c=`${canary}-HISTORY-BOOT`;
+  sharedLocal.set(PROFILE,JSON.stringify({name:c}));
+  session.set(WORK,JSON.stringify({raw:c}));
+  session.set(APIKEY,c+'-KEY');
+  sharedLocal.set(BACKUP,JSON.stringify({entries:[{value:c}]}));
+  const end=coord.ctx.GHRAB_PLATFORM.session.end({reason:'qa-history-boot',clearApplicationData:true});
+  const child=makeContext({name:'history-boot',sessionBackend:session,historyNavigation:true});
+  await settle();
+  const before=snap(child);
+  for(const fn of child.listeners.get('window:pageshow')||[])fn({type:'pageshow',persisted:false});
+  await settle();
+  const after=snap(child);
+  add('browser-history-fresh-navigation-replay',{
+    'replay-deferred-before-pageshow':before.profile!==null&&before.work!==null&&before.seen!==end.generation,
+    'pageshow-clears-local':after.profile===null&&after.backup===null,
+    'pageshow-clears-session':after.work===null&&after.api===null,
+    'pageshow-tab-marker':after.tabSeen===end.generation,
+    'pageshow-ack':after.seen===end.generation,
+    'pageshow-lock':after.locked
+  },{generation:end.generation});
+}
+
+// 6 fail closed: relevant delete fails, no acknowledgement
 reset();{
   const coord=makeContext({appId:'ai-studio',name:'coordinator'}),child=makeContext({name:'fail-closed'});seed(child,'FAIL');child.removeFaults.add('local:'+PROFILE);const end=coord.ctx.GHRAB_PLATFORM.session.end({reason:'qa-fault'});await settle();const s=snap(child);
   add('fail-closed-delete-fault',{'fault-leaves-owned-data':s.profile!==null,'no-cleanup-marker':s.cleanup!==end.generation,'no-tab-marker':s.tabSeen!==end.generation,'no-platform-ack':s.seen!==end.generation,'lifecycle-lock-still-engaged':s.locked},{generation:end.generation});
 }
-// 6 negative control: registration removed in disposable transformed copy => must fail
+// 7 negative control: registration removed in disposable transformed copy => must fail
 reset();{
   const coord=makeContext({appId:'ai-studio',name:'coordinator'}),child=makeContext({name:'negative-control',negative:true});seed(child,'NEG');const end=coord.ctx.GHRAB_PLATFORM.session.end({reason:'qa-negative'});await settle();const s=snap(child);
   add('negative-control-handler-disabled',{'expected-sensitive-data-remains':s.profile!==null&&s.work!==null,'expected-no-cleanup-marker':s.cleanup!==end.generation,'expected-no-ack':s.seen!==end.generation},{generation:end.generation,expectedOutcome:'FAIL when handler registration is disabled'});
 }
-// 7 foreign shared-state ownership
+// 8 foreign shared-state ownership
 reset();{
   const coord=makeContext({appId:'ai-studio',name:'coordinator'}),child=makeContext({name:'foreign-ownership'});seed(child,'FOREIGN',{foreign:true});const originalH2=child.ctx.localStorage.getItem(H2),originalH1=child.ctx.localStorage.getItem(H1);const end=coord.ctx.GHRAB_PLATFORM.session.end({reason:'qa-foreign'});await settle();const s=snap(child);
   add('shared-storage-ownership',{'foreign-handoff-v2-preserved':s.h2===originalH2,'foreign-handoff-v1-preserved':s.h1===originalH1,'own-event-row-cleared':Array.isArray(s.events)&&!s.events.some(r=>r.appId==='correspondence'),'foreign-event-row-preserved':Array.isArray(s.events)&&s.events.some(r=>r.appId==='lesson-hub'),'cleanup-acked':s.seen===end.generation},{generation:end.generation});
 }
-// 8 F-02 diagnostic: first tab can write app-wide seen before a faulting second tab; child per-tab guard detects/fails second tab, proving central ack is not all-tabs proof.
+// 9 F-02 diagnostic: first tab can write app-wide seen before a faulting second tab; child per-tab guard detects/fails second tab, proving central ack is not all-tabs proof.
 reset();let f02Diagnostic;{
   const coord=makeContext({appId:'ai-studio',name:'coordinator'}),a=makeContext({name:'f02-good'}),b=makeContext({name:'f02-fault'});seed(a,'F02-A');b.ctx.sessionStorage.setItem(WORK,canary+'-F02-B');b.removeFaults.add('session:'+WORK);const end=coord.ctx.GHRAB_PLATFORM.session.end({reason:'qa-f02'});await settle();const sa=snap(a),sb=snap(b);f02Diagnostic={generation:end.generation,appWideSeen:sa.seen,tabASeen:sa.tabSeen,tabBSeen:sb.tabSeen,tabBWorkRemaining:sb.work!==null,demonstratesAppWideAckIsNotAllTabsProof:sa.seen===end.generation&&sb.tabSeen!==end.generation&&sb.work!==null};
   add('f02-app-wide-ack-diagnostic',{'diagnostic-condition-demonstrated':f02Diagnostic.demonstratesAppWideAckIsNotAllTabsProof},{...f02Diagnostic,status:'open-ecosystem-follow-up'});
 }
-// 9 F-03 same-origin raw writes are possible by design.
+// 10 F-03 same-origin raw writes are possible by design.
 reset();{
   const child=makeContext({name:'f03'}),forged='F03-SYNTHETIC-'+crypto.randomBytes(4).toString('hex');child.ctx.localStorage.setItem(SUITE,forged);child.ctx.localStorage.setItem('ghrab.other-child.suite-session-seen.v1',forged);add('f03-same-origin-trust-boundary',{'global-suite-tombstone-raw-writable':child.ctx.localStorage.getItem(SUITE)===forged,'foreign-child-ack-raw-writable':child.ctx.localStorage.getItem('ghrab.other-child.suite-session-seen.v1')===forged},{risk:'inherent-same-origin-open-ecosystem-debt'});
 }

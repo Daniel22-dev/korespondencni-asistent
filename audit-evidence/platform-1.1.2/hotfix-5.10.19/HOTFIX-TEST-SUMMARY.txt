@@ -1,0 +1,37 @@
+Korespondencni asistent 5.10.19 / Platform 1.1.2 - lokalni hotfix evidence
+
+PASS:
+- production build: PASS (test hooks OFF)
+- Platform P3 conformance: 124/124 PASS
+- deterministic suite-session simulation: 10/10 PASS
+  vcetne browser-history-fresh-navigation-replay, fail-closed a negative control
+- internal application tests: 171/171 PASS
+- Core conformance: 17/17 PASS
+- UI production: 48/48 PASS
+- qa:quality: 31/31 PASS
+- qa:xss: PASS
+- qa:browser hermetic: PASS
+- reporter: 52 PASS / 0 FAIL; browser reporter component NOT_READY kvuli lokalni URLBlocklist
+- qa:lock: PASS
+- qa:profiles: 15/15 PASS
+- secret scan: PASS
+- canary scan: PASS
+- GARP evidence-path: PASS
+- test-harness negative control: PASS; zamerne rozbita varianta prokazatelne FAIL
+- bootstrap: 5/5 PASS
+- school-server profile/build: PASS
+
+NOT TESTED / environment limitation:
+- navigovany qa:suite-session v lokalnim Chromium: 127.0.0.1 blokovan organizacni URLBlocklist politikou
+- qa:runtime ze stejneho duvodu
+- axe runtime: scanned=0; pinned axe-core 4.12.1 neni v tomto prostredi dostupny a npm ci nedokoncil instalaci
+- live AIR behavior: chybi Gemini API credential; nesmi byt vykazano jako PASS
+
+Lokalni release evidence:
+- qa-p5-release: 45/46, FAIL pouze report.runtime.exists
+- acceptance: 18/20, chybi dist/qa-p5-runtime-report.json a proto je release report failed
+
+Verdikt:
+AMBER. Hotfix je kandidat k nezavislemu CI/browser overeni, nikoli GREEN.
+GitHub Actions musi znovu potvrdit browser-back-forward a zejmena back-dom-not-restored=true.
+E-01 neni uzavrena na urovni ekosystemu. F-02/F-03 zustavaji ecosystem follow-up.

@@ -1,6 +1,6 @@
 {
   "schema": "garp23-test-harness-gate-v1",
-  "generatedAt": "2026-09-04T19:26:33.460Z",
+  "generatedAt": "2026-09-04T19:39:30.345Z",
   "clean": {
     "jsdomUrl": true,
     "autoQuery": false,

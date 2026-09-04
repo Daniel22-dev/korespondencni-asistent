@@ -1,0 +1,41 @@
+Korespondencni asistent 5.10.18 / GHRAB Platform 1.1.2
+GitHub Actions follow-up po hotfixu 5.10.18
+Datum analyzy: 2026-09-04
+Pouze synteticka testovaci data.
+
+Vstupni CI logy a SHA-256:
+- logs_91906646043.zip  cef2b0c4fb2c49e8a98dc8fe4988edf5e502ab78045f5ab4c733336e334605ec
+- logs_91906646068.zip  a1d2c12c9987acad262a75c1e2effa6122d4a18b66ed14072603dde061543a6c
+- logs_91906646149.zip  06165d9ef7385316fad085686da1692690304a8c9fb82acba73feb8b3caf837d
+- logs_91906646178.zip  3088c7ce119fcbe312239405a6eece32f466363b5168e247e55e8c4133016087
+
+Vsechny ctyri behy reprodukuji stejny jediny funkcni FAIL v qa:suite-session:
+scenario: browser-back-forward
+- back-no-ack-before-restored-cleanup: PASS
+- back-local-cleared: PASS
+- back-session-cleared: PASS
+- back-tab-marked: PASS
+- back-acknowledged: PASS
+- back-dom-not-restored: FAIL
+- back-page-locked-before-clean-reload: PASS
+- back-no-runtime-errors: PASS
+
+Fail-closed-storage-error: PASS.
+Negative-control evidence: PASS (zamerne deaktivovany handler vyvolal ocekavany FAIL).
+
+Root cause 5.10.18:
+5.10.18 pokryvala BFCache resume pres pagehide/pageshow persisted=true, ale ne druhy zpusob historie,
+kdy Chromium vytvori novy dokument typu performance navigation 'back_forward'. V teto vetvi mohl Platform
+1.1.2 replay probehnout behem inicializace nove stranky jeste pred tim, nez prohlizec obnovil hodnoty
+formularovych poli z historie. Child tedy spravne vycistil storage a zapsal ACK, ale prohlizec pote obnovil
+stary synteticky canary do DOM textarea/input. Proto byl jediny FAIL back-dom-not-restored.
+
+Hotfix 5.10.19:
+- detekuje fresh history traversal uz pri bootu pres PerformanceNavigationTiming.type=back_forward
+  s legacy fallback performance.navigation.type=2;
+- pred registraci replay handleru zapne lifecycle stav restoring;
+- suite replay, storage guard a startup/focus/visibility guardy se behem history restore odlozi;
+- po pageshow se cleanup naplanuje az za requestAnimationFrame + task boundary;
+- cleanup je v history vetvi vynucen znovu nad skutecne obnovenym DOM;
+- ACK zustava posledni krok az po cleanupu, storage verification a completion markerech;
+- pridan deterministicky regresni scenar browser-history-fresh-navigation-replay.

@@ -1,3 +1,13 @@
+## 5.10.19 — suite-session fresh Back/Forward navigation hotfix (2026-09-04)
+
+- opraven druhý CI reprodukovaný Browser Back/Forward režim: nový dokument s `navigation.type = back_forward`;
+- history traversal se rozpozná ještě před registrací `platform.session.onEnd(..., {replay:true})`, takže replay nemůže předčasně uklidit/ACKnout dokument před browserovou obnovou hodnot formuláře;
+- replay, startup/focus/visibility guardy zůstávají během history restore odložené;
+- cleanup se provede až po `pageshow` a post-restore tasku, potom teprve vzniknou completion markery a ACK;
+- zachována ochrana pro klasický BFCache `pageshow.persisted=true`;
+- přidána deterministická regrese `browser-history-fresh-navigation-replay`;
+- Platforma zůstává 1.1.2.
+
 ## 5.10.18 — suite-session BFCache / Browser Back-Forward hotfix (2026-09-04)
 
 - opraven CI reprodukovaný návrat starého pracovního textu z BFCache DOM snapshotu po suite end;
