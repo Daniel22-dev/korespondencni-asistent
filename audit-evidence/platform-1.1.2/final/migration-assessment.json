@@ -1,0 +1,115 @@
+{
+  "schema": "ghrab-platform-1.1.2-child-migration-assessment-v1",
+  "generatedAt": "2026-09-04T19:04:36.801Z",
+  "app": {
+    "id": "correspondence",
+    "inputVersion": "5.10.16",
+    "outputVersion": "5.10.17"
+  },
+  "platform": {
+    "input": "1.1.0",
+    "output": "1.1.2",
+    "contract": "ghrab-suite-session-v1",
+    "referenceVendorByteIdentical": true
+  },
+  "syntheticDataOnly": true,
+  "pc01": {
+    "status": "PASS",
+    "indexedDB": false,
+    "cacheStorageUserContent": false,
+    "staticProfileServerPersistence": false,
+    "reporterDraft": "memory-only",
+    "sensitivePaths": [
+      "localStorage application/workbench data",
+      "sessionStorage autosave",
+      "local/session credentials",
+      "session prompt debug",
+      "content-bearing migration backup",
+      "owned Studio handoff/event rows"
+    ],
+    "preservedPaths": [
+      "migration done marker",
+      "suite generation tombstone",
+      "child received/cleanup/platform-seen markers",
+      "per-tab suite marker",
+      "manual non-personal preferences",
+      "static PWA caches"
+    ],
+    "manifestCorrected": true,
+    "sharedStorageOwnershipAware": true
+  },
+  "suiteSession": {
+    "handler": "src/js/78-suite-session.js",
+    "acknowledgementOrder": [
+      "suite tombstone exists",
+      "received marker",
+      "ownership-aware local cleanup and verification",
+      "cleanup marker + per-tab marker",
+      "platform acknowledge"
+    ],
+    "failClosed": true,
+    "replayIdempotent": true,
+    "writeLockAfterEnd": true,
+    "simulation": {
+      "status": "PASS",
+      "scenarios": "9/9",
+      "evidence": "audit-evidence/platform-1.1.2/qa-suite-session-simulation.json"
+    },
+    "browser": {
+      "status": "NOT TESTED",
+      "reason": "Managed Chromium policy blocks 127.0.0.1 navigation in this audit environment."
+    }
+  },
+  "negativeControls": {
+    "suiteHandlerDisabled": "EXPECTED FAIL OBSERVED",
+    "garpHarness": "EXPECTED FAIL OBSERVED"
+  },
+  "f02": {
+    "status": "OPEN ECOSYSTEM FOLLOW-UP",
+    "localPhasesDistinguishable": true,
+    "allTabsProof": false,
+    "reason": "Platform 1.1.2 app-wide seen marker can be acknowledged by one tab while another tab has not completed sessionStorage cleanup."
+  },
+  "f03": {
+    "status": "OPEN ECOSYSTEM DEBT",
+    "reason": "Same-origin scripts can raw-write the global suite tombstone and a foreign child seen key; XSS therefore shares this trust boundary."
+  },
+  "tests": {
+    "build": "PASS",
+    "platformConformance": "PASS 124/124",
+    "suiteSimulation": "PASS 9/9",
+    "quality": "PASS 31/31",
+    "browserHermetic": "PASS",
+    "ui": "PASS 48/48",
+    "xssInventory": "PASS with stated sink/CSP limitations",
+    "garpHarness": "PASS",
+    "bootstrap": "PASS 5/5",
+    "secretScan": "PASS",
+    "canaryArtifactScan": "PASS",
+    "schoolProfile": "PASS",
+    "lock": "PASS 67 locked packages / 3 direct dependencies",
+    "profiles": "PASS 15/15",
+    "evidencePath": "PASS",
+    "npmTest": "NOT TESTED as complete orchestration: test-build core reached 171/171 internal + 17/17 Core and internal release gate OK, then orchestration exceeded environment timeout; constituent UI later PASS separately",
+    "suiteBrowser": "NOT TESTED environment limitation",
+    "runtimeHttpBrowser": "NOT TESTED environment limitation",
+    "axe": "NOT TESTED (scanned 0; exact axe-core dependency unavailable)",
+    "reporter": "Static PASS 52/52; browser portion NOT TESTED due managed local-navigation policy",
+    "aiRed": "Structural PASS 33/33; behavioral NOT TESTED; RT-09 NOT TESTED; red-team gate max AMBER",
+    "releaseGate": "FAIL/AMBER evidence: 43/44, missing runtime report",
+    "acceptance": "FAIL/AMBER evidence: 18/20, runtime report + release status"
+  },
+  "garp": {
+    "securityGate": "AMBER",
+    "privacyGate": "AMBER",
+    "redTeamGate": "AMBER",
+    "releaseIntegrityGate": "AMBER",
+    "overall": "AMBER",
+    "realStudentData": "NEPOUZIVAT",
+    "testMode": "POUZE SYNTETICKA DATA"
+  },
+  "ecosystem": {
+    "e01Closed": false,
+    "reason": "Only this child is migrated; all relevant children plus joint ecosystem validation are still required."
+  }
+}

@@ -1,13 +1,15 @@
 {
   "schema": "ghrab-data-manifest-v1",
   "appId": "correspondence",
-  "appVersion": "5.10.16",
-  "manifestVersion": 3,
+  "appVersion": "5.10.17",
+  "manifestVersion": 4,
   "dataCategories": [
     "settings",
     "application-content",
     "diagnostics",
-    "ai-prompts-and-results"
+    "ai-prompts-and-results",
+    "credentials",
+    "lifecycle-security-state"
   ],
   "privacy": {
     "studentContentMayOccur": true,
@@ -15,35 +17,66 @@
     "diagnosticsContainContentByDefault": false,
     "pseudonymisationIsNotAnonymisation": true
   },
+  "pc01": {
+    "indexedDBUsed": false,
+    "cacheStorageContainsUserContent": false,
+    "serverPersistenceInStaticProfile": false,
+    "errorReporterDraftPersistence": "memory-only",
+    "autosave": "sessionStorage physical key: rozbor_work_session_v2; consumer migration mapping without store=session is localStorage-only and does not rename the live session writer",
+    "storageAliasesActive": true
+  },
   "stores": [
     {
       "kind": "localStorage",
       "category": "application-data",
       "patterns": [
-        "ghrab.correspondence.*",
-        "ghrab.correspondence.ks5.*"
+        "ghrab.correspondence.profile.v1",
+        "ghrab.correspondence.dictionary.v1",
+        "ghrab.correspondence.history.v1",
+        "ghrab.correspondence.name-hints.v1",
+        "ghrab.correspondence.templates.v1",
+        "ghrab.correspondence.theme.v1",
+        "ghrab.correspondence.workbench-drafts.v1",
+        "ghrab.correspondence.signatures.v1",
+        "ghrab.correspondence.followups.v1",
+        "ghrab.correspondence.blocks.v1",
+        "ghrab.correspondence.desk-collapsed.v1",
+        "ghrab.correspondence.recent-scenarios.v1",
+        "ghrab.correspondence.selected-signature.v1",
+        "ghrab.correspondence.ui-mode.v1",
+        "ghrab.correspondence.ai.model.v1",
+        "ghrab.correspondence.security-guide-seen.v1",
+        "ghrab.correspondence.tour-seen.v1",
+        "ghrab.correspondence.legacy.rozbor.*",
+        "ghrab.correspondence.legacy.ks5.*",
+        "rozbor_*",
+        "ks5_*"
+      ],
+      "sensitivity": "potentially-personal",
+      "authority": "client",
+      "clearOnEndWork": true,
+      "note": "Platform storage aliases physically canonicalize legacy rozbor_/ks5_ writers. Legacy patterns remain inventoried for pre-migration/rollback states."
+    },
+    {
+      "kind": "sessionStorage",
+      "category": "session-data",
+      "patterns": [
+        "ghrab.correspondence.work-session.v2",
+        "rozbor_work_session_v2",
+        "ghrab.correspondence.legacy.rozbor.*",
+        "rozbor_*",
+        "ks5_*"
       ],
       "sensitivity": "potentially-personal",
       "authority": "client",
       "clearOnEndWork": true
     },
     {
-      "kind": "sessionStorage",
-      "category": "session-data",
-      "patterns": [
-        "ghrab.correspondence.gemini_key_session",
-        "ghrab.correspondence.work_session_v2"
-      ],
-      "sensitivity": "confidential",
-      "authority": "client",
-      "clearOnEndWork": true
-    },
-    {
       "kind": "localStorage",
       "category": "credential",
       "patterns": [
-        "ghrab.correspondence.gemini_key",
-        "ghrab.correspondence.gemini_key_session"
+        "ghrab.correspondence.ai.key.local.v1",
+        "rozbor_gemini_key"
       ],
       "sensitivity": "secret",
       "authority": "client-direct-mode-only",
@@ -53,12 +86,95 @@
       "kind": "sessionStorage",
       "category": "credential",
       "patterns": [
-        "ghrab.correspondence.gemini_key",
-        "ghrab.correspondence.gemini_key_session"
+        "ghrab.correspondence.ai.key.session.v1",
+        "rozbor_gemini_key_session"
       ],
       "sensitivity": "secret",
       "authority": "client-direct-mode-only",
       "clearOnEndWork": true
+    },
+    {
+      "kind": "sessionStorage",
+      "category": "ai-prompt-debug",
+      "patterns": [
+        "ghrab.correspondence.legacy.rozbor.last_prompt_debug",
+        "rozbor_last_prompt_debug"
+      ],
+      "sensitivity": "potentially-personal",
+      "authority": "client",
+      "clearOnEndWork": true,
+      "note": "Exact anonymized prompt/system debug is stored only outside strict/sensitive scenarios; capped and cleared by end-work."
+    },
+    {
+      "kind": "localStorage",
+      "category": "migration-recovery",
+      "patterns": [
+        "ghrab.correspondence.migration.p2-storage-namespace-v1.backup"
+      ],
+      "sensitivity": "potentially-personal",
+      "authority": "ghrab-platform",
+      "clearOnEndWork": true,
+      "note": "Full migration journal can contain original values, including session/credential values, and is therefore content-bearing."
+    },
+    {
+      "kind": "localStorage+sessionStorage",
+      "category": "studio-bridge",
+      "patterns": [
+        "ghrab.platform.handoff.v2",
+        "ghrab.handoff.v1",
+        "ghrab.pilot.events.v2"
+      ],
+      "sensitivity": "potentially-personal",
+      "authority": "shared-platform-client",
+      "clearOnEndWork": true,
+      "ownershipRule": "Remove handoff only when target.appId/target == correspondence; filter event rows where appId == correspondence; preserve other applications' shared state."
+    },
+    {
+      "kind": "localStorage",
+      "category": "lifecycle-security-state",
+      "patterns": [
+        "ghrab.correspondence.migration.p2-storage-namespace-v1.done",
+        "ghrab.correspondence.suite-session-received.v1",
+        "ghrab.correspondence.suite-session-cleanup.v1",
+        "ghrab.correspondence.suite-session-seen.v1"
+      ],
+      "sensitivity": "non-content-security-state",
+      "authority": "client+ghrab-platform",
+      "clearOnEndWork": false,
+      "note": "Required for migration idempotency, suite replay and F-02 acknowledgement evidence."
+    },
+    {
+      "kind": "sessionStorage",
+      "category": "lifecycle-security-state-tab",
+      "patterns": [
+        "ghrab.correspondence.suite-session-tab-seen.v1"
+      ],
+      "sensitivity": "non-content-security-state",
+      "authority": "child-application-tab",
+      "clearOnEndWork": false,
+      "note": "Per-tab suite generation marker prevents repeated cleanup after the same tab reload while preserving independent cleanup of other tabs."
+    },
+    {
+      "kind": "localStorage",
+      "category": "suite-lifecycle-tombstone",
+      "patterns": [
+        "ghrab.platform.suite-session-generation.v1"
+      ],
+      "sensitivity": "non-content-security-state",
+      "authority": "suite-shared-platform",
+      "clearOnEndWork": false,
+      "note": "Persistent suite generation tombstone is owned by the suite lifecycle, not by this child application."
+    },
+    {
+      "kind": "localStorage",
+      "category": "manual-preferences",
+      "patterns": [
+        "ghrab-manual-theme",
+        "ghrab-manual-progress-correspondence-*"
+      ],
+      "sensitivity": "non-personal-setting",
+      "authority": "manual-ui",
+      "clearOnEndWork": false
     },
     {
       "kind": "cacheStorage",
@@ -68,37 +184,18 @@
         "correspondence*"
       ],
       "sensitivity": "non-content-cache",
-      "authority": "client",
-      "clearOnEndWork": false
-    },
-    {
-      "kind": "sessionStorage",
-      "category": "ai-prompt-debug",
-      "patterns": [
-        "rozbor_last_prompt_debug"
-      ],
-      "sensitivity": "potentially-personal",
-      "authority": "client",
-      "clearOnEndWork": true,
-      "note": "Exact anonymized prompt/system debug is stored only outside strict/sensitive scenarios; capped and cleared by end-work."
-    },
-    {
-      "kind": "localStorage+sessionStorage",
-      "category": "studio-bridge",
-      "patterns": [
-        "ghrab.handoff.v1",
-        "ghrab.pilot.events.v2"
-      ],
-      "sensitivity": "potentially-personal",
-      "authority": "shared-platform-client",
-      "clearOnEndWork": true
+      "authority": "service-worker",
+      "clearOnEndWork": false,
+      "note": "Static application assets only; runtime/API requests are not cached by the service worker."
     }
   ],
   "retention": {
     "automaticExpiryImplemented": false,
     "defaultDays": null,
     "sessionEndsOnLogout": false,
-    "serverLogsDays": null
+    "serverLogsDays": null,
+    "suiteSessionEndImplemented": true,
+    "suiteSessionContract": "ghrab-suite-session-v1"
   },
   "export": {
     "supported": true,
@@ -119,12 +216,20 @@
     "supported": true,
     "clientVerified": true,
     "serverEndpoint": null,
-    "serverDeleteConnected": false
+    "serverDeleteConnected": false,
+    "sharedStorageOwnershipAware": true
   },
   "sharedDevice": {
     "supported": true,
     "defaultInSchoolProfile": true,
-    "control": "GHRABCorrespondencePrivacy.endWork()"
+    "control": "GHRABCorrespondencePrivacy.endWork()",
+    "suiteLifecycle": "GHRABPlatform.session.onEnd -> ownership-aware GHRABCorrespondencePrivacy.endWork({reload:false,lifecycleLock:true})",
+    "acknowledgement": {
+      "signalSeen": "ghrab.correspondence.suite-session-received.v1",
+      "cleanupCompleted": "ghrab.correspondence.suite-session-cleanup.v1",
+      "platformAcknowledged": "ghrab.correspondence.suite-session-seen.v1",
+      "tabCleanup": "sessionStorage: ghrab.correspondence.suite-session-tab-seen.v1"
+    }
   },
   "storageNamespace": {
     "schema": "ghrab-storage-namespace-v1",
@@ -168,18 +273,25 @@
     },
     {
       "id": "studio-bridge",
-      "path": "ghrab.handoff.v1 / ghrab.pilot.events.v2",
+      "path": "ghrab.platform.handoff.v2 / ghrab.handoff.v1 / ghrab.pilot.events.v2",
       "storage": "localStorage/sessionStorage",
-      "clearOnEndWork": true
+      "clearOnEndWork": true,
+      "ownershipRule": "correspondence target/event rows only"
     },
     {
       "id": "prompt-debug",
-      "path": "rozbor_last_prompt_debug",
+      "path": "rozbor_last_prompt_debug -> ghrab.correspondence.legacy.rozbor.last_prompt_debug",
       "storage": "sessionStorage",
       "maxPromptChars": 30000,
       "maxSystemChars": 12000,
       "disabledForStrictSensitiveScenarios": true,
       "clearOnEndWork": true
+    },
+    {
+      "id": "suite-session",
+      "path": "ghrab.platform.suite-session-generation.v1 -> GHRABPlatform.session.onEnd -> child cleanup -> child cleanup marker -> platform seen acknowledgement",
+      "storage": "localStorage",
+      "clearOnEndWork": false
     }
   ]
 }

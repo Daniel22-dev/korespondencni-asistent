@@ -1547,18 +1547,30 @@ const runKorespTests=async function(){
       const blocked=removeOwnedStorageKeys(blockedStore,"blockedStorage");
       assertTest(blocked.failures.includes("blockedStorage:enumeration-before")&&blocked.remaining.includes("blockedStorage:<unverified>"),"nemožnost ověřit obsah úložiště nebyla vyhodnocena jako selhání");
     });
-    await test("Smazání dat odstraní i předávku a telemetrii AI Studia", async()=>{
+    await test("Smazání dat odstraní jen vlastní předávku a telemetrii AI Studia", async()=>{
       try{
-        localStorage.setItem("ghrab.handoff.v1",JSON.stringify({materialId:"citlivy-material"}));
-        localStorage.setItem("ghrab.pilot.events.v2",JSON.stringify([{type:"open",materialId:"citlivy-material"}]));
-        sessionStorage.setItem("ghrab.handoff.v1","rozpracovaná předávka");
-        sessionStorage.setItem("ghrab.pilot.events.v2","provozní událost");
+        const ownHandoff=JSON.stringify({schema:"ghrab-handoff-v1",target:"correspondence",material:{schema:"ghrab-material-v1",id:"synthetic-own",title:"Synthetic",subject:"test",content:{text:"citlivy-material"}}});
+        const ownEvents=JSON.stringify([{type:"open",appId:"correspondence",materialId:"citlivy-material"}]);
+        localStorage.setItem("ghrab.handoff.v1",ownHandoff);
+        localStorage.setItem("ghrab.pilot.events.v2",ownEvents);
+        sessionStorage.setItem("ghrab.handoff.v1",ownHandoff);
+        sessionStorage.setItem("ghrab.pilot.events.v2",ownEvents);
       }catch(_){}
-      clearAllLocalData();
+      const result=clearAllLocalData();assertTest(result.ok===true,"vlastní shared data se nepodařilo bezpečně uklidit");
       [localStorage,sessionStorage].forEach(store=>{
-        assertTest(!store.getItem("ghrab.handoff.v1"),"zůstala lokální předávka AI Studia");
-        assertTest(!store.getItem("ghrab.pilot.events.v2"),"zůstala lokální telemetrie AI Studia");
+        assertTest(!store.getItem("ghrab.handoff.v1"),"zůstala vlastní předávka AI Studia");
+        assertTest(!store.getItem("ghrab.pilot.events.v2"),"zůstala vlastní telemetrie AI Studia");
       });
+    });
+    await test("Smazání dat zachová shared data jiné child aplikace", async()=>{
+      const foreignHandoff=JSON.stringify({schema:"ghrab-handoff-v1",target:"lesson-hub",material:{schema:"ghrab-material-v1",id:"synthetic-foreign",title:"Synthetic",subject:"test",content:{text:"foreign"}}});
+      const foreignEvents=JSON.stringify([{type:"open",appId:"lesson-hub",materialId:"foreign"},{type:"open",appId:"correspondence",materialId:"own"}]);
+      try{localStorage.setItem("ghrab.handoff.v1",foreignHandoff);localStorage.setItem("ghrab.pilot.events.v2",foreignEvents);}catch(_){}
+      const result=clearAllLocalData();assertTest(result.ok===true,"ownership-aware cleanup selhal");
+      assertTest(localStorage.getItem("ghrab.handoff.v1")===foreignHandoff,"cizí handoff byl smazán");
+      const rows=JSON.parse(localStorage.getItem("ghrab.pilot.events.v2")||"[]");
+      assertTest(rows.length===1&&rows[0].appId==="lesson-hub","cizí event nebyl zachován nebo vlastní event zůstal");
+      try{localStorage.removeItem("ghrab.handoff.v1");localStorage.removeItem("ghrab.pilot.events.v2");}catch(_){}
     });
     await test("Importovaný i přímo uložený profil prochází whitelistem", async()=>{
       const longText="x".repeat(900);
@@ -1700,7 +1712,19 @@ if(testRunnerAvailable())window.__GHRAB_KORESP_TESTS__=Object.freeze({open:openT
 
 const UI_MODE_SK="rozbor_ui_mode";
 const MAX_IMPORT_FILE_BYTES=1024*1024;
-const APP_STORAGE_KEY_RE=/^(?:rozbor_|ks5_|ghrab\.correspondence\.)|^ghrab\.(?:handoff\.v1|pilot\.events\.v2)$/;
+const APP_RETAIN_LOCAL_STORAGE_KEYS=new Set([
+  "ghrab.correspondence.migration.p2-storage-namespace-v1.done",
+  "ghrab.correspondence.suite-session-received.v1",
+  "ghrab.correspondence.suite-session-cleanup.v1",
+  "ghrab.correspondence.suite-session-seen.v1",
+  "ghrab.correspondence.suite-session-tab-seen.v1"
+]);
+const SHARED_HANDOFF_V2_KEY="ghrab.platform.handoff.v2";
+const SHARED_HANDOFF_V1_KEY="ghrab.handoff.v1";
+const SHARED_EVENTS_KEY="ghrab.pilot.events.v2";
+const SHARED_STORAGE_KEYS=new Set([SHARED_HANDOFF_V2_KEY,SHARED_HANDOFF_V1_KEY,SHARED_EVENTS_KEY]);
+let endWorkStorageWriteLocked=false;
+let endWorkStorageCleanupInProgress=false;
 function importFileWithinLimit(file,maxBytes=MAX_IMPORT_FILE_BYTES){
   const size=Number(file&&file.size);
   return !!file&&Number.isFinite(size)&&size>=0&&size<=Number(maxBytes||0);
@@ -1723,7 +1747,11 @@ function storageKeySnapshot(store){
   }
 }
 function storageKeyList(store){return storageKeySnapshot(store).keys.slice();}
-function isOwnedAppStorageKey(key){return APP_STORAGE_KEY_RE.test(String(key||""));}
+function isOwnedAppStorageKey(key){
+  const value=String(key||"");
+  if(APP_RETAIN_LOCAL_STORAGE_KEYS.has(value))return false;
+  return /^(?:rozbor_|ks5_|ghrab\.correspondence\.)/.test(value);
+}
 function appStorageSnapshot(store){
   const snap=storageKeySnapshot(store);
   return Object.freeze({keys:Object.freeze(snap.keys.filter(isOwnedAppStorageKey)),enumerable:snap.enumerable});
@@ -1760,14 +1788,102 @@ function removeOwnedStorageKeys(store,label){
   if(!after.enumerable){failures.push(prefix+":enumeration-after");return {failures,remaining:[prefix+":<unverified>"]};}
   return {failures,remaining:after.keys.map(k=>prefix+":"+k)};
 }
+function parseSharedJson(raw){try{return {ok:true,value:JSON.parse(String(raw))};}catch(_){return {ok:false,value:null};}}
+function handoffOwnedByCorrespondence(key,value){
+  if(!value||typeof value!=="object")return false;
+  if(key===SHARED_HANDOFF_V2_KEY)return String(value.target&&value.target.appId||"")==="correspondence";
+  return String(value.target||"")==="correspondence";
+}
+function inspectSharedOwnedContent(store,label){
+  const failures=[],owned=[];
+  for(const key of [SHARED_HANDOFF_V2_KEY,SHARED_HANDOFF_V1_KEY]){
+    let raw=null;try{raw=store.getItem(key);}catch(_){failures.push(label+":"+key+":read");continue;}
+    if(raw===null)continue;
+    const parsed=parseSharedJson(raw);
+    if(!parsed.ok){failures.push(label+":"+key+":unparseable");continue;}
+    if(handoffOwnedByCorrespondence(key,parsed.value))owned.push(label+":"+key);
+  }
+  let rawEvents=null;try{rawEvents=store.getItem(SHARED_EVENTS_KEY);}catch(_){failures.push(label+":"+SHARED_EVENTS_KEY+":read");}
+  if(rawEvents!==null){
+    const parsed=parseSharedJson(rawEvents);
+    if(!parsed.ok||!Array.isArray(parsed.value))failures.push(label+":"+SHARED_EVENTS_KEY+":unparseable");
+    else if(parsed.value.some(row=>row&&String(row.appId||"")==="correspondence"))owned.push(label+":"+SHARED_EVENTS_KEY);
+  }
+  return {failures,owned};
+}
+function clearSharedOwnedContent(store,label){
+  const failures=[];
+  for(const key of [SHARED_HANDOFF_V2_KEY,SHARED_HANDOFF_V1_KEY]){
+    let raw=null;try{raw=store.getItem(key);}catch(_){failures.push(label+":"+key+":read");continue;}
+    if(raw===null)continue;
+    const parsed=parseSharedJson(raw);
+    if(!parsed.ok){failures.push(label+":"+key+":unparseable");continue;}
+    if(!handoffOwnedByCorrespondence(key,parsed.value))continue;
+    try{store.removeItem(key);}catch(_){failures.push(label+":"+key+":remove");continue;}
+    try{if(store.getItem(key)!==null)failures.push(label+":"+key+":verify");}catch(_){failures.push(label+":"+key+":verify-read");}
+  }
+  let rawEvents=null;try{rawEvents=store.getItem(SHARED_EVENTS_KEY);}catch(_){failures.push(label+":"+SHARED_EVENTS_KEY+":read");}
+  if(rawEvents!==null){
+    const parsed=parseSharedJson(rawEvents);
+    if(!parsed.ok||!Array.isArray(parsed.value))failures.push(label+":"+SHARED_EVENTS_KEY+":unparseable");
+    else{
+      const kept=parsed.value.filter(row=>!(row&&String(row.appId||"")==="correspondence"));
+      if(kept.length!==parsed.value.length){
+        try{if(kept.length)store.setItem(SHARED_EVENTS_KEY,JSON.stringify(kept));else store.removeItem(SHARED_EVENTS_KEY);}catch(_){failures.push(label+":"+SHARED_EVENTS_KEY+":rewrite");}
+      }
+    }
+  }
+  const after=inspectSharedOwnedContent(store,label);
+  return {failures:failures.concat(after.failures),remaining:after.owned};
+}
+function verifyClearOnEndStorage(){
+  const failures=[],remaining=[];
+  for(const [store,label] of [[localStorage,"localStorage"],[sessionStorage,"sessionStorage"]]){
+    const app=appStorageSnapshot(store);
+    if(!app.enumerable)failures.push(label+":enumeration");else remaining.push(...app.keys.map(k=>label+":"+k));
+    const shared=inspectSharedOwnedContent(store,label);failures.push(...shared.failures);remaining.push(...shared.owned);
+  }
+  return Object.freeze({ok:failures.length===0&&remaining.length===0,failures:Object.freeze(failures),remainingOwnedKeys:Object.freeze(remaining)});
+}
+function shouldBlockEndWorkWrite(store,key){
+  if(!endWorkStorageWriteLocked||endWorkStorageCleanupInProgress)return false;
+  const value=String(key||"");
+  if(APP_RETAIN_LOCAL_STORAGE_KEYS.has(value))return false;
+  if(SHARED_STORAGE_KEYS.has(value))return true;
+  return isOwnedAppStorageKey(value);
+}
+(function installEndWorkStorageWriteGate(){
+  try{
+    const proto=window.Storage&&window.Storage.prototype;
+    if(!proto||proto.__ghrabCorrespondenceEndWorkWriteGate===true)return;
+    const previous=proto.setItem;
+    if(typeof previous!=="function")return;
+    Object.defineProperty(proto,"__ghrabCorrespondenceEndWorkWriteGate",{configurable:false,enumerable:false,value:true});
+    proto.setItem=function(key,value){
+      if(shouldBlockEndWorkWrite(this,key))return undefined;
+      return previous.call(this,key,value);
+    };
+  }catch(_){}
+})();
+function engageEndWorkLifecycleLock(){
+  endWorkStorageWriteLocked=true;
+  try{suppressWorkingSession();}catch(_){}
+  return true;
+}
 function clearAllLocalData(options){
-  // Maž legacy i kanonické klíče. Po migraci GHRAB Platform jsou fyzicky uložené
-  // pod ghrab.correspondence.*, i když aplikace dál používá kompatibilní aliasy.
+  // Maž pouze obsah vlastněný touto aplikací podle data manifestu a PC-01.
+  // Sdílený handoff/event storage se čistí podmíněně; cizí child data zůstávají zachována.
   const opts=options&&typeof options==="object"?options:{};
-  const localResult=removeOwnedStorageKeys(localStorage,"localStorage");
-  const sessionResult=removeOwnedStorageKeys(sessionStorage,"sessionStorage");
-  const removeFailures=localResult.failures.concat(sessionResult.failures);
-  const remainingOwnedKeys=localResult.remaining.concat(sessionResult.remaining);
+  let localResult,sessionResult,localShared,sessionShared;
+  endWorkStorageCleanupInProgress=true;
+  try{
+    localResult=removeOwnedStorageKeys(localStorage,"localStorage");
+    sessionResult=removeOwnedStorageKeys(sessionStorage,"sessionStorage");
+    localShared=clearSharedOwnedContent(localStorage,"localStorage");
+    sessionShared=clearSharedOwnedContent(sessionStorage,"sessionStorage");
+  }finally{endWorkStorageCleanupInProgress=false;}
+  const removeFailures=localResult.failures.concat(sessionResult.failures,localShared.failures,sessionShared.failures);
+  const remainingOwnedKeys=localResult.remaining.concat(sessionResult.remaining,localShared.remaining,sessionShared.remaining);
   let memoryUiOk=true;
   try{
     geminiApiKey=""; geminiKeyScope=""; selectedModelProfile=MODEL_PROFILE_DEFAULT;
@@ -1775,9 +1891,12 @@ function clearAllLocalData(options){
     updateKeyStatus(); updateModelUI(); renderTemplates();
     try{renderMyProfileContext();renderWritingStyleControls();}catch(_){}
   }catch(_){memoryUiOk=false;}
-  const ok=removeFailures.length===0&&remainingOwnedKeys.length===0&&memoryUiOk;
+  const verification=verifyClearOnEndStorage();
+  const ok=removeFailures.length===0&&remainingOwnedKeys.length===0&&verification.ok&&memoryUiOk;
+  const allFailures=removeFailures.concat(verification.failures);
+  const allRemaining=[...new Set(remainingOwnedKeys.concat(verification.remainingOwnedKeys))];
   if(!opts.silent)toast(ok?"Lokální data smazána ✓":"Smazání dat se nepodařilo dokončit. Neopouštěj sdílené zařízení, zavři tuto kartu a informuj správce.",{persistent:!ok});
-  return Object.freeze({ok,removeFailures:Object.freeze(removeFailures.slice()),remainingOwnedKeys:Object.freeze(remainingOwnedKeys.slice()),memoryUiOk});
+  return Object.freeze({ok,removeFailures:Object.freeze(allFailures.slice()),remainingOwnedKeys:Object.freeze(allRemaining.slice()),memoryUiOk});
 }
 function resetTransientPaneState(p){
   if(!ST[p])return;
@@ -1793,7 +1912,8 @@ function resetTransientPaneState(p){
 function endWorkAndClearData(options){
   const opts=options&&typeof options==="object"?options:{};
   let transientOk=true,reporterOk=true,reloadOk=true;
-  try{suppressWorkingSession();}catch(_){transientOk=false;}
+  if(opts.lifecycleLock===true||opts.reload!==false){try{engageEndWorkLifecycleLock();}catch(_){transientOk=false;}}
+  else{try{suppressWorkingSession();}catch(_){transientOk=false;}}
   try{clearTimeout(workSessionTimer);}catch(_){transientOk=false;}
   try{resetTransientPaneState("in");resetTransientPaneState("my");}catch(_){transientOk=false;}
   try{window.__ACTIVE_KEY_REALS=[];}catch(_){transientOk=false;}
@@ -1809,11 +1929,18 @@ function endWorkAndClearData(options){
       location.reload();
     }catch(_){reloadOk=false;ok=false;}
   }
-  if(ok)toast("Práce ukončena a lokální data smazána ✓");
-  else toast("Ukončení práce se nepodařilo bezpečně dokončit. Neopouštěj sdílené zařízení, zavři tuto kartu a informuj správce.",{persistent:true});
+  if(!opts.silent){
+    if(ok)toast("Práce ukončena a lokální data smazána ✓");
+    else toast("Ukončení práce se nepodařilo bezpečně dokončit. Neopouštěj sdílené zařízení, zavři tuto kartu a informuj správce.",{persistent:true});
+  }
   return ok&&reloadOk;
 }
-window.GHRABCorrespondencePrivacy=Object.freeze({endWork:endWorkAndClearData});
+window.GHRABCorrespondencePrivacy=Object.freeze({
+  endWork:endWorkAndClearData,
+  verifyClearOnEndStorage,
+  engageLifecycleLock:engageEndWorkLifecycleLock,
+  isLifecycleLocked:()=>endWorkStorageWriteLocked
+});
 function collectSettings(){
   return {
     _app:"korespondencni-asistent", _verze:RELEASE.version, _exportovano:new Date().toISOString(),

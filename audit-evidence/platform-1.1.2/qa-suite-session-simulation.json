@@ -1,0 +1,330 @@
+{
+  "schema": "ghrab-suite-session-simulation-v1",
+  "generatedAt": "2026-09-04T19:02:24.175Z",
+  "appId": "correspondence",
+  "appVersion": "5.10.17",
+  "platformVersion": "1.1.2",
+  "contract": "ghrab-suite-session-v1",
+  "syntheticDataOnly": true,
+  "canary": "GARP-STUDENT-CANARY-402530948FF92F2A",
+  "usesActualPlatformSource": true,
+  "usesActualChildSuiteHandlerSource": true,
+  "privacyCleanupFacade": "manifest-backed synthetic facade; browser/full-app validation remains separate",
+  "browserStatus": "NOT TESTED in this environment: Chromium local navigation blocked by organization policy",
+  "results": [
+    {
+      "name": "open-child-suite-end",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "local-cleared",
+          "ok": true
+        },
+        {
+          "id": "session-cleared",
+          "ok": true
+        },
+        {
+          "id": "credential-cleared",
+          "ok": true
+        },
+        {
+          "id": "backup-cleared",
+          "ok": true
+        },
+        {
+          "id": "owned-handoff-cleared",
+          "ok": true
+        },
+        {
+          "id": "foreign-event-preserved",
+          "ok": true
+        },
+        {
+          "id": "migration-marker-preserved",
+          "ok": true
+        },
+        {
+          "id": "manual-setting-preserved",
+          "ok": true
+        },
+        {
+          "id": "received-marker",
+          "ok": true
+        },
+        {
+          "id": "cleanup-marker",
+          "ok": true
+        },
+        {
+          "id": "tab-marker",
+          "ok": true
+        },
+        {
+          "id": "ack",
+          "ok": true
+        },
+        {
+          "id": "write-lock",
+          "ok": true
+        },
+        {
+          "id": "ack-after-remove",
+          "ok": true
+        },
+        {
+          "id": "ack-after-cleanup-marker",
+          "ok": true
+        }
+      ],
+      "detail": {
+        "generation": "1788548543856-y9ok4jka",
+        "rm": 2,
+        "cm": 8,
+        "ack": 10
+      }
+    },
+    {
+      "name": "delayed-open-replay",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "replay-clears-local",
+          "ok": true
+        },
+        {
+          "id": "replay-marks-cleanup",
+          "ok": true
+        },
+        {
+          "id": "replay-marks-tab",
+          "ok": true
+        },
+        {
+          "id": "replay-acks",
+          "ok": true
+        },
+        {
+          "id": "reload-remains-clean",
+          "ok": true
+        },
+        {
+          "id": "same-session-tab-marker-persists",
+          "ok": true
+        },
+        {
+          "id": "reload-does-not-clean-again",
+          "ok": true
+        }
+      ],
+      "detail": {
+        "generation": "1788548543883-c548uwtu"
+      }
+    },
+    {
+      "name": "multi-tab",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "tab-a-session-cleared",
+          "ok": true
+        },
+        {
+          "id": "tab-b-session-cleared",
+          "ok": true
+        },
+        {
+          "id": "tab-a-marker",
+          "ok": true
+        },
+        {
+          "id": "tab-b-marker",
+          "ok": true
+        },
+        {
+          "id": "shared-local-cleared",
+          "ok": true
+        },
+        {
+          "id": "stale-a-blocked",
+          "ok": true
+        },
+        {
+          "id": "stale-b-blocked",
+          "ok": true
+        },
+        {
+          "id": "both-locked",
+          "ok": true
+        }
+      ],
+      "detail": {
+        "generation": "1788548543962-jkr1p3hf",
+        "appWideSeen": "1788548543962-jkr1p3hf"
+      }
+    },
+    {
+      "name": "browser-history-guard-simulation",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "not-cleaned-while-page-event-suppressed",
+          "ok": true
+        },
+        {
+          "id": "pageshow-clears-local",
+          "ok": true
+        },
+        {
+          "id": "pageshow-clears-session",
+          "ok": true
+        },
+        {
+          "id": "pageshow-tab-marker",
+          "ok": true
+        },
+        {
+          "id": "pageshow-ack",
+          "ok": true
+        },
+        {
+          "id": "pageshow-lock",
+          "ok": true
+        }
+      ],
+      "detail": {
+        "generation": "1788548544014-zhpkojj1"
+      }
+    },
+    {
+      "name": "fail-closed-delete-fault",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "fault-leaves-owned-data",
+          "ok": true
+        },
+        {
+          "id": "no-cleanup-marker",
+          "ok": true
+        },
+        {
+          "id": "no-tab-marker",
+          "ok": true
+        },
+        {
+          "id": "no-platform-ack",
+          "ok": true
+        },
+        {
+          "id": "lifecycle-lock-still-engaged",
+          "ok": true
+        }
+      ],
+      "detail": {
+        "generation": "1788548544066-jgwaqtfk"
+      }
+    },
+    {
+      "name": "negative-control-handler-disabled",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "expected-sensitive-data-remains",
+          "ok": true
+        },
+        {
+          "id": "expected-no-cleanup-marker",
+          "ok": true
+        },
+        {
+          "id": "expected-no-ack",
+          "ok": true
+        }
+      ],
+      "detail": {
+        "generation": "1788548544094-zufw65rn",
+        "expectedOutcome": "FAIL when handler registration is disabled"
+      }
+    },
+    {
+      "name": "shared-storage-ownership",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "foreign-handoff-v2-preserved",
+          "ok": true
+        },
+        {
+          "id": "foreign-handoff-v1-preserved",
+          "ok": true
+        },
+        {
+          "id": "own-event-row-cleared",
+          "ok": true
+        },
+        {
+          "id": "foreign-event-row-preserved",
+          "ok": true
+        },
+        {
+          "id": "cleanup-acked",
+          "ok": true
+        }
+      ],
+      "detail": {
+        "generation": "1788548544121-g0ycrqgn"
+      }
+    },
+    {
+      "name": "f02-app-wide-ack-diagnostic",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "diagnostic-condition-demonstrated",
+          "ok": true
+        }
+      ],
+      "detail": {
+        "generation": "1788548544148-7h92g1me",
+        "appWideSeen": "1788548544148-7h92g1me",
+        "tabASeen": "1788548544148-7h92g1me",
+        "tabBSeen": "",
+        "tabBWorkRemaining": true,
+        "demonstratesAppWideAckIsNotAllTabsProof": true,
+        "status": "open-ecosystem-follow-up"
+      }
+    },
+    {
+      "name": "f03-same-origin-trust-boundary",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "global-suite-tombstone-raw-writable",
+          "ok": true
+        },
+        {
+          "id": "foreign-child-ack-raw-writable",
+          "ok": true
+        }
+      ],
+      "detail": {
+        "risk": "inherent-same-origin-open-ecosystem-debt"
+      }
+    }
+  ],
+  "f02Diagnostic": {
+    "generation": "1788548544148-7h92g1me",
+    "appWideSeen": "1788548544148-7h92g1me",
+    "tabASeen": "1788548544148-7h92g1me",
+    "tabBSeen": "",
+    "tabBWorkRemaining": true,
+    "demonstratesAppWideAckIsNotAllTabsProof": true
+  },
+  "summary": {
+    "total": 9,
+    "passed": 9,
+    "failed": 0,
+    "status": "passed"
+  }
+}

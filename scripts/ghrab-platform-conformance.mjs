@@ -167,8 +167,8 @@ try {
   vm.runInNewContext(fs.readFileSync(path.join(vendor, 'ghrab-platform.js'), 'utf8'), context, { filename: 'ghrab-platform.js' });
   const api = context.GHRAB_PLATFORM;
   check(api?.version === consumer.platform.version && api?.contract === consumer.platform.contract, 'runtime identity');
-  check(api.satisfies('1.0.0', consumer.platform.requiredRange) === false, 'runtime previous platform rejected');
-  check(api.satisfies('1.1.0', consumer.platform.requiredRange) === true, 'runtime current accepted');
+  check(api.satisfies('1.1.1', consumer.platform.requiredRange) === false, 'runtime previous platform rejected');
+  check(api.satisfies(consumer.platform.version, consumer.platform.requiredRange) === true, 'runtime current accepted');
   check(api.satisfies('1.2.0', consumer.platform.requiredRange) === true, 'runtime n+1 accepted');
   check(api.satisfies('2.0.0', consumer.platform.requiredRange) === false, 'runtime major rejected');
   check(sampleStore.getItem(legacyKey) === 'original-value', 'storage alias reads migrated value');

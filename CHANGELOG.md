@@ -1,3 +1,12 @@
+## 5.10.17 — GHRAB Platform 1.1.2 suite-session migrace (2026-09-04)
+
+- aplikace používá přesnou vendor vrstvu GHRAB Platform 1.1.2 a consumer range `>=1.1.2 <2.0.0`;
+- přidán `ghrab-suite-session-v1` handler s replay, per-tab guardy a acknowledgement až po ověřeném cleanupu;
+- `Ukončit práci` a suite cleanup mažou pouze vlastněný obsah podle PC-01/data manifestu, včetně credentials, prompt/debug a obsahového migration backupu;
+- sdílené Studio handoff/event storage se čistí ownership-aware a cizí child data se zachovávají;
+- write lock brání stale autosave po ukončení relace, chyby storage jsou fail-closed;
+- F-02 app-wide acknowledgement a F-03 same-origin trust boundary jsou zdokumentované jako ekosystémové follow-upy; kandidát neuzavírá E-01 na úrovni celého ekosystému.
+
 ## 5.10.15 — user privacy hotfix: EML + obecná preventivní témata (2026-08-29)
 
 - `.eml` import lokálně odstraní identitu odesílatele z hlavičky `From:` a z přesných podpisových výskytů odvozených z této hlavičky; do anonymizačního workflow vstupuje `[odesílatel]`.

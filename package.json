@@ -1,6 +1,6 @@
 {
   "name": "ghrab-korespondencni-asistent",
-  "version": "5.10.16",
+  "version": "5.10.17",
   "private": true,
   "description": "Korespondenční asistent — samostatná PWA pro GitHub Pages",
   "type": "module",
@@ -24,8 +24,8 @@
     "qa:a11y": "node scripts/qa-p5-runtime.mjs",
     "qa:p4": "npm run qa:p5",
     "qa:p4:ci": "npm run qa:p5:ci",
-    "qa:p5": "npm run qa:lock && npm run qa:profiles && npm run build && npm run qa:school-profile && npm run verify:platform && npm run qa:garp:evidence-path && npm run qa:garp:test-harness && npm run qa:garp:bootstrap && npm run qa:quality && npm run qa:browser && npm run qa:runtime && npm run qa:ui && npm run qa:xss && npm run qa:garp:secret-scan && npm run qa:garp:canary-scan && node scripts/qa-p5-release.mjs && node scripts/qa-p5-acceptance.mjs",
-    "qa:p5:ci": "npm run qa:lock && npm run qa:profiles && npm run build && npm run qa:school-profile && npm run verify:platform && npm run qa:garp:evidence-path && npm run qa:garp:test-harness && npm run qa:garp:bootstrap && npm run qa:quality && npm run qa:browser && npm run qa:runtime && npm run qa:ui && npm run qa:xss && npm run qa:garp:secret-scan && npm run qa:garp:canary-scan && npm run qa:axe && AXE_REQUIRED=1 node scripts/qa-p5-release.mjs && node scripts/qa-p5-acceptance.mjs",
+    "qa:p5": "npm run qa:lock && npm run qa:profiles && npm run build && npm run qa:school-profile && npm run verify:platform && npm run qa:suite-session && npm run qa:garp:evidence-path && npm run qa:garp:test-harness && npm run qa:garp:bootstrap && npm run qa:quality && npm run qa:browser && npm run qa:runtime && npm run qa:ui && npm run qa:xss && npm run qa:garp:secret-scan && npm run qa:garp:canary-scan && node scripts/qa-p5-release.mjs && node scripts/qa-p5-acceptance.mjs",
+    "qa:p5:ci": "npm run qa:lock && npm run qa:profiles && npm run build && npm run qa:school-profile && npm run verify:platform && npm run qa:suite-session && npm run qa:garp:evidence-path && npm run qa:garp:test-harness && npm run qa:garp:bootstrap && npm run qa:quality && npm run qa:browser && npm run qa:runtime && npm run qa:ui && npm run qa:xss && npm run qa:garp:secret-scan && npm run qa:garp:canary-scan && npm run qa:axe && AXE_REQUIRED=1 node scripts/qa-p5-release.mjs && node scripts/qa-p5-acceptance.mjs",
     "test:p5": "npm run qa:p5",
     "qa:runtime": "node scripts/qa-p5-runtime.mjs",
     "qa:xss": "node scripts/qa-p5-xss-sinks.mjs",
@@ -41,7 +41,9 @@
     "qa:garp23:ai-red": "node scripts/qa-garp23-ai-red-structural.mjs",
     "qa:garp:secret-scan": "node scripts/qa-garp22-secret-scan.mjs",
     "qa:garp:canary-scan": "node scripts/qa-garp22-canary-scan.mjs",
-    "qa:garp:test-harness": "node scripts/qa-garp23-test-harness.mjs"
+    "qa:garp:test-harness": "node scripts/qa-garp23-test-harness.mjs",
+    "qa:suite-session": "node scripts/qa-suite-session.mjs",
+    "qa:suite-session:simulation": "node scripts/qa-suite-session-simulation.mjs"
   },
   "engines": {
     "node": ">=18"

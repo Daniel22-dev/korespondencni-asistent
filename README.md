@@ -1,17 +1,25 @@
 # Korespondenční asistent
 
-**Aktuální verze:** 5.10.16  
-**Platforma:** GHRAB Platform 1.1.0 · etapa P3
+**Aktuální verze:** 5.10.17  
+**Platforma:** GHRAB Platform 1.1.2 · etapa P5 / ecosystem release-wave candidate
 
 
 Samostatná PWA aplikace ekosystému AI Studio Gymnázia Ostrava-Hrabůvka.
 
-- **Verze aplikace:** 5.10.16
+- **Verze aplikace:** 5.10.17
 - **GHRAB AI Core:** 1.0.0
 - **Doporučený repozitář:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
 - **Interaktivní manuál:** 1.3.15 (manuál 1.3.15)
+
+## Co přináší verze 5.10.17
+
+Verze 5.10.17 migruje Korespondenčního asistenta na **GHRAB Platform 1.1.2** a kontrakt `ghrab-suite-session-v1`. Při ukončení společné relace AI Studia aplikace ownership-aware uklidí pouze svůj pracovní obsah, session data, credentials, prompt/debug data, Studio handoff/event řádky a obsahový migrační backup označené pro smazání. Bezpečnostní tombstones a neosobní manuálové nastavení zůstávají zachovány.
+
+Suite lifecycle rozlišuje přijetí signálu, dokončení cleanupu, per-tab dokončení a platformní acknowledgement; ACK vzniká až po ověřeném lokálním úklidu. Přidány jsou replay/ multi-tab/ history guards, write lock proti obnovení starých dat a fail-closed chování při chybě úložiště. Data manifest byl srovnán se skutečnými persistence writery v rámci PC-01.
+
+Technický souhrn migrace je v `RELEASE-NOTES-5.10.17-PLATFORM-1.1.2.md`. Kandidát není sám o sobě prohlášením o uzavření ekosystémového E-01.
 
 ## Co přináší verze 5.10.16
 
@@ -59,7 +67,7 @@ prohlížeč
 → Gemini API
 ```
 
-Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže standardní build 5.10.15 sám o sobě nezapíná školní server. School-server build aktivuje samostatnou `runtime-config.school-server.js`.
+Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže standardní build 5.10.17 sám o sobě nezapíná školní server. School-server build aktivuje samostatnou `runtime-config.school-server.js`.
 
 ### Budoucí migrační režim
 

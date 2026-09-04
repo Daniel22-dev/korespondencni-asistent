@@ -1,0 +1,42 @@
+{
+  "schema": "ghrab-quality-manifest-v1",
+  "appId": "correspondence",
+  "appVersion": "5.10.17",
+  "platformVersion": "1.1.2",
+  "contracts": {
+    "accessibility": "ghrab-a11y-v1",
+    "performance": "ghrab-performance-v1",
+    "modules": "ghrab-lazy-modules-v1"
+  },
+  "metrics": {
+    "schema": "ghrab-performance-report-v1",
+    "appId": "correspondence",
+    "appVersion": "5.10.17",
+    "platformVersion": "1.1.2",
+    "measuredAt": "2026-09-04T19:02:26.124Z",
+    "distBytes": 1161825,
+    "jsBytes": 138668,
+    "cssBytes": 21736,
+    "htmlBytes": 739294,
+    "fileCount": 38,
+    "fullHtmlCount": 2,
+    "entryHtmlBytes": 670088,
+    "entryCriticalBytes": 822271,
+    "largestInlineScriptBytes": 509005,
+    "precacheBytes": 1130598,
+    "precacheAssetCount": 25,
+    "largestFileBytes": 670088,
+    "largestFilePath": "index.html",
+    "duplicateLargeBytes": 12830
+  },
+  "budget": {
+    "distBytes": 1275000,
+    "entryHtmlBytes": 785000,
+    "entryCriticalBytes": 935000,
+    "largestInlineScriptBytes": 625000,
+    "precacheBytes": 1245000,
+    "largestFileBytes": 785000,
+    "duplicateLargeBytes": 20000
+  },
+  "status": "passed"
+}

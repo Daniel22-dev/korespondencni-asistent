@@ -1,0 +1,254 @@
+{
+  "schema": "ks-ui-interaction-regression-v1",
+  "appId": "correspondence",
+  "appVersion": "5.10.17",
+  "actualProtectedUnlock": true,
+  "trustedMouseClicks": true,
+  "checks": [
+    {
+      "id": "studio-runtime.provider-neutral-before-unlock",
+      "ok": true,
+      "detail": "runtime profile map"
+    },
+    {
+      "id": "protected-script.present-before-unlock",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "id": "protected-script.actual-platform-unlock",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "id": "ui.runtime-ready",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "id": "onboarding.not-auto-blocking",
+      "ok": true,
+      "detail": "automatic .guide-overlay"
+    },
+    {
+      "id": "in-app-tests.production-runner-stripped",
+      "ok": true,
+      "detail": "{\"namespaceType\":\"undefined\",\"available\":false,\"openResult\":false}"
+    },
+    {
+      "id": "in-app-tests.production-boundary-profile-preserved",
+      "ok": true,
+      "detail": "{\"name\":\"Profil před testy\",\"role\":\"učitel\",\"gender\":\"male\",\"subjects\":\"angličtina\",\"school\":\"Testovací škola\",\"writingStyle\":\"civilni\",\"sign\":\"pozdrav\"}"
+    },
+    {
+      "id": "click.theme.hit-target",
+      "ok": true,
+      "detail": "[object SVGAnimatedString]"
+    },
+    {
+      "id": "click.theme.changed",
+      "ok": true,
+      "detail": "false -> true"
+    },
+    {
+      "id": "click.fullscreen.hit-target",
+      "ok": true,
+      "detail": "[object SVGAnimatedString]"
+    },
+    {
+      "id": "click.fullscreen.invoked",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "id": "click.incoming.hit-target",
+      "ok": true,
+      "detail": "tabIn"
+    },
+    {
+      "id": "click.incoming.opens-workspace",
+      "ok": true,
+      "detail": "{\"workspaceHidden\":false,\"deskHidden\":true,\"tabActive\":true,\"paneActive\":true}"
+    },
+    {
+      "id": "click.back.hit-target",
+      "ok": true,
+      "detail": "backToStart"
+    },
+    {
+      "id": "click.back.restores-start",
+      "ok": true,
+      "detail": "{\"workspaceHidden\":true,\"deskHidden\":false}"
+    },
+    {
+      "id": "click.compose.hit-target",
+      "ok": true,
+      "detail": "tabMy"
+    },
+    {
+      "id": "click.compose.opens-workspace",
+      "ok": true,
+      "detail": "{\"workspaceHidden\":false,\"deskHidden\":true,\"tabActive\":true,\"paneActive\":true}"
+    },
+    {
+      "id": "click.compose-anonymize.hit-target",
+      "ok": true,
+      "detail": "my_anonBtn"
+    },
+    {
+      "id": "click.compose-anonymize.opens-settings",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "id": "click.advanced-mode.hit-target",
+      "ok": true,
+      "detail": "uiAdvanced"
+    },
+    {
+      "id": "click.advanced-mode.enabled",
+      "ok": true,
+      "detail": "body.ui-advanced"
+    },
+    {
+      "id": "click.compose-mode.hit-target",
+      "ok": true,
+      "detail": "chip"
+    },
+    {
+      "id": "click.compose-mode.selected",
+      "ok": true,
+      "detail": "my_mode=sestavit"
+    },
+    {
+      "id": "click.custom-subject.hit-target",
+      "ok": true,
+      "detail": "chip"
+    },
+    {
+      "id": "click.custom-subject.selected",
+      "ok": true,
+      "detail": "my_subj=vlastni"
+    },
+    {
+      "id": "click.custom-subject.available",
+      "ok": true,
+      "detail": "{\"visible\":true,\"value\":\"Konzultace ve čtvrtek\",\"count\":\"21/60\",\"max\":60}"
+    },
+    {
+      "id": "footer.menu.complete",
+      "ok": true,
+      "detail": "[\"Uložené koncepty\",\"Formulace a podpisy\",\"Scénáře školní komunikace\",\"Čekám na odpověď\",\"Školní balíček šablon\",\"Profil odesílatele\",\"Poslední výstupy\",\"Přehled změn\",\"Prohlídka aplikace\",\"Správa dat\",\"Vývojářské nástroje\"]"
+    },
+    {
+      "id": "footer.saved-drafts.opens",
+      "ok": true,
+      "detail": "{\"open\":true,\"title\":\"Rozpracované koncepty\"}"
+    },
+    {
+      "id": "footer.blocks-signatures.opens",
+      "ok": true,
+      "detail": "{\"open\":true,\"title\":\"Podpisy\"}"
+    },
+    {
+      "id": "footer.scenarios.opens",
+      "ok": true,
+      "detail": "{\"open\":true,\"title\":\"Scénáře školní komunikace\"}"
+    },
+    {
+      "id": "footer.followups.opens",
+      "ok": true,
+      "detail": "{\"open\":true,\"title\":\"Připomínky a čekání na odpověď\"}"
+    },
+    {
+      "id": "footer.school-library.opens",
+      "ok": true,
+      "detail": "{\"open\":true,\"title\":\"Sdílená školní knihovna\"}"
+    },
+    {
+      "id": "footer.profile.opens",
+      "ok": true,
+      "detail": "profile overlay"
+    },
+    {
+      "id": "footer.profile.stays-open-while-editing",
+      "ok": true,
+      "detail": "editing"
+    },
+    {
+      "id": "footer.profile.saves",
+      "ok": true,
+      "detail": "{\"name\":\"Profil po uložení\",\"casualName\":\"Profil\",\"role\":\"učitel\",\"subjects\":\"angličtina\",\"school\":\"Testovací škola\",\"styleAvoid\":\"\",\"styleCustom\":\"\",\"custom\":\"\",\"gender\":\"male\",\"sign\":\"pozdrav\",\"writingStyle\":\"civilni\"}"
+    },
+    {
+      "id": "footer.profile.reopens-persisted",
+      "ok": true,
+      "detail": "persisted profile"
+    },
+    {
+      "id": "footer.history.opens",
+      "ok": true,
+      "detail": "history overlay"
+    },
+    {
+      "id": "footer.changelog.opens",
+      "ok": true,
+      "detail": "changelog modal"
+    },
+    {
+      "id": "footer.tour.opens",
+      "ok": true,
+      "detail": "tour overlay"
+    },
+    {
+      "id": "footer.data-manager.opens",
+      "ok": true,
+      "detail": "data manager modal"
+    },
+    {
+      "id": "footer.developer-tools.admin-visible",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "id": "developer.menu.complete",
+      "ok": true,
+      "detail": "{\"count\":3,\"hasTests\":false,\"expectedDevToolCount\":3}"
+    },
+    {
+      "id": "developer.tests.matches-build-boundary",
+      "ok": true,
+      "detail": "{\"count\":3,\"hasTests\":false,\"inAppTestApiAvailable\":false}"
+    },
+    {
+      "id": "developer.debug.opens",
+      "ok": true,
+      "detail": "debug prompt"
+    },
+    {
+      "id": "developer.ops.opens",
+      "ok": true,
+      "detail": "ops log"
+    },
+    {
+      "id": "developer.runtime.opens",
+      "ok": true,
+      "detail": "runtime diagnostics"
+    },
+    {
+      "id": "onboarding.manual-entry-present",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "id": "runtime.no-errors",
+      "ok": true,
+      "detail": "[]"
+    }
+  ],
+  "summary": {
+    "passed": 48,
+    "failed": 0
+  },
+  "status": "passed"
+}

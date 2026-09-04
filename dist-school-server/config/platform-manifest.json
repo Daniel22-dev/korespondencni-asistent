@@ -1,10 +1,10 @@
 {
   "schema": "ghrab-platform-app-integration-v1",
   "appId": "correspondence",
-  "appVersion": "5.10.16",
+  "appVersion": "5.10.17",
   "contract": "ghrab-platform-v1",
-  "requiredPlatformRange": ">=1.1.0 <2.0.0",
-  "platformVersion": "1.1.0",
+  "requiredPlatformRange": ">=1.1.2 <2.0.0",
+  "platformVersion": "1.1.2",
   "brandVersion": "1.0.0",
   "themeContract": "ghrab-theme-v1",
   "swContract": "ghrab-service-worker-v1",
@@ -29,7 +29,7 @@
     ]
   },
   "storagePrefix": "ghrab.correspondence.",
-  "cacheName": "ghrab-correspondence-v5.10.16",
+  "cacheName": "ghrab-correspondence-v5.10.17",
   "capabilities": [
     "ghrab-platform-v1",
     "canonical-branding",
@@ -96,8 +96,8 @@
   },
   "artifacts": {
     "ghrab-platform.js": {
-      "sha256": "37fd57bf35e1bcb46cdcfe84267275ee9beaea7ea6a34d9a03af0923c9d6e251",
-      "bytes": 55222
+      "sha256": "199d03d9dc9263a9e74ed1f1102df0324f3b63e78704f1c70aeacec5feec530c",
+      "bytes": 58204
     },
     "ghrab-platform.css": {
       "sha256": "eb465488df46f3d1672d721094800b0be3eb1278924b7699873a483f130b07ad",
