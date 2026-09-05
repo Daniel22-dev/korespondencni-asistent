@@ -1,12 +1,12 @@
 {
   "schema": "ghrab-suite-session-simulation-v1",
-  "generatedAt": "2026-09-04T20:04:42.669Z",
+  "generatedAt": "2026-09-05T08:41:02.938Z",
   "appId": "correspondence",
-  "appVersion": "5.10.20",
+  "appVersion": "5.10.21",
   "platformVersion": "1.1.2",
   "contract": "ghrab-suite-session-v1",
   "syntheticDataOnly": true,
-  "canary": "GARP-STUDENT-CANARY-C985AE36C3C0A2E8",
+  "canary": "GARP-STUDENT-CANARY-72364259DCAAD82F",
   "usesActualPlatformSource": true,
   "usesActualChildSuiteHandlerSource": true,
   "privacyCleanupFacade": "manifest-backed synthetic facade; browser/full-app validation remains separate",
@@ -78,7 +78,7 @@
         }
       ],
       "detail": {
-        "generation": "1788552282297-pebv91af",
+        "generation": "1788597662561-ws75u6lj",
         "rm": 2,
         "cm": 8,
         "ack": 10
@@ -118,7 +118,7 @@
         }
       ],
       "detail": {
-        "generation": "1788552282324-e1y3e19f"
+        "generation": "1788597662589-ivgeg3n7"
       }
     },
     {
@@ -159,8 +159,8 @@
         }
       ],
       "detail": {
-        "generation": "1788552282404-6bifb7b1",
-        "appWideSeen": "1788552282404-6bifb7b1"
+        "generation": "1788597662669-4x14hhkc",
+        "appWideSeen": "1788597662669-4x14hhkc"
       }
     },
     {
@@ -193,7 +193,7 @@
         }
       ],
       "detail": {
-        "generation": "1788552282456-7za598rx"
+        "generation": "1788597662722-a30qsgui"
       }
     },
     {
@@ -226,7 +226,7 @@
         }
       ],
       "detail": {
-        "generation": "1788552282508-0hvmh1kb"
+        "generation": "1788597662774-5mdpu2fj"
       }
     },
     {
@@ -255,7 +255,7 @@
         }
       ],
       "detail": {
-        "generation": "1788552282560-pg5y19sd"
+        "generation": "1788597662828-7ogkbvhe"
       }
     },
     {
@@ -276,7 +276,7 @@
         }
       ],
       "detail": {
-        "generation": "1788552282588-qphmcinx",
+        "generation": "1788597662857-igy0aycl",
         "expectedOutcome": "FAIL when handler registration is disabled"
       }
     },
@@ -306,7 +306,7 @@
         }
       ],
       "detail": {
-        "generation": "1788552282615-i6jd0k37"
+        "generation": "1788597662883-64yynnmv"
       }
     },
     {
@@ -319,9 +319,9 @@
         }
       ],
       "detail": {
-        "generation": "1788552282642-k3f7gmlu",
-        "appWideSeen": "1788552282642-k3f7gmlu",
-        "tabASeen": "1788552282642-k3f7gmlu",
+        "generation": "1788597662911-9tedqd8j",
+        "appWideSeen": "1788597662911-9tedqd8j",
+        "tabASeen": "1788597662911-9tedqd8j",
         "tabBSeen": "",
         "tabBWorkRemaining": true,
         "demonstratesAppWideAckIsNotAllTabsProof": true,
@@ -347,9 +347,9 @@
     }
   ],
   "f02Diagnostic": {
-    "generation": "1788552282642-k3f7gmlu",
-    "appWideSeen": "1788552282642-k3f7gmlu",
-    "tabASeen": "1788552282642-k3f7gmlu",
+    "generation": "1788597662911-9tedqd8j",
+    "appWideSeen": "1788597662911-9tedqd8j",
+    "tabASeen": "1788597662911-9tedqd8j",
     "tabBSeen": "",
     "tabBWorkRemaining": true,
     "demonstratesAppWideAckIsNotAllTabsProof": true

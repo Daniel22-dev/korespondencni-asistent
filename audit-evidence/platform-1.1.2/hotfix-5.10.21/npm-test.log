@@ -1,0 +1,1063 @@
+
+> ghrab-korespondencni-asistent@5.10.21 pretest
+> npm run build:test
+
+
+> ghrab-korespondencni-asistent@5.10.21 build:test
+> node scripts/build.mjs --test-hooks
+
+[build] Korespondenční asistent: verze 5.10.21 · Core 1.0.0 ověřen SHA-256 · 8 AI operací · 14 aplikačních JS modulů · test hooks LOCAL TEST ONLY · dist připraven
+[P3] correspondence 5.10.21: platform 1.1.2, HTML 2, cache ghrab-correspondence-v5.10.21
+
+> ghrab-korespondencni-asistent@5.10.21 test
+> node scripts/qa-ai-profiles.mjs && node scripts/test.mjs && node scripts/test-ui-interactions.mjs
+
+{
+  "schema": "ghrab-ai-profile-gate-v1",
+  "appId": "correspondence",
+  "appVersion": "5.10.21",
+  "expectedProfiles": [
+    "economy",
+    "balanced",
+    "quality"
+  ],
+  "checks": [
+    {
+      "id": "ui.exact-three-profiles",
+      "ok": true,
+      "detail": "economy,balanced,quality"
+    },
+    {
+      "id": "ui.provider-neutral",
+      "ok": true,
+      "detail": "no provider model IDs/free model input"
+    },
+    {
+      "id": "state.profile-only",
+      "ok": true,
+      "detail": "provider-neutral state"
+    },
+    {
+      "id": "integration.no-model-override",
+      "ok": true,
+      "detail": "Core chooses model from runtime profile map"
+    },
+    {
+      "id": "flows.no-hardcoded-profile",
+      "ok": true,
+      "detail": "user-selected profile remains authoritative"
+    },
+    {
+      "id": "api.request-uses-selected-profile",
+      "ok": true,
+      "detail": "callGemini resolves selectedModelProfile"
+    },
+    {
+      "id": "api.legacy-migration-only",
+      "ok": true,
+      "detail": "legacy provider IDs migrate to profiles"
+    },
+    {
+      "id": "operations.all-three-allowed",
+      "ok": true,
+      "detail": "8 operations"
+    },
+    {
+      "id": "direct.mode",
+      "ok": true,
+      "detail": "direct-gemini"
+    },
+    {
+      "id": "direct.profile-keys",
+      "ok": true,
+      "detail": "economy,balanced,quality"
+    },
+    {
+      "id": "direct.profile-models-distinct",
+      "ok": true,
+      "detail": "economy=gemini-3.5-flash-lite | balanced=gemini-3.6-flash | quality=gemini-3.5-flash"
+    },
+    {
+      "id": "direct.provider-is-runtime-only",
+      "ok": true,
+      "detail": "direct runtime owns Gemini IDs"
+    },
+    {
+      "id": "school.mode",
+      "ok": true,
+      "detail": "school-gateway"
+    },
+    {
+      "id": "school.provider-neutral",
+      "ok": true,
+      "detail": "no provider/model in school runtime"
+    },
+    {
+      "id": "school.same-profile-contract",
+      "ok": true,
+      "detail": "same Core profile contract"
+    }
+  ],
+  "summary": {
+    "passed": 15,
+    "failed": 0
+  },
+  "status": "passed"
+}
+  ℹ jsdom není lokálně dostupný, používám hermetický Chromium fallback
+  ✓ přístupová brána AI Studia
+  ✓ bez nativních blokujících dialogů
+  ✓ start bez runtime chyb
+  ✓ žádná duplicitní ID
+  ✓ 171/171 interních testů prošlo
+  ✓ 17/17 Core conformance testů prošlo
+  ✓ Gemini nepoužívá thinkingLevel low
+  ✓ Gemini má výstupní limit 32768
+  ✓ vydaný GHRAB AI Core a oba transporty
+  ✓ aplikační AI vrstva a UI jsou provider-neutrální
+  ✓ UI má Úsporný / Doporučený / Důkladný jako centrální profily
+  ✓ Direct Gemini runtime mapuje všechny tři profily
+  ✓ školní runtime je provider-neutrální school-gateway
+  ✓ pravidla přímého adresáta a českého oslovení používají bezpečné značky
+  ✓ KS používá jediný lokální společný reportér s pracovním e-mailem
+  ✓ ZIP se stahuje přímým kliknutím před otevřením Gmailu
+  ✓ zavření reportu nabízí smazání nebo ponechání konceptu
+  ✓ sjednocený workflow snímání je přítomen
+  ✓ společné CSS pokrývá oba motivy a bezpečné okraje
+  ✓ adaptér KS respektuje skutečný motiv a verzi
+  ✓ společný reportér je syntakticky platný
+  ✓ stará paralelní implementace KS byla odstraněna
+  ✓ automatický fallback je zakázaný
+  ✓ veřejná runtime konfigurace je načítaná
+  ✓ jednoznačná PWA identita a verze
+  ✓ Studio manifest deklaruje živou server-ready integraci
+  ✓ veřejný registr osmi AI operací je konzistentní
+  ✓ service worker spravuje jen vlastní a historické cache
+  ✓ runtime konfigurace, no-store požadavky a školní API jsou mimo PWA cache
+  ✓ service worker zahrnuje společný reportér, CSS i adaptér
+  ✓ manuál dědí oprávnění AI Studia
+  ✓ manuál nevytváří druhý reportér a odkazuje na centrální návod
+  ✓ manuál má návrat do aplikace
+  ✓ skloňování osob má jediný lokální zdroj pravdy
+  ✓ privacy-stage neruší skrývání kroku 2
+  ✓ starý nepřístupný školní návod není v sestavené aplikaci
+  ✓ bez osiřelých stylů po odstraněných průvodcích
+  ✓ obě pracovní cesty otevírají pravidla bez opuštění aplikace
+  ✓ verze manuálu, aplikace a README jsou sjednocené
+  ✓ bezpečnostní kapitola má stabilní ID, navigaci a strukturu
+  ✓ manuál dokumentuje omezení odvozených příjmení
+  ✓ generované dist je v .gitignore
+CELKEM: vše zelené — release gate OK.
+{
+  "schema": "ks-ui-interaction-regression-v1",
+  "appId": "correspondence",
+  "appVersion": "5.10.21",
+  "actualProtectedUnlock": true,
+  "trustedMouseClicks": true,
+  "checks": [
+    {
+      "id": "studio-runtime.provider-neutral-before-unlock",
+      "ok": true,
+      "detail": "runtime profile map"
+    },
+    {
+      "id": "protected-script.present-before-unlock",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "id": "protected-script.actual-platform-unlock",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "id": "ui.runtime-ready",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "id": "onboarding.not-auto-blocking",
+      "ok": true,
+      "detail": "automatic .guide-overlay"
+    },
+    {
+      "id": "in-app-tests.completed",
+      "ok": true,
+      "detail": "171"
+    },
+    {
+      "id": "in-app-tests.passed",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "id": "in-app-tests.profile-preserved",
+      "ok": true,
+      "detail": "{\"name\":\"Profil před testy\",\"role\":\"učitel\",\"gender\":\"male\",\"subjects\":\"angličtina\",\"school\":\"Testovací škola\",\"writingStyle\":\"civilni\",\"sign\":\"pozdrav\"}"
+    },
+    {
+      "id": "in-app-tests.no-toast-noise",
+      "ok": true,
+      "detail": "temporary toast count"
+    },
+    {
+      "id": "click.theme.hit-target",
+      "ok": true,
+      "detail": "[object SVGAnimatedString]"
+    },
+    {
+      "id": "click.theme.changed",
+      "ok": true,
+      "detail": "false -> true"
+    },
+    {
+      "id": "click.fullscreen.hit-target",
+      "ok": true,
+      "detail": "[object SVGAnimatedString]"
+    },
+    {
+      "id": "click.fullscreen.invoked",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "id": "click.incoming.hit-target",
+      "ok": true,
+      "detail": "tabIn"
+    },
+    {
+      "id": "click.incoming.opens-workspace",
+      "ok": true,
+      "detail": "{\"workspaceHidden\":false,\"deskHidden\":true,\"tabActive\":true,\"paneActive\":true}"
+    },
+    {
+      "id": "click.back.hit-target",
+      "ok": true,
+      "detail": "backToStart"
+    },
+    {
+      "id": "click.back.restores-start",
+      "ok": true,
+      "detail": "{\"workspaceHidden\":true,\"deskHidden\":false}"
+    },
+    {
+      "id": "click.compose.hit-target",
+      "ok": true,
+      "detail": "tabMy"
+    },
+    {
+      "id": "click.compose.opens-workspace",
+      "ok": true,
+      "detail": "{\"workspaceHidden\":false,\"deskHidden\":true,\"tabActive\":true,\"paneActive\":true}"
+    },
+    {
+      "id": "click.compose-anonymize.hit-target",
+      "ok": true,
+      "detail": "my_anonBtn"
+    },
+    {
+      "id": "click.compose-anonymize.opens-settings",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "id": "click.advanced-mode.hit-target",
+      "ok": true,
+      "detail": "uiAdvanced"
+    },
+    {
+      "id": "click.advanced-mode.enabled",
+      "ok": true,
+      "detail": "body.ui-advanced"
+    },
+    {
+      "id": "click.compose-mode.hit-target",
+      "ok": true,
+      "detail": "chip on"
+    },
+    {
+      "id": "click.compose-mode.selected",
+      "ok": true,
+      "detail": "my_mode=sestavit"
+    },
+    {
+      "id": "click.custom-subject.hit-target",
+      "ok": true,
+      "detail": "chip on"
+    },
+    {
+      "id": "click.custom-subject.selected",
+      "ok": true,
+      "detail": "my_subj=vlastni"
+    },
+    {
+      "id": "click.custom-subject.available",
+      "ok": true,
+      "detail": "{\"visible\":true,\"value\":\"Konzultace ve čtvrtek\",\"count\":\"21/60\",\"max\":60}"
+    },
+    {
+      "id": "footer.menu.complete",
+      "ok": true,
+      "detail": "[\"Uložené koncepty\",\"Formulace a podpisy\",\"Scénáře školní komunikace\",\"Čekám na odpověď\",\"Školní balíček šablon\",\"Profil odesílatele\",\"Poslední výstupy\",\"Přehled změn\",\"Prohlídka aplikace\",\"Správa dat\",\"Vývojářské nástroje\"]"
+    },
+    {
+      "id": "footer.saved-drafts.opens",
+      "ok": true,
+      "detail": "{\"open\":true,\"title\":\"Rozpracované koncepty\"}"
+    },
+    {
+      "id": "footer.blocks-signatures.opens",
+      "ok": true,
+      "detail": "{\"open\":true,\"title\":\"Podpisy\"}"
+    },
+    {
+      "id": "footer.scenarios.opens",
+      "ok": true,
+      "detail": "{\"open\":true,\"title\":\"Scénáře školní komunikace\"}"
+    },
+    {
+      "id": "footer.followups.opens",
+      "ok": true,
+      "detail": "{\"open\":true,\"title\":\"Připomínky a čekání na odpověď\"}"
+    },
+    {
+      "id": "footer.school-library.opens",
+      "ok": true,
+      "detail": "{\"open\":true,\"title\":\"Sdílená školní knihovna\"}"
+    },
+    {
+      "id": "footer.profile.opens",
+      "ok": true,
+      "detail": "profile overlay"
+    },
+    {
+      "id": "footer.profile.stays-open-while-editing",
+      "ok": true,
+      "detail": "editing"
+    },
+    {
+      "id": "footer.profile.saves",
+      "ok": true,
+      "detail": "{\"name\":\"Profil po uložení\",\"casualName\":\"Profil\",\"role\":\"učitel\",\"subjects\":\"angličtina\",\"school\":\"Testovací škola\",\"styleAvoid\":\"\",\"styleCustom\":\"\",\"custom\":\"\",\"gender\":\"male\",\"sign\":\"pozdrav\",\"writingStyle\":\"civilni\"}"
+    },
+    {
+      "id": "footer.profile.reopens-persisted",
+      "ok": true,
+      "detail": "persisted profile"
+    },
+    {
+      "id": "footer.history.opens",
+      "ok": true,
+      "detail": "history overlay"
+    },
+    {
+      "id": "footer.changelog.opens",
+      "ok": true,
+      "detail": "changelog modal"
+    },
+    {
+      "id": "footer.tour.opens",
+      "ok": true,
+      "detail": "tour overlay"
+    },
+    {
+      "id": "footer.data-manager.opens",
+      "ok": true,
+      "detail": "data manager modal"
+    },
+    {
+      "id": "footer.developer-tools.admin-visible",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "id": "developer.menu.complete",
+      "ok": true,
+      "detail": "{\"count\":4,\"hasTests\":true,\"expectedDevToolCount\":4}"
+    },
+    {
+      "id": "developer.tests.matches-build-boundary",
+      "ok": true,
+      "detail": "{\"count\":4,\"hasTests\":true,\"inAppTestApiAvailable\":true}"
+    },
+    {
+      "id": "developer.tests.wait-for-explicit-start",
+      "ok": true,
+      "detail": "{\"open\":true,\"enabled\":true,\"empty\":true}"
+    },
+    {
+      "id": "developer.debug.opens",
+      "ok": true,
+      "detail": "debug prompt"
+    },
+    {
+      "id": "developer.ops.opens",
+      "ok": true,
+      "detail": "ops log"
+    },
+    {
+      "id": "developer.runtime.opens",
+      "ok": true,
+      "detail": "runtime diagnostics"
+    },
+    {
+      "id": "onboarding.manual-entry-present",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "id": "runtime.no-errors",
+      "ok": true,
+      "detail": "[]"
+    }
+  ],
+  "summary": {
+    "passed": 51,
+    "failed": 0
+  },
+  "status": "passed"
+}
+
+> ghrab-korespondencni-asistent@5.10.21 posttest
+> npm run build
+
+
+> ghrab-korespondencni-asistent@5.10.21 build
+> node scripts/build.mjs
+
+[build] Korespondenční asistent: verze 5.10.21 · Core 1.0.0 ověřen SHA-256 · 8 AI operací · 14 aplikačních JS modulů · test hooks OFF · dist připraven
+[P3] correspondence 5.10.21: platform 1.1.2, HTML 2, cache ghrab-correspondence-v5.10.21
+
+> ghrab-korespondencni-asistent@5.10.21 postbuild
+> node scripts/ghrab-platform-conformance.mjs
+
+{
+  "schema": "ghrab-platform-conformance-result-v1",
+  "appId": "correspondence",
+  "appVersion": "5.10.21",
+  "total": 124,
+  "passed": 124,
+  "failed": 0,
+  "checks": [
+    {
+      "label": "dist exists",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "satellite dist has no duplicate platform tree",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "satellite source has no duplicate platform tree",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "consumer schema",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "package ↔ consumer version",
+      "ok": true,
+      "detail": "5.10.21 / 5.10.21"
+    },
+    {
+      "label": "platform contract",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "Studio Bridge contract",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "artifact envelope contract",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "artifact exports declared",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "artifact imports declared",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "native export formats declared",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "legacy JSON import policy declared",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "cache naming",
+      "ok": true,
+      "detail": "ghrab-correspondence-v5.10.21"
+    },
+    {
+      "label": "storage migration declared",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "storage namespace rozbor_profile",
+      "ok": true,
+      "detail": "ghrab.correspondence.profile.v1"
+    },
+    {
+      "label": "storage namespace rozbor_dict",
+      "ok": true,
+      "detail": "ghrab.correspondence.dictionary.v1"
+    },
+    {
+      "label": "storage namespace rozbor_history",
+      "ok": true,
+      "detail": "ghrab.correspondence.history.v1"
+    },
+    {
+      "label": "storage namespace rozbor_name_hints",
+      "ok": true,
+      "detail": "ghrab.correspondence.name-hints.v1"
+    },
+    {
+      "label": "storage namespace rozbor_templates",
+      "ok": true,
+      "detail": "ghrab.correspondence.templates.v1"
+    },
+    {
+      "label": "storage namespace rozbor_mode",
+      "ok": true,
+      "detail": "ghrab.correspondence.theme.v1"
+    },
+    {
+      "label": "storage namespace rozbor_work_session_v2",
+      "ok": true,
+      "detail": "ghrab.correspondence.work-session.v2"
+    },
+    {
+      "label": "storage namespace ks5_workbench_drafts",
+      "ok": true,
+      "detail": "ghrab.correspondence.workbench-drafts.v1"
+    },
+    {
+      "label": "storage namespace ks5_signatures",
+      "ok": true,
+      "detail": "ghrab.correspondence.signatures.v1"
+    },
+    {
+      "label": "storage namespace ks5_followups",
+      "ok": true,
+      "detail": "ghrab.correspondence.followups.v1"
+    },
+    {
+      "label": "storage namespace ks5_blocks",
+      "ok": true,
+      "detail": "ghrab.correspondence.blocks.v1"
+    },
+    {
+      "label": "storage namespace ks5_desk_collapsed",
+      "ok": true,
+      "detail": "ghrab.correspondence.desk-collapsed.v1"
+    },
+    {
+      "label": "storage namespace ks5_recent_scenarios",
+      "ok": true,
+      "detail": "ghrab.correspondence.recent-scenarios.v1"
+    },
+    {
+      "label": "storage namespace ks5_selected_signature",
+      "ok": true,
+      "detail": "ghrab.correspondence.selected-signature.v1"
+    },
+    {
+      "label": "storage namespace rozbor_ui_mode",
+      "ok": true,
+      "detail": "ghrab.correspondence.ui-mode.v1"
+    },
+    {
+      "label": "storage namespace rozbor_gemini_model",
+      "ok": true,
+      "detail": "ghrab.correspondence.ai.model.v1"
+    },
+    {
+      "label": "storage namespace rozbor_gemini_key",
+      "ok": true,
+      "detail": "ghrab.correspondence.ai.key.local.v1"
+    },
+    {
+      "label": "storage namespace rozbor_gemini_key_session",
+      "ok": true,
+      "detail": "ghrab.correspondence.ai.key.session.v1"
+    },
+    {
+      "label": "storage namespace rozbor_security_guide_seen_v1",
+      "ok": true,
+      "detail": "ghrab.correspondence.security-guide-seen.v1"
+    },
+    {
+      "label": "storage namespace rozbor_tour_seen_v1",
+      "ok": true,
+      "detail": "ghrab.correspondence.tour-seen.v1"
+    },
+    {
+      "label": "storage namespace rozbor_",
+      "ok": true,
+      "detail": "ghrab.correspondence.legacy.rozbor."
+    },
+    {
+      "label": "storage namespace ks5_",
+      "ok": true,
+      "detail": "ghrab.correspondence.legacy.ks5."
+    },
+    {
+      "label": "vendor ghrab-platform.js",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "vendor hash ghrab-platform.js",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "dist ghrab-platform.js",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "dist hash ghrab-platform.js",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "vendor ghrab-platform.css",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "vendor hash ghrab-platform.css",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "dist ghrab-platform.css",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "dist hash ghrab-platform.css",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "vendor ghrab-artifact-envelope-v1.schema.json",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "vendor hash ghrab-artifact-envelope-v1.schema.json",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "dist ghrab-artifact-envelope-v1.schema.json",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "dist hash ghrab-artifact-envelope-v1.schema.json",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "vendor ghrab-app-registry-v2.schema.json",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "vendor hash ghrab-app-registry-v2.schema.json",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "dist ghrab-app-registry-v2.schema.json",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "dist hash ghrab-app-registry-v2.schema.json",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "vendor school-logo.png",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "vendor hash school-logo.png",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "dist school-logo.png",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "dist hash school-logo.png",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "dist ghrab-platform.consumer.json",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "dist config/platform-manifest.json",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "dist config/brand-manifest.json",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "dist platform-build-info.json",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "built consumer identity",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "built platform manifest contract",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "built platform cache metadata",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "built service-worker contract",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "built artifact contracts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "data manifest migration id",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "data manifest canonical prefix",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "data manifest artifact exports",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "data manifest artifact imports",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "canonical logo manifest hash",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "no inline school logo base64",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "no legacy school logo reference",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "no obsolete top-level platform references in satellite build",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "platform contract present in build",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "full eligible HTML documents found",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "exactly one platform loader index.html",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "label": "exactly one platform config index.html",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "label": "app identity index.html",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "theme root contract index.html",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "exactly one platform loader manual/index.html",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "label": "exactly one platform config manual/index.html",
+      "ok": true,
+      "detail": "1"
+    },
+    {
+      "label": "app identity manual/index.html",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "theme root contract manual/index.html",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "service worker exists",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "service worker canonical cache",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "service worker contract marker",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "service worker legacy cleanup list",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "service worker update protocol",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "service worker platform precache",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "service worker P3 asset list",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "no automatic skipWaiting during install",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "service worker no-store bypass",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "service worker no obsolete satellite platform asset",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "PWA manifest exists",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "PWA version",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "PWA platform contract",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "PWA cache metadata",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "PWA app identity",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "runtime identity",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "runtime previous platform rejected",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "runtime current accepted",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "runtime n+1 accepted",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "runtime major rejected",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "storage alias reads migrated value",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "canonical storage value created",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "storage alias writes canonical key",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "storage migration idempotent",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "storage migration rollback",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "rollback restored original value",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "Studio Bridge v2 create",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "Studio Bridge v2 peek",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "Studio Bridge v2 take",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "Studio Bridge consumes once",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "artifact envelope SHA-256",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "artifact envelope unwrap",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "artifact envelope detection",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "artifact envelope unwrapMaybe",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "legacy artifact compatibility",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "theme contract runtime",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "artifact compatibility facade",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "accessibility runtime contract",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "performance runtime contract",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "lazy module runtime contract",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "lazy script loader available",
+      "ok": true,
+      "detail": ""
+    }
+  ]
+}

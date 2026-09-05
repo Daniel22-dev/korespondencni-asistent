@@ -1,3 +1,11 @@
+## 5.10.21 — Axe kontrast hotfix manuálu (2026-09-05)
+
+- GitHub Actions pro 5.10.20 potvrdily suite-session Browser Back/Forward, fail-closed, runtime bootstrap a ostatní bezpečnostní scénáře; `qa:runtime` má `initFailures: 0`.
+- Jediný release blocker byl `qa:axe`: 20 serious nálezů vzniklo jako stejných 10 glossary labelů v `manual/index.html`, započtených ve viewportu 1280 px a 390 px.
+- `.term b` už nepoužívá tmavý `--accent` `#2c6e6b` na panelu `#111e2c` (Axe: 2,84:1), ale čitelný teal `#59b8b2` s vypočteným kontrastem přibližně 7,16:1.
+- Pravidla Axe, threshold ani seznam auditovaných WCAG tagů se nemění; opraven je skutečný UI kontrast. Interaktivní manuál je kvůli distribuované změně zvýšen na 1.3.16.
+- Produkční suite-session implementace i GHRAB Platform 1.1.2 zůstávají beze změny.
+
 ## 5.10.20 — QA runtime bootstrap hotfix (2026-09-04)
 
 - GitHub Actions po 5.10.19 potvrdily PASS suite-session Browser Back/Forward scénáře; nový FAIL byl izolován na `qa:runtime` (`initFailures: 3`).

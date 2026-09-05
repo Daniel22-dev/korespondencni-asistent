@@ -1,6 +1,6 @@
 {
   "schema": "garp22-app-bootstrap-integration-v1",
-  "generatedAt": "2026-09-04T20:06:52.916Z",
+  "generatedAt": "2026-09-05T08:42:33.770Z",
   "syntheticOnly": true,
   "source": "dist/index.html actual bootstrap with only dynamic imports injected",
   "checks": [

@@ -1,0 +1,17 @@
+
+> ghrab-korespondencni-asistent@5.10.21 qa:garp23:ai-red
+> node scripts/qa-garp23-ai-red-structural.mjs
+
+file:///mnt/data/fix_51021/korespondencni-asistent-5.10.21-platform-1.1.2-candidate/scripts/qa-garp23-ai-red-structural.mjs:27
+class Cdp{constructor(url){this.ws=new WebSocket(url);this.seq=0;this.pending=new Map();this.events=[];this.ready=new Promise((res,rej)=>{this.ws.onopen=res;this.ws.onerror=rej});this.ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.id&&this.pending.has(m.id)){const p=this.pending.get(m.id);this.pending.delete(m.id);m.error?p.reject(new Error(JSON.stringify(m.error))):p.resolve(m.result);}else this.events.push(m);};}async call(method,params={}){await this.ready;return new Promise((res,rej)=>{const id=++this.seq;this.pending.set(id,{resolve:res,reject:rej});this.ws.send(JSON.stringify({id,method,params}));});}async eval(expression){const r=await this.call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true,userGesture:true});if(r.exceptionDetails)throw new Error(r.exceptionDetails.exception?.description||r.exceptionDetails.text||'Runtime evaluate failed');return r.result?.value;}close(){try{this.ws.close();}catch{}}}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          ^
+
+Error: GhrabAiError: Nejprve zadejte svůj Gemini API klíč.
+    at Object.createError (<anonymous>:157:19)
+    at callGemini (<anonymous>:1901:92)
+    at <anonymous>:1:327
+    at <anonymous>:1:730
+    at Cdp.eval (file:///mnt/data/fix_51021/korespondencni-asistent-5.10.21-platform-1.1.2-candidate/scripts/qa-garp23-ai-red-structural.mjs:27:779)
+    at async file:///mnt/data/fix_51021/korespondencni-asistent-5.10.21-platform-1.1.2-candidate/scripts/qa-garp23-ai-red-structural.mjs:89:16
+
+Node.js v22.16.0

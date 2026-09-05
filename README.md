@@ -1,17 +1,25 @@
 # Korespondenční asistent
 
-**Aktuální verze:** 5.10.20  
+**Aktuální verze:** 5.10.21  
 **Platforma:** GHRAB Platform 1.1.2 · etapa P5 / ecosystem release-wave candidate
 
 
 Samostatná PWA aplikace ekosystému AI Studio Gymnázia Ostrava-Hrabůvka.
 
-- **Verze aplikace:** 5.10.20
+- **Verze aplikace:** 5.10.21
 - **GHRAB AI Core:** 1.0.0
 - **Doporučený repozitář:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
-- **Interaktivní manuál:** 1.3.15 (manuál 1.3.15)
+- **Interaktivní manuál:** 1.3.16 (manuál 1.3.16)
+
+## Co přináší verze 5.10.21
+
+Verze 5.10.21 je cílený accessibility hotfix po GitHub Actions bězích 92018677848/877/916/924/925. 5.10.20 už v CI odstranila runtime init chyby (`initFailures: 0`) a suite-session scénáře včetně Browser Back/Forward zůstaly PASS. Jediným blokérem byl skutečný Axe `color-contrast` nález v interaktivním manuálu.
+
+Deset názvů glossary položek používalo tmavý teal `#2c6e6b` na panelu `#111e2c`, což Axe 4.12.1 změřilo na 2,84:1 místo požadovaných 4,5:1. Barva těchto názvů je nyní `#59b8b2` (výpočtově přibližně 7,16:1). Axe pravidla ani release threshold nebyly oslabeny. Produkční suite-session logika a Platforma 1.1.2 se nemění.
+
+Technický souhrn je v `RELEASE-NOTES-5.10.21-AXE-CONTRAST-HOTFIX.md`.
 
 ## Co přináší verze 5.10.20
 

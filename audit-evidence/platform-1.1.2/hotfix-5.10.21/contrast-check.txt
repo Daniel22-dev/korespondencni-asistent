@@ -1,0 +1,8 @@
+Korespondencni asistent 5.10.21 - targeted WCAG contrast check
+selector=.term b
+foreground=#59b8b2
+background=#111e2c
+contrast_ratio=7.1625:1
+required=4.5:1
+status=PASS
+selector_present=True
