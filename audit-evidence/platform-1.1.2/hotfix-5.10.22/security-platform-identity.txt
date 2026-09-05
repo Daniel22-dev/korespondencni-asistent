@@ -1,0 +1,13 @@
+5.10.21 -> 5.10.22 security/platform identity
+
+suite-session source:
+00b342254ace67f2107d79d03e61f9b3ba5d51692c4819b91c4a2736921f5811  /tmp/tmp.NPJhw9Wreb/korespondencni-asistent-5.10.21-platform-1.1.2-candidate/src/js/78-suite-session.js
+00b342254ace67f2107d79d03e61f9b3ba5d51692c4819b91c4a2736921f5811  /mnt/data/fix_51022/korespondencni-asistent-5.10.21-platform-1.1.2-candidate/src/js/78-suite-session.js
+
+vendor platform:
+199d03d9dc9263a9e74ed1f1102df0324f3b63e78704f1c70aeacec5feec530c  /tmp/tmp.NPJhw9Wreb/korespondencni-asistent-5.10.21-platform-1.1.2-candidate/dist/ghrab/ghrab-platform.js
+199d03d9dc9263a9e74ed1f1102df0324f3b63e78704f1c70aeacec5feec530c  /mnt/data/fix_51022/korespondencni-asistent-5.10.21-platform-1.1.2-candidate/dist/ghrab/ghrab-platform.js
+eb465488df46f3d1672d721094800b0be3eb1278924b7699873a483f130b07ad  /tmp/tmp.NPJhw9Wreb/korespondencni-asistent-5.10.21-platform-1.1.2-candidate/dist/ghrab/ghrab-platform.css
+eb465488df46f3d1672d721094800b0be3eb1278924b7699873a483f130b07ad  /mnt/data/fix_51022/korespondencni-asistent-5.10.21-platform-1.1.2-candidate/dist/ghrab/ghrab-platform.css
+760f1661b5a4349fc09d314d9da3d786356620680e038586cee28d98891f71a8  /tmp/tmp.NPJhw9Wreb/korespondencni-asistent-5.10.21-platform-1.1.2-candidate/dist/ghrab/ghrab-platform-manifest-1.1.2.json
+760f1661b5a4349fc09d314d9da3d786356620680e038586cee28d98891f71a8  /mnt/data/fix_51022/korespondencni-asistent-5.10.21-platform-1.1.2-candidate/dist/ghrab/ghrab-platform-manifest-1.1.2.json

@@ -1,3 +1,11 @@
+## 5.10.22 — Browser QA target readiness hotfix (2026-09-05)
+
+- GitHub Actions pro 5.10.21 potvrdily ostatní release kontroly jako PASS; jediný zbývající pád nastal v `qa:browser` před samotným testováním aplikace.
+- Příčina: DevTools `/json` mohl krátce po startu Chromia vrátit seznam bez `type: page`, zatímco harness okamžitě dereferencoval `undefined.webSocketDebuggerUrl`.
+- `qa-p3-browser.mjs` nyní na page target čeká; pokud se stále neobjeví, zkusí jej vytvořit přes `/json/new?about:blank` metodou PUT a znovu čeká.
+- Při skutečné nedostupnosti targetu končí explicitním `Chromium page target timeout`, nikoli neřízeným TypeError.
+- Produkční runtime, suite-session lifecycle i vendor GHRAB Platform 1.1.2 se funkčně nemění.
+
 ## 5.10.21 — Axe kontrast hotfix manuálu (2026-09-05)
 
 - GitHub Actions pro 5.10.20 potvrdily suite-session Browser Back/Forward, fail-closed, runtime bootstrap a ostatní bezpečnostní scénáře; `qa:runtime` má `initFailures: 0`.

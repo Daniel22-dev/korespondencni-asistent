@@ -1,17 +1,25 @@
 # Korespondenční asistent
 
-**Aktuální verze:** 5.10.21  
+**Aktuální verze:** 5.10.22  
 **Platforma:** GHRAB Platform 1.1.2 · etapa P5 / ecosystem release-wave candidate
 
 
 Samostatná PWA aplikace ekosystému AI Studio Gymnázia Ostrava-Hrabůvka.
 
-- **Verze aplikace:** 5.10.21
+- **Verze aplikace:** 5.10.22
 - **GHRAB AI Core:** 1.0.0
 - **Doporučený repozitář:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
 - **Interaktivní manuál:** 1.3.16 (manuál 1.3.16)
+
+## Co přináší verze 5.10.22
+
+Verze 5.10.22 je cílený hotfix posledního zbývajícího GitHub Actions pádu po 5.10.21. Všechny ostatní release kontroly byly zelené; `qa:browser` však skončil ještě před testováním aplikace, protože DevTools `/json` v krátkém startovacím okně Chromia neobsahovalo žádný target `type: page` a harness okamžitě četl `undefined.webSocketDebuggerUrl`.
+
+Browserový P3 harness nyní na page target opakovaně čeká. Pokud se target stále neobjeví, pokusí se vytvořit `about:blank` přes DevTools HTTP endpoint `/json/new` metodou PUT a znovu čeká. Při skutečné nedostupnosti skončí čitelnou chybou `Chromium page target timeout`. Produkční runtime, suite-session logika a vendor GHRAB Platform 1.1.2 se tímto hotfixem funkčně nemění.
+
+Technický souhrn je v `RELEASE-NOTES-5.10.22-BROWSER-QA-TARGET-HOTFIX.md`.
 
 ## Co přináší verze 5.10.21
 

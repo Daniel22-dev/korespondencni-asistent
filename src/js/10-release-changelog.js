@@ -8,11 +8,12 @@ function isTrustedLocalTestOrigin(){
 }
 const IS_TEST_MODE=TEST_HOOKS_BUILD_ENABLED&&isTrustedLocalTestOrigin()&&new URLSearchParams(window.location.search).get("test")==="1";
 const RELEASE = {
-  version: "5.10.21",
+  version: "5.10.22",
   date: "2026-09-05",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.10.22: Browser QA target readiness hotfix — P3 browser harness po startu Chromia čeká na DevTools page target a při jeho absenci jej umí vytvořit přes /json/new; produkční runtime ani Platforma 1.1.2 se nemění.",
     "5.10.21: Axe kontrast hotfix — glossary názvy v interaktivním manuálu už nepoužívají tmavý accent s kontrastem 2,84:1; nový teal odstín má bezpečnou rezervu nad WCAG AA. Axe pravidla ani threshold se nemění.",
     "5.10.20: QA runtime bootstrap hotfix — runtime a Axe harness už nespouštějí application/ghrab-protected kód před Platformou; nejprve čekají na GHRAB Platform 1.1.2 a teprve potom používají její unlockProtectedScripts(), stejně jako produkční bootstrap.",
     "5.10.19: suite-session history traversal hotfix — fresh back_forward navigace je rozpoznána ještě před platformním replayem, cleanup/ACK se odloží za pageshow a browserem obnovený obsah formuláře se vyčistí až po dokončení history restore.",

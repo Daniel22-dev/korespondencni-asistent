@@ -1,0 +1,22 @@
+GitHub Actions 5.10.21 - posledni zbyvajici FAIL
+================================================
+Zdroj: logs_92020657098.zip
+Job: P5 R2 release gate / qa:browser
+Aplikace: 5.10.21
+
+Vsechny predchozi kontroly v tomto jobu byly PASS. qa:browser skoncil pred samotnym testovanim aplikace:
+TypeError: Cannot read properties of undefined (reading 'webSocketDebuggerUrl')
+
+Puvodni kod:
+pages.find(x=>x.type==='page').webSocketDebuggerUrl
+
+Pricina:
+Chromium DevTools /json muze kratce po startu vratit seznam bez targetu type=page. Harness dereferencoval vysledek find() bez cekani/fallbacku.
+
+Oprava 5.10.22:
+- opakovane cekani na page target;
+- pokud stale chybi, PUT /json/new?about%3Ablank;
+- opakovane cekani po create;
+- explicitni Chromium page target timeout misto TypeError.
+
+Produkční runtime ani suite-session kod nebyly funkcne zmeneny.
