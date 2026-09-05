@@ -1,17 +1,25 @@
 # Korespondenční asistent
 
-**Aktuální verze:** 5.10.19  
+**Aktuální verze:** 5.10.20  
 **Platforma:** GHRAB Platform 1.1.2 · etapa P5 / ecosystem release-wave candidate
 
 
 Samostatná PWA aplikace ekosystému AI Studio Gymnázia Ostrava-Hrabůvka.
 
-- **Verze aplikace:** 5.10.19
+- **Verze aplikace:** 5.10.20
 - **GHRAB AI Core:** 1.0.0
 - **Doporučený repozitář:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
 - **Interaktivní manuál:** 1.3.15 (manuál 1.3.15)
+
+## Co přináší verze 5.10.20
+
+Verze 5.10.20 je QA/runtime bootstrap hotfix po GitHub Actions bězích 91911707721/726/763/866. Suite-session Browser Back/Forward regresní scénář 5.10.19 už v CI prošel; nový pád vznikl až v `qa:runtime`, kde auditní harness měnil `application/ghrab-protected` na běžný JavaScript. Tím spustil aplikační suite-session modul ještě před deferred GHRAB Platform 1.1.2 a vyvolal správný fail-closed stav `blocked`.
+
+5.10.20 produkční suite-session logiku nemění. `qa:runtime` a `qa:axe` nyní zachovávají chráněné skripty inertní, počkají na skutečnou Platformu 1.1.2 a odemknou je přes `GHRAB_PLATFORM.unlockProtectedScripts()`. Harness tak kopíruje produkční pořadí Platform → protected app.
+
+Technický souhrn je v `RELEASE-NOTES-5.10.20-QA-RUNTIME-BOOTSTRAP-HOTFIX.md`.
 
 ## Co přináší verze 5.10.19
 
@@ -83,7 +91,7 @@ prohlížeč
 → Gemini API
 ```
 
-Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže standardní build 5.10.19 sám o sobě nezapíná školní server. School-server build aktivuje samostatnou `runtime-config.school-server.js`.
+Uživatel používá vlastní Gemini API klíč. Výchozí runtime povoluje pouze `direct-gemini`, takže standardní build 5.10.20 sám o sobě nezapíná školní server. School-server build aktivuje samostatnou `runtime-config.school-server.js`.
 
 ### Budoucí migrační režim
 

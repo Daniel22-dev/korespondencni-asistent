@@ -1,3 +1,11 @@
+## 5.10.20 — QA runtime bootstrap hotfix (2026-09-04)
+
+- GitHub Actions po 5.10.19 potvrdily PASS suite-session Browser Back/Forward scénáře; nový FAIL byl izolován na `qa:runtime` (`initFailures: 3`).
+- Příčina: runtime harness předčasně převáděl `application/ghrab-protected` na běžný JavaScript, takže suite-session modul běžel před deferred Platformou 1.1.2 a správně aktivoval fail-closed `blocked`.
+- `qa-p5-runtime.mjs` nyní chráněné skripty zachovává, čeká na `GHRAB_PLATFORM.unlockProtectedScripts()` a teprve pak aplikační kód odemkne.
+- Stejná oprava byla preventivně aplikována na `qa-p5-axe-runtime.mjs`, aby Axe neměřilo předčasně spuštěný nebo fail-closed runtime.
+- Produkční suite-session implementace z 5.10.19 se nemění; Platforma zůstává 1.1.2.
+
 ## 5.10.19 — suite-session fresh Back/Forward navigation hotfix (2026-09-04)
 
 - opraven druhý CI reprodukovaný Browser Back/Forward režim: nový dokument s `navigation.type = back_forward`;

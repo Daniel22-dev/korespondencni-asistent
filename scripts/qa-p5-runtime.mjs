@@ -60,8 +60,9 @@ function transformHtml(source, relative) {
   let html = source
     .replace(/data-ghrab-access=["']checking["']/gi, 'data-ghrab-access="granted"')
     .replace(/<script\b(?=[^>]*data-ghrab-access-bootstrap)[^>]*>[\s\S]*?<\/script>/gi, '')
-    .replace(/type=["']application\/ghrab-protected["']/gi, 'type="text/javascript"')
-    .replace(/\sdata-ghrab-protected(?:=["'][^"']*["'])?/gi, '')
+    // IMPORTANT: keep application/ghrab-protected scripts inert. Production also waits
+    // for GHRAB Platform before unlock; executing them eagerly creates a false bootstrap
+    // order where suite-session code runs before Platform 1.1.2 exists.
     .replace(/<meta\b[^>]*http-equiv=["'](?:refresh|content-security-policy)["'][^>]*>/gi, '');
   if (/<head\b[^>]*>/i.test(html)) html = html.replace(/<head\b[^>]*>/i, m => `${m}\n${qaPrelude}`);
   else html = html.replace(/<html\b[^>]*>/i, m => `${m}<head>${qaPrelude}</head>`);
@@ -72,11 +73,8 @@ const transformedSentinel = transformHtml(transformSentinel, 'sentinel.html');
 if (!transformedSentinel.includes('i<base.length') || !transformedSentinel.includes('base[i]=i')) {
   throw new Error('Runtime harness poškodil JavaScript při transformaci HTML.');
 }
-function qaAccessBootstrap(relative) {
-  if (relative === 'access-bootstrap.js') {
-    return `document.documentElement.dataset.ghrabAccess='granted';window.__GHRAB_STUDIO_ACCESS__={permit:{role:'admin',apps:['${consumer.appId}'],localDevelopment:true}};import('./app.js').catch(e=>{console.error(e);window.__GHRAB_QA_BOOT_ERROR__=String(e?.stack||e)});`;
-  }
-  return null;
+if (!/type=["']application\/ghrab-protected["']/i.test(transformedSentinel) || !/data-ghrab-protected/i.test(transformedSentinel)) {
+  throw new Error('Runtime harness nesmí spouštět chráněný aplikační skript před Platformou.');
 }
 const htmlFiles = (await walk(dist)).filter(file => file.toLowerCase().endsWith('.html')).filter(file => {
   const rel = path.relative(dist, file).split(path.sep).join('/');
@@ -97,10 +95,6 @@ const server = http.createServer(async (req, res) => {
     rel = path.posix.normalize(rel).replace(/^\.\.\//g, '');
     const file = path.resolve(dist, ...rel.split('/'));
     if (!file.startsWith(dist + path.sep) && file !== dist) { res.writeHead(403); res.end('forbidden'); return; }
-    const replacement = qaAccessBootstrap(rel);
-    if (replacement !== null) {
-      res.writeHead(200, {'content-type':'text/javascript; charset=utf-8','cache-control':'no-store'}); res.end(replacement); return;
-    }
     if (!fs.existsSync(file) || !fs.statSync(file).isFile()) { res.writeHead(404, {'cache-control':'no-store'}); res.end('not found'); return; }
     if (file.toLowerCase().endsWith('.html')) {
       const source = await fsp.readFile(file, 'utf8');
@@ -118,6 +112,24 @@ async function waitJson(url) {
   for (let i=0;i<400;i++) { try { const r=await fetch(url); if (r.ok) return await r.json(); } catch {} await sleep(50); }
   throw new Error('Chromium debug timeout');
 }
+async function unlockProtectedScriptsForAudit(client, rel) {
+  let platformReady=false;
+  for(let i=0;i<240;i++){
+    platformReady=Boolean(await client.eval(`typeof window.GHRAB_PLATFORM?.unlockProtectedScripts==='function'`));
+    if(platformReady)break;
+    await sleep(50);
+  }
+  if(!platformReady)throw new Error(`Runtime platform timeout before protected-script unlock: ${rel}`);
+  const before=Number(await client.eval(`document.querySelectorAll('script[type="application/ghrab-protected"][data-ghrab-protected]').length`));
+  const unlocked=Number(await client.eval(`window.GHRAB_PLATFORM.unlockProtectedScripts()`));
+  await sleep(0);
+  const after=Number(await client.eval(`document.querySelectorAll('script[type="application/ghrab-protected"][data-ghrab-protected]').length`));
+  if(before>0 && (unlocked<before || after!==0)){
+    throw new Error(`Runtime protected-script unlock mismatch: ${rel} before=${before} unlocked=${unlocked} after=${after}`);
+  }
+  return Object.freeze({before,unlocked,after,platformVersion:String(await client.eval(`window.GHRAB_PLATFORM?.version||''`))});
+}
+
 class Cdp {
   constructor(url) {
     this.ws = new WebSocket(url); this.seq=0; this.pending=new Map(); this.events=[];
@@ -168,6 +180,7 @@ try {
     const rel=path.relative(dist,file).split(path.sep).join('/');
     const widthsReport=[];
     let pageLoaded=false;
+    let unlockInfo=null;
     const url=`http://127.0.0.1:${listenPort}/${rel}?qa=1&runtimeAudit=1`;
     for (const width of widths) {
       console.error(`[runtime] ${rel} @ ${width}px`);
@@ -178,6 +191,10 @@ try {
         let ready=false;
         for(let i=0;i<240;i++){ready=Boolean(await client.eval("document.readyState==='complete'&&window.__GHRAB_QA_RUNTIME__===true"));if(ready)break;await sleep(50);}
         if(!ready)throw new Error(`Runtime page timeout: ${rel}`);
+        // Match production ordering: Platform loads first, then it unlocks the protected app.
+        // The old harness converted the protected script to text/javascript during HTML
+        // transformation, which made suite-session fail closed before deferred Platform ran.
+        unlockInfo=await unlockProtectedScriptsForAudit(client,rel);
         pageLoaded=true;
       } else {
         await client.eval("dispatchEvent(new Event('resize'));document.dispatchEvent(new Event('ghrab:qa-viewport-change'))");
@@ -192,7 +209,7 @@ try {
       const layout=await client.eval(`(()=>{const de=document.documentElement,b=document.body;const offenders=[...document.querySelectorAll('*')].map(el=>{const r=el.getBoundingClientRect();return {tag:el.tagName,id:el.id||'',cls:String(el.className||'').slice(0,120),left:Math.round(r.left),right:Math.round(r.right),width:Math.round(r.width),scrollWidth:el.scrollWidth,clientWidth:el.clientWidth};}).filter(x=>x.right>innerWidth+1||x.left<-1||x.scrollWidth>x.clientWidth+1).sort((a,b)=>(b.right-innerWidth)-(a.right-innerWidth)).slice(0,20);return {viewport:innerWidth,scrollWidth:Math.max(de.scrollWidth,b?.scrollWidth||0),clientWidth:de.clientWidth,overflow:Math.max(0,de.scrollWidth-de.clientWidth,(b?.scrollWidth||0)-de.clientWidth),bodyVisibility:getComputedStyle(document.body).visibility,bodyOpacity:getComputedStyle(document.body).opacity,activeElement:document.activeElement?.tagName||'',offenders};})()`);
       const dialogs=await client.eval(dialogStateExpr);
       const exceptions=client.events.filter(e=>e.method==='Runtime.exceptionThrown').map(e=>e.params?.exceptionDetails?.exception?.description||e.params?.exceptionDetails?.text||'exception');
-      widthsReport.push({width,url,audit,layout,dialogs,exceptions});
+      widthsReport.push({width,url,unlock:unlockInfo,audit,layout,dialogs,exceptions});
     }
     pageReports.push({page:rel,widths:widthsReport});
   }

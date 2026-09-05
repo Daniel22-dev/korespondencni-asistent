@@ -1,0 +1,50 @@
+GHRAB Platform 1.1.2 / Korespondencni asistent 5.10.19
+CI failure summary for hotfix 5.10.20
+Date: 2026-09-04
+Synthetic data only.
+
+Analyzed GitHub Actions log bundles:
+- logs_91911707866.zip and duplicate logs_91911707866 (1).zip
+  SHA-256: 7d39045c623ff606f7e17f80eb9e84539479d37783105cd198b17ecc63bd9349
+- logs_91911707763.zip and duplicate logs_91911707763 (1).zip
+  SHA-256: b65b132b1ef9d8dc5f7fa8625abc0f67d12190fa7028fcfbca17d434dcfb8a9e
+- logs_91911707726.zip
+  SHA-256: 1c759c56147a419d32b01e9425a39c56e516b6377326afeb95517e9143db59f6
+- logs_91911707721.zip
+  SHA-256: 9b0fa96356c96f0c80a4c37af65a2b177150cfd7fb76a5a241f0516b72bcab64
+
+Key finding:
+- qa:suite-session passed, including browser-back-forward.
+- Critical prior check back-dom-not-restored is true in the new 5.10.19 CI runs.
+- fail-closed storage error scenario is no longer the failing surface.
+- The release workflow proceeds to qa:runtime and then fails there.
+
+Repeated qa:runtime result in the unique runs:
+- schema: ghrab-p5-runtime-audit-v2
+- appVersion: 5.10.19
+- pagesScanned: 2
+- statesScanned: 6
+- critical: 0
+- serious: 0
+- moderate: 0
+- minor: 0
+- overflows: 0
+- initFailures: 3
+- browserExceptions: 0
+- qaErrors: 0
+- blockers: 3
+- status: failed
+
+Root cause confirmed in 5.10.19 qa-p5-runtime.mjs:
+The QA HTML transform converted scripts with type application/ghrab-protected into normal text/javascript and removed data-ghrab-protected. The main protected application bundle therefore executed during HTML parsing before the deferred GHRAB Platform 1.1.2 loader was available. The suite-session module correctly failed closed and marked the page blocked. This was a QA bootstrap ordering defect, not a reason to weaken application fail-closed behavior.
+
+Why exactly three init failures:
+The runtime audit visits index.html at 1280, 390 and 320 px, then manual/index.html at the same widths. The protected main application has the Platform lifecycle dependency. The three failures correspond to the three main-page widths.
+
+Hotfix decision:
+- Do not change production suite-session cleanup logic from 5.10.19.
+- Keep protected scripts inert in runtime and Axe harness transforms.
+- Wait for the real Platform 1.1.2 runtime.
+- Unlock through GHRAB_PLATFORM.unlockProtectedScripts().
+- Add a harness sentinel so eager execution cannot silently return.
+- Apply the same production-order model to qa:axe because it had the same defect.

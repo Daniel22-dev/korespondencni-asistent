@@ -1,11 +1,11 @@
 {
   "schema": "garp23-ai-red-structural-v1",
-  "generatedAt": "2026-09-04T19:22:41.992Z",
+  "generatedAt": "2026-09-04T20:08:57.613Z",
   "canary": {
-    "id": "MTNCCKP4-JJD1N1P",
-    "canary": "GARP-AIRED-CANARY-MTNCCKP4-JJD1N1P",
-    "markerA": "aired-marker-a-mtncckp4-jjd1n1p",
-    "markerB": "aired-marker-b-mtncckp4-jjd1n1p"
+    "id": "MTNE02DO-3554JKJ",
+    "canary": "GARP-AIRED-CANARY-MTNE02DO-3554JKJ",
+    "markerA": "aired-marker-a-mtne02do-3554jkj",
+    "markerB": "aired-marker-b-mtne02do-3554jkj"
   },
   "checks": [
     {

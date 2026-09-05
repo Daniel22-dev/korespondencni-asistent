@@ -1,0 +1,18 @@
+
+> ghrab-korespondencni-asistent@5.10.20 qa:axe
+> node scripts/qa-p5-axe-runtime.mjs
+
+{
+  "appId": "correspondence",
+  "appVersion": "5.10.20",
+  "status": "not-ready-environment",
+  "summary": {
+    "scanned": 0,
+    "critical": 0,
+    "serious": 0,
+    "moderate": 0,
+    "minor": 0,
+    "blockers": 0
+  },
+  "note": "Je nutné spustit npm ci a nainstalovat přesně axe-core 4.12.1."
+}

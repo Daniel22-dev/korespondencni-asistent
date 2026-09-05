@@ -1,6 +1,6 @@
 {
   "name": "ghrab-korespondencni-asistent",
-  "version": "5.10.19",
+  "version": "5.10.20",
   "private": true,
   "description": "Korespondenční asistent — samostatná PWA pro GitHub Pages",
   "type": "module",

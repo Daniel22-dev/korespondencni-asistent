@@ -3,7 +3,7 @@ import { setupErrorReporter } from './error-reporter.js';
 const reporter = setupErrorReporter({
   appId: 'correspondence',
   appName: 'Korespondenční asistent',
-  appVersion: '5.10.19',
+  appVersion: '5.10.20',
   studioUrl: '/AI-Studio-GHRAB/',
   supportEmail: 'balaz@ghrabuvka.cz',
   guideUrl: '/AI-Studio-GHRAB/manualy/error-report.html',
