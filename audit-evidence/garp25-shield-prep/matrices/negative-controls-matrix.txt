@@ -1,0 +1,37 @@
+SHNC MATRIX
+SHNC-01 PASS – synthetic secret fixture -> deployment scanner FAIL; clean PASS.
+SHNC-02 PASS – one-byte tamper -> RI FAIL.
+SHNC-03 PASS – provenance subject digest mutation -> provenance verifier FAIL.
+SHNC-04 PASS – .map leak -> deployment leak scanner FAIL.
+SHNC-05 PASS – validly signed old 5.10.23 -> registry DENY.
+SHNC-06 PASS – mixed-version asset -> RI FAIL.
+SHNC-07 PASS for client request budget – oversized real-Core request -> PAYLOAD_TOO_LARGE before credential/network; server rate/concurrency portion LIVE NOT TESTED.
+SHNC-08 NOT TESTED – reporter browser canary route blocked by managed browser policy; no prohibited leak is claimed behaviorally.
+SHNC-09 PASS – floating GitHub Action ref -> pinned-input policy FAIL; clean PASS.
+SHNC-10 PASS – evidence file tamper after provisional manifest -> evidence verifier FAIL; clean final manifest verified.
+SHNC-11 NOT TESTED – no served school server headers.
+SHNC-12 NOT TESTED in this delta – no live school auth/app-guard environment; inherited GARP 2.3 authorization controls remain evidence only.
+SHNC-13 PASS structural/inherited – hostile AI output remains inert; no tool action path.
+SHNC-14 PASS – AI assurance baseline mutation -> current evidence checker FAIL; clean PASS.
+SHNC-15 NOT TESTED – live alert event pipeline absent.
+SHNC-16 PASS – valid test signature under revoked keyId -> trust verifier DENY.
+SHNC-17 N/A – AGENTIC=NO.
+SHNC-18 N/A – AGENTIC=NO.
+SHNC-19 N/A – no agentic memory/cross-user agent context.
+SHNC-20 N/A – no agent tool loop/cascade.
+
+GHNC MATRIX
+GHNC-01 PASS – disposable vendor copy drift -> vendored-consistency FAIL; clean 4/4, drift 0.
+GHNC-02 PASS – disposable precache of GHRAB platform -> SW security-freeze CRITICAL/FAIL; clean PASS.
+GHNC-03 NOT TESTED – requires live opened browser + access revocation timing.
+GHNC-04 PASS – general profile substituted into school deployment -> school-profile QA FAIL pre-runtime.
+GHNC-05 PASS – actual Core rejects direct-gemini/local provider key under school runtime; credential provider calls=0.
+GHNC-06 NOT TESTED – reporter browser path blocked by URLBlocklist.
+GHNC-07 NOT TESTED – reporter browser/transport diacritic ceiling not runnable here.
+GHNC-08 NOT TESTED – requires live AI Studio dispatch endpoint.
+GHNC-09 NOT TESTED – requires live Studio/registry authorization path.
+GHNC-10 PASS – versioned PWA id/start_url mutation -> GARP25 boundary checker FAIL.
+GHNC-11 NOT TESTED – binary rights provenance cannot be established from repository snapshot; candidate records this debt rather than inventing ownership.
+GHNC-12 PASS – GH-02 closing test demonstrably FAILS on pre-fix 5.10.23 source and PASSES on 5.10.24.
+GHNC-13 PASS control-honesty – GARP25 local checks are not falsely claimed as protected CI gate; workflow inspection recorded.
+GHNC-14 PASS – release gate with missing required PREP trust-root input -> FAIL with missing-input list.

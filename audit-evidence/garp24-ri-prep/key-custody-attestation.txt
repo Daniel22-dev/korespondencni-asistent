@@ -1,0 +1,16 @@
+GARP 2.4 – KEY CUSTODY ATTESTATION (BEZ SECRETU)
+
+Release signer role: production release signer – NOT YET PROVISIONED
+keyId: production keyId – NOT TESTED
+Algorithm: Ed25519
+Primary storage class (bez cesty/hesla): NOT TESTED
+Private key present on school server: NE – technický návrh/policy
+Private key present in repo/build/logs: NE – ověřeno scanem kandidáta
+Recovery backup exists: NOT TESTED
+Recovery storage class (bez detailu secretu): NOT TESTED
+Rotation procedure documented: ANO – GARP 2.4 policy
+Revocation procedure documented: ANO – GARP 2.4 policy
+Recovery/rotation drill date: NOT TESTED
+Release account strong MFA/passkey/hardware key: NOT TESTED
+Evidence type: technický RI-PREP test s dočasným Ed25519 klíčem mimo repo; test private key nebyl uložen do evidence ani deploymentu.
+Poznámky: testovací keyId correspondence-garp24-migration-test-5.10.23 není produkční trust root.

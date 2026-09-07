@@ -1,0 +1,33 @@
+PC-01 PATH COVERAGE / DUPLICATE ENTRY POINTS – 5.10.14
+
+AI EGRESS
+- Jeden produkční provider egress: src/js/30-api-gemini.js -> GHRAB_AI.generate().
+- 6 produkčních callGemini call-sites pokrývá 8 registrovaných operací:
+  1) incoming-analysis – buildIncomingAnalysisPrompt -> untrusted incoming-email
+  2) reply-draft – incoming source + model-derived selected/excluded requirements as untrusted-data
+  3) synonym-suggestions – synonym-source untrusted-data + full injection system rule
+  4) draft-refinement – draft untrusted-data + optional locked-formulations + model-derived-tone-findings untrusted-data
+  5) tone-check – draft-for-tone-check untrusted-data
+  6) outgoing dispatcher – outgoing-rewrite / outgoing-compose / outgoing-proofread, source text always untrusted-data
+- requiredCapabilities=[] for all 8 operations.
+
+C-01 duplicate-entry search
+- buildModelDerivedReplyScope: model-derived reply requirements -> untrusted-data.
+- toneChoiceData/selectedToneRefinement: model-derived tone results -> only findings untrusted-data; trusted/app-generated part contains indexes only.
+- refineDraft: modelDerivedFindings serialized through buildUntrustedModelDataBlock.
+- synonym helper: independent secondary AI path verified.
+- trustedInstruction:true remains only for fixed app-owned quick-action buttons, not for tone-check/model-derived text.
+
+C-02/import paths
+- EML/TXT/HTML import passes through local preprocessing/anonymization before AI.
+- stripHtml defense-in-depth now removes hidden/style-based content requested by Claude.
+
+C-03/test paths
+- test build contains full lexical runner and namespace only under local test-hook gate.
+- production build strips full runner and leaves fail-closed stubs.
+- scripts/test.mjs default jsdom URL contains no ?test=1.
+
+C-05/scans
+- qa:p5 and qa:p5:ci include secret + canary release scans.
+
+Outcome: no additional duplicate production AI path found after fixes.

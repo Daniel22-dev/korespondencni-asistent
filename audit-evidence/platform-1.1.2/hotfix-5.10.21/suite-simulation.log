@@ -1,0 +1,392 @@
+
+> ghrab-korespondencni-asistent@5.10.21 qa:suite-session:simulation
+> node scripts/qa-suite-session-simulation.mjs
+
+GHRAB suite-session cleanup selhal: local-cleanup-verification {
+  ok: false,
+  failures: [],
+  remainingOwnedKeys: [ 'local:ghrab.correspondence.profile.v1' ]
+}
+GHRAB suite-session cleanup selhal: local-cleanup-verification {
+  ok: false,
+  failures: [],
+  remainingOwnedKeys: [ 'local:ghrab.correspondence.profile.v1' ]
+}
+GHRAB suite-session cleanup selhal: local-cleanup-verification {
+  ok: false,
+  failures: [],
+  remainingOwnedKeys: [ 'local:ghrab.correspondence.profile.v1' ]
+}
+GHRAB suite-session cleanup selhal: local-cleanup-verification {
+  ok: false,
+  failures: [],
+  remainingOwnedKeys: [ 'session:rozbor_work_session_v2' ]
+}
+GHRAB suite-session cleanup selhal: local-cleanup-verification {
+  ok: false,
+  failures: [],
+  remainingOwnedKeys: [ 'session:rozbor_work_session_v2' ]
+}
+{
+  "schema": "ghrab-suite-session-simulation-v1",
+  "generatedAt": "2026-09-05T08:41:02.938Z",
+  "appId": "correspondence",
+  "appVersion": "5.10.21",
+  "platformVersion": "1.1.2",
+  "contract": "ghrab-suite-session-v1",
+  "syntheticDataOnly": true,
+  "canary": "GARP-STUDENT-CANARY-72364259DCAAD82F",
+  "usesActualPlatformSource": true,
+  "usesActualChildSuiteHandlerSource": true,
+  "privacyCleanupFacade": "manifest-backed synthetic facade; browser/full-app validation remains separate",
+  "browserStatus": "NOT TESTED in this environment: Chromium local navigation blocked by organization policy",
+  "results": [
+    {
+      "name": "open-child-suite-end",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "local-cleared",
+          "ok": true
+        },
+        {
+          "id": "session-cleared",
+          "ok": true
+        },
+        {
+          "id": "credential-cleared",
+          "ok": true
+        },
+        {
+          "id": "backup-cleared",
+          "ok": true
+        },
+        {
+          "id": "owned-handoff-cleared",
+          "ok": true
+        },
+        {
+          "id": "foreign-event-preserved",
+          "ok": true
+        },
+        {
+          "id": "migration-marker-preserved",
+          "ok": true
+        },
+        {
+          "id": "manual-setting-preserved",
+          "ok": true
+        },
+        {
+          "id": "received-marker",
+          "ok": true
+        },
+        {
+          "id": "cleanup-marker",
+          "ok": true
+        },
+        {
+          "id": "tab-marker",
+          "ok": true
+        },
+        {
+          "id": "ack",
+          "ok": true
+        },
+        {
+          "id": "write-lock",
+          "ok": true
+        },
+        {
+          "id": "ack-after-remove",
+          "ok": true
+        },
+        {
+          "id": "ack-after-cleanup-marker",
+          "ok": true
+        }
+      ],
+      "detail": {
+        "generation": "1788597662561-ws75u6lj",
+        "rm": 2,
+        "cm": 8,
+        "ack": 10
+      }
+    },
+    {
+      "name": "delayed-open-replay",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "replay-clears-local",
+          "ok": true
+        },
+        {
+          "id": "replay-marks-cleanup",
+          "ok": true
+        },
+        {
+          "id": "replay-marks-tab",
+          "ok": true
+        },
+        {
+          "id": "replay-acks",
+          "ok": true
+        },
+        {
+          "id": "reload-remains-clean",
+          "ok": true
+        },
+        {
+          "id": "same-session-tab-marker-persists",
+          "ok": true
+        },
+        {
+          "id": "reload-does-not-clean-again",
+          "ok": true
+        }
+      ],
+      "detail": {
+        "generation": "1788597662589-ivgeg3n7"
+      }
+    },
+    {
+      "name": "multi-tab",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "tab-a-session-cleared",
+          "ok": true
+        },
+        {
+          "id": "tab-b-session-cleared",
+          "ok": true
+        },
+        {
+          "id": "tab-a-marker",
+          "ok": true
+        },
+        {
+          "id": "tab-b-marker",
+          "ok": true
+        },
+        {
+          "id": "shared-local-cleared",
+          "ok": true
+        },
+        {
+          "id": "stale-a-blocked",
+          "ok": true
+        },
+        {
+          "id": "stale-b-blocked",
+          "ok": true
+        },
+        {
+          "id": "both-locked",
+          "ok": true
+        }
+      ],
+      "detail": {
+        "generation": "1788597662669-4x14hhkc",
+        "appWideSeen": "1788597662669-4x14hhkc"
+      }
+    },
+    {
+      "name": "browser-history-guard-simulation",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "not-cleaned-while-page-event-suppressed",
+          "ok": true
+        },
+        {
+          "id": "pageshow-clears-local",
+          "ok": true
+        },
+        {
+          "id": "pageshow-clears-session",
+          "ok": true
+        },
+        {
+          "id": "pageshow-tab-marker",
+          "ok": true
+        },
+        {
+          "id": "pageshow-ack",
+          "ok": true
+        },
+        {
+          "id": "pageshow-lock",
+          "ok": true
+        }
+      ],
+      "detail": {
+        "generation": "1788597662722-a30qsgui"
+      }
+    },
+    {
+      "name": "browser-history-fresh-navigation-replay",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "replay-deferred-before-pageshow",
+          "ok": true
+        },
+        {
+          "id": "pageshow-clears-local",
+          "ok": true
+        },
+        {
+          "id": "pageshow-clears-session",
+          "ok": true
+        },
+        {
+          "id": "pageshow-tab-marker",
+          "ok": true
+        },
+        {
+          "id": "pageshow-ack",
+          "ok": true
+        },
+        {
+          "id": "pageshow-lock",
+          "ok": true
+        }
+      ],
+      "detail": {
+        "generation": "1788597662774-5mdpu2fj"
+      }
+    },
+    {
+      "name": "fail-closed-delete-fault",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "fault-leaves-owned-data",
+          "ok": true
+        },
+        {
+          "id": "no-cleanup-marker",
+          "ok": true
+        },
+        {
+          "id": "no-tab-marker",
+          "ok": true
+        },
+        {
+          "id": "no-platform-ack",
+          "ok": true
+        },
+        {
+          "id": "lifecycle-lock-still-engaged",
+          "ok": true
+        }
+      ],
+      "detail": {
+        "generation": "1788597662828-7ogkbvhe"
+      }
+    },
+    {
+      "name": "negative-control-handler-disabled",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "expected-sensitive-data-remains",
+          "ok": true
+        },
+        {
+          "id": "expected-no-cleanup-marker",
+          "ok": true
+        },
+        {
+          "id": "expected-no-ack",
+          "ok": true
+        }
+      ],
+      "detail": {
+        "generation": "1788597662857-igy0aycl",
+        "expectedOutcome": "FAIL when handler registration is disabled"
+      }
+    },
+    {
+      "name": "shared-storage-ownership",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "foreign-handoff-v2-preserved",
+          "ok": true
+        },
+        {
+          "id": "foreign-handoff-v1-preserved",
+          "ok": true
+        },
+        {
+          "id": "own-event-row-cleared",
+          "ok": true
+        },
+        {
+          "id": "foreign-event-row-preserved",
+          "ok": true
+        },
+        {
+          "id": "cleanup-acked",
+          "ok": true
+        }
+      ],
+      "detail": {
+        "generation": "1788597662883-64yynnmv"
+      }
+    },
+    {
+      "name": "f02-app-wide-ack-diagnostic",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "diagnostic-condition-demonstrated",
+          "ok": true
+        }
+      ],
+      "detail": {
+        "generation": "1788597662911-9tedqd8j",
+        "appWideSeen": "1788597662911-9tedqd8j",
+        "tabASeen": "1788597662911-9tedqd8j",
+        "tabBSeen": "",
+        "tabBWorkRemaining": true,
+        "demonstratesAppWideAckIsNotAllTabsProof": true,
+        "status": "open-ecosystem-follow-up"
+      }
+    },
+    {
+      "name": "f03-same-origin-trust-boundary",
+      "status": "passed",
+      "checks": [
+        {
+          "id": "global-suite-tombstone-raw-writable",
+          "ok": true
+        },
+        {
+          "id": "foreign-child-ack-raw-writable",
+          "ok": true
+        }
+      ],
+      "detail": {
+        "risk": "inherent-same-origin-open-ecosystem-debt"
+      }
+    }
+  ],
+  "f02Diagnostic": {
+    "generation": "1788597662911-9tedqd8j",
+    "appWideSeen": "1788597662911-9tedqd8j",
+    "tabASeen": "1788597662911-9tedqd8j",
+    "tabBSeen": "",
+    "tabBWorkRemaining": true,
+    "demonstratesAppWideAckIsNotAllTabsProof": true
+  },
+  "summary": {
+    "total": 10,
+    "passed": 10,
+    "failed": 0,
+    "status": "passed"
+  }
+}

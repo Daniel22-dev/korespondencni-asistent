@@ -1,0 +1,6 @@
+CENTRÁLNÍ AI STUDIO ACCESS VRSTVA — CURRENT HEAD CHECK
+Repo: Daniel22-dev/AI-Studio-GHRAB
+Kontrola: GitHub API/connector dne 2026-08-29
+main HEAD: 328701510c0cad4005d935a95b8c28c04255fe71
+Tento SHA je shodný se snapshotem/harnessem používaným v current-cycle access evidence.
+Poznámka: commit je podle GitHub metadata unsigned; to samo o sobě není substitut za RT-16 signing-key/account evidence a RT-16 proto zůstává NOT TESTED.

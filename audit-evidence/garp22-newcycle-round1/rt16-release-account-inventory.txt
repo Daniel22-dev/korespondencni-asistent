@@ -1,0 +1,129 @@
+RT-16 RELEASE / SUPPLY-CHAIN INVENTORY
+candidate_version=5.10.12
+source_zip_sha256=c9ff594803a148720d70543f8420ef7cd5b56857ab4828fee13ca4f1851af868
+
+[GitHub Actions uses]
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/deploy.yml:23:      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/deploy.yml:25:      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/deploy.yml:47:      - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/deploy.yml:50:      - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/deploy.yml:66:        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/axe-supplemental.yml:17:      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/axe-supplemental.yml:18:      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/axe-supplemental.yml:38:        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p4-release.yml:17:      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p4-release.yml:18:      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/sync-ghrab-ai-core.yml:20:      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/sync-ghrab-ai-core.yml:24:      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p3-quality.yml:17:      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p3-quality.yml:18:      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p5-release-gate.yml:17:      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p5-release-gate.yml:18:      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p5-release-gate.yml:38:        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+
+[Workflow permissions]
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/deploy.yml-7-  workflow_dispatch:
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/deploy.yml-8-
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/deploy.yml:9:permissions:
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/deploy.yml-10-  contents: read
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/deploy.yml-11-  pages: write
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/deploy.yml-12-  id-token: write
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/deploy.yml-13-
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/deploy.yml-14-concurrency:
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/deploy.yml-15-  group: pages
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/deploy.yml-16-  cancel-in-progress: true
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/deploy.yml-17-
+--
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/axe-supplemental.yml-7-  pull_request:
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/axe-supplemental.yml-8-
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/axe-supplemental.yml:9:permissions:
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/axe-supplemental.yml-10-  contents: read
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/axe-supplemental.yml-11-
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/axe-supplemental.yml-12-jobs:
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/axe-supplemental.yml-13-  axe:
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/axe-supplemental.yml-14-    runs-on: ubuntu-latest
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/axe-supplemental.yml-15-    timeout-minutes: 30
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/axe-supplemental.yml-16-    steps:
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/axe-supplemental.yml-17-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+--
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p4-release.yml-7-  pull_request:
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p4-release.yml-8-
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p4-release.yml:9:permissions:
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p4-release.yml-10-  contents: read
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p4-release.yml-11-
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p4-release.yml-12-jobs:
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p4-release.yml-13-  quality:
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p4-release.yml-14-    runs-on: ubuntu-latest
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p4-release.yml-15-    timeout-minutes: 45
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p4-release.yml-16-    steps:
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p4-release.yml-17-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+--
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/sync-ghrab-ai-core.yml-5-    types: [ghrab-ai-core-released]
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/sync-ghrab-ai-core.yml-6-
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/sync-ghrab-ai-core.yml:7:permissions:
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/sync-ghrab-ai-core.yml-8-  contents: write
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/sync-ghrab-ai-core.yml-9-  pull-requests: write
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/sync-ghrab-ai-core.yml-10-
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/sync-ghrab-ai-core.yml-11-env:
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/sync-ghrab-ai-core.yml-12-  TRUSTED_STUDIO_ORIGIN: https://daniel22-dev.github.io
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/sync-ghrab-ai-core.yml-13-  TRUSTED_MANIFEST_PREFIX: /AI-Studio-GHRAB/ai-core/releases/
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/sync-ghrab-ai-core.yml-14-
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/sync-ghrab-ai-core.yml-15-jobs:
+--
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p3-quality.yml-7-  pull_request:
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p3-quality.yml-8-
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p3-quality.yml:9:permissions:
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p3-quality.yml-10-  contents: read
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p3-quality.yml-11-
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p3-quality.yml-12-jobs:
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p3-quality.yml-13-  quality:
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p3-quality.yml-14-    runs-on: ubuntu-latest
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p3-quality.yml-15-    timeout-minutes: 45
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p3-quality.yml-16-    steps:
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p3-quality.yml-17-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+--
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p5-release-gate.yml-7-  pull_request:
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p5-release-gate.yml-8-
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p5-release-gate.yml:9:permissions:
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p5-release-gate.yml-10-  contents: read
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p5-release-gate.yml-11-
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p5-release-gate.yml-12-jobs:
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p5-release-gate.yml-13-  p5-release-gate:
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p5-release-gate.yml-14-    runs-on: ubuntu-latest
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p5-release-gate.yml-15-    timeout-minutes: 45
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p5-release-gate.yml-16-    steps:
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/.github/workflows/p5-release-gate.yml-17-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+[package lock integrity summary]
+node:internal/fs/promises:633
+  return new FileHandle(await PromisePrototypeThen(
+                        ^
+
+Error: ENOENT: no such file or directory, open 'package.json'
+    at async open (node:internal/fs/promises:633:25)
+    at async readFile (node:internal/fs/promises:1237:14)
+    at async file:///mnt/data/ka_new_cycle/app/korespondencni-asistent-main/scripts/qa-p5-lock.mjs:3:22 {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'package.json'
+}
+
+Node.js v22.16.0
+
+[package lock integrity summary - rerun from project root]
+{
+  "schema": "ghrab-p5-lock-audit-v1",
+  "status": "passed",
+  "package": "ghrab-korespondencni-asistent",
+  "version": "5.10.12",
+  "directDependencies": 3,
+  "lockedPackages": 67,
+  "registry": "https://registry.npmjs.org"
+}
+
+[private-key like files by name]
+./scripts/qa-garp22-secret-scan.mjs
+
+[known limitation]
+Private signing-key custody, MFA/account recovery and branch protection cannot be proven from application artifact or current connector permissions; do not infer PASS.

@@ -1,0 +1,18 @@
+{
+  "gate": "GARP-2.5.1-RELEASE-GATE-R4",
+  "status": "RED",
+  "profile": "prep",
+  "errors": [
+    "assurance-links-verifier-missing"
+  ],
+  "steps": [],
+  "skippedSteps": [],
+  "verifier": "/mnt/data/r4_no_verifier/verify-assurance-links.mjs",
+  "declaredLinks": [
+    "sourcePackageSha256",
+    "deploymentPackageSha256",
+    "buildProvenanceSha256",
+    "sbomSha256",
+    "evidenceManifestSha256"
+  ]
+}

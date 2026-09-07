@@ -1,0 +1,168 @@
+{
+  "schema": "garp22-static-security-surface-v1",
+  "generatedAt": "2026-08-28T12:49:24.542483+00:00",
+  "workflowActions": {
+    "count": 17,
+    "allPinnedFullShaOrLocal": true,
+    "items": [
+      {
+        "file": ".github/workflows/deploy.yml",
+        "line": 23,
+        "ref": "actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+        "pinnedFullShaOrLocal": true
+      },
+      {
+        "file": ".github/workflows/deploy.yml",
+        "line": 25,
+        "ref": "actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+        "pinnedFullShaOrLocal": true
+      },
+      {
+        "file": ".github/workflows/deploy.yml",
+        "line": 47,
+        "ref": "actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b",
+        "pinnedFullShaOrLocal": true
+      },
+      {
+        "file": ".github/workflows/deploy.yml",
+        "line": 50,
+        "ref": "actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa",
+        "pinnedFullShaOrLocal": true
+      },
+      {
+        "file": ".github/workflows/deploy.yml",
+        "line": 66,
+        "ref": "actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e",
+        "pinnedFullShaOrLocal": true
+      },
+      {
+        "file": ".github/workflows/axe-supplemental.yml",
+        "line": 17,
+        "ref": "actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+        "pinnedFullShaOrLocal": true
+      },
+      {
+        "file": ".github/workflows/axe-supplemental.yml",
+        "line": 18,
+        "ref": "actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+        "pinnedFullShaOrLocal": true
+      },
+      {
+        "file": ".github/workflows/axe-supplemental.yml",
+        "line": 38,
+        "ref": "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+        "pinnedFullShaOrLocal": true
+      },
+      {
+        "file": ".github/workflows/p3-quality.yml",
+        "line": 17,
+        "ref": "actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+        "pinnedFullShaOrLocal": true
+      },
+      {
+        "file": ".github/workflows/p3-quality.yml",
+        "line": 18,
+        "ref": "actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+        "pinnedFullShaOrLocal": true
+      },
+      {
+        "file": ".github/workflows/sync-ghrab-ai-core.yml",
+        "line": 20,
+        "ref": "actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+        "pinnedFullShaOrLocal": true
+      },
+      {
+        "file": ".github/workflows/sync-ghrab-ai-core.yml",
+        "line": 24,
+        "ref": "actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+        "pinnedFullShaOrLocal": true
+      },
+      {
+        "file": ".github/workflows/p5-release-gate.yml",
+        "line": 17,
+        "ref": "actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+        "pinnedFullShaOrLocal": true
+      },
+      {
+        "file": ".github/workflows/p5-release-gate.yml",
+        "line": 18,
+        "ref": "actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+        "pinnedFullShaOrLocal": true
+      },
+      {
+        "file": ".github/workflows/p5-release-gate.yml",
+        "line": 38,
+        "ref": "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+        "pinnedFullShaOrLocal": true
+      },
+      {
+        "file": ".github/workflows/p4-release.yml",
+        "line": 17,
+        "ref": "actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+        "pinnedFullShaOrLocal": true
+      },
+      {
+        "file": ".github/workflows/p4-release.yml",
+        "line": 18,
+        "ref": "actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+        "pinnedFullShaOrLocal": true
+      }
+    ]
+  },
+  "packageLock": {
+    "resolvedPackageEntries": 67,
+    "missingIntegrity": []
+  },
+  "browserBoundary": {
+    "cspContainsUnsafeInlineScript": true,
+    "cspContainsUnsafeEval": false,
+    "sourceEvalCalls": 0,
+    "sourceNewFunctionCalls": 0,
+    "postMessageCalls": [],
+    "messageListeners": [
+      {
+        "file": "src/sw.js",
+        "offset": 937
+      }
+    ],
+    "iframeTags": [],
+    "targetBlankLinks": 3,
+    "targetBlankMissingNoopener": [],
+    "gmailWindowOpenNoopener": true,
+    "studioUrlSameOriginGuardPresent": true,
+    "serviceWorkerMessageListenerOnly": true,
+    "serviceWorkerMessageHandler": "Only accepts GHRAB_SKIP_WAITING / SKIP_WAITING and calls self.skipWaiting(); no cross-window data channel."
+  },
+  "aiEgress": {
+    "productionGenerateCalls": [
+      {
+        "file": "src/js/30-api-gemini.js",
+        "line": 276
+      }
+    ],
+    "count": 1,
+    "safetyGateCallPresent": true
+  },
+  "fileImports": {
+    "fileReaderCount": 3,
+    "paths": [
+      {
+        "file": "src/js/60-prichozi-a-muj-email.js",
+        "line": 845
+      },
+      {
+        "file": "src/js/70-nastroje-testy-data.js",
+        "line": 1762
+      },
+      {
+        "file": "src/js/75-pracovni-stul.js",
+        "line": 237
+      }
+    ]
+  },
+  "serviceWorker": {
+    "nonGetRequestsBypassed": true,
+    "cachePutCalls": 2,
+    "indexedDbReferencesInSource": 0
+  }
+}

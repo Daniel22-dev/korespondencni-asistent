@@ -1,0 +1,53 @@
+GARP 2.5.1 DELTA – CURRENT RT / SIM / PC-01 / AIR STATUS – KS 5.10.24
+Baseline: audit-evidence/garp23-cycle1-round2/rt-sim-matrix.txt and ai-red-air-matrix.txt (5.10.14).
+Rule: unchanged controls are carried only where the current regression/data-flow delta did not invalidate them; current targeted revalidation is listed.
+
+RT-00 PASS – existing data map/PC-01 retained; source/storage/AI data-flow delta in 5.10.23->5.10.24 = NO.
+RT-01 PASS – auth/app-guard runtime delta = NO; inherited access/bootstrap evidence retained. School-server live revocation remains separate GH-03/GHNC-03 NOT TESTED.
+RT-02 PASS – inherited tampered permit/storage denial; no auth delta.
+RT-03 PASS – inherited signature/audience checks; no auth delta.
+RT-04 PASS – inherited expiry/overlong permit denial; no auth delta.
+RT-05 NOT TESTED – static SW security-freeze is stronger and PASS, but full SIM-07 update/recovery + open-client revocation behavior unavailable.
+RT-06 PASS – privacy/anonymization logic delta = NO; final source secret/canary sweeps PASS.
+RT-07 PASS – current XSS sink gate PASS and hostile-output structural path retained.
+RT-08 PASS – import/file logic delta = NO; inherited limits/sanitization retained.
+RT-09 NOT TESTED – current AI-RED structural 33/33 PASS, behavioral live-model attempts=0, ASR=N/A.
+RT-10 PASS – source secret scan 161 files / 0 findings; SHNC-01 expected FAIL, clean PASS.
+RT-11 PASS – inherited role boundary, no auth delta.
+RT-12 PASS – current browser contract PASS; full served/runtime environment limitations remain separately recorded.
+RT-13 PASS WITH DEBT – no unsafe-eval/eval/new Function regression; CSP unsafe-inline compatibility exception remains open until served nonce/hash migration.
+RT-14 PASS structural – reporter sanitization/static unit 52/52; GHNC-06/07 behavior NOT TESTED.
+RT-15 NOT TESTED – actual multi-tab browser collision/isolation unavailable.
+RT-16 NOT TESTED production governance – actions are SHA pinned and supply-chain PREP controls PASS; live branch protection/MFA/production key custody not proven.
+RT-17 NOT TESTED – deterministic suite-session simulation 10/10, but mandatory actual multi-tab/back/restore and live AIR context isolation are not fully executable here.
+RT-18 PASS PREP – school-server profile builds and static/dynamic profile QA pass; actual school server is absent.
+RT-19 PASS structural – AI egress route unchanged; single app generate path, eight operations, school route same-origin gateway; provider retention is external boundary.
+RT-20 NOT TESTED overall – app-local session cleanup/suite simulation PASS, but provider retention + real multi-tab/back/reopen lifecycle remain unresolved.
+
+PC-01 PASS / carried + targeted revalidation – ownership/data manifest and egress path unchanged; suite-session simulation 10/10; no new storage/import/export/data-flow code in delta. Live multi-user/server behavior remains outside PREP.
+
+SIM-01 PASS – carried signed permit allow/deny evidence; no auth delta.
+SIM-02 PASS baseline – revocation logic evidence retained; GHNC-03 current open-client + SW behavior NOT TESTED, so GH-02 overall is NOT TESTED.
+SIM-03 NOT TESTED current environment – deterministic history traversal simulation passes, unrestricted Browser Back/Restore behavior not executed in this cycle.
+SIM-04 NOT TESTED – actual multi-tab A/B collision requires unrestricted navigated browser.
+SIM-05 PASS – hostile AI response inert; structural AIR/SHNC-13.
+SIM-06 PASS – bounded request/retry controls retained; no egress route delta.
+SIM-07 NOT TESTED – full Service Worker update/recovery lifecycle unavailable; static SW freeze test PASS.
+SIM-08 PASS – inherited export/reimport logical-context isolation; data-flow delta = NO.
+
+AIR-01 NOT TESTED behavior – structural PASS.
+AIR-02 NOT TESTED behavior – structural PASS.
+AIR-03 NOT TESTED behavior – structural PASS.
+AIR-04 NOT TESTED behavior – structural PASS.
+AIR-05 NOT TESTED behavior – structural PASS.
+AIR-06 NOT TESTED behavior – structural PASS.
+AIR-07 NOT TESTED behavior – structural PASS.
+AIR-08 NOT TESTED behavior – structural PASS.
+AIR-09 NOT TESTED behavior – structural PASS; live exfiltration attempts=0.
+AIR-10 NOT TESTED behavior – structural PASS; live cross-context attempts=0.
+AIR-11 NOT TESTED behavior – structural PASS; requiredCapabilities empty, hostile output inert.
+AIR-12 NOT TESTED behavior – structural bounded mutation corpus PASS; behavioral ASR=N/A.
+
+AI-RED structural current: 33/33 PASS. Built-in negative control: unsafe FAIL, hardened PASS.
+Model/provider/prompt evidence freshness: security/AI-ASSURANCE-BASELINE.json PASS; SHNC-14 proves a changed baseline invalidates current evidence.
+RED TEAM gate maximum: AMBER.

@@ -1,0 +1,34 @@
+=== QA P5 RELEASE ===
+{
+  "appId": "correspondence",
+  "appVersion": "5.10.12",
+  "axeRequired": false,
+  "summary": {
+    "total": 39,
+    "passed": 37,
+    "failed": 2
+  },
+  "status": "failed",
+  "failed": [
+    "report.runtime.exists",
+    "report.ui.exists"
+  ]
+}
+qa-p5-release rc=1
+=== QA P5 ACCEPTANCE ===
+{
+  "appId": "correspondence",
+  "appVersion": "5.10.12",
+  "status": "failed",
+  "summary": {
+    "total": 16,
+    "passed": 13,
+    "failed": 3
+  },
+  "failed": [
+    "file.dist/qa-p5-runtime-report.json",
+    "file.dist/qa-p5-ui-interactions-report.json",
+    "status.dist/qa-p5-release-report.json"
+  ]
+}
+qa-p5-acceptance rc=1

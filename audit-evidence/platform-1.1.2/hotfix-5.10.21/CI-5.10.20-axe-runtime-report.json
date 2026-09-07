@@ -1,0 +1,274 @@
+{
+  "schema": "ghrab-p5-axe-runtime-v1",
+  "appId": "correspondence",
+  "appVersion": "5.10.20",
+  "requestedVersion": "4.12.1",
+  "installedVersion": "4.12.1",
+  "status": "failed",
+  "scriptsExecuted": true,
+  "transport": "local-http",
+  "protectedScriptsUnlocked": true,
+  "cspBypassedForHarness": true,
+  "policy": "WCAG 2 A/AA, 2.1 A/AA a 2.2 AA; critical, serious a moderate blokují release.",
+  "pages": [
+    {
+      "page": "index.html",
+      "width": 1280,
+      "unlock": {
+        "before": 1,
+        "unlocked": 1,
+        "after": 0,
+        "platformVersion": "1.1.2"
+      },
+      "axeVersion": "4.12.1",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "help": "Elements must only use permitted ARIA attributes",
+          "nodes": 3
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "help": "Elements must meet minimum color contrast ratio thresholds",
+          "nodes": 10
+        }
+      ]
+    },
+    {
+      "page": "index.html",
+      "width": 390,
+      "unlock": {
+        "before": 1,
+        "unlocked": 1,
+        "after": 0,
+        "platformVersion": "1.1.2"
+      },
+      "axeVersion": "4.12.1",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "help": "Elements must only use permitted ARIA attributes",
+          "nodes": 3
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "help": "Elements must meet minimum color contrast ratio thresholds",
+          "nodes": 10
+        }
+      ]
+    },
+    {
+      "page": "manual/index.html",
+      "width": 1280,
+      "unlock": {
+        "before": 1,
+        "unlocked": 1,
+        "after": 0,
+        "platformVersion": "1.1.2"
+      },
+      "axeVersion": "4.12.1",
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "help": "Elements must meet minimum color contrast ratio thresholds",
+          "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/color-contrast?application=axeAPI",
+          "nodes": [
+            {
+              "impact": "serious",
+              "target": [
+                ".term:nth-child(1) > b"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.84 (foreground color: #2c6e6b, background color: #111e2c, font size: 12.0pt (16px), font weight: bold). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "impact": "serious",
+              "target": [
+                ".term:nth-child(2) > b"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.84 (foreground color: #2c6e6b, background color: #111e2c, font size: 12.0pt (16px), font weight: bold). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "impact": "serious",
+              "target": [
+                ".term:nth-child(3) > b"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.84 (foreground color: #2c6e6b, background color: #111e2c, font size: 12.0pt (16px), font weight: bold). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "impact": "serious",
+              "target": [
+                ".term:nth-child(4) > b"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.84 (foreground color: #2c6e6b, background color: #111e2c, font size: 12.0pt (16px), font weight: bold). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "impact": "serious",
+              "target": [
+                ".term:nth-child(5) > b"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.84 (foreground color: #2c6e6b, background color: #111e2c, font size: 12.0pt (16px), font weight: bold). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "impact": "serious",
+              "target": [
+                ".term:nth-child(6) > b"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.84 (foreground color: #2c6e6b, background color: #111e2c, font size: 12.0pt (16px), font weight: bold). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "impact": "serious",
+              "target": [
+                ".term:nth-child(7) > b"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.84 (foreground color: #2c6e6b, background color: #111e2c, font size: 12.0pt (16px), font weight: bold). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "impact": "serious",
+              "target": [
+                ".term:nth-child(8) > b"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.84 (foreground color: #2c6e6b, background color: #111e2c, font size: 12.0pt (16px), font weight: bold). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "impact": "serious",
+              "target": [
+                ".term:nth-child(9) > b"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.84 (foreground color: #2c6e6b, background color: #111e2c, font size: 12.0pt (16px), font weight: bold). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "impact": "serious",
+              "target": [
+                ".term:nth-child(10) > b"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.84 (foreground color: #2c6e6b, background color: #111e2c, font size: 12.0pt (16px), font weight: bold). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        }
+      ],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "help": "Elements must meet minimum color contrast ratio thresholds",
+          "nodes": 203
+        }
+      ]
+    },
+    {
+      "page": "manual/index.html",
+      "width": 390,
+      "unlock": {
+        "before": 1,
+        "unlocked": 1,
+        "after": 0,
+        "platformVersion": "1.1.2"
+      },
+      "axeVersion": "4.12.1",
+      "violations": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "help": "Elements must meet minimum color contrast ratio thresholds",
+          "helpUrl": "https://dequeuniversity.com/rules/axe/4.12/color-contrast?application=axeAPI",
+          "nodes": [
+            {
+              "impact": "serious",
+              "target": [
+                ".term:nth-child(1) > b"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.84 (foreground color: #2c6e6b, background color: #111e2c, font size: 12.0pt (16px), font weight: bold). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "impact": "serious",
+              "target": [
+                ".term:nth-child(2) > b"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.84 (foreground color: #2c6e6b, background color: #111e2c, font size: 12.0pt (16px), font weight: bold). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "impact": "serious",
+              "target": [
+                ".term:nth-child(3) > b"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.84 (foreground color: #2c6e6b, background color: #111e2c, font size: 12.0pt (16px), font weight: bold). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "impact": "serious",
+              "target": [
+                ".term:nth-child(4) > b"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.84 (foreground color: #2c6e6b, background color: #111e2c, font size: 12.0pt (16px), font weight: bold). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "impact": "serious",
+              "target": [
+                ".term:nth-child(5) > b"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.84 (foreground color: #2c6e6b, background color: #111e2c, font size: 12.0pt (16px), font weight: bold). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "impact": "serious",
+              "target": [
+                ".term:nth-child(6) > b"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.84 (foreground color: #2c6e6b, background color: #111e2c, font size: 12.0pt (16px), font weight: bold). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "impact": "serious",
+              "target": [
+                ".term:nth-child(7) > b"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.84 (foreground color: #2c6e6b, background color: #111e2c, font size: 12.0pt (16px), font weight: bold). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "impact": "serious",
+              "target": [
+                ".term:nth-child(8) > b"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.84 (foreground color: #2c6e6b, background color: #111e2c, font size: 12.0pt (16px), font weight: bold). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "impact": "serious",
+              "target": [
+                ".term:nth-child(9) > b"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.84 (foreground color: #2c6e6b, background color: #111e2c, font size: 12.0pt (16px), font weight: bold). Expected contrast ratio of 4.5:1"
+            },
+            {
+              "impact": "serious",
+              "target": [
+                ".term:nth-child(10) > b"
+              ],
+              "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.84 (foreground color: #2c6e6b, background color: #111e2c, font size: 12.0pt (16px), font weight: bold). Expected contrast ratio of 4.5:1"
+            }
+          ]
+        }
+      ],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "help": "Elements must meet minimum color contrast ratio thresholds",
+          "nodes": 188
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "scanned": 4,
+    "critical": 0,
+    "serious": 20,
+    "moderate": 0,
+    "minor": 0,
+    "blockers": 20
+  },
+  "note": "CSP je v runtime harnessu odstraněna pouze proto, aby bylo možné odemknout chráněné inline skripty; její přítomnost a serverové hlavičky kontroluje samostatná bezpečnostní brána."
+}

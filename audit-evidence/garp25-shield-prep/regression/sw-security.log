@@ -1,0 +1,19 @@
+
+> ghrab-korespondencni-asistent@5.10.24 qa:garp25:sw
+> node scripts/garp25/check-sw-security-freeze.mjs dist-school-server/sw.js dist-school-server security/security-critical-assets.json
+
+{
+  "status": "PASS",
+  "serviceWorker": "dist-school-server/sw.js",
+  "precachedEntries": 22,
+  "cacheFirstDetected": true,
+  "criticalAssetsInDeployment": [
+    "config/deployment.json",
+    "config/deployment.school-server.json",
+    "ghrab/ghrab-platform.js",
+    "runtime-config.js",
+    "runtime-config.school-server.js"
+  ],
+  "findings": [],
+  "note": "Staticka kontrola. Nenahrazuje SIM-07 (update/recovery) ani behavioralni test revokace v prohlizeci."
+}

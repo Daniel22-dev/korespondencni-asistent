@@ -1,0 +1,112 @@
+GARP 2.2 — NOVÝ CYKLUS — OPRAVNÉ KOLO C — AUTORITATIVNÍ RT/SIM MATICE
+Aplikace: Korespondenční asistent 5.10.12
+Pouze syntetická data: ANO
+
+RT-00 PASS — Data Map & Scope
+Důkaz: rt00-pc01.json. 1 produkční GHRAB_AI.generate; 4 FileReader cesty celkem (3 app + 1 reporter); 0 IndexedDB; storage namespace inventář; SW non-GET bypass; export boundary.
+Availability/fail-safe: inventář službu neomezuje.
+
+RT-01 PASS — Access Bypass
+Důkaz: access-runtime.json (no-permit fail-closed, valid permit) + app-bootstrap-integration.json (deny/import failure neodemkne protected runtime) + negative-control-n06.log.
+Availability/fail-safe: missing/invalid access => deny; recovery přes platné oprávnění AI Studia.
+
+RT-02 PASS — Client Storage Tampering
+Důkaz: access-runtime.json / RT02-storage-tamper-does-not-authorize.
+Availability/fail-safe: podvržený token neautorizuje; recovery nový validní permit.
+
+RT-03 PASS — Authorization Token
+Důkaz: access-runtime.json explicitně RT03-invalid-signature-rejected + RT03-wrong-audience-rejected; navíc role/exp/90d/revocation.
+Availability/fail-safe: chybný podpis/claim => deny.
+
+RT-04 PASS — Time Manipulation
+Důkaz: access-runtime.json RT04-expired a RT04-too-long + centrální access snapshot/QA.
+Availability/fail-safe: stale/expired => deny.
+
+RT-05 NOT TESTED — Offline / Rollback
+Částečně: sharedAccessVersion mismatch fail-closed, online revocation + offline signed LKG, SW statická hranice.
+Blokátor: SIM-07 skutečný SW update/recovery na navigovaném release nebyl proveden.
+Availability/fail-safe: mismatch/stale se blokuje; recovery online refresh/nový bundle.
+
+RT-06 PASS — Student Data Leakage
+Důkaz: singlepage-runtime.json 12/12, canary-artifact-sweep.json 0 unexpected hits, negative-controls-secret-canary.log.
+Availability/fail-safe: preflight může blokovat podezřelý vstup; explicitní Gmail export je uživatelský egress.
+
+RT-07 PASS — XSS / Untrusted Rendering
+Důkaz: singlepage hostile HTML inert; FINAL-xss-report.json status passed; eval/new Function 0.
+Availability/fail-safe: escaping může omezit formátování, ne data.
+
+RT-08 PASS — Malicious Import
+Důkaz: core-tests-final.log 164/164 + import limits/sanitization + SIM-08.
+Availability/fail-safe: neplatný/velký import odmítnut bez přepsání stavu.
+
+RT-09 PASS — AI Prompt Injection
+Důkaz: core-tests-final.log, singlepage-runtime.json, production-test-boundary.json 8/8, static-surface-assertions.json 28/28.
+Availability/fail-safe: preflight může request odmítnout.
+
+RT-10 PASS — Secret Exposure
+Důkaz: secret-scan.json 0 findings/0 risky filenames; finální ZIP scan musí zůstat 0; negative-controls-secret-canary.log dokazuje, že syntetický fake key je zachycen.
+Availability/fail-safe: scan blokuje release, ne runtime.
+
+RT-11 PASS — Role Escalation
+Důkaz: access-runtime.json teacher-not-admin, invalid-role, cross-app deny; app bootstrap respektuje deny.
+Availability/fail-safe: neznámá role => deny.
+
+RT-12 PASS — postMessage / iframe / URL
+Důkaz: static-surface-assertions.json; noopener Gmail/new-tab, bez privilegovaného postMessage/iframe kanálu.
+Availability/fail-safe: omezuje cross-origin povrch.
+
+RT-13 PASS S DLUHEM — CSP / Browser Boundary
+Důkaz: CSP single source/parity, production boundary 8/8, eval/new Function 0.
+Dluh: unsafe-inline zůstává známý compatibility debt.
+Availability/fail-safe: příliš přísná CSP může blokovat runtime; recovery build/CSP oprava, ne fail-open.
+
+RT-14 PASS — Error Data Leakage
+Důkaz: singlepage canary se neechoje v preflight error; reporter static/unit 52 PASS/0 FAIL. Browser část reportéru NOT READY kvůli policy, ale leak kontrola je provedena.
+Availability/fail-safe: diagnostika je zkrácena/sanitizována.
+
+RT-15 NOT TESTED — Concurrency / State
+Částečně: SIM-06 PASS.
+Blokátor: SIM-04 multi-tab A/B nebyl proveden v unrestricted navigovaném browseru.
+Availability/fail-safe: nutný dvoukartový test.
+
+RT-16 NOT TESTED — Supply Chain / Release + Key Custody & Account Hardening
+Částečně: SHA-pinned Actions, lock 67, žádný private key v distribuci, centrální CI/deploy evidence.
+Blokátor: MFA/passkey, skutečná signing-key custody/backup/rotation a branch protection nelze z artefaktu bezpečně prokázat; branch protection API dříve vracelo 403.
+Availability/fail-safe: Integrity Gate zůstává AMBER.
+
+RT-17 NOT TESTED — Cross-Student Data Isolation
+Částečně: A/B local end-work + SIM-08 PASS.
+Blokátor: SIM-03 Back/Restore/Reopen a SIM-04 multi-tab NOT TESTED kvůli managed URLBlocklist.
+KRITICKÉ PRO GREEN.
+
+RT-18 PASS — School-Server Readiness
+Důkaz: school.log, same-origin school-server build/QA PASS; school profile nezpřístupňuje direct provider key fallback.
+Availability/fail-safe: školní gateway failure nesmí přepnout na direct provider.
+
+RT-19 PASS — AI Data Minimization
+Důkaz: rt00-pc01.json jediný production egress; singlepage blocked sensitive canary = nulový egress; retry bez starých dat.
+Availability/fail-safe: preflight může blokovat legitimní request; recovery anonymizace/oprava vstupu.
+
+RT-20 NOT TESTED — Data Retention / Deletion
+Silně částečně: endWork local/session/transient/reporter clear PASS, enumeration failure fail-closed, negative control scope funguje.
+Blokátor: SIM-03 browser restore/reopen není proveden, takže nelze uzavřít kompletní shared-device lifecycle.
+KRITICKÉ PRO GREEN.
+
+SIM-01 PASS — signed permit, app A allowed/B denied, audience/scope/role; access-runtime.json.
+SIM-02 PASS — online revocation -> offline signed LKG keeps revocation; access-runtime.json.
+SIM-03 NOT TESTED — Back/Restore/Reopen; managed URLBlocklist ["*"] blokuje navigovaný test.
+SIM-04 NOT TESTED — Multi-Tab A/B; stejné omezení prostředí.
+SIM-05 PASS — hostile AI response inert; singlepage-runtime.json.
+SIM-06 PASS — interrupted AI request/retry; singlepage-runtime.json.
+SIM-07 NOT TESTED — Service Worker Update/Recovery Drill vyžaduje unrestricted navigovaný browser.
+SIM-08 PASS — export -> reimport -> second logical user; singlepage-runtime.json.
+
+GATE:
+SECURITY: AMBER
+PRIVACY: AMBER
+RED TEAM: AMBER
+RELEASE INTEGRITY: AMBER
+OVERALL: AMBER
+
+REÁLNÁ STUDENTSKÁ DATA: NEPOUŽÍVAT
+TESTOVACÍ PROVOZ POUZE SE SYNTETICKÝMI DATY

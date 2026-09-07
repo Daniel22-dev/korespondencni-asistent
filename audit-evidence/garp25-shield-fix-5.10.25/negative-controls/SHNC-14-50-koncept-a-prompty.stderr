@@ -1,0 +1,51 @@
+{
+  "schema": "ghrab-ai-assurance-baseline-check-v1",
+  "status": "FAIL",
+  "baselineVersion": "5.10.25",
+  "providerModelPolicy": "standalone runtime may use approved direct provider profiles; school-server runtime is provider-neutral and allows school-gateway only",
+  "errors": [
+    "hash-mismatch:src/js/50-koncept-a-prompty.js"
+  ],
+  "observed": [
+    {
+      "path": "src/runtime-config.js",
+      "expected": "66b3030f3e77c5016da8ec38c0689e8e2675a77d5363091abca948f71081bd31",
+      "observed": "66b3030f3e77c5016da8ec38c0689e8e2675a77d5363091abca948f71081bd31"
+    },
+    {
+      "path": "src/runtime-config.school-server.js",
+      "expected": "f3da9d0cc4bda3c1a88e16800a69953b09904840cd7639c1bfebbdda03ba8a65",
+      "observed": "f3da9d0cc4bda3c1a88e16800a69953b09904840cd7639c1bfebbdda03ba8a65"
+    },
+    {
+      "path": "src/ai-operations.json",
+      "expected": "ef52613cb1962d9daba732ff209e437508d70a554d94b72698e52c78c07a4afc",
+      "observed": "ef52613cb1962d9daba732ff209e437508d70a554d94b72698e52c78c07a4afc"
+    },
+    {
+      "path": "src/js/28-ai-integration.js",
+      "expected": "578df3d6e54296578d58718d6ba57df386b6c00a192a63b8b95e03483b4e1ec3",
+      "observed": "578df3d6e54296578d58718d6ba57df386b6c00a192a63b8b95e03483b4e1ec3"
+    },
+    {
+      "path": "src/js/30-api-gemini.js",
+      "expected": "84380f413cc82f0cb60182b93268fa8b56bc03671c9b2fcb6d0c1e3a45ed4ecd",
+      "observed": "84380f413cc82f0cb60182b93268fa8b56bc03671c9b2fcb6d0c1e3a45ed4ecd"
+    },
+    {
+      "path": "vendor/ghrab-ai-core-1.0.0/ghrab-ai-core-1.0.0.js",
+      "expected": "81acb93e1f17646ab2b58b3744fce38a6ed5c779e8d5e9cba2ae797816ecec44",
+      "observed": "81acb93e1f17646ab2b58b3744fce38a6ed5c779e8d5e9cba2ae797816ecec44"
+    },
+    {
+      "path": "src/js/40-anonymizace.js",
+      "expected": "b743d0fbf59f27beede5e2ffd83cbba877cda7397fcd71ca8866ec2f53a5e10c",
+      "observed": "b743d0fbf59f27beede5e2ffd83cbba877cda7397fcd71ca8866ec2f53a5e10c"
+    },
+    {
+      "path": "src/js/50-koncept-a-prompty.js",
+      "expected": "892d2e3da4c367a62c91ca6b4eefe44747089d59ee479ac0432b0c3e2523ce5c",
+      "observed": "1db5227ad302f9a4a450363aebb26c3c2d48ae477f9b8d3f445d7df93ad7ea09"
+    }
+  ]
+}

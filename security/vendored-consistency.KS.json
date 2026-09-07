@@ -1,0 +1,33 @@
+{
+  "schema": "ghrab-vendored-consistency-v1",
+  "note": "Lokální KS kontrola. Pro error-reporter znamená canonical pouze vlastní source soubor KS; prokazuje source -> dist -> dist-school-server byte identitu uvnitř KS, nikoli cross-repo GH-01 ani ekosystémovou kanonickou shodu.",
+  "canonicalRoot": "..",
+  "components": [
+    {
+      "id": "platform",
+      "canonical": "vendor/ghrab-platform-1.1.2/ghrab-platform.js",
+      "severity": "CRITICAL"
+    },
+    {
+      "id": "error-reporter",
+      "canonical": "src/access/error-reporter.js",
+      "severity": "HIGH"
+    }
+  ],
+  "consumers": [
+    {
+      "appId": "correspondence",
+      "root": "..",
+      "copies": {
+        "platform": [
+          "dist/ghrab/ghrab-platform.js",
+          "dist-school-server/ghrab/ghrab-platform.js"
+        ],
+        "error-reporter": [
+          "dist/access/error-reporter.js",
+          "dist-school-server/access/error-reporter.js"
+        ]
+      }
+    }
+  ]
+}

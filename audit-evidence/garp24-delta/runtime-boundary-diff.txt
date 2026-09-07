@@ -1,0 +1,39 @@
+GARP 2.4 DELTA DIFF – KS 5.10.22 -> 5.10.23
+Excluded generated/evidence dirs: node_modules, dist, dist-school-server, audit-evidence, test-results, .git
+
+CHANGED SEMANTIC_DIFF              CHANGELOG.md
+CHANGED SEMANTIC_DIFF              README.md
+ADDED   NEW_RELEASE_TOOLING_OR_DOC RELEASE-NOTES-5.10.23-GARP-2.4-RI-PREP.md
+CHANGED VERSION_ONLY               ghrab-platform.consumer.json
+CHANGED VERSION_ONLY               package-lock.json
+CHANGED SEMANTIC_DIFF              package.json
+CHANGED VERSION_ONLY               reporter-test.config.json
+ADDED   NEW_RELEASE_TOOLING_OR_DOC scripts/garp24/create-release-integrity.mjs
+ADDED   NEW_RELEASE_TOOLING_OR_DOC scripts/garp24/prepare-release-integrity.mjs
+ADDED   NEW_RELEASE_TOOLING_OR_DOC scripts/garp24/scan-deployment-leaks.mjs
+ADDED   NEW_RELEASE_TOOLING_OR_DOC scripts/garp24/sign-release-integrity.mjs
+ADDED   NEW_RELEASE_TOOLING_OR_DOC scripts/garp24/verify-release-bundle.mjs
+ADDED   NEW_RELEASE_TOOLING_OR_DOC scripts/garp24/verify-release-integrity.mjs
+ADDED   NEW_RELEASE_TOOLING_OR_DOC scripts/garp24/verify-release-signature.mjs
+ADDED   NEW_RELEASE_TOOLING_OR_DOC scripts/qa-garp24-ri-prep.mjs
+CHANGED VERSION_ONLY               scripts/qa-suite-session-simulation.mjs
+CHANGED VERSION_ONLY               scripts/test.mjs
+CHANGED VERSION_ONLY               src/access/error-reporter-adapter.js
+CHANGED VERSION_ONLY               src/ai-operations.json
+CHANGED VERSION_ONLY               src/config/data-manifest.json
+CHANGED VERSION_ONLY               src/config/platform-manifest.json
+CHANGED VERSION_ONLY               src/config/release-acceptance.json
+CHANGED VERSION_ONLY               src/config/security-headers.json
+CHANGED VERSION_ONLY               src/ghrab-platform.consumer.json
+CHANGED VERSION_ONLY               src/index.template.html
+CHANGED SEMANTIC_DIFF              src/js/10-release-changelog.js
+CHANGED VERSION_ONLY               src/manifest.webmanifest
+CHANGED VERSION_ONLY               src/manual/index.html
+CHANGED VERSION_ONLY               src/studio-manifest.template.json
+CHANGED VERSION_ONLY               src/sw.js
+
+Závěr:
+- Aplikační prompt assembly, anonymizace, auth/access, storage ownership, AI egress a privacy logika nebyly GARP 2.4 migrací změněny.
+- Distribuované runtime bytes se mění pouze kvůli SemVer 5.10.23/cache namespace a uživatelskému changelogu/release metadata.
+- Funkční GARP 2.4 delta je v release/build toolingu a audit harnessu.
+- Nejde o změnu security boundary ani datových toků; relevantní RT/SIM/AIR proto nejsou znovu otevírány z důvodu této delta migrace.

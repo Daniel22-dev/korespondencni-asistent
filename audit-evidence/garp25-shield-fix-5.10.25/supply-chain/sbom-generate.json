@@ -1,0 +1,6 @@
+{
+  "status": "PASS",
+  "specVersion": "1.7",
+  "components": 67,
+  "output": "security/ks-5.10.25.cdx.json"
+}

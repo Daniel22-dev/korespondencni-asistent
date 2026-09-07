@@ -1,0 +1,27 @@
+{
+  "schema": "ghrab-ks-pinned-inputs-v1",
+  "root": "/tmp/ks-shnc09.XZ5Kvp",
+  "checks": [
+    {
+      "id": "SHNC-09-github-actions-full-sha",
+      "status": "FAIL",
+      "detail": "{\"uses\":17,\"badUses\":[{\"file\":\"sync-ghrab-ai-core.yml\",\"ref\":\"actions/checkout@v4\"}]}"
+    },
+    {
+      "id": "SH-SC-pinned-direct-npm",
+      "status": "PASS",
+      "detail": "{\"directDependencies\":3,\"floating\":[]}"
+    },
+    {
+      "id": "SH-SC-lockfile-direct-match",
+      "status": "PASS",
+      "detail": "{\"lockfileVersion\":3,\"mismatches\":[]}"
+    }
+  ],
+  "summary": {
+    "total": 3,
+    "passed": 2,
+    "failed": 1,
+    "status": "FAIL"
+  }
+}

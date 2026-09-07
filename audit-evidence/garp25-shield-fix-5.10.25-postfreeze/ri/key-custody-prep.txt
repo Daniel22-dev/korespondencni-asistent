@@ -1,0 +1,1 @@
+Disposable PREP Ed25519 private key generated under /tmp only; never copied into source/deployment/evidence. Shell trap removes temp key directory on exit.

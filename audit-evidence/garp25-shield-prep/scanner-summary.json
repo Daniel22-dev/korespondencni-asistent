@@ -1,0 +1,35 @@
+{
+  "schema": "ghrab-security-scan-summary-v1",
+  "appId": "correspondence",
+  "version": "5.10.24",
+  "date": "2026-09-06",
+  "sast": {
+    "status": "PASS_EQUIVALENT",
+    "tools": ["scripts/qa-p3-quality.mjs", "scripts/qa-p5-xss-sinks.mjs", "scripts/qa-garp23-ai-red-structural.mjs", "GARP 2.5.1 static checkers"],
+    "results": ["quality 31/31 PASS", "XSS sink inventory PASS", "AIR structural 33/33 PASS", "GARP25 static PASS"],
+    "limitation": "No external Semgrep/CodeQL binary was available in this runner; PASS is project-specific deterministic static assurance, not a claim of third-party SAST coverage."
+  },
+  "sca": {
+    "status": "PASS_WITH_FRESHNESS_LIMITATION",
+    "tool": "npm audit --offline --json",
+    "result": "0 vulnerabilities (0 critical/high/moderate/low/info) in the locally available advisory/cache state",
+    "limitation": "Fresh online advisory retrieval was not available; repeat online/CI before LIVE."
+  },
+  "secretScan": {
+    "status": "PASS",
+    "result": "161 source files scanned, 0 findings; deployment leak scan PASS",
+    "negativeControl": "SHNC-01 synthetic secret caused expected FAIL; clean rerun PASS"
+  },
+  "dast": {
+    "status": "NOT_TESTED_FULL",
+    "availableEvidence": "qa:browser PASS; reporter static 52/52 PASS",
+    "limitations": ["qa:runtime timeout under managed Chromium policy", "Axe status not-ready-environment", "reporter browser path blocked by URLBlocklist", "no real school server served headers"]
+  },
+  "sbom": {
+    "status": "PASS",
+    "format": "CycloneDX",
+    "specVersion": "1.7",
+    "components": 67,
+    "sha256": "49025abbc9991a2941da6e857a9ddea822b3dfbfdbdd71890c5f82210151f197"
+  }
+}

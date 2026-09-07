@@ -1,0 +1,13 @@
+
+> ghrab-korespondencni-asistent@5.10.20 qa:runtime
+> node scripts/qa-p5-runtime.mjs
+
+[runtime] index.html @ 1280px
+file:///mnt/data/fix_5_10_20/korespondencni-asistent-5.10.20-platform-1.1.2-candidate/scripts/qa-p5-runtime.mjs:193
+        if(!ready)throw new Error(`Runtime page timeout: ${rel}`);
+                        ^
+
+Error: Runtime page timeout: index.html
+    at file:///mnt/data/fix_5_10_20/korespondencni-asistent-5.10.20-platform-1.1.2-candidate/scripts/qa-p5-runtime.mjs:193:25
+
+Node.js v22.16.0

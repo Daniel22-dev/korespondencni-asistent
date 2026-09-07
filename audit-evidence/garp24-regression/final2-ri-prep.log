@@ -1,0 +1,11 @@
+
+> ghrab-korespondencni-asistent@5.10.23 qa:garp24:ri-prep
+> node scripts/qa-garp24-ri-prep.mjs
+
+{
+  "status": "PASS",
+  "version": "5.10.23",
+  "artifactDigest": "f43d6a0b308c91a17feee345fa55172d40998a4fcfb47bfe6a1a5a9a0c3c98db",
+  "results": 11,
+  "evidenceDir": "/mnt/data/ks_audit/korespondencni-asistent-main/audit-evidence/garp24-ri-prep"
+}

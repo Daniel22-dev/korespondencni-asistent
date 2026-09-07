@@ -1,0 +1,9 @@
+Active version consistency:
+/mnt/data/fix_51022/korespondencni-asistent-5.10.21-platform-1.1.2-candidate/package.json:3:  "version": "5.10.22",
+/mnt/data/fix_51022/korespondencni-asistent-5.10.21-platform-1.1.2-candidate/ghrab-platform.consumer.json:5:  "appVersion": "5.10.22",
+/mnt/data/fix_51022/korespondencni-asistent-5.10.21-platform-1.1.2-candidate/ghrab-platform.consumer.json:7:    "version": "1.1.2",
+/mnt/data/fix_51022/korespondencni-asistent-5.10.21-platform-1.1.2-candidate/ghrab-platform.consumer.json:16:    "version": "1.0.0",
+/mnt/data/fix_51022/korespondencni-asistent-5.10.21-platform-1.1.2-candidate/reporter-test.config.json:5:  "version": "5.10.22",
+
+Stale active 5.10.21 references (expected only historical changelog entry if any):
+/mnt/data/fix_51022/korespondencni-asistent-5.10.21-platform-1.1.2-candidate/src/js/10-release-changelog.js:17:    "5.10.21: Axe kontrast hotfix — glossary názvy v interaktivním manuálu už nepoužívají tmavý accent s kontrastem 2,84:1; nový teal odstín má bezpečnou rezervu nad WCAG AA. Axe pravidla ani threshold se nemění.",

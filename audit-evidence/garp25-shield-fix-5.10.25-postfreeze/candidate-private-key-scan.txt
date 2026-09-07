@@ -1,0 +1,1 @@
+PASS: no PEM private key material in candidate tree. Public-key PEM evidence is allowed.

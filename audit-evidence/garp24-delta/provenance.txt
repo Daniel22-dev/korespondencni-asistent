@@ -1,0 +1,36 @@
+GARP 2.4 – PROVENANCE / DELTA MIGRACE – KORESPONDENČNÍ ASISTENT
+Datum: 2026-09-06
+Fáze: D – ChatGPT/Codex RI-PREP delta migrace
+
+APLIKACE
+appId: correspondence
+vstupní verze: 5.10.22
+kandidátní verze: 5.10.23
+GHRAB Platform: 1.1.2
+architektura: aktuálně SERVERLESS + připravený SCHOOL SERVER deployment profil
+
+VSTUPNÍ SOURCE ZIP
+soubor: korespondencni-asistent-main(20260906-131348).zip
+SHA-256: b03287cd1e02286bdefea4bbee0b79ce1dba68c61b9be312d7095371dd11d413
+.git metadata: NE
+commit hash: NOT AVAILABLE – ve vstupním ZIPu není .git metadata; hodnota nebyla domyšlena.
+
+GARP 2.4 BALÍČEK
+soubor: GARP-2.4-SIGNED-RELEASE-SERVER-INTEGRITY(1).zip
+SHA-256: f5d203b2824e529dda49f3e4701abb54239bb054a2527be5e7dbca4b0f5dbc36
+SHA256SUMS.txt interní kontrola: PASS
+
+POSLEDNÍ DOLOŽENÁ GARP 2.3 BASELINE V SOURCE SNAPSHOTU
+verze: 5.10.14
+cesta: audit-evidence/garp23-cycle1-round2/
+status baseline: SECURITY AMBER / PRIVACY AMBER / RED TEAM AMBER / RELEASE INTEGRITY AMBER / OVERALL AMBER
+hlavní otevřené položky: behavioral AIR, SIM-03/SIM-04/SIM-07, RT-16 key custody, RT-17/RT-20.
+
+POZNÁMKA K POST-BASELINE VÝVOJI
+Aktuální vstup 5.10.22 obsahuje releasy 5.10.15 až 5.10.22 po poslední plné GARP 2.3 baseline 5.10.14. Tyto změny jsou součástí vstupního stavu 5.10.22; GARP 2.4 delta diff je proto veden přesně 5.10.22 -> 5.10.23. Tato migrace nezvedá carry-forward gate nad AMBER a netvrdí, že post-baseline releasy samy představují nový plný GARP 2.3 GREEN closure.
+
+ZÁVĚR PROVENANCE
+- Vstupní ZIP a GARP balíček jsou jednoznačně identifikované SHA-256.
+- Commit nebyl k dispozici a je explicitně null/NOT AVAILABLE.
+- release-integrity.json nepoužívá falešný sourceCommit ani falešný hash kandidátního source package; pole sourceCommit/sourcePackageSha256 mohou zůstat null, dokud není vytvořen samostatný immutable source package/commit.
+- Hash vstupního 5.10.22 source ZIPu je veden v této provenance a v RI-PREP evidence jako INPUT provenance, nikoli jako nepravdivá identita 5.10.23 source package.

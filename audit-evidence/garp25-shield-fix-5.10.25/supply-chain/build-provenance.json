@@ -1,0 +1,33 @@
+{
+  "schema": "ghrab-build-provenance-v1",
+  "subject": {
+    "name": "KS-5.10.25-GARP2.5-SHIELD-DEPLOYMENT-PAYLOAD.zip",
+    "sha256": "d396edcd4612fa438858c7a2f7f9c8ef8e7227f6a03e080ac6ddca8b716d296e"
+  },
+  "source": {
+    "repository": "korespondencni-asistent",
+    "revision": null,
+    "sourcePackageSha256": "dce4bbda6f5c2a39130814bf0f26e0bc37c10e5f5e50aef71f3c6f6833f00149"
+  },
+  "builder": {
+    "id": "local-untrusted-builder",
+    "workflow": null,
+    "entrypoint": "GHRAB_BUILD_TIME=2026-09-06T19:30:00.000Z node scripts/build.mjs && node scripts/build-school-profile.mjs"
+  },
+  "invocation": {
+    "startedAt": "2026-09-06T19:30:00.000Z",
+    "finishedAt": "2026-09-06T19:45:00.000Z",
+    "lockfileSha256": "3ab17c18d0258b414a44a3bbe7628d7f08f131f88db931dc81e0a08cf2253d62",
+    "parameters": {
+      "profile": "school-server"
+    }
+  },
+  "releaseIntegrity": {
+    "artifactDigest": "5e0ebab6c6df6161caad35c9429643fb0318afb5d426d24413682b772fb711ce"
+  },
+  "assurance": {
+    "slsaReference": "v1.2",
+    "claimedSlsaLevel": null,
+    "note": "Custom GARP provenance is not by itself a SLSA level attestation."
+  }
+}

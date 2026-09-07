@@ -1,0 +1,14 @@
+QA runtime bootstrap static regression - 5.10.20
+
+FILE: scripts/qa-p5-runtime.mjs
+PASS: no eager protected-script conversion
+PASS: real Platform unlock invoked
+PASS: protected-script sentinel present
+PASS: syntax check
+
+FILE: scripts/qa-p5-axe-runtime.mjs
+PASS: no eager protected-script conversion
+PASS: real Platform unlock invoked
+PASS: protected-script sentinel present
+PASS: syntax check
+

@@ -1,0 +1,425 @@
+GARP 2.5.1 SHIELD - NEZAVISLA KONTROLA TOOLING R3 (ROLE B / CLAUDE)
+Aplikace: Korespondencni asistent (KS), frozen runtime 5.10.25
+Predmet: kanonicky standard A vs lokalni tooling KS, opravy N11-N13
+Datum kontroly: 2026-09-07
+Rezim: NOVY VYSLOVNE ZAHAJENY NEZAVISLY TOOLING CYKLUS R3
+Kontrolujici: Claude, role B (neopravuje, pouze overuje a zadava)
+
+======================================================================
+0. VERDIKT V JEDNE VETE
+======================================================================
+Poprve mam kanonicky balicek A a mohu potvrdit, ze opravy N6, N7, N8 a N11 jsou
+skutecne ekosystemove - vsech 14 spolecnych nastroju je bajt po bajtu totoznych
+a kanonicky selftest bezi 47/47 primo z A - ale prave diky tomu jsem nasel novy
+HIGH nalez: kanonicky balicek NEOBSAHUJE verify-assurance-links.mjs, kanonicka
+brana ten krok pri jeho nepritomnosti TICHE PRESKOCI a ohlasi GREEN, takze jsem
+ji nechal projit deployment s podstrcenou provenance.
+
+OVERALL: AMBER.
+Frozen runtime 5.10.25 je podle meho nezavisleho porovnani nedotcen.
+
+======================================================================
+1. BOD 1 - POTVRZENI VSTUPU A-F
+======================================================================
+Poprve za ctyri kola dorazilo vse. Bundle CLAUDE-TOOLING-R3-VERIFICATION-BUNDLE
+.zip obsahuje vsechny polozky a jeho SHA256SUMS.txt sedi 6/6:
+
+  A) GARP-2.5.1-ZAVEDENI-TOOLING-R3.zip
+     903553a979829f745caf847e2dce7cb6d6dd0cdb00958eb9f13fb3c361fe1ee6   OK
+  B) KS-5.10.25-GARP2.5.1-TOOLING-R3-SOURCE.zip
+     3366962f5ee10c4b73baba1e387970f064a89d9e57d0252883929074013e4cf1   OK
+  C) KS-5.10.25-GARP2.5-SHIELD-DEPLOYMENT.zip
+     9b580c26c68d90aeb0b93dfc2f146d1cef71091d87ae766a3c069d6041a1cd81   OK
+  D) KS-5.10.24-GARP2.5-SHIELD-DEPLOYMENT.zip
+     940668749c8e731a46c1157c7030229d1e40e9312aa9638277529a071765e7ca   OK
+  E) OVERENI-TOOLING-R2-...-SHIELD.txt
+     b92855628587b1e98035f80deddde001b1eaa35bd5d0dfec5b93ef65f36a549c   OK
+  F) tento predavaci protokol
+     2ce68ec5cd9359073b4df172d8f517ea45680923198f93128bbaa879fbb7aa23   OK
+
+C a D se shoduji s hashi, ktere jsem overil pri prijeti v kolech 1 a 2, takze
+regresni retezec je uzavreny napric vsemi ctyrmi koly.
+
+E jsem porovnal proti svemu vlastnimu vystupu z kola 3: hash i obsah bajtove
+totozne, diff prazdny. Dokument, na ktery ChatGPT reagoval, je presne ten,
+ktery jsem vydal, bez uprav v prenosu.
+
+OMEZENI PROSTREDI (nezmenene): node_modules ani Chromium nejsou k dispozici.
+Interni testy 171/171, suite-session, reporter 52/52, browser contract, AIR
+structural a Axe jsem nespoustel a nepovysuji je na PASS. Kapitola 6
+predavaciho protokolu s tim sama pocita.
+
+======================================================================
+2. BOD 2 - KANONICKY SELFTEST A SHA256SUMS
+======================================================================
+Interni SHA256SUMS.txt kanonickeho balicku A:
+  84 polozek, 84 OK, 0 FAILED.
+
+Selftest spusteny PRIMO z A, ne z kopie v KS:
+  node TOOLS/selftest-garp251.mjs
+  -> { "status": "PASS", "checks": 47, "passed": 47, "failed": [] }
+
+Ocekavani 47/47 potvrzuji. Lokalni selftest v B dava rovnez 47/47.
+
+Poznamka k vaze tohoto dukazu: selftest psala tataz strana, ktera nastroje
+opravila. Jeho hodnota je regresni ochrana, ne nezavisly dukaz spravnosti.
+Nezavislou cast delam adversarialne v kapitolach 4 a 5.
+
+======================================================================
+3. BOD 3 - DIFF A/TOOLS VS B/scripts/garp25
+======================================================================
+Vsech 14 spolecnych nastroju je BAJT PO BAJTU TOTOZNYCH:
+
+  check-sw-security-freeze.mjs      IDENTICKE
+  check-vendored-consistency.mjs    IDENTICKE
+  create-build-provenance.mjs       IDENTICKE
+  create-evidence-manifest.mjs      IDENTICKE
+  create-release-integrity.mjs      IDENTICKE
+  release-gate.mjs                  IDENTICKE
+  scan-deployment-leaks.mjs         IDENTICKE
+  selftest-garp251.mjs              IDENTICKE
+  sign-release-integrity.mjs        IDENTICKE
+  verify-build-provenance.mjs       IDENTICKE
+  verify-evidence-manifest.mjs      IDENTICKE
+  verify-release-integrity.mjs      IDENTICKE
+  verify-release-registry.mjs       IDENTICKE
+  verify-release-signature.mjs      IDENTICKE
+
+Vcetne trech nastroju z bodu 4 kapitoly 3, ktere jsem mel potvrdit zvlast:
+check-sw-security-freeze.mjs, release-gate.mjs a selftest-garp251.mjs jsou
+totozne. Zadny drift.
+
+Navic v KS: verify-assurance-links.mjs. Predavaci protokol to predem oznacil
+za app-specific a "samo o sobe neni drift". S tim NESOUHLASIM a vysvetluji to
+v nalezu N14 nize. Neni to app-specific nastroj a jeho nepritomnost v A ma
+merzitelny bezpecnostni dusledek.
+
+======================================================================
+4. BOD 4 - NEZAVISLA REPRODUKCE w3/w4/w5/w9
+======================================================================
+Postavil jsem si vlastni fixtures nad cistym deploymentem C a spustil je proti
+KANONICKEMU checkeru z A/TOOLS, ne proti kopii v KS:
+
+  w3  c['addAll'](W3)                        FAIL   exit 1   blokujici 1
+  w4  const put=c.addAll.bind(c); put(W4)    FAIL   exit 1   blokujici 1, 2 unresolved
+  w5  c.add('./ghrab/ghrab-plat'+'form.js')  FAIL   exit 1   blokujici 1
+  w9  importScripts('./extra-precache.js')   AMBER  exit 2   1 unresolved
+
+Zadna z techto ctyr cest uz nekonci tichym PASS. Presne to kapitola 2 slibuje
+a presne to jsem namerill. N11 je vecne opraveno.
+
+Zvlast ocenuji reseni w9: misto predstirani, ze checker umi rekurzivni analyzu,
+se jakykoli importScripts oznaci jako AMBER s duvodem
+sw-imports-external-script-not-analyzed. To je poctive a spravne fail-closed.
+
+======================================================================
+5. BOD 5 - MOJE NOVE BYPASS POKUSY
+======================================================================
+Kapitola 4 zada aspon pet dalsich rozumnych cest. Postavil jsem devet, vzdy se
+skutecnym precachovanim ghrab/ghrab-platform.js, vsechny proti kanonickemu
+checkeru z A:
+
+  x1  JSON.parse('["...critical..."]') + addAll        AMBER  exit 2   OK
+  x2  c.add(`${BASE_P}/ghrab-platform.js`)             AMBER  exit 2   OK
+  x3  postMessage-driven addAll(e.data.assets)         AMBER  exit 2   OK
+  x4  runtime cache.put kritickeho assetu ve fetch     AMBER  exit 2   OK
+  x5  const CacheAPI = caches; CacheAPI.open(...)      FAIL   exit 1   OK
+  x7  helper: function precacheOne(c,u){return c.add(u)}  AMBER exit 2 OK
+  x8  c.addAll(self.__WB_MANIFEST.map(x=>x.url))       AMBER  exit 2   OK
+  x9  c.add(new URL("...critical...", location).href)  AMBER  exit 2   OK
+  ---------------------------------------------------------------------
+  x6  const M='add'+'All'; c[M](W6B)                   PASS   exit 0   TICHY PASS
+
+Osm z devíti je spravne zachyceno. To je vyrazne lepsi vysledek nez v kole 3,
+kde ze deseti pokusu ctyri koncily tichym PASS. Fail-closed sit ted chyta i
+tvary, ktere nikdo predem nevyjmenoval - JSON.parse, sablonu s vyrazem,
+postMessage, pomocnou funkci, Workbox manifest i URL objekt. To je skutecna
+detekcni obalka, ne jen seznam zaplatovanych pripadu.
+
+Zbyva jeden pripad, viz nalez N15.
+
+======================================================================
+6. BOD 6 - FROZEN RUNTIME
+======================================================================
+  B/dist-school-server vs C (podepsany frozen deployment)   0 ROZDILU
+  B/dist-school-server vs snapshot Tooling R2               0 ROZDILU
+  podepsany manifest nad B/dist-school-server               VERIFIED, 39 souboru,
+      artifactDigest 5e0ebab6c6df6161caad35c9429643fb0318afb5d426d24413682b772fb711ce
+
+Podepsany, distribuovany runtime je prokazatelne nedotcen. Potvrzuji, ze
+Tooling R3 nezmenil to, co se nasazuje, a ze se nic nepodepisovalo znovu.
+
+  B/dist vs snapshot Tooling R2                             2 ROZDILY
+Viz nalez N16. Nejde o podepsany profil.
+
+======================================================================
+7. BODY 7 A 8 - N12 A N13
+======================================================================
+N12 - AUDITABILITA: OVERENO A UZAVRENO
+  v6.R2-original-inconsistent.json       zachovan, uvnitr "status": "FAIL"
+  v6.json (aktivni)                      "status": "AMBER"
+  bypass-exit-codes.txt                  v6:2
+  sw-bypass-matrix.txt                   AMBER
+  N12-EVIDENCE-ERRATA.txt                pritomen
+Vsechny ctyri artefakty ted rikaji totez a shoduji se s tim, co jsem v kole 3
+namerill (AMBER, exit 2). Puvodni nespravny soubor nebyl smazan ani prepsan,
+jen prejmenovan a doplnen errata. Presne takhle ma vypadat oprava evidence,
+kdyz je cilem auditovatelnost a ne hezky vysledek.
+
+N13 - IT HANDOFF: OVERENO A UZAVRENO
+  A/18-DEPLOYMENT-HANDOFF-PRO-IT.txt, radky 17 a 53-55
+  B/security/DEPLOYMENT-SECURITY.md, radky 50-58
+Oba dokumenty uvadeji, ze security-critical-assets.json je verifikacni metadata
+mimo web root, ze neobsahuje secret ani private signing key, ze se predava
+vedle deploymentu, ze se gate spousti s explicitnim --critical-list a ze bez
+seznamu je vysledek RED / critical-asset-list-missing. Oba take vyslovne rikaji,
+ze repo-layout fallback je jen pohodli uvnitr zdrojoveho stromu. To pokryva
+presne to, co jsem v N13 popsal.
+
+N11 - vecne opraveno, viz kapitola 4. Uzaviram s vyhradou N15.
+
+======================================================================
+8. NOVE NALEZY
+======================================================================
+
+----------------------------------------------------------------------
+N14  KANONICKY BALICEK NEMA verify-assurance-links.mjs A BRANA TEN KROK
+     TISE PRESKOCI
+     Zavaznost: HIGH pro ekosystem / kanonicky standard
+                N/A pro KS (KS nastroj ma a funguje)
+----------------------------------------------------------------------
+POPIS
+A/TOOLS obsahuje 14 nastroju. verify-assurance-links.mjs mezi nimi neni a neni
+ani v kanonickem SHA256SUMS.txt (jediny vyskyt slova "assurance" je nesouvisejici
+sablona security-assurance-crosswalk.template.txt).
+
+Kanonicky release-gate.mjs ale ten nastroj vola, radky 71-79:
+
+  const assuranceScript = path.join(here, 'verify-assurance-links.mjs');
+  if (existsSync(assuranceScript)) {
+    run('assurance-links', 'verify-assurance-links.mjs', [ ... ]);
+  }
+
+Kdyz soubor neexistuje, krok se PRESKOCI. Nezapise se zadny krok, nevznikne
+zadna chyba, zadny AMBER, zadna poznamka. Brana muze skoncit GREEN s osmi kroky
+misto devíti, a nic ve vystupu neprozradi, ze jeden krok chybi.
+
+DUKAZ
+Kanonicka brana z A/TOOLS nad cistym deploymentem 5.10.25:
+  GATE: GREEN, kroku: 8
+  assurance-links krok pritomen: False
+
+Bezpecnostni dusledek, ktery jsem zmerill:
+  KANONICKA brana A/TOOLS, podstrcena zmenena provenance  -> GREEN, krok chybi
+  KS brana, tataz podstrcena provenance                   -> RED, assurance-links FAIL
+  KANONICKA brana, cista provenance                       -> GREEN, krok chybi
+  KS brana, cista provenance                              -> GREEN, assurance-links PASS
+
+Kanonicka brana tedy pousti jako GREEN release, jehoz provenance neodpovida
+podepsanemu manifestu.
+
+PROC TO NENI "APP-SPECIFIC"
+Kapitola 3 predem prohlasuje, ze extra verify-assurance-links.mjs v KS "samo
+neni drift". Nesouhlasim ze tri duvodu:
+1. Nastroj neobsahuje nic specifickeho pro KS. Cte pole ze schematu
+   ghrab-release-integrity-v2 a porovnava hashe. Je plne genericky.
+2. Kanonicky standard ta pole sam definuje: 11-RELEASE-INTEGRITY-SCHEMA.json ma
+   sourcePackageSha256, deploymentPackageSha256, buildProvenanceSha256,
+   sbomSha256 i evidenceManifestSha256, a
+   10-SIGNED-RELEASE-INTEGRITY-PROFILE.txt kapitola 5 popisuje jejich ucel jako
+   "svazat release s nezavislou assurance evidence". Standard tedy vazbu
+   definuje a nedodava nastroj, ktery by ji overil.
+3. Je to moje vlastni oprava N3 z kola 1, prijata a doresena pro KS. Cely
+   smysl cyklu R3 je prokazat, ze opravy nezustaly lokalni. U N6, N7, N8 a N11
+   to prokazane plati. U N3 neplati.
+
+A hlavne: tise preskoceny krok, ktery vede na nezaslouzeny GREEN, je presne ta
+trida chyby, kvuli ktere vznikl muj nalez N6. Tam brana volala checker s
+oslabenou konfiguraci, tady ho nevola vubec. Fail-closed pravidlo, ktere jste
+spravne zavedli pro seznam kritickych assetu, tady chybi.
+
+POZADOVANA OPRAVA
+1. Pridat verify-assurance-links.mjs do A/TOOLS a do kanonickeho SHA256SUMS.
+2. Zmenit chovani brany na fail-closed: kdyz manifest obsahuje aspon jedno
+   neprazdne pole *Sha256 a nastroj nebo odpovidajici vstup chybi, vysledek ma
+   byt RED s duvodem assurance-links-verifier-missing, nikoli tiche preskoceni.
+   Preskocit lze jen tehdy, kdyz jsou vsechna pole null.
+3. Ve vystupu brany vzdy uvest seznam kroku, ktere byly preskoceny a proc.
+   Brana, ktera nerika, co neudelala, produkuje falesne GREEN uz svym tvarem.
+4. Doplnit negativni kontrolu do selftestu: gate s podstrcenou provenance musi
+   skoncit RED. Soucasnych 47/47 tuto situaci nepokryva.
+
+----------------------------------------------------------------------
+N15  POCITANY NAZEV METODY KONCI TICHYM PASS
+     Zavaznost: LOW az MEDIUM (zbytkovy pripad v jinak uzavrene tride)
+----------------------------------------------------------------------
+POPIS
+Zavorkova notace s literalnim klicem je nove pokryta (w3 -> FAIL). Zavorkova
+notace s POCITANYM klicem pokryta neni:
+
+  const W6B=["./ghrab/ghrab-platform.js"];
+  const M='add'+'All';
+  caches.open(CACHE_NAME).then(c => c[M](W6B));
+
+  -> status PASS, exit 0, zadny nalez, zadny unresolved
+
+Checker tento zapis nerozpozna ani jako zapis do cache, takze ho neoznaci ani
+jako unresolved. Je to stejny tvar jako w3, jen s klicem v promenne.
+
+CO NETVRDIM
+Artefakt 5.10.25 tuto konstrukci nepouziva, overil jsem prochazeni vsech volani
+zapisu do cache uz v kole 2. Jde o uplnost deklarovane obalky, ne o zranitelnost.
+
+POZADOVANA OPRAVA
+Kazdy pristup na clen objektu podobneho Cache s neliteralnim klicem klasifikovat
+jako unresolved-cache-write, tedy AMBER. Nemusite umet vyhodnotit 'add'+'All';
+staci nepredstirat, ze tam zadny zapis neni.
+
+----------------------------------------------------------------------
+N16  TVRZENI "dist/ PROTI TOOLING R2: 0 ROZDILU" NEPLATI
+     Zavaznost: LOW (presnost tvrzeni + determinismus buildu)
+----------------------------------------------------------------------
+Kapitola 0 uvadi tri radky s nulovymi rozdily. Dva z nich jsem potvrdil. Treti
+ne:
+
+  B/dist vs snapshot Tooling R2: 2 soubory se lisi
+    dist/quality-report.json
+    dist/config/quality-manifest.json
+  Rozdil je v obou pripadech jediny klic:
+    /metrics/measuredAt   R2: 2026-09-06T20:09:30.255Z
+                          R3: 2026-09-07T04:54:31.791Z
+
+Zadny z techto souboru neni v dist-school-server ani v podepsanem inventari
+(overil jsem, ze v files[] neni zadna polozka se slovem quality). Podepsany
+runtime je tedy skutecne netknuty a bezpecnostni dopad je nulovy.
+
+Dve poznamky presto stoji za zaznam:
+1. Tvrzeni v predavacim protokolu je nepresne. Je to stejna trida jako N12 -
+   dokument rika o kousek vic, nez odpovida skutecnosti. Pri tomto stylu prace
+   ma i drobna nepresnost cenu, protoze ctenar protokolu nema jak poznat, ktere
+   z tech tri nulovych radku overit.
+2. dist/ obsahuje wall-clock timestamp, takze neni bajtove reprodukovatelny
+   napric prestavbami. Deterministicky rebuild, ktery se dolozil pro skolni
+   profil, plati proto, ze tyto soubory v dist-school-server nejsou. Stoji za to
+   to nekde napsat explicitne, at se na tom nekdo pozdeji nespali.
+
+======================================================================
+9. DALSI OVERENE POLOZKY
+======================================================================
+  lokalni selftest KS                47/47 PASS
+  kanonicky selftest z A             47/47 PASS
+  kanonicky SHA256SUMS               84/84 OK
+  school boundaries                  PASS
+  platform conformance               PASS
+  quality                            PASS
+  pinned inputs                      PASS
+  AI assurance baseline              PASS
+  XSS sink gate                      PASS
+  secret scan                        PASS, 0 nalezu
+  vendored consistency               PASS, 4/4, drift 0
+  release integrity nad B/dist-school-server   VERIFIED, 39 souboru
+
+======================================================================
+10. GATE - MUJ NEZAVISLY ZAVER
+======================================================================
+Kapitolu 9 predavaciho protokolu respektuji a nic z LIVE oblasti nepovysuji.
+
+SECURITY:          AMBER
+  Aplikacni kod se nezmenil a je bajtove totozny s tim, ktery jsem prosel v
+  kole 2. Zadny novy otevreny HIGH/CRITICAL v aplikaci KS.
+
+PRIVACY:           AMBER
+  Beze zmeny. Anonymizace a prompt assembly zustavaji v assurance obalce,
+  baseline znovu PASS.
+
+RED TEAM:          AMBER
+  Beze zmeny. Behavioralni AIR proti produkcnimu modelu je porad neproveden.
+
+RELEASE INTEGRITY: AMBER
+  Pro KS overeno znovu a v poradku. Pro ekosystem drzi AMBER navic N14 -
+  kanonicka brana neoveruje vazbu podepsaneho manifestu na assurance artefakty.
+  RI-14 a RI-LIVE zustavaji NOT TESTED.
+
+SHIELD ASSURANCE:  AMBER
+  N11, N12 a N13 uzavreny. GREEN brani N14, zbytkove N15 a vsechny LIVE
+  polozky: served headers, serverova behavioralni revokace, SIM-07, DAST,
+  production key custody.
+
+OVERALL:           AMBER
+
+GH-02: NOT TESTED overall, staticky opraveny PASS v obalce, kterou jsem ted
+  zmerill devíti dalsimi pokusy a ktera je podstatne siroci nez v kole 3.
+AGENTIC: NO, beze zmeny.
+Realna studentska data: NEPOUZIVAT.
+School server production: NEPOVOLENO / NOT TESTED.
+
+======================================================================
+11. BOD 10 - ODPOVED NA HLAVNI OTAZKU CYKLU
+======================================================================
+Otazka znela, zda je ekosystemova tooling oprava nyni prokazatelne pritomna v
+kanonickem standardu A, ne jen v KS. Odpoved ma dve casti a obe je treba uvest:
+
+ANO pro N6, N7, N8 a N11.
+Vsech 14 spolecnych nastroju v A/TOOLS je bajt po bajtu totoznych s kopiemi v
+KS, vcetne check-sw-security-freeze.mjs a release-gate.mjs. Kanonicky selftest
+bezi 47/47 primo z A, interni SHA256SUMS sedi 84/84 a moje adversarialni
+fixtures jsem poustel proti kanonickym nastrojum, ne proti kopiim. Fail-closed
+seznam kritickych assetu, strukturalni vyjimka misto textove heuristiky i
+rozsirene pokryti Cache API cest jsou ve standardu, ne jen v KS. Tim je
+uzavrena ekosystemova cast meho puvodniho nalezu N1 z kola 1.
+
+NE pro N3.
+Oprava vazby podepsaneho manifestu na provenance, evidenci, SBOM a deployment
+payload existuje pouze v KS. Kanonicky balicek prislusny nastroj neobsahuje a
+kanonicka brana krok tise preskoci. Zmerill jsem, ze takova brana pousti jako
+GREEN release s podstrcenou provenance. Dokud se to nespravi, kazda dalsi
+aplikace ekosystemu GHRAB, ktera prevezme kanonicky standard tak, jak je,
+dostane branu bez teto kontroly a nedozvi se o tom.
+
+======================================================================
+12. ZADANI PRO DALSI KOLO
+======================================================================
+P1 - N14
+  Pridat verify-assurance-links.mjs do A/TOOLS a do SHA256SUMS. Zmenit
+  preskakovani na fail-closed a do vystupu brany doplnit seznam preskocenych
+  kroku. Dukaz: kanonicka brana s podstrcenou provenance musi skoncit RED a
+  kanonicka brana bez toho nastroje musi skoncit RED, ne GREEN s osmi kroky.
+
+P2 - N15
+  Neliteralni klic u pristupu na Cache metodu klasifikovat jako unresolved.
+  Dukaz: varianta x6 musi skoncit aspon AMBER.
+
+P3 - N16
+  Opravit tvrzeni o dist/ v predavacim protokolu a nekde poznamenat, ze dist/
+  obsahuje wall-clock timestamp a proto neni bajtove reprodukovatelny, zatimco
+  dist-school-server ano.
+
+POVINNE DUKAZY DO DALSIHO KOLA
+  - kanonicka brana s podstrcenou provenance -> RED
+  - kanonicka brana bez verify-assurance-links.mjs -> RED
+  - varianta x6 -> aspon AMBER
+  - novy kanonicky SHA256SUMS a selftest s negativni kontrolou na N14
+  - potvrzeni, ze frozen runtime 5.10.25 zustava nezmeneny
+
+======================================================================
+13. ZAVER
+======================================================================
+Tohle je nejlepsi kolo ze ctyr a je to poprve, kdy mohu potvrdit ekosystemovost.
+Vsech 14 nastroju bajtove sedi, kanonicky selftest bezi z kanonickeho balicku,
+opravy N11 az N13 jsou vecne provedene a - coz povazuji za nejlepsi znamku
+celeho cyklu - fail-closed sit ted chyta i osm z devíti tvaru, ktere jsem
+vymyslel az ted a ktere nikdo predem nevyjmenoval. To uz neni zaplatovani
+konkretnich pripadu, ale funkcni obalka.
+
+Zaroven ale plati, ze prave pristup ke kanonickemu balicku odhalil vec, kterou
+tri kola nikdo videt nemohl: standard definuje vazbu podepsaneho manifestu na
+assurance artefakty, ale nedodava nastroj, ktery by ji overil, a jeho brana
+absenci toho nastroje resi tichym preskocenim. Je to stejna chyba jako muj
+puvodni N6, jen o patro vys. Doporucuji ji resit ne jednou zaplatou, ale
+pravidlem: zadny krok brany se nesmi preskocit bez zaznamu, a kazde preskoceni
+krokujici pres neco, co manifest deklaruje, musi byt RED.
+
+Aplikace KS 5.10.25 je v poradku a jeji frozen runtime je nedotcen. Nastroje
+jsou v KS hotove a v kanonickem standardu temer.
+
+Tento vystup NENI produkcni release a nesmi byt tak oznacen.

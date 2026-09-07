@@ -1,0 +1,728 @@
+diff -ruN '--exclude=audit-evidence' '--exclude=dist' '--exclude=dist-school-server' /mnt/data/ks_51025_work/CHANGELOG.md /mnt/data/ks_51025_tooling/CHANGELOG.md
+--- /mnt/data/ks_51025_work/CHANGELOG.md	2026-09-06 19:52:08.895408710 +0000
++++ /mnt/data/ks_51025_tooling/CHANGELOG.md	2026-09-06 19:58:41.473292378 +0000
+@@ -1,3 +1,11 @@
++## Post-5.10.25 — GARP 2.5.1 tooling hardening R2 (2026-09-06)
++
++- **bez změny distribuovaného runtime KS 5.10.25**; jde o source/tooling korekci po druhém nezávislém Claude kole;
++- release gate nyní při existenci service workeru fail-closed vyžaduje autoritativní `security-critical-assets.json`;
++- SW checker pokrývá další Cache API write formy, neznámý write degraduje na AMBER a textový/comment bypass už není uznáván;
++- regresní důkaz: gate R2 = RED na vadném 5.10.24, PREP GREEN na frozen 5.10.25;
++- N9 je uzavřen explicitní podmínkou: platform manifest je neautoritativní build/conformance artefakt a nesmí být použit pro runtime integrity; při budoucím použití musí být překlasifikován na security-critical.
++
+ ## 5.10.25 — GARP 2.5.1 Claude corrective round (2026-09-06)
+ 
+ - potvrzen a opraven N1/GH-02: platformní P3 precache už nesmí obsahovat žádný asset z `security/security-critical-assets.json`; `ghrab/ghrab-platform.js` je pouze network-only + `cache: no-store`;
+diff -ruN '--exclude=audit-evidence' '--exclude=dist' '--exclude=dist-school-server' /mnt/data/ks_51025_work/scripts/garp25/check-sw-security-freeze.mjs /mnt/data/ks_51025_tooling/scripts/garp25/check-sw-security-freeze.mjs
+--- /mnt/data/ks_51025_work/scripts/garp25/check-sw-security-freeze.mjs	2026-09-06 19:28:06.598650331 +0000
++++ /mnt/data/ks_51025_tooling/scripts/garp25/check-sw-security-freeze.mjs	2026-09-06 19:55:38.389200579 +0000
+@@ -1,8 +1,9 @@
+ #!/usr/bin/env node
+-// GARP 2.5.1 GHRAB - check-sw-security-freeze (KS 5.10.25 hardened copy)
+-// Static guard against precaching or cache-first serving of security-critical assets.
+-// Important: precache discovery must not depend on variable names. It resolves array
+-// literals used by cache.add/cache.addAll via direct calls, map/forEach and for..of.
++// GARP 2.5.1 GHRAB - service-worker security freeze checker, tooling hardening R2.
++// Goal: fail closed against security-critical assets entering Cache API write paths.
++// This is intentionally conservative static analysis. Unknown install/precache writes are AMBER,
++// never silent PASS. Runtime cache writes are accepted only when structurally behind the
++// isSecurityCriticalRequest -> networkOnlyNoStore early-return boundary.
+ import { readFile, readdir, lstat } from 'node:fs/promises';
+ import path from 'node:path';
+ 
+@@ -11,17 +12,33 @@
+   console.error('Usage: node check-sw-security-freeze.mjs <sw.js> <deployment-dir> [security-critical-list.json]');
+   process.exit(2);
+ }
++
+ const DEFAULT_CRITICAL = [
+   'app-guard', 'access-control', 'platform-runtime', 'revoked-access.json',
+   'release-integrity.json', 'release-integrity.sig', 'integrity-status', 'runtime-config'
+ ];
+-const critical = listArg ? JSON.parse(await readFile(listArg, 'utf8')) : DEFAULT_CRITICAL;
+-const sw = await readFile(swPath, 'utf8');
++let critical = DEFAULT_CRITICAL;
++if (listArg) {
++  try {
++    const parsed = JSON.parse(await readFile(listArg, 'utf8'));
++    if (!Array.isArray(parsed) || !parsed.length || parsed.some(x => typeof x !== 'string' || !x.trim())) {
++      throw new Error('critical list must be a non-empty JSON array of strings');
++    }
++    critical = parsed;
++  } catch (e) {
++    console.error(JSON.stringify({ status: 'ERROR', error: 'critical-asset-list-invalid', detail: String(e) }, null, 2));
++    process.exit(2);
++  }
++}
++
++const rawSw = await readFile(swPath, 'utf8');
++const sw = stripComments(rawSw);
+ const deployRoot = path.resolve(deployDirArg);
+ const findings = [];
++const unresolvedCacheWrites = [];
+ 
+ const norm = value => String(value || '').replace(/^\.\//, '').replace(/^\//, '');
+-const matchesCritical = value => critical.some(c => norm(value).includes(norm(c)));
++const matchesCritical = value => { const v=norm(value); if (!v) return false; return critical.some(c => { const cc=norm(c); return cc && (v.includes(cc) || cc.includes(v)); }); };
+ 
+ async function walk(dir, base = '') {
+   const out = [];
+@@ -43,104 +60,325 @@
+   findings.push({ severity: 'INFO', issue: 'zadny security-critical asset nenalezen - overit seznam rucne', detail: critical.join(',') });
+ }
+ 
+-function stringsFrom(text) {
+-  const out = [];
+-  const re = /(['"`])((?:\\.|(?!\1)[\s\S])*)\1/g;
+-  for (const m of text.matchAll(re)) {
+-    // Static paths in SW are plain literals; skip template expressions to avoid pretending to resolve them.
+-    if (m[1] === '`' && m[2].includes('${')) continue;
+-    out.push(m[2].replace(/\\(['"`\\])/g, '$1'));
++function stripComments(text) {
++  let out = '', i = 0, quote = null;
++  while (i < text.length) {
++    const ch = text[i], next = text[i + 1];
++    if (quote) {
++      out += ch;
++      if (ch === '\\') { if (i + 1 < text.length) out += text[++i]; }
++      else if (ch === quote) quote = null;
++      i++; continue;
++    }
++    if (ch === '"' || ch === "'" || ch === '`') { quote = ch; out += ch; i++; continue; }
++    if (ch === '/' && next === '/') {
++      out += '  '; i += 2;
++      while (i < text.length && text[i] !== '\n') { out += ' '; i++; }
++      continue;
++    }
++    if (ch === '/' && next === '*') {
++      out += '  '; i += 2;
++      while (i < text.length && !(text[i] === '*' && text[i + 1] === '/')) {
++        out += text[i] === '\n' ? '\n' : ' '; i++;
++      }
++      if (i < text.length) { out += '  '; i += 2; }
++      continue;
++    }
++    out += ch; i++;
+   }
+   return out;
+ }
+ 
+-// Discover every simple array literal assigned to any identifier. No allowlist of names.
+-const arrays = new Map();
+-for (const m of sw.matchAll(/\b(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*\[([\s\S]*?)\]\s*;?/g)) {
+-  arrays.set(m[1], stringsFrom(m[2]));
++function scanBalanced(text, openIndex, openChar = '(', closeChar = ')') {
++  let depth = 0, quote = null;
++  for (let i = openIndex; i < text.length; i++) {
++    const ch = text[i];
++    if (quote) {
++      if (ch === '\\') i++;
++      else if (ch === quote) quote = null;
++      continue;
++    }
++    if (ch === '"' || ch === "'" || ch === '`') { quote = ch; continue; }
++    if (ch === openChar) depth++;
++    else if (ch === closeChar) {
++      depth--;
++      if (depth === 0) return i;
++    }
++  }
++  return -1;
+ }
+ 
++function splitTopLevel(text, sep = ',') {
++  const out = []; let start = 0, round = 0, square = 0, curly = 0, quote = null;
++  for (let i = 0; i < text.length; i++) {
++    const ch = text[i];
++    if (quote) {
++      if (ch === '\\') i++;
++      else if (ch === quote) quote = null;
++      continue;
++    }
++    if (ch === '"' || ch === "'" || ch === '`') { quote = ch; continue; }
++    if (ch === '(') round++; else if (ch === ')') round--;
++    else if (ch === '[') square++; else if (ch === ']') square--;
++    else if (ch === '{') curly++; else if (ch === '}') curly--;
++    else if (ch === sep && round === 0 && square === 0 && curly === 0) {
++      out.push(text.slice(start, i).trim()); start = i + 1;
++    }
++  }
++  out.push(text.slice(start).trim());
++  return out.filter(Boolean);
++}
++
++function decodeString(expr) {
++  const t = expr.trim();
++  if (t.length < 2 || !['"', "'", '`'].includes(t[0]) || t[t.length - 1] !== t[0]) return null;
++  if (t[0] === '`' && t.includes('${')) return null;
++  try {
++    if (t[0] === '"') return JSON.parse(t);
++    const inner = t.slice(1, -1).replace(/\\([\\'"`])/g, '$1');
++    return inner;
++  } catch { return null; }
++}
++
++const env = new Map();
++function captureStaticAssignments(text) {
++  const starts = [
++    ...text.matchAll(/\b(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*/g),
++    ...text.matchAll(/\b(self\.[A-Za-z_$][\w$]*)\s*=\s*/g)
++  ].sort((a,b) => a.index - b.index);
++  for (const m of starts) {
++    const name = m[1], start = m.index + m[0].length;
++    let round=0, square=0, curly=0, quote=null, end=start;
++    for (let i=start; i<text.length; i++) {
++      const ch=text[i];
++      if (quote) { if (ch==='\\') i++; else if (ch===quote) quote=null; end=i+1; continue; }
++      if (ch==='\"'||ch==="'"||ch==='`') { quote=ch; end=i+1; continue; }
++      if (ch==='(') round++; else if (ch===')') round--;
++      else if (ch==='[') square++; else if (ch===']') square--;
++      else if (ch==='{') curly++; else if (ch==='}') curly--;
++      if ((ch===';' || ch==='\n') && round===0 && square===0 && curly===0) { end=i; break; }
++      end=i+1;
++    }
++    const expr=text.slice(start,end).trim();
++    if (expr) env.set(name, expr);
++  }
++}
++captureStaticAssignments(sw);
++
++function resolveObjectValues(expr, seen, depth) {
++  const m = expr.match(/^Object\.values\s*\(\s*([A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*)\s*\)$/);
++  if (!m) return null;
++  const raw = env.get(m[1]);
++  if (!raw || !raw.trim().startsWith('{') || !raw.trim().endsWith('}')) return null;
++  const body = raw.trim().slice(1, -1);
++  const vals = [];
++  for (const part of splitTopLevel(body)) {
++    const idx = part.indexOf(':'); if (idx < 0) return null;
++    const r = resolveExpr(part.slice(idx + 1), seen, depth + 1); if (!r) return null;
++    vals.push(...r);
++  }
++  return vals;
++}
++
++function resolveExpr(expr, seen = new Set(), depth = 0) {
++  if (depth > 12) return null;
++  let t = String(expr || '').trim();
++  while (t.startsWith('(') && t.endsWith(')')) {
++    const end = scanBalanced(t, 0); if (end !== t.length - 1) break; t = t.slice(1, -1).trim();
++  }
++  const lit = decodeString(t); if (lit !== null) return [lit];
++  if (/^new\s+Request\s*\(/.test(t)) {
++    const open = t.indexOf('('), end = scanBalanced(t, open); if (end < 0) return null;
++    const first = splitTopLevel(t.slice(open + 1, end))[0]; return resolveExpr(first, seen, depth + 1);
++  }
++  if (t.startsWith('[') && t.endsWith(']')) {
++    const vals = [];
++    for (const part of splitTopLevel(t.slice(1, -1))) {
++      if (part.startsWith('...')) { const r = resolveExpr(part.slice(3), seen, depth + 1); if (!r) return null; vals.push(...r); }
++      else { const r = resolveExpr(part, seen, depth + 1); if (!r) return null; vals.push(...r); }
++    }
++    return vals;
++  }
++  const concat = t.match(/^(.+?)\.concat\s*\((.*)\)$/s);
++  if (concat) {
++    const base = resolveExpr(concat[1], seen, depth + 1); if (!base) return null;
++    const vals = [...base];
++    for (const arg of splitTopLevel(concat[2])) { const r = resolveExpr(arg, seen, depth + 1); if (!r) return null; vals.push(...r); }
++    return vals;
++  }
++  const split = t.match(/^(.+?)\.split\s*\((.*)\)$/s);
++  if (split) {
++    const base = resolveExpr(split[1], seen, depth + 1), sep = resolveExpr(split[2], seen, depth + 1);
++    if (!base || base.length !== 1 || !sep || sep.length !== 1) return null;
++    return base[0].split(sep[0]);
++  }
++  const ov = resolveObjectValues(t, seen, depth); if (ov) return ov;
++  if (/^[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*$/.test(t)) {
++    if (seen.has(t)) return null;
++    const raw = env.get(t); if (!raw) return null;
++    const nextSeen = new Set(seen); nextSeen.add(t);
++    return resolveExpr(raw, nextSeen, depth + 1);
++  }
++  return null;
++}
++
++function enclosingFunctionName(pos) {
++  const prefix = sw.slice(0, pos);
++  const matches = [...prefix.matchAll(/(?:async\s+)?function\s+([A-Za-z_$][\w$]*)\s*\([^)]*\)\s*\{/g)];
++  for (let i = matches.length - 1; i >= 0; i--) {
++    const m = matches[i], open = m.index + m[0].lastIndexOf('{');
++    const end = scanBalanced(sw, open, '{', '}');
++    if (end >= pos) return m[1];
++  }
++  return null;
++}
++
++function installRanges() {
++  const ranges = [];
++  for (const m of sw.matchAll(/addEventListener\s*\(\s*['"]install['"]\s*,/g)) {
++    const start = m.index, open = sw.indexOf('(', start), end = scanBalanced(sw, open);
++    if (end > start) ranges.push([start, end]);
++  }
++  return ranges;
++}
++const installs = installRanges();
++const isInstallPos = pos => installs.some(([a,b]) => pos >= a && pos <= b);
++
+ const precached = new Set();
+ const precacheSources = [];
+-const add = (items, source) => {
+-  const values = [...new Set(items.filter(Boolean))];
+-  for (const item of values) precached.add(item);
+-  if (values.length) precacheSources.push({ source, entries: values });
+-};
++function addResolved(values, source) {
++  const uniq = [...new Set((values || []).filter(Boolean))];
++  for (const v of uniq) precached.add(v);
++  if (uniq.length) precacheSources.push({ source, entries: uniq });
++}
++function noteUnresolved(pos, method, expr, source) {
++  unresolvedCacheWrites.push({ method, expression: expr.slice(0, 180), source, installOrPrecache: isInstallPos(pos), function: enclosingFunctionName(pos) });
++}
++
++const iteratorAddVars = new Set();
++for (const m of sw.matchAll(/\bfor\s*\(\s*(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s+of\s+([^)]*)\)\s*\{/g)) {
++  const openBrace = m.index + m[0].lastIndexOf('{'), endBrace = scanBalanced(sw, openBrace, '{', '}');
++  if (endBrace < 0) continue;
++  const body = sw.slice(openBrace + 1, endBrace);
++  if (new RegExp(`\\.\\s*add\\s*\\(\\s*${m[1]}\\s*\\)`).test(body)) iteratorAddVars.add(m[1]);
++}
++for (const m of sw.matchAll(/(?:([A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*)|Object\.values\s*\([^)]*\))\.(?:map|forEach)\s*\(\s*([A-Za-z_$][\w$]*)\s*=>[\s\S]{0,260}?\.\s*add\s*\(\s*\2\s*\)/g)) iteratorAddVars.add(m[2]);
++
++// Direct Cache API writes. Parse the first argument, not the variable name.
++for (const m of sw.matchAll(/\.\s*(addAll|add|put)\s*\(/g)) {
++  const method = m[1], open = m.index + m[0].lastIndexOf('('), close = scanBalanced(sw, open);
++  if (close < 0) { noteUnresolved(m.index, method, '<unbalanced>', 'direct-call'); continue; }
++  const args = splitTopLevel(sw.slice(open + 1, close));
++  const first = args[0] || '';
++  const values = resolveExpr(first);
++  if (values) addResolved(values, `${method}:expression`);
++  else {
++    const fn = enclosingFunctionName(m.index);
++    // Dynamic request cache writes are structurally safe only if they live in runtime helpers
++    // whose callers sit behind the security-critical early return. Verified below.
++    const idOnly = /^[A-Za-z_$][\w$]*$/.test(first.trim());
++    if (method === 'add' && idOnly && iteratorAddVars.has(first.trim())) {
++      // resolved by the iterator pass below
++    } else if (!(method === 'put' && first.trim() === 'request' && ['networkFirst','cacheFirst'].includes(fn))) {
++      noteUnresolved(m.index, method, first, 'direct-call');
++    }
++  }
++}
+ 
+-// cache.addAll(ARRAY_IDENTIFIER)
+-for (const m of sw.matchAll(/\.\s*addAll\s*\(\s*([A-Za-z_$][\w$]*)\s*\)/g)) {
+-  add(arrays.get(m[1]) || [], `addAll:${m[1]}`);
+-}
+-// cache.addAll(["literal", ...])
+-for (const m of sw.matchAll(/\.\s*addAll\s*\(\s*\[([\s\S]*?)\]\s*\)/g)) {
+-  add(stringsFrom(m[1]), 'addAll:literal-array');
+-}
+-// cache.add("literal")
+-for (const m of sw.matchAll(/\.\s*add\s*\(\s*(['"`])((?:\\.|(?!\1)[\s\S])*)\1\s*\)/g)) {
+-  if (!(m[1] === '`' && m[2].includes('${'))) add([m[2]], 'add:literal');
+-}
+-// ARRAY.map(... cache.add(...)) / ARRAY.forEach(... cache.add(...))
+-for (const m of sw.matchAll(/\b([A-Za-z_$][\w$]*)\s*\.(?:map|forEach)\s*\([\s\S]{0,500}?\.\s*add\s*\(/g)) {
+-  add(arrays.get(m[1]) || [], `iterated-add:${m[1]}`);
+-}
+-// for (... of ARRAY) { ... cache.add(...) }
+-for (const m of sw.matchAll(/\bfor\s*\([^)]*\bof\s+([A-Za-z_$][\w$]*)\s*\)[\s\S]{0,500}?\.\s*add\s*\(/g)) {
+-  add(arrays.get(m[1]) || [], `for-of-add:${m[1]}`);
++// Iterated add paths where the cache.add argument is a loop variable.
++for (const m of sw.matchAll(/\bfor\s*\(\s*(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s+of\s+([^)]*)\)\s*\{/g)) {
++  const openBrace = m.index + m[0].lastIndexOf('{'), endBrace = scanBalanced(sw, openBrace, '{', '}');
++  if (endBrace < 0) continue;
++  const body = sw.slice(openBrace + 1, endBrace);
++  const varName = m[1];
++  if (new RegExp(`\\.\\s*add\\s*\\(\\s*${varName}\\s*\\)`).test(body)) {
++    const values = resolveExpr(m[2]);
++    if (values) addResolved(values, `for-of-add:${m[2].trim()}`);
++    else noteUnresolved(m.index, 'add', m[2], 'for-of');
++  }
++}
++
++// map/forEach receiver paths. Resolve the receiver expression, including Object.values(...).
++for (const m of sw.matchAll(/((?:[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*)|(?:Object\.values\s*\([^)]*\)))\.(map|forEach)\s*\(\s*([A-Za-z_$][\w$]*)\s*=>[\s\S]{0,260}?\.\s*add\s*\(\s*\3\s*\)/g)) {
++  const receiver = m[1].trim();
++  const values = resolveExpr(receiver);
++  if (values) addResolved(values, `${m[2]}-add:${receiver}`);
++  else noteUnresolved(m.index, 'add', receiver, `${m[2]}-receiver`);
+ }
+ 
+ for (const p of precached) {
+   for (const c of critical) {
+-    if (norm(p).includes(norm(c))) {
+-      findings.push({ severity: 'CRITICAL', issue: 'security-critical asset je v precache SW', detail: `${p} (vzor: ${c})` });
++    const pp=norm(p), cc=norm(c);
++    if (pp && cc && (pp.includes(cc) || cc.includes(pp))) {
++      findings.push({ severity: 'CRITICAL', issue: 'security-critical asset je v Cache API write/precache ceste', detail: `${p} (vzor: ${c})` });
+     }
+   }
+ }
+ 
+-const hasCacheFirst = /caches\.match\s*\([^)]*\)\s*\.then\s*\(\s*(?:\w+)\s*=>\s*\1?\s*\|\|/.test(sw)
+-  || /cacheFirst|CacheFirst|StaleWhileRevalidate|staleWhileRevalidate/.test(sw)
+-  || /const\s+cached\s*=\s*await\s+cache(?:s)?\.match[\s\S]{0,200}if\s*\(\s*cached\s*\)\s*return\s+cached/.test(sw);
+-const securityCriticalFn = sw.match(/function\s+isSecurityCriticalRequest\s*\([^)]*\)\s*\{([\s\S]*?)\n\}/)?.[1] || '';
+-const securityCriticalHandlerIsNetworkOnly = /if\s*\(\s*isSecurityCriticalRequest\s*\([^)]*\)\s*\)\s*\{[\s\S]{0,300}?respondWith\s*\(\s*(?:networkOnlyNoStore|networkFirst|fetch)\s*\(/.test(sw);
+-const bypassed = critical.filter(c => {
+-  const esc = c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+-  if (securityCriticalHandlerIsNetworkOnly && securityCriticalFn.includes(c)) return true;
+-  const re = new RegExp(`${esc}[\\s\\S]{0,800}?(network|fetch\\(|no-store|bypass|skipCache|reload)`, 'i');
+-  const re2 = new RegExp(`(network|no-store|bypass|skipCache|reload)[\\s\\S]{0,800}?${esc}`, 'i');
+-  return re.test(sw) || re2.test(sw);
+-});
++// Structural exemption only. Comments/proximity never count.
++function extractFunction(name) {
++  const re = new RegExp(`(?:async\\s+)?function\\s+${name}\\s*\\([^)]*\\)\\s*\\{`);
++  const m = re.exec(sw); if (!m) return '';
++  const open = m.index + m[0].lastIndexOf('{'), end = scanBalanced(sw, open, '{', '}');
++  return end > open ? sw.slice(open + 1, end) : '';
++}
++const securityCriticalFn = extractFunction('isSecurityCriticalRequest');
++const fetchMatch = /addEventListener\s*\(\s*['"]fetch['"]\s*,/.exec(sw);
++let fetchBody = '';
++if (fetchMatch) {
++  const open = sw.indexOf('(', fetchMatch.index), end = scanBalanced(sw, open);
++  fetchBody = end > open ? sw.slice(open + 1, end) : '';
++}
++const guardIdx = fetchBody.indexOf('isSecurityCriticalRequest');
++const networkOnlyIdx = guardIdx >= 0 ? fetchBody.indexOf('networkOnlyNoStore', guardIdx) : -1;
++const cacheFirstIdx = fetchBody.indexOf('cacheFirst');
++const structuralNetworkOnlyGuard = guardIdx >= 0 && networkOnlyIdx > guardIdx && (cacheFirstIdx < 0 || networkOnlyIdx < cacheFirstIdx);
++const criticalLiterals = [...securityCriticalFn.matchAll(/(['"`])((?:\\.|(?!\1)[\s\S])*)\1/g)]
++  .filter(m => !(m[1] === '`' && m[2].includes('${'))).map(m => norm(m[2]));
++const structurallyExempt = file => structuralNetworkOnlyGuard && criticalLiterals.some(l => norm(file).includes(l) || l.includes(norm(file)));
++
++const hasCacheFirst = /\bcacheFirst\s*\(/.test(sw)
++  || /CacheFirst|StaleWhileRevalidate|staleWhileRevalidate/.test(sw)
++  || /const\s+cached\s*=\s*await\s+cache(?:s)?\.match[\s\S]{0,240}if\s*\(\s*cached\s*\)\s*return\s+cached/.test(sw);
+ if (hasCacheFirst) {
+-  for (const c of critical) {
+-    const mentioned = sw.includes(c);
+-    if (mentioned && !bypassed.includes(c))
+-      findings.push({ severity: 'HIGH', issue: 'SW zna asset, ma cache-first strategii a nema pro nej network-first/no-store vetev', detail: c });
+-    if (!mentioned && criticalFiles.some(f => norm(f).includes(norm(c))))
+-      findings.push({ severity: 'HIGH', issue: 'security-critical asset existuje v deploymentu, ale SW jej nijak nevyjima z cache-first', detail: c });
++  for (const f of criticalFiles) {
++    if (!structurallyExempt(f)) findings.push({
++      severity: 'HIGH', issue: 'security-critical asset nema strukturani isSecurityCriticalRequest -> networkOnlyNoStore vyjimku pred cache-first', detail: f
++    });
+   }
+ }
+ 
+-const runtimeFilter = sw.match(/function\s+isRuntimeRequest[\s\S]{0,600}?\n\}/);
+-if (runtimeFilter) {
+-  for (const c of critical) {
+-    if (runtimeFilter[0].includes(c))
+-      findings.push({ severity: 'MEDIUM', issue: 'security-critical asset je zminen ve filtru runtime requestu - overit, ze jej nevyrazuje z obsluhy', detail: c });
++// Dynamic request writes in cacheFirst/networkFirst are accepted only with the proven early-return guard.
++if (!structuralNetworkOnlyGuard) {
++  for (const m of sw.matchAll(/\.\s*put\s*\(\s*request\s*,/g)) {
++    const fn = enclosingFunctionName(m.index);
++    if (['networkFirst','cacheFirst'].includes(fn)) noteUnresolved(m.index, 'put', 'request', 'unguarded-runtime-helper');
+   }
+ }
+ 
++// Any unresolved install/precache write is AMBER, never silent PASS. Unknown writes elsewhere are also
++// AMBER unless explicitly recognized as the guarded runtime-request pattern above.
++for (const u of unresolvedCacheWrites) findings.push({ severity: 'MEDIUM', issue: 'unresolved-cache-write', detail: u });
++
+ for (const p of precached) if (/release-integrity\.(json|sig)$/.test(p))
+   findings.push({ severity: 'CRITICAL', issue: 'integritni artefakt je precachovan - integrity check by overoval zmrazenou verzi', detail: p });
+ 
+ const blocking = findings.filter(f => f.severity === 'CRITICAL' || f.severity === 'HIGH');
++const amber = findings.filter(f => f.severity === 'MEDIUM');
++const status = blocking.length ? 'FAIL' : (amber.length ? 'AMBER' : 'PASS');
+ const out = {
+-  status: blocking.length ? 'FAIL' : (findings.some(f => f.severity === 'MEDIUM') ? 'AMBER' : 'PASS'),
++  status,
+   serviceWorker: swPath,
++  criticalListSource: listArg || 'DEFAULT_CRITICAL(ad-hoc only; release gate must supply authoritative list)',
+   precachedEntries: precached.size,
+   precacheSources,
++  unresolvedCacheWrites,
+   cacheFirstDetected: hasCacheFirst,
++  structuralNetworkOnlyGuard,
+   criticalAssetsInDeployment: criticalFiles,
+   findings,
+-  checkerRevision: 'ks-5.10.25-variable-name-independent-precache-discovery',
+-  note: 'Staticka kontrola. Nenahrazuje SIM-07 (update/recovery) ani behavioralni test revokace v prohlizeci.'
++  checkerRevision: 'garp-2.5.1-r2-cache-write-coverage-fail-closed',
++  note: 'Static bounded analysis. PASS means no critical asset found in recognized Cache API write paths, all analyzed writes resolved/guarded, and deployed critical assets have structural isSecurityCriticalRequest -> networkOnlyNoStore routing. Does not replace SIM-07 or behavioral revocation tests.'
+ };
+-console[blocking.length ? 'error' : 'log'](JSON.stringify(out, null, 2));
+-process.exit(blocking.length ? 1 : 0);
++console[status === 'PASS' ? 'log' : 'error'](JSON.stringify(out, null, 2));
++process.exit(status === 'PASS' ? 0 : (status === 'AMBER' ? 2 : 1));
+diff -ruN '--exclude=audit-evidence' '--exclude=dist' '--exclude=dist-school-server' /mnt/data/ks_51025_work/scripts/garp25/release-gate.mjs /mnt/data/ks_51025_tooling/scripts/garp25/release-gate.mjs
+--- /mnt/data/ks_51025_work/scripts/garp25/release-gate.mjs	2026-09-06 19:27:32.083158461 +0000
++++ /mnt/data/ks_51025_tooling/scripts/garp25/release-gate.mjs	2026-09-06 19:56:13.060490453 +0000
+@@ -1,17 +1,10 @@
+ #!/usr/bin/env node
+-// GARP 2.5.1 GHRAB - release-gate
+-// SH-SC-11 (bypass resistance) mel v GARP 2.5 jen textovy pozadavek. Jednotlive
+-// verifiery slo spustit v libovolnem poradi nebo nespustit vubec a nic to nezachytilo.
+-// Tento gate je jediny vstupni bod: chybejici vstup = FAIL, nikoli preskoceni.
+-//
+-// Usage:
+-//   node release-gate.mjs --deploy dist --manifest dist/release-integrity.json \
+-//     --signature dist/release-integrity.sig --trust-root trust-root.json \
+-//     --registry release-registry.json --artifact build.zip --provenance prov.json \
+-//     --evidence-dir audit-evidence --evidence-manifest evidence.json \
+-//     --profile school|prep
++// GARP 2.5.1 GHRAB - release gate, tooling hardening R2.
++// Fail-closed orchestration. If a deployed service worker exists, the gate MUST run
++// sw-security-freeze with the authoritative security-critical-assets list.
+ import { spawnSync } from 'node:child_process';
+ import { access } from 'node:fs/promises';
++import { existsSync } from 'node:fs';
+ import path from 'node:path';
+ import { fileURLToPath } from 'node:url';
+ 
+@@ -19,12 +12,16 @@
+ const argv = process.argv.slice(2);
+ const opt = k => { const i = argv.indexOf(`--${k}`); return i >= 0 ? argv[i + 1] : null; };
+ const profile = opt('profile') || 'school';
++const deployArg = opt('deploy');
+ 
+ const REQUIRED = {
+   school: ['deploy', 'manifest', 'signature', 'trust-root', 'registry', 'artifact', 'provenance', 'evidence-dir', 'evidence-manifest'],
+   prep: ['deploy', 'manifest', 'signature', 'trust-root']
+ };
+-if (!REQUIRED[profile]) { console.error(JSON.stringify({ status: 'FAIL', errors: [`unknown-profile:${profile}`] })); process.exit(2); }
++if (!REQUIRED[profile]) {
++  console.error(JSON.stringify({ status: 'FAIL', errors: [`unknown-profile:${profile}`] }, null, 2));
++  process.exit(2);
++}
+ 
+ const steps = [];
+ const missing = [];
+@@ -33,13 +30,37 @@
+   if (!v) { missing.push(k); continue; }
+   try { await access(v); } catch { missing.push(`${k}:${v}:unreadable`); }
+ }
+-if (missing.length) {
+-  console.error(JSON.stringify({ status: 'FAIL', profile, errors: ['required-input-missing'], missing }, null, 2));
+-  process.exit(1);
++if (missing.length) failEarly('required-input-missing', { missing });
++
++const deployRoot = path.resolve(deployArg);
++const explicitSw = opt('sw');
++const detectedSw = path.join(deployRoot, 'sw.js');
++let swPath = null;
++if (explicitSw) {
++  try { await access(explicitSw); swPath = path.resolve(explicitSw); }
++  catch { failEarly('service-worker-unreadable', { sw: explicitSw }); }
++} else if (existsSync(detectedSw)) {
++  swPath = detectedSw;
++}
++
++let criticalList = null;
++if (swPath) {
++  const candidates = [
++    opt('critical-list'),
++    path.join(process.cwd(), 'security', 'security-critical-assets.json'),
++    path.join(path.dirname(deployRoot), 'security', 'security-critical-assets.json')
++  ].filter(Boolean);
++  for (const c of candidates) {
++    try { await access(c); criticalList = path.resolve(c); break; } catch {}
++  }
++  if (!criticalList) failEarly('critical-asset-list-missing', {
++    sw: swPath,
++    searched: candidates.length ? candidates : ['--critical-list', './security/security-critical-assets.json', '../security/security-critical-assets.json']
++  });
+ }
+ 
+-run('deployment-leaks', 'scan-deployment-leaks.mjs', [opt('deploy')]);
+-run('release-integrity', 'verify-release-integrity.mjs', [opt('deploy'), opt('manifest')]);
++run('deployment-leaks', 'scan-deployment-leaks.mjs', [deployArg]);
++run('release-integrity', 'verify-release-integrity.mjs', [deployArg, opt('manifest')]);
+ run('release-signature', 'verify-release-signature.mjs', [opt('manifest'), opt('signature'), opt('trust-root')]);
+ if (opt('registry')) run('release-registry', 'verify-release-registry.mjs', [opt('manifest'), opt('registry')]);
+ if (opt('artifact') && opt('provenance'))
+@@ -47,33 +68,48 @@
+     [opt('artifact'), opt('provenance'), ...(profile === 'prep' ? ['--allow-local-builder'] : [])]);
+ if (opt('evidence-dir') && opt('evidence-manifest'))
+   run('evidence-manifest', 'verify-evidence-manifest.mjs', [opt('evidence-dir'), opt('evidence-manifest')]);
+-run('assurance-links', 'verify-assurance-links.mjs', [
+-  '--manifest', opt('manifest'),
+-  ...(opt('provenance') ? ['--provenance', opt('provenance')] : []),
+-  ...(opt('evidence-manifest') ? ['--evidence-manifest', opt('evidence-manifest')] : []),
+-  ...(opt('sbom') ? ['--sbom', opt('sbom')] : []),
+-  ...(opt('deployment-package') ? ['--deployment-package', opt('deployment-package')] : []),
+-]);
+-if (opt('sw') && opt('deploy')) run('sw-security-freeze', 'check-sw-security-freeze.mjs', [opt('sw'), opt('deploy')]);
++
++const assuranceScript = path.join(here, 'verify-assurance-links.mjs');
++if (existsSync(assuranceScript)) {
++  run('assurance-links', 'verify-assurance-links.mjs', [
++    '--manifest', opt('manifest'),
++    ...(opt('provenance') ? ['--provenance', opt('provenance')] : []),
++    ...(opt('evidence-manifest') ? ['--evidence-manifest', opt('evidence-manifest')] : []),
++    ...(opt('sbom') ? ['--sbom', opt('sbom')] : []),
++    ...(opt('deployment-package') ? ['--deployment-package', opt('deployment-package')] : []),
++  ]);
++}
++if (swPath) run('sw-security-freeze', 'check-sw-security-freeze.mjs', [swPath, deployArg, criticalList]);
+ if (opt('vendored-config')) run('vendored-consistency', 'check-vendored-consistency.mjs', [opt('vendored-config')]);
+ 
+ const failed = steps.filter(s => s.status !== 'PASS');
+ const verdict = {
+-  gate: 'GARP-2.5.1-RELEASE-GATE',
++  gate: 'GARP-2.5.1-RELEASE-GATE-R2',
+   profile,
+   status: failed.length ? 'RED' : 'GREEN',
++  serviceWorker: swPath,
++  criticalAssetList: criticalList,
+   steps,
+   note: profile === 'prep'
+-    ? 'PREP profil nevynucuje registry, provenance ani evidence. Neni to skolni release GREEN.'
+-    : 'Skolni profil: vsechny povinne vstupy byly pritomne a overene.'
++    ? 'PREP profil muze pouzit lokalni builder, ale pokud deployment obsahuje service worker, SW kontrola a autoritativni critical-asset list jsou povinne. Neni to school-server LIVE GREEN.'
++    : 'School profil: povinne vstupy jsou fail-closed; service worker se nesmi overovat bez autoritativniho seznamu kritickych assetu.'
+ };
+ console[failed.length ? 'error' : 'log'](JSON.stringify(verdict, null, 2));
+ process.exit(failed.length ? 1 : 0);
+ 
+ function run(name, script, args) {
+   const r = spawnSync(process.execPath, [path.join(here, script), ...args], { encoding: 'utf8' });
++  const text = (r.status === 0 ? r.stdout : (r.stderr || r.stdout)).trim();
++  const reportedAmber = /"status"\s*:\s*"AMBER"/.test(text);
+   steps.push({
+-    step: name, script, status: r.status === 0 ? 'PASS' : 'FAIL', exitCode: r.status,
+-    detail: (r.status === 0 ? r.stdout : (r.stderr || r.stdout)).trim().slice(0, 800)
++    step: name,
++    script,
++    status: r.status === 0 ? 'PASS' : (reportedAmber ? 'AMBER' : 'FAIL'),
++    exitCode: r.status,
++    detail: text.slice(0, 1200)
+   });
+ }
++function failEarly(reason, extra = {}) {
++  console.error(JSON.stringify({ gate: 'GARP-2.5.1-RELEASE-GATE-R2', status: 'RED', profile, errors: [reason], ...extra }, null, 2));
++  process.exit(1);
++}
+diff -ruN '--exclude=audit-evidence' '--exclude=dist' '--exclude=dist-school-server' /mnt/data/ks_51025_work/scripts/garp25/selftest-garp251.mjs /mnt/data/ks_51025_tooling/scripts/garp25/selftest-garp251.mjs
+--- /mnt/data/ks_51025_work/scripts/garp25/selftest-garp251.mjs	2026-09-06 14:36:02.000000000 +0000
++++ /mnt/data/ks_51025_tooling/scripts/garp25/selftest-garp251.mjs	2026-09-06 19:57:41.553359252 +0000
+@@ -206,10 +206,19 @@
+   await writeFile(path.join(swDir, 'revoked-access.json'), '[]\n');
+   await writeFile(path.join(swDir, 'index.html'), 'ok');
+   const badSw = `const PRECACHE=['/index.html','/app-guard.js','/revoked-access.json'];
++self.addEventListener('install',e=>e.waitUntil(caches.open('x').then(cache=>cache.addAll(PRECACHE))));
+ self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(c=>c||fetch(e.request)))});`;
+   await writeFile(path.join(t, 'sw-bad.js'), badSw);
+   r = run('check-sw-security-freeze.mjs', [path.join(t, 'sw-bad.js'), swDir]);
+   expect('NC-sw-freezes-guard-detected', r.status !== 0);
++
++  // GH-02 hotfix regression: variable name must not hide an array-driven cache.add path.
++  const blindSpotSw = `const RANDOM_CACHE_LIST=['/index.html','/app-guard.js'];
++self.addEventListener('install',e=>e.waitUntil(caches.open('x').then(cache=>Promise.all(RANDOM_CACHE_LIST.map(asset=>cache.add(asset))))));
++self.addEventListener('fetch',e=>{const u=new URL(e.request.url);if(u.pathname.includes('app-guard')){e.respondWith(fetch(e.request,{cache:'no-store'}));return;}e.respondWith(fetch(e.request));});`;
++  await writeFile(path.join(t, 'sw-blindspot.js'), blindSpotSw);
++  r = run('check-sw-security-freeze.mjs', [path.join(t, 'sw-blindspot.js'), swDir]);
++  expect('NC-sw-arbitrary-array-name-cannot-hide-critical-precache', r.status !== 0 && (r.stderr.includes('CRITICAL') || r.stdout.includes('CRITICAL')));
+   const goodSw = `const PRECACHE=['/index.html'];
+ self.addEventListener('fetch',e=>{const u=new URL(e.request.url);
+ if(u.pathname.includes('app-guard')||u.pathname.includes('revoked-access.json')){
+@@ -219,6 +228,51 @@
+   r = run('check-sw-security-freeze.mjs', [path.join(t, 'sw-good.js'), swDir]);
+   expect('sw-network-first-for-guard-passes', r.status === 0);
+ 
++  // N7 hardening: alternate Cache API write paths must never be silent PASS.
++  const criticalListPath = path.join(t, 'critical-list.json');
++  await writeFile(criticalListPath, JSON.stringify(['app-guard.js'], null, 2));
++  const swVariants = [
++    ['property-array-addAll', `self.EXTRA_ASSETS=['/app-guard.js'];\nself.addEventListener('install',e=>e.waitUntil(caches.open('x').then(cache=>cache.addAll(self.EXTRA_ASSETS))));`],
++    ['cache-put-literal', `self.addEventListener('install',e=>e.waitUntil(caches.open('x').then(cache=>cache.put('/app-guard.js',new Response('x')))));`],
++    ['cache-add-new-request', `self.addEventListener('install',e=>e.waitUntil(caches.open('x').then(cache=>cache.add(new Request('/app-guard.js')))));`],
++    ['concat-addAll', `const BASE=['/index.html'];const X=BASE.concat(['/app-guard.js']);\nself.addEventListener('install',e=>e.waitUntil(caches.open('x').then(cache=>cache.addAll(X))));`],
++    ['split-addAll', `const X='/index.html,/app-guard.js'.split(',');\nself.addEventListener('install',e=>e.waitUntil(caches.open('x').then(cache=>cache.addAll(X))));`],
++    ['object-values-forof-add', `const MAP={a:'/index.html',b:'/app-guard.js'};\nself.addEventListener('install',e=>e.waitUntil((async()=>{const cache=await caches.open('x');for(const asset of Object.values(MAP)){await cache.add(asset)}})()));`]
++  ];
++  for (const [id, code] of swVariants) {
++    const f = path.join(t, `sw-${id}.js`); await writeFile(f, code);
++    r = run('check-sw-security-freeze.mjs', [f, swDir, criticalListPath]);
++    expect(`NC-sw-${id}-not-silent-pass`, r.status !== 0);
++  }
++  const unresolvedSw = `let dynamicPath;self.addEventListener('install',e=>e.waitUntil(caches.open('x').then(cache=>cache.add(dynamicPath))));`;
++  await writeFile(path.join(t, 'sw-unresolved.js'), unresolvedSw);
++  r = run('check-sw-security-freeze.mjs', [path.join(t, 'sw-unresolved.js'), swDir, criticalListPath]);
++  expect('NC-sw-unresolved-cache-write-amber-or-fail', r.status !== 0 && (r.stderr.includes('AMBER') || r.stdout.includes('AMBER') || r.stderr.includes('FAIL') || r.stdout.includes('FAIL')));
++
++  // N8 hardening: comments/text proximity cannot create a network-only exemption.
++  await writeFile(path.join(swDir, 'data-manifest.json'), '{}\n');
++  const dataCritical = path.join(t, 'critical-data.json');
++  await writeFile(dataCritical, JSON.stringify(['data-manifest.json'], null, 2));
++  const commentBypassSw = `const CORE=['/index.html'];\nself.addEventListener('install',e=>e.waitUntil(caches.open('x').then(cache=>cache.addAll(CORE))));\nasync function networkFirst(request){ // data-manifest.json network later\n const cache=await caches.open('x');try{return await fetch(request)}catch(e){return cache.match(request)}}\nasync function cacheFirst(request){const cache=await caches.open('x');const c=await cache.match(request);if(c)return c;const rr=await fetch(request);if(rr.ok)await cache.put(request,rr.clone());return rr}\nself.addEventListener('fetch',e=>e.respondWith(cacheFirst(e.request)));`;
++  await writeFile(path.join(t, 'sw-comment-bypass.js'), commentBypassSw);
++  r = run('check-sw-security-freeze.mjs', [path.join(t, 'sw-comment-bypass.js'), swDir, dataCritical]);
++  expect('NC-sw-comment-cannot-create-exemption', r.status !== 0);
++
++  // N6 hardening: release gate itself must enforce the authoritative list and propagate SW failure.
++  r = run('release-gate.mjs', [
++    '--profile', 'prep', '--deploy', deploy, '--manifest', path.join(deploy, 'release-integrity.json'),
++    '--signature', path.join(deploy, 'release-integrity.sig'), '--trust-root', path.join(t, 'trust-root.json'),
++    '--sw', path.join(t, 'sw-blindspot.js'), '--critical-list', criticalListPath
++  ]);
++  expect('NC-gate-propagates-sw-critical-failure', r.status !== 0 && (r.stderr.includes('sw-security-freeze') || r.stdout.includes('sw-security-freeze')));
++
++  r = run('release-gate.mjs', [
++    '--profile', 'prep', '--deploy', deploy, '--manifest', path.join(deploy, 'release-integrity.json'),
++    '--signature', path.join(deploy, 'release-integrity.sig'), '--trust-root', path.join(t, 'trust-root.json'),
++    '--sw', path.join(t, 'sw-good.js')
++  ]);
++  expect('NC-gate-missing-critical-list-fails-closed', r.status !== 0 && (r.stderr.includes('critical-asset-list-missing') || r.stdout.includes('critical-asset-list-missing')));
++
+   // --- release gate fail-closed
+   r = run('release-gate.mjs', ['--profile', 'school', '--deploy', deploy, '--manifest', path.join(deploy, 'release-integrity.json')]);
+   expect('NC-gate-missing-inputs-fails-closed', r.status !== 0 && r.stderr.includes('required-input-missing'));
+diff -ruN '--exclude=audit-evidence' '--exclude=dist' '--exclude=dist-school-server' /mnt/data/ks_51025_work/security/GARP-2.5.1-UPSTREAM-ERRATA-N6-N8.md /mnt/data/ks_51025_tooling/security/GARP-2.5.1-UPSTREAM-ERRATA-N6-N8.md
+--- /mnt/data/ks_51025_work/security/GARP-2.5.1-UPSTREAM-ERRATA-N6-N8.md	1970-01-01 00:00:00.000000000 +0000
++++ /mnt/data/ks_51025_tooling/security/GARP-2.5.1-UPSTREAM-ERRATA-N6-N8.md	2026-09-06 19:58:41.003800418 +0000
+@@ -0,0 +1,23 @@
++# GARP 2.5.1 upstream tooling errata – Claude round 2
++
++Datum: 2026-09-06
++Aplikace: KS 5.10.25 (runtime beze změny)
++
++Nezávislé kolo 2 potvrdilo, že všech pět aplikačních nálezů z kola 1 je opraveno.
++Nové N6–N8 se týkají kontrolních nástrojů GARP 2.5.1:
++
++- N6 HIGH: release gate nepředával autoritativní critical-asset list SW checkeru.
++- N7 MEDIUM: checker nepokrýval několik Cache API write forem a neznámou cestu mohl
++  tiše považovat za PASS.
++- N8 MEDIUM: textová blízkost mohla vytvořit falešnou cache-first výjimku.
++
++Lokální kopie nástrojů v tomto pracovním stromu je synchronizována s ekosystémovým
++GARP 2.5.1 tooling hotfix R2. Distribuovaný `dist/` a `dist-school-server/` nebyl kvůli
++těmto opravám změněn; app runtime zůstává frozen 5.10.25.
++
++Důkazní požadavky R2:
++- checker FAIL na vadném 5.10.24 a PASS na 5.10.25;
++- release gate RED na vadném 5.10.24 a PREP GREEN na 5.10.25;
++- šest obcházejících Cache API variant nesmí skončit PASS;
++- comment-only exemption musí zůstat FAIL;
++- chybějící critical-assets list v release gate = RED.
+diff -ruN '--exclude=audit-evidence' '--exclude=dist' '--exclude=dist-school-server' /mnt/data/ks_51025_work/security/SECURITY-THREAT-MODEL.md /mnt/data/ks_51025_tooling/security/SECURITY-THREAT-MODEL.md
+--- /mnt/data/ks_51025_work/security/SECURITY-THREAT-MODEL.md	2026-09-06 19:52:10.463394384 +0000
++++ /mnt/data/ks_51025_tooling/security/SECURITY-THREAT-MODEL.md	2026-09-06 19:58:41.000109257 +0000
+@@ -54,3 +54,14 @@
+ ## Explicitní hranice integrity app-guardu
+ 
+ KS načítá `app-guard.js` z AI Studia (`/ai-studio/access/app-guard.js`, resp. standalone Studio cesta). Tento soubor neleží v deploymentu KS, není v `files[]` manifestu KS a service worker KS jej nekryje. Podepsaná integrita KS proto **neprokazuje integritu app-guardu**; tu musí uzavřít AI Studio / school-server RI-LIVE. V PREP kole KS je tato závislost deklarovaná trust boundary, nikoli PASS.
++
++## TB-12 – Platform manifest v P3 cache (N9, Claude round 2)
++
++`ghrab/ghrab-platform-manifest-1.1.2.json` je v release 5.10.25 distribuovaný jako
++**neautoritativní build/conformance artefakt**. Runtime KS ani GHRAB Platform 1.1.2 jej
++nepoužívají jako trust root ani jako referenční hodnotu pro runtime integrity check.
++Proto může zůstat v P3 offline cache pouze za této podmínky: **nesmí být použit pro
++bezpečnostní/integritní rozhodnutí**. Jakmile by jej budoucí Integrity Service nebo
++klientský verifier začal číst jako autoritativní hash manifest, musí být před takovou
++změnou přidán do `security/security-critical-assets.json`, automaticky vyřazen z P3
++precache a routován network-only/no-store. Tento bod je explicitní future-change gate.

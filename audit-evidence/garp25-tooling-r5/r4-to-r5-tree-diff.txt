@@ -1,0 +1,12 @@
+Files /mnt/data/r4_src/korespondencni-asistent-main/CHANGELOG.md and /mnt/data/r5_src/korespondencni-asistent-main/CHANGELOG.md differ
+Files /mnt/data/r4_src/korespondencni-asistent-main/README.md and /mnt/data/r5_src/korespondencni-asistent-main/README.md differ
+Only in /mnt/data/r5_src/korespondencni-asistent-main: RELEASE-NOTES-5.10.25-GARP-2.5.1-TOOLING-R5.md
+Files /mnt/data/r4_src/korespondencni-asistent-main/audit-evidence/garp23-release-gate/canary-artifact-sweep.json and /mnt/data/r5_src/korespondencni-asistent-main/audit-evidence/garp23-release-gate/canary-artifact-sweep.json differ
+Files /mnt/data/r4_src/korespondencni-asistent-main/audit-evidence/garp23-release-gate/secret-scan.json and /mnt/data/r5_src/korespondencni-asistent-main/audit-evidence/garp23-release-gate/secret-scan.json differ
+Only in /mnt/data/r5_src/korespondencni-asistent-main/audit-evidence: garp25-tooling-r5
+Files /mnt/data/r4_src/korespondencni-asistent-main/dist/config/quality-manifest.json and /mnt/data/r5_src/korespondencni-asistent-main/dist/config/quality-manifest.json differ
+Files /mnt/data/r4_src/korespondencni-asistent-main/dist/quality-report.json and /mnt/data/r5_src/korespondencni-asistent-main/dist/quality-report.json differ
+Files /mnt/data/r4_src/korespondencni-asistent-main/scripts/garp25/check-sw-security-freeze.mjs and /mnt/data/r5_src/korespondencni-asistent-main/scripts/garp25/check-sw-security-freeze.mjs differ
+Files /mnt/data/r4_src/korespondencni-asistent-main/scripts/garp25/selftest-garp251.mjs and /mnt/data/r5_src/korespondencni-asistent-main/scripts/garp25/selftest-garp251.mjs differ
+Only in /mnt/data/r5_src/korespondencni-asistent-main/security: GARP-2.5.1-UPSTREAM-ERRATA-N17.md
+diff_exit=1

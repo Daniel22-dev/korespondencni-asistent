@@ -1,0 +1,10 @@
+{
+  "status": "FAIL",
+  "profile": "prep",
+  "errors": [
+    "required-input-missing"
+  ],
+  "missing": [
+    "trust-root"
+  ]
+}

@@ -1,0 +1,220 @@
+{
+  "schema": "ghrab-release-integrity-v2",
+  "digestAlgorithmId": "ghrab-artifact-digest-v2",
+  "pathEncoding": "NFC",
+  "pathOrder": "utf8-bytewise",
+  "appId": "correspondence",
+  "version": "5.10.25",
+  "buildId": "ks-5.10.25-garp251-corrective",
+  "createdAt": "2026-09-06T19:35:48.898Z",
+  "sourceCommit": null,
+  "sourcePackageSha256": "dce4bbda6f5c2a39130814bf0f26e0bc37c10e5f5e50aef71f3c6f6833f00149",
+  "deploymentPackageSha256": "d396edcd4612fa438858c7a2f7f9c8ef8e7227f6a03e080ac6ddca8b716d296e",
+  "artifactDigest": "5e0ebab6c6df6161caad35c9429643fb0318afb5d426d24413682b772fb711ce",
+  "fileCount": 39,
+  "buildProvenanceSha256": "d4dc1ba3c9c6a37776b6ae79e1ae07fdefdff10bf5a5a85e25aa6e7f494d6954",
+  "sbomSha256": "af3d0a03cf31f808ce013d7fc88ca6b978af356bf41205b580f558a7ab543670",
+  "evidenceManifestSha256": "8343ce9cc11f8a24fca90b175fb5ce2fe3b3b101ab8759b0e602e361afb703d9",
+  "hashAlgorithm": "SHA-256",
+  "signature": {
+    "algorithm": "Ed25519",
+    "keyId": "prep-ks-ed25519-20260906-r2"
+  },
+  "files": [
+    {
+      "path": ".nojekyll",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "access/error-reporter-adapter.js",
+      "size": 473,
+      "sha256": "dc82f8d00f9adab1a944afda672f005e64a08dcc608767a263e18678d05c1bae"
+    },
+    {
+      "path": "access/error-reporter.css",
+      "size": 16554,
+      "sha256": "7f78a6d81ac0d13e355229381bb435fe6fcb27cf7f8957a452e26b036ce958f9"
+    },
+    {
+      "path": "access/error-reporter.js",
+      "size": 73387,
+      "sha256": "bd017b1ba8c94d53554a1f9bd4a47794063a77c96d196ab7f64356b2d779d7e6"
+    },
+    {
+      "path": "ai-operations.json",
+      "size": 3190,
+      "sha256": "ef52613cb1962d9daba732ff209e437508d70a554d94b72698e52c78c07a4afc"
+    },
+    {
+      "path": "assets/brand/school-logo.png",
+      "size": 57922,
+      "sha256": "300396a48cc36d8c2abda0aea673273d4d985476ba88fb0430630ef89ac86770"
+    },
+    {
+      "path": "config/brand-manifest.json",
+      "size": 760,
+      "sha256": "88c38f37bd6755e5cb1dd21dd9ad8f1a6704120efa3872832c27e2c48dad797f"
+    },
+    {
+      "path": "config/data-manifest.json",
+      "size": 9968,
+      "sha256": "5ad30ff3b890d501cea91916faa133109edfd500898ee41726d0bacb712773db"
+    },
+    {
+      "path": "config/deployment.json",
+      "size": 1818,
+      "sha256": "c8e0b86b955cb0a779157c4c45ce1c5d808b5714d0c12b47f8b2980eac6bcc44"
+    },
+    {
+      "path": "config/deployment.school-server.example.json",
+      "size": 1807,
+      "sha256": "8056557816850c656b0b0375904021733835524fa7462127d743625fb823164e"
+    },
+    {
+      "path": "config/deployment.school-server.json",
+      "size": 1818,
+      "sha256": "c8e0b86b955cb0a779157c4c45ce1c5d808b5714d0c12b47f8b2980eac6bcc44"
+    },
+    {
+      "path": "config/platform-manifest.json",
+      "size": 3249,
+      "sha256": "58715b0bdad1a55e7ceff12f30bbdde771b35075aa886c7ed1deb514a6ec37ab"
+    },
+    {
+      "path": "config/release-acceptance.json",
+      "size": 1251,
+      "sha256": "0eb7b8f2e48c8743556053f864074c9cb7a5602174c2a2dab73de9b27b576c0f"
+    },
+    {
+      "path": "config/security-headers.json",
+      "size": 1492,
+      "sha256": "efcff597df10485cac6f5d15581691b025c749b35a91736e61e7ff3b36599037"
+    },
+    {
+      "path": "ghrab-platform.consumer.json",
+      "size": 5501,
+      "sha256": "7b7b9711f3a6fac6f792c36118496946e9506832bbbb96e4934bbe923bfed08a"
+    },
+    {
+      "path": "ghrab/ghrab-app-registry-v2.schema.json",
+      "size": 2666,
+      "sha256": "47c797999eb93fbd918b968b90a8f8545f938db486fe635b19efcc7936b5672f"
+    },
+    {
+      "path": "ghrab/ghrab-artifact-envelope-v1.schema.json",
+      "size": 1250,
+      "sha256": "8edeaaadd72c7bf60285440dd59eb31d0e7139755e1e4642d5ab457816e46d58"
+    },
+    {
+      "path": "ghrab/ghrab-platform-manifest-1.1.2.json",
+      "size": 1077,
+      "sha256": "760f1661b5a4349fc09d314d9da3d786356620680e038586cee28d98891f71a8"
+    },
+    {
+      "path": "ghrab/ghrab-platform.css",
+      "size": 5182,
+      "sha256": "eb465488df46f3d1672d721094800b0be3eb1278924b7699873a483f130b07ad"
+    },
+    {
+      "path": "ghrab/ghrab-platform.js",
+      "size": 58204,
+      "sha256": "199d03d9dc9263a9e74ed1f1102df0324f3b63e78704f1c70aeacec5feec530c"
+    },
+    {
+      "path": "icons/apple-touch-icon.png",
+      "size": 12830,
+      "sha256": "95c63a7296e0a8347fd140e97506c5015751bf5c9baa4f68aeab6c43d305a757"
+    },
+    {
+      "path": "icons/icon-128.png",
+      "size": 8334,
+      "sha256": "a04361cb629d788889fc4a8d60f3d458c8d63e3811c2120aec775cbe607cd56e"
+    },
+    {
+      "path": "icons/icon-180.png",
+      "size": 12830,
+      "sha256": "95c63a7296e0a8347fd140e97506c5015751bf5c9baa4f68aeab6c43d305a757"
+    },
+    {
+      "path": "icons/icon-192.png",
+      "size": 13971,
+      "sha256": "b22b6105020781463c342f0224a7a2e26ac8001521732b19328b710a6a1aa903"
+    },
+    {
+      "path": "icons/icon-32.png",
+      "size": 1440,
+      "sha256": "cb30e9217de873ea1f6bad84916a29493a26f77407fd94ebd1d78f64edd9b340"
+    },
+    {
+      "path": "icons/icon-48.png",
+      "size": 2384,
+      "sha256": "921715901f0b6cfa08586b39743b3bd427c08604edd375ea88d234fc7e3a73e1"
+    },
+    {
+      "path": "icons/icon-512.png",
+      "size": 52109,
+      "sha256": "18ef05150b7377023a13d293cf1fb9f54af6b92b90f687929bdf6d02d0d9b34a"
+    },
+    {
+      "path": "icons/icon-72.png",
+      "size": 4123,
+      "sha256": "d013f63e937543afe40fbbc1f98589c2dd797529a9c0d2973f9316cee6556e14"
+    },
+    {
+      "path": "icons/icon-96.png",
+      "size": 5739,
+      "sha256": "01d19ea5bbf754bc116b1e8d34abea6e427684aa597b54c45ce5a42d3292d851"
+    },
+    {
+      "path": "icons/icon-maskable-512.png",
+      "size": 49845,
+      "sha256": "717a43119768f64a4fa259671b11ff5f7adde52c4b57a9f36553977b865d812c"
+    },
+    {
+      "path": "index.html",
+      "size": 677419,
+      "sha256": "cacf96299e2e070f49fc49592abe834d40485f72e5065d14f8e1c632cf5bbad6"
+    },
+    {
+      "path": "manifest.webmanifest",
+      "size": 1439,
+      "sha256": "15613f62464b428f7b087b02d1e18c83fdbafaac2fa5d6d7768f5e1d74a7f734"
+    },
+    {
+      "path": "manual/index.html",
+      "size": 69170,
+      "sha256": "a374fd5f83b21b3db31e36743c52980787fc251b28d597e75e99dc4ed949a569"
+    },
+    {
+      "path": "platform-build-info.json",
+      "size": 463,
+      "sha256": "2985ccdf6d8540438cb923600d21cc262f1b812068e6e928b9b9b0cea1df039b"
+    },
+    {
+      "path": "runtime-config.js",
+      "size": 646,
+      "sha256": "f3da9d0cc4bda3c1a88e16800a69953b09904840cd7639c1bfebbdda03ba8a65"
+    },
+    {
+      "path": "runtime-config.school-server.js",
+      "size": 646,
+      "sha256": "f3da9d0cc4bda3c1a88e16800a69953b09904840cd7639c1bfebbdda03ba8a65"
+    },
+    {
+      "path": "server-ready-build-info.json",
+      "size": 628,
+      "sha256": "474128f7b6a7cce0fb5729dab6024248d8fdf75a0e7e8349319193dcce774a27"
+    },
+    {
+      "path": "studio-manifest.json",
+      "size": 2800,
+      "sha256": "84b26a436f62c1e9784546def1cc890eb9f2c09b9219a791dcdc526f650637f2"
+    },
+    {
+      "path": "sw.js",
+      "size": 5611,
+      "sha256": "ac2307231f32eae41c580c106dce145befa2a7d0f9d86a563d54d6d676e5c1aa"
+    }
+  ]
+}

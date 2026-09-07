@@ -1,0 +1,16 @@
+GARP 2.5.1 Tooling R4 – evidence summary
+
+N14 HIGH: ACCEPTED + FIXED
+- canonical verify-assurance-links.mjs added
+- release gate fails RED when verifier is missing and signed assurance links are declared
+- substituted otherwise-valid provenance => build-provenance PASS, assurance-links FAIL, gate RED
+- clean frozen 5.10.25 with all five assurance inputs => gate GREEN
+
+N15: ACCEPTED + FIXED
+- computed Cache member c[M](...) => AMBER / exit 2 / unresolved-cache-write
+
+N16: ACCEPTED accuracy note
+- frozen dist-school-server unchanged
+- generic dist is not claimed byte-reproducible because quality metadata may contain wall-clock metrics.measuredAt
+
+Canonical and KS selftests: 51/51 PASS.

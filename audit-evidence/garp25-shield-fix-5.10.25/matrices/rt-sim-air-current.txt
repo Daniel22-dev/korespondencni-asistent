@@ -1,0 +1,23 @@
+GARP 2.5.1 CURRENT RT / SIM / PC-01 / AIR - KS 5.10.25
+Baseline: closed GARP 2.3 evidence + 5.10.24 SHIELD-PREP, revalidated where corrective delta touches a boundary.
+RT-00 PASS - data map/ownership unchanged; PC-01 corrective path coverage documented.
+RT-01..04 PASS carried - no auth/permit implementation delta.
+RT-05 NOT TESTED - static SW security-freeze is corrected and PASS; full update/recovery + open-client revocation unavailable.
+RT-06 PASS - anonymization implementation byte-identical to 5.10.24; now included in AI assurance baseline and mutation control.
+RT-07 PASS structural - XSS gate + hostile-output structural controls.
+RT-08 PASS carried - file/import logic unchanged.
+RT-09 NOT TESTED behavior - AI-RED structural 33/33 PASS; live-model behavioral corpus not run.
+RT-10 PASS - secret/canary sweeps clean.
+RT-11 PASS carried - role boundary unchanged.
+RT-12 PASS contract / runtime browser NOT TESTED - browser contract PASS; navigated runtime timeout in managed environment.
+RT-13 PASS WITH DEBT - unsafe-eval/eval/new Function absent; unsafe-inline CSP debt remains.
+RT-14 PASS structural - reporter 52/52; browser transport NOT TESTED.
+RT-15 NOT TESTED - real multi-tab collision/isolation unavailable.
+RT-16 NOT TESTED production governance - pinned inputs PREP PASS; branch protection/MFA/production key custody not proven.
+RT-17 NOT TESTED overall - deterministic suite-session simulation 10/10 PASS, actual multi-tab/back/restore unavailable.
+RT-18 PASS PREP - school build/profile checks pass; real school server absent.
+RT-19 PASS structural - AI egress route unchanged; school route same-origin gateway.
+RT-20 NOT TESTED overall - local cleanup/simulation PASS; provider/live lifecycle unresolved.
+PC-01 PASS PREP - corrective path coverage explicitly covers SW cache paths and AI-assurance invalidation paths; no real user data used.
+SIM-01/02/05/06/08 PASS carried/current structural evidence; SIM-03/04/07 NOT TESTED where real browser/server behavior is required.
+AIR-01..12 behavioral NOT TESTED; structural AIR 33/33 PASS. RED TEAM gate maximum AMBER.

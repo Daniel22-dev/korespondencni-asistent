@@ -1,0 +1,29 @@
+{
+  "status": "FAIL",
+  "serviceWorker": "/mnt/data/r3_n11_tests/w3.js",
+  "criticalListSource": "/mnt/data/r3_n11_tests/critical.json",
+  "precachedEntries": 1,
+  "precacheSources": [
+    {
+      "source": "addAll:bracket-expression",
+      "entries": [
+        "./ghrab/ghrab-platform.js"
+      ]
+    }
+  ],
+  "unresolvedCacheWrites": [],
+  "cacheFirstDetected": false,
+  "structuralNetworkOnlyGuard": false,
+  "criticalAssetsInDeployment": [
+    "ghrab/ghrab-platform.js"
+  ],
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "issue": "security-critical asset je v Cache API write/precache ceste",
+      "detail": "./ghrab/ghrab-platform.js (vzor: ghrab/ghrab-platform.js)"
+    }
+  ],
+  "checkerRevision": "garp-2.5.1-r3-cache-write-coverage-fail-closed",
+  "note": "Static bounded analysis. PASS means no critical asset was found in the explicitly recognized Cache API write envelope; recognized writes were resolved/guarded; importScripts is absent; and deployed critical assets have structural isSecurityCriticalRequest -> networkOnlyNoStore routing. Unknown/dynamic recognized writes are AMBER. This is not a proof for arbitrary JavaScript and does not replace SIM-07 or behavioral revocation tests."
+}

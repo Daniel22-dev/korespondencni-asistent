@@ -1,0 +1,46 @@
+
+> ghrab-korespondencni-asistent@5.10.19 qa:browser
+> node scripts/qa-p3-browser.mjs
+
+{
+  "schema": "ghrab-p3-browser-result-v1",
+  "appId": "correspondence",
+  "appVersion": "5.10.19",
+  "chromium": "system",
+  "result": {
+    "checks": {
+      "platformPresent": true,
+      "version": true,
+      "a11yContract": true,
+      "performanceContract": true,
+      "moduleContract": true,
+      "skipLink": true,
+      "liveRegion": true,
+      "inputName": true,
+      "iconName": true,
+      "imageAlt": true,
+      "dialogName": true,
+      "initialFocus": true,
+      "tabWrap": true,
+      "shiftTabWrap": true,
+      "escapeClosed": true,
+      "focusReturned": true,
+      "announcement": true,
+      "performance": true,
+      "lazy": true
+    },
+    "failed": [],
+    "activeElement": "launcher",
+    "snapshot": {
+      "contract": "ghrab-performance-v1",
+      "now": 328,
+      "domContentLoadedMs": 50.90000000037253,
+      "loadMs": 51.80000000074506,
+      "transferBytes": 0,
+      "decodedBytes": 0,
+      "jsHeapUsedBytes": 10000000,
+      "resourceCount": 0
+    }
+  },
+  "status": "passed"
+}

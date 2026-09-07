@@ -1,0 +1,193 @@
+PC-01 PATH COVERAGE / FREE ADVERSARIAL INVENTORY
+candidate=5.10.12
+synthetic_only=true
+
+[AI egress sinks]
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/config/data-manifest.json:148:      "path": "callGemini -> GHRAB_AI.generate -> fetch",
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/30-api-gemini.js:276:  const response=await GHRAB_AI.generate({
+
+[Explicit browser/window egress]
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/50-koncept-a-prompty.js:194:  el.querySelector(".act-gmail").onclick=()=>{ const t=canExport(); if(!t) return; const sp=splitSubject(t); let url="https://mail.google.com/mail/?view=cm&fs=1&body="+encodeURIComponent(sp.body); if(sp.subject) url+="&su="+encodeURIComponent(sp.subject); window.open(url,"_blank","noopener"); saveHistory(p,opts.styl,getSrc()); };
+
+[FileReader paths]
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/access/error-reporter.js:489:    const reader = new FileReader();
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/60-prichozi-a-muj-email.js:845:  const reader=new FileReader();
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1813:  const r=new FileReader();
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/75-pracovni-stul.js:237:  openModal("Sdílená školní knihovna",html,{onMount(body,close){body.querySelector("#libExport").onclick=()=>{void downloadJson("KS-skolni-knihovna.json",{app:"Korespondencni asistent",format:1,created:new Date().toISOString(),templates:loadTpls(),blocks:getCustomBlocks()}).catch(()=>toast("Export se nepovedl."));};const f=body.querySelector("#libFile");body.querySelector("#libImport").onclick=()=>f.click();f.onchange=()=>{const file=f.files&&f.files[0];if(!file)return;if(typeof importFileWithinLimit!=="function"||!importFileWithinLimit(file)){toast("Soubor není platný: maximální velikost je 1 MB.");f.value="";return;}const r=new FileReader();r.onload=async()=>{try{const raw=String(r.result||"{}");if(typeof importTextWithinLimit!=="function"||!importTextWithinLimit(raw))throw new Error("Soubor je příliš velký");const unpacked=window.GHRABArtifact?.unwrapMaybe?await window.GHRABArtifact.unwrapMaybe(raw,{allowLegacy:true,expectedAppId:"correspondence",verifyChecksum:true}):{payload:JSON.parse(raw)};const d=unpacked.payload;if(!d||typeof d!=="object"||d.app!=="Korespondencni asistent"||d.format!==1)throw new Error("Neplatný formát");if(Array.isArray(d.templates))saveTpls(d.templates.slice(0,30));if(Array.isArray(d.blocks))jset(LS.blocks,sanitizeLibraryBlocks(d.blocks));renderTemplates();close();toast("Školní knihovna importována ✓");}catch(e){toast("Soubor není platný nebo má poškozený kontrolní součet.");}finally{f.value="";}};r.onerror=()=>{f.value="";toast("Soubor se nepovedlo načíst.");};r.readAsText(file,"utf-8");};}});
+
+[Storage namespaces / writes]
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/20-vzhled-a-ovladani.js:118:  try { localStorage.setItem("rozbor_mode", document.body.classList.contains("dark") ? "dark" : "light"); } catch(_){}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/40-anonymizace.js:27:    localStorage.setItem("rozbor_dict",JSON.stringify(clean));
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/40-anonymizace.js:75:    if(hasWork)sessionStorage.setItem(WORK_SESSION_KEY,JSON.stringify(rec));else sessionStorage.removeItem(WORK_SESSION_KEY);
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/40-anonymizace.js:84:function clearWorkingSession(){try{sessionStorage.removeItem(WORK_SESSION_KEY);}catch(_){};}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/40-anonymizace.js:628:  row.querySelector("input").addEventListener("change",e=>{ nameHintOn=e.target.checked; try{localStorage.setItem("rozbor_name_hints",nameHintOn?"1":"0");}catch(_){} renderView("in"); renderView("my"); });
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/40-anonymizace.js:899:  try{ sessionStorage.removeItem(LAST_PROMPT_SK); localStorage.removeItem(LAST_PROMPT_SK); }catch(_){}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/10-release-changelog.js:181:  const markSeen=()=>{ try{ localStorage.setItem(TOUR_SK,"1"); }catch(_){} try{ localStorage.setItem(SECURITY_GUIDE_SK,"1"); }catch(_){} };
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/60-prichozi-a-muj-email.js:292:    if(JSON.stringify(raw)!==JSON.stringify(clean))localStorage.setItem("rozbor_templates",JSON.stringify(clean));
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/60-prichozi-a-muj-email.js:295:    try{localStorage.setItem("rozbor_templates","[]");}catch(__){}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/60-prichozi-a-muj-email.js:299:function saveTpls(a){ try{ localStorage.setItem("rozbor_templates", JSON.stringify(cleanTemplates(a))); }catch(_){} }
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/60-prichozi-a-muj-email.js:333:  if(safe.length!==raw.length)try{localStorage.setItem("rozbor_history",JSON.stringify(safe));}catch(_){}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/60-prichozi-a-muj-email.js:426:        localStorage.setItem("rozbor_profile",JSON.stringify(safe));
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/60-prichozi-a-muj-email.js:436:        try{localStorage.removeItem("rozbor_profile");}catch(_){}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:43:  const clr=m.body.querySelector("#dbgClear"); if(clr) clr.onclick=()=>{ try{sessionStorage.removeItem(LAST_PROMPT_SK);localStorage.removeItem(LAST_PROMPT_SK);}catch(_){} m.close(); toast("Debug prompt smazán"); };
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:119:  let oldMarker=null; try{oldMarker=localStorage.getItem(markerKey);localStorage.setItem(markerKey,markerValue);}catch(_){}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:357:      let old=null;try{old=localStorage.getItem("rozbor_dict");localStorage.setItem("rozbor_dict","[]");}catch(_){}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:363:      }finally{try{if(old===null)localStorage.removeItem("rozbor_dict");else localStorage.setItem("rozbor_dict",old);}catch(_){}}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:377:      let old=null;try{old=localStorage.getItem("rozbor_dict");localStorage.setItem("rozbor_dict","[]");}catch(_){}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:381:      }finally{try{if(old===null)localStorage.removeItem("rozbor_dict");else localStorage.setItem("rozbor_dict",old);}catch(_){}}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:579:      try{keys.forEach(k=>{old[k]=localStorage.getItem(k);localStorage.removeItem(k);});}catch(_){}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:587:      }finally{try{keys.forEach(k=>{if(old[k]===null)localStorage.removeItem(k);else localStorage.setItem(k,old[k]);});}catch(_){}}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:603:        localStorage.setItem("rozbor_profile",JSON.stringify({name:"Petr Novák",role:"středoškolský učitel",subjects:"angličtina a španělština",school:"Gymnázium Test"}));
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:607:      }finally{if(old===null)localStorage.removeItem("rozbor_profile");else localStorage.setItem("rozbor_profile",old);}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:612:        localStorage.setItem("rozbor_profile",JSON.stringify({writingStyle:"usporny",styleAvoid:"touto cestou; věřím, že společně",styleCustom:"začni rovnou věcí a používej kratší odstavce"}));
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:627:        if(old===null)localStorage.removeItem("rozbor_profile");else localStorage.setItem("rozbor_profile",old);
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:634:        localStorage.setItem("rozbor_profile",JSON.stringify({name:"Test",gender:"neutral",sign:"jmeno"}));
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:645:        if(old===null)localStorage.removeItem("rozbor_profile");else localStorage.setItem("rozbor_profile",old);
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:653:        localStorage.setItem("rozbor_profile",JSON.stringify({gender:"female"}));
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:660:        localStorage.setItem("rozbor_profile",JSON.stringify({gender:"female"}));
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:669:        localStorage.setItem("rozbor_profile",JSON.stringify({gender:"male"}));
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:672:        localStorage.setItem("rozbor_profile",JSON.stringify({gender:"neutral"}));
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:680:        if(old===null)localStorage.removeItem("rozbor_profile");else localStorage.setItem("rozbor_profile",old);
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:877:        localStorage.setItem("rozbor_profile",JSON.stringify({name:"Petr Novák",sign:"pozdrav"}));
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:883:      }finally{if(old===null)localStorage.removeItem("rozbor_profile");else localStorage.setItem("rozbor_profile",old);}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:888:        localStorage.setItem("rozbor_profile",JSON.stringify({name:"Petr Novák",sign:"pozdrav"}));localStorage.removeItem("ks5_selected_signature");
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:896:        localStorage.setItem("rozbor_profile",JSON.stringify({name:"Petr Novák",casualName:"Péťa",sign:"pozdrav"}));ST.in.replyAddressingMode="tykani";
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:900:        if(oldProfile===null)localStorage.removeItem("rozbor_profile");else localStorage.setItem("rozbor_profile",oldProfile);
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:901:        if(oldSelected===null)localStorage.removeItem("ks5_selected_signature");else localStorage.setItem("ks5_selected_signature",oldSelected);
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1031:      try{ localStorage.setItem("rozbor_dict",old); }catch(_){}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1042:        localStorage.removeItem("rozbor_profile");
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1056:      }finally{ST.in.replySenderMode=mode;if(old===null)localStorage.removeItem("rozbor_profile");else localStorage.setItem("rozbor_profile",old);}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1327:      try{localStorage.removeItem(NO_HISTORY_SK); sessionStorage.setItem(LAST_PROMPT_SK,"x");}catch(_){}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1342:      try{ localStorage.removeItem(NO_HISTORY_SK); sessionStorage.setItem(LAST_PROMPT_SK,"x"); }catch(_){}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1477:      try{localStorage.removeItem("rozbor_history");}catch(_){} setNoHistory(false);
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1483:      try{localStorage.setItem("rozbor_history",JSON.stringify([{d:1,label:"legacy",text:"Jan Novák"}]));}catch(_){}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1487:      try{localStorage.removeItem("rozbor_history");}catch(_){} setNoHistory(true); saveHistory("my","Test","Text"); assertTest(loadHistory().length===0,"historie se uložila i v režimu neukládat");
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1488:      try{ localStorage.setItem("rozbor_profile",JSON.stringify({name:"Test"})); }catch(_){}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1492:      try{localStorage.setItem("ks5_workbench_drafts","[]");localStorage.setItem("ks5_signatures","[]");localStorage.setItem("ks5_followups","[]");localStorage.setItem("rozbor_name_hints","1");}catch(_){}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1509:        localStorage.setItem("ghrab.handoff.v1",JSON.stringify({materialId:"citlivy-material"}));
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1510:        localStorage.setItem("ghrab.pilot.events.v2",JSON.stringify([{type:"open",materialId:"citlivy-material"}]));
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1511:        sessionStorage.setItem("ghrab.handoff.v1","rozpracovaná předávka");
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1512:        sessionStorage.setItem("ghrab.pilot.events.v2","provozní událost");
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1530:      try{localStorage.setItem("rozbor_profile",JSON.stringify({name:"Přímý zápis",writingStyle:"cizi",extra:"tajné",styleCustom:longText}));}catch(_){}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1547:      }finally{if(oldDict===null)localStorage.removeItem("rozbor_dict");else localStorage.setItem("rozbor_dict",oldDict);}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1563:      }finally{if(before===null)localStorage.removeItem("ks5_blocks");else localStorage.setItem("ks5_blocks",before);}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1582:      setNoHistory(false); try{localStorage.setItem("rozbor_history","[]");}catch(_){}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1628:      localStorage.setItem("rozbor_profile",JSON.stringify({name:canaryA}));sessionStorage.setItem("rozbor_work_session_v2",JSON.stringify({raw:canaryB}));
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1641:    try{if(oldMarker===null)localStorage.removeItem(markerKey);else localStorage.setItem(markerKey,oldMarker);}catch(_){}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1696:  try{ localStorage.setItem(UI_MODE_SK, mode); }catch(_){}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1800:  if(obj.profil && typeof obj.profil==="object"){ try{ localStorage.setItem("rozbor_profile", JSON.stringify(typeof sanitizeProfile==="function"?sanitizeProfile(obj.profil):{})); }catch(_){} }
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/25-ai-studio-bridge.js:7:  function setLocal(k,v){try{localStorage.setItem(k,v);return true}catch(e){console.warn('AI Studio bridge: zápis do úložiště selhal',e);return false}}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/25-ai-studio-bridge.js:8:  function remove(k){try{localStorage.removeItem(k)}catch(e){console.warn('AI Studio bridge: odstranění z úložiště selhalo',e)}}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/50-koncept-a-prompty.js:210:function setNoHistory(on){ try{ localStorage.setItem(NO_HISTORY_SK,on?"1":"0"); }catch(_){} }
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/50-koncept-a-prompty.js:219:  try{ localStorage.setItem("rozbor_history", JSON.stringify(h)); }catch(_){}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/50-koncept-a-prompty.js:538:  try{ sessionStorage.removeItem(LAST_PROMPT_SK); localStorage.removeItem(LAST_PROMPT_SK); }catch(_){}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/75-pracovni-stul.js:10:const jset=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true;}catch(_){return false;}};
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/75-pracovni-stul.js:158:  openModal("Podpisy",html,{onMount(body,close){body.querySelectorAll('input[name="sig"]').forEach(r=>r.onchange=()=>{localStorage.setItem(LS.selectedSignature,r.value);toast("Výchozí podpis změněn ✓");});body.querySelectorAll("[data-del-sig]").forEach(b=>b.onclick=()=>{const a=jget(LS.signatures,[]).filter(x=>x.id!==b.dataset.delSig);jset(LS.signatures,a);if(localStorage.getItem(LS.selectedSignature)===b.dataset.delSig)localStorage.removeItem(LS.selectedSignature);close();manageSignatures(done);});body.querySelector("#newSignature").onclick=()=>{close();const form='<label class="dialog-label">Název podpisu</label><input id="sigName" class="dialog-input" placeholder="např. Třídní učitel" autofocus><label class="dialog-label">Celý podpis</label><textarea id="sigText" class="dialog-input" style="min-height:120px" placeholder="S pozdravem&#10;Jméno&#10;role"></textarea><div class="dialog-actions"><button class="btn" id="sigSave">Uložit podpis</button></div>';openModal("Nový podpis",form,{onMount(bb,cc){bb.querySelector("#sigSave").onclick=()=>{const name=clean(bb.querySelector("#sigName").value),text=clean(bb.querySelector("#sigText").value);if(!name||!text)return toast("Doplň název i text podpisu.");const a=jget(LS.signatures,[]),id=uid("sig");a.unshift({id,name,text});jset(LS.signatures,a.slice(0,12));localStorage.setItem(LS.selectedSignature,id);cc();manageSignatures(done);toast("Podpis uložen ✓");};}});};body.querySelector("#sigDone").onclick=()=>{close();if(done)done();};}});
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/75-pracovni-stul.js:174:      body.querySelectorAll("[data-signature]").forEach(b=>b.onclick=()=>{const x=getSignatures().find(y=>y.id===b.dataset.signature);if(x){localStorage.setItem(LS.selectedSignature,x.id);insertBlock(el,"[podpis]");close();toast("Podpis nastaven a vložen ✓");}});
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/30-api-gemini.js:20:function loadKey(){ let s="",legacy=""; try{s=sessionStorage.getItem(KEY_SESSION_SK)||"";}catch(_){} try{legacy=localStorage.getItem(KEY_SK)||"";localStorage.removeItem(KEY_SK);}catch(_){} if(!s&&legacy){try{sessionStorage.setItem(KEY_SESSION_SK,legacy);s=legacy;}catch(_){}} setKey(s,s?"session":""); }
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/30-api-gemini.js:21:function useKeySession(){ const k=inputKey(); try{ if(k) sessionStorage.setItem(KEY_SESSION_SK,k); else sessionStorage.removeItem(KEY_SESSION_SK); }catch(_){} setKey(k,k?"session":""); }
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/30-api-gemini.js:26:  try{localStorage.removeItem(KEY_SK);}catch(_){}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/30-api-gemini.js:29:function clearKey(){ try{sessionStorage.removeItem(KEY_SESSION_SK);}catch(_){} try{localStorage.removeItem(KEY_SK);}catch(_){} setKey("",""); }
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/30-api-gemini.js:78:  try{localStorage.setItem(MODEL_PROFILE_SK,selectedModelProfile);}catch(_){}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/30-api-gemini.js:84:  try{localStorage.setItem(MODEL_PROFILE_SK,selectedModelProfile);}catch(_){}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/30-api-gemini.js:138:function saveOpsLog(items){ try{ localStorage.setItem(OPS_LOG_SK, JSON.stringify((items||[]).slice(0,80))); }catch(_){} }
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/30-api-gemini.js:145:function clearOpsLog(){ try{ localStorage.removeItem(OPS_LOG_SK); }catch(_){} }
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/30-api-gemini.js:219:  if(isStrictScenarioActive() || hasSensitiveSchoolTerms(prompt) || hasSensitiveSchoolTerms(system)){ try{ sessionStorage.removeItem(LAST_PROMPT_SK); localStorage.removeItem(LAST_PROMPT_SK); }catch(_){} return; }
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/30-api-gemini.js:221:  try{ sessionStorage.setItem(LAST_PROMPT_SK, JSON.stringify(rec)); localStorage.removeItem(LAST_PROMPT_SK); }catch(_){}
+
+[End-work implementation]
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1489:      clearAllLocalData(); assertTest(!loadProfile().name,"profil nebyl smazán");
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1493:      clearAllLocalData();
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1500:      const result=removeOwnedStorageKeys(fakeStore,"syntheticStorage");
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1504:      const blocked=removeOwnedStorageKeys(blockedStore,"blockedStorage");
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1514:      clearAllLocalData();
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1630:      const ok=endWorkAndClearData({reload:false});assertTest(ok===true,"endWork nevrátil úspěch");
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1659:const APP_STORAGE_KEY_RE=/^(?:rozbor_|ks5_|ghrab\.correspondence\.)|^ghrab\.(?:handoff\.v1|pilot\.events\.v2)$/;
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1667:function storageKeySnapshot(store){
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1681:function storageKeyList(store){return storageKeySnapshot(store).keys.slice();}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1682:function isOwnedAppStorageKey(key){return APP_STORAGE_KEY_RE.test(String(key||""));}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1684:  const snap=storageKeySnapshot(store);
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1709:function removeOwnedStorageKeys(store,label){
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1719:function clearAllLocalData(options){
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1723:  const localResult=removeOwnedStorageKeys(localStorage,"localStorage");
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1724:  const sessionResult=removeOwnedStorageKeys(sessionStorage,"sessionStorage");
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1749:function endWorkAndClearData(options){
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1758:    if(window.GHRABErrorReporter)reporterOk=typeof window.GHRABErrorReporter.clearDraft==="function"&&window.GHRABErrorReporter.clearDraft()!==false;
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1760:  const deletion=clearAllLocalData({silent:true});
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1772:window.GHRABCorrespondencePrivacy=Object.freeze({endWork:endWorkAndClearData});
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1842:  m.body.querySelector("#dmClear").onclick=()=>{ confirmActionModal({title:"Smazat všechna lokální data",message:"Opravdu smazat API klíč, anonymizovanou historii, profil, slovník jmen, šablony, profil AI, debug data a technický log z tohoto prohlížeče? Tuto akci nelze vrátit.",confirmText:"Smazat data",danger:true,onConfirm(){clearAllLocalData();m.close();}}); };
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1843:  m.body.querySelector("#dmEndWork").onclick=()=>{ confirmActionModal({title:"Ukončit práci",message:"Vymazat pracovní texty, lokální a dočasná data této aplikace a znovu ji načíst? Použij tuto volbu zejména na sdíleném zařízení.",confirmText:"Ukončit a vymazat",danger:true,onConfirm(){m.close();endWorkAndClearData();}}); };
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/access/error-reporter.js:812:    clearDraft: () => { resetDraft(); return true; },
+
+[Test-only entry points]
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/30-api-gemini.js:2:window.__setTestRunActive=v=>{ TEST_RUN_ACTIVE=TEST_HOOKS_BUILD_ENABLED&&isTrustedLocalTestOrigin()&&!!v; return TEST_RUN_ACTIVE; };
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/30-api-gemini.js:3:function testMockAvailable(){ return TEST_HOOKS_BUILD_ENABLED&&isTrustedLocalTestOrigin()&&(IS_TEST_MODE||TEST_RUN_ACTIVE)&&!!window.__TEST_MOCK_GEMINI; }
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:45:function testRunnerAvailable(){return TEST_HOOKS_BUILD_ENABLED&&isTrustedLocalTestOrigin();}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:46:const openTestRunner=function(auto){
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:47:  if(!testRunnerAvailable())return false;
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:53:  const run=m.body.querySelector("#runTestsNow"); if(run) run.onclick=()=>runKorespTests();
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:54:  if(auto) setTimeout(runKorespTests,80);
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:93:function snapshotTestState(){ return {storage:snapshotAppStorage(),st:JSON.parse(JSON.stringify(ST)),inRaw:E("in","raw").value,myRaw:E("my","raw").value,key:geminiApiKey,scope:geminiKeyScope,modelProfile:selectedModelProfile,mock:window.__TEST_MOCK_GEMINI,gatewayMock:window.__TEST_MOCK_GATEWAY,runtime:GHRABRuntime.getConfig(),workSessionSuppressed,ui:snapshotTestUiState()}; }
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:96:  ST.in=snap.st.in; ST.my=snap.st.my; E("in","raw").value=snap.inRaw; E("my","raw").value=snap.myRaw; geminiApiKey=snap.key; geminiKeyScope=snap.scope; selectedModelProfile=snap.modelProfile; window.__TEST_MOCK_GEMINI=snap.mock; window.__TEST_MOCK_GATEWAY=snap.gatewayMock; GHRABRuntime.replaceForTesting(snap.runtime);
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:110:const runKorespTests=async function(){
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:111:  if(!testRunnerAvailable())throw new Error("TEST_RUNNER_DISABLED");
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:121:  window.__setTestRunActive(true); document.body.classList.add("ks-tests-running");
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:143:      const previous=GHRABRuntime.getConfig(),oldMock=window.__TEST_MOCK_GEMINI;let captured=null;
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:146:        window.__TEST_MOCK_GEMINI=async input=>{captured=input;return {text:"Hotovo",synonyma:{}};};
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:153:      }finally{window.__TEST_MOCK_GEMINI=oldMock;GHRABRuntime.replaceForTesting(previous);}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:177:      const previous=GHRABRuntime.getConfig(),oldGateway=window.__TEST_MOCK_GATEWAY,oldGemini=window.__TEST_MOCK_GEMINI;let geminiCalls=0,code="";
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:181:        window.__TEST_MOCK_GEMINI=async()=>{geminiCalls++;return {};};
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:185:      }finally{window.__TEST_MOCK_GATEWAY=oldGateway;window.__TEST_MOCK_GEMINI=oldGemini;GHRABRuntime.replaceForTesting(previous);}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:423:      const old=window.__TEST_MOCK_GEMINI;
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:426:        window.__TEST_MOCK_GEMINI=async({schema})=>{assertTest(schema==="text","rychlá úprava nepoužila textové schéma");return {text:"Předmět: Informace k odměnám\n\nDobrý den,\n\nprosím o vysvětlení.\n\n[podpis]",synonyma:{}};};
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:435:      }finally{window.__TEST_MOCK_GEMINI=old;}
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:916:      const oldMock=window.__TEST_MOCK_GEMINI; window.__TEST_MOCK_GEMINI=async()=>({}); geminiApiKey="";
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:920:      window.__TEST_MOCK_GEMINI=oldMock;
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:967:      const old=window.__TEST_MOCK_GEMINI; window.__TEST_MOCK_GEMINI=async()=>({});
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:969:      window.__TEST_MOCK_GEMINI=old;
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:972:      const old=window.__TEST_MOCK_GEMINI,oldKey=geminiApiKey; geminiApiKey="";
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:973:      window.__TEST_MOCK_GEMINI=async({schema,thinking})=>{assertTest(schema==="tone"&&thinking==="minimal","kontrola tónu nepoužila levné uvažování");return {naladeni:{stupen:"neutral",popis:"věcné"},prirozenost:{stupen:"mirne_sablonovity",popis:"jeden obecný obrat"},rizika:["Příliš stručné"],sablonoviteObraty:["touto cestou"],navrh:"Doplnit konkrétní další krok"};};
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:982:      window.__TEST_MOCK_GEMINI=old; geminiApiKey=oldKey;
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:985:      const old=window.__TEST_MOCK_GEMINI,oldKey=geminiApiKey;geminiApiKey="";let refinementPrompt="",current="Děkuji za zprávu.\n\n[podpis]";
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:986:      window.__TEST_MOCK_GEMINI=async({schema,thinking,prompt})=>{
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1002:      window.__TEST_MOCK_GEMINI=old;geminiApiKey=oldKey;
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1019:      window.__TEST_MOCK_GEMINI=null; geminiApiKey=""; let ok=false;
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1124:      const old=window.__TEST_MOCK_GEMINI;window.__TEST_MOCK_GEMINI=async()=>({text:"ok"});let blocked=false;
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1126:      window.__TEST_MOCK_GEMINI=old;assertTest(blocked,"skutečné jméno v kompletním promptu nevyvolalo stopku");
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1203:      window.__TEST_MOCK_GEMINI=async()=>({shrnuti:"Rodič žádá o konzultaci.",naladeni:{stupen:"neutral",popis:"věcné"},pozadavky:["Domluvit termín"],upozorneni:[],doporucenyZamer:"schuzka"});
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1215:      window.__TEST_MOCK_GEMINI=async()=>({navrhy:[
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1237:      E("in","reviewOk").checked=true; let calls=0; window.__TEST_MOCK_GEMINI=async()=>{calls++;return {navrhy:[]};}; geminiApiKey="test";
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1247:      window.__TEST_MOCK_GEMINI=async({prompt})=>{captured=prompt;return {navrhy:[
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1260:      window.__TEST_MOCK_GEMINI=async()=>({text:"Dobrý den,\nopraveno.\n[podpis]",zmeny:["Oprava formulace"],synonyma:{}});
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1290:        window.__TEST_MOCK_GEMINI=async payload=>{captured=payload;return {text:"Hotovo",zmeny:[],synonyma:{}};};
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1638:    restoreTestState(snap); window.__setTestRunActive(false); document.body.classList.remove("ks-tests-running");
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1652:if(testRunnerAvailable())window.__GHRAB_KORESP_TESTS__=Object.freeze({open:openTestRunner,run:runKorespTests});
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1864:  const testCard=testRunnerAvailable()?'<button class="dev-tool-card" id="devTests"><b>Automatické testy</b><span>Lokální smoke testy bez volání API.</span></button>':'';
+/mnt/data/ka_new_cycle/app/korespondencni-asistent-main/src/js/70-nastroje-testy-data.js:1871:  const devTests=m.body.querySelector("#devTests");if(devTests)devTests.onclick=()=>{ m.close(); openTestRunner(false); };
+
+[SW cache boundaries]
+37:    const cache = await caches.open(CACHE_NAME);
+38:    await cache.addAll(CORE_ASSETS);
+41:      const results = await Promise.allSettled(optionalAssets.map((asset) => cache.add(asset)));
+43:      if (failed) console.warn(`[GHRAB SW] ${failed} volitelných assetů nebylo uloženo do offline cache.`);
+50:    const keys = await caches.keys();
+53:      .map((key) => caches.delete(key)));
+59:  const cache = await caches.open(CACHE_NAME);
+61:    const response = await fetch(request, { cache: 'no-store' });
+63:    await cache.put(request, response.clone());
+66:    const cached = await cache.match(request, { ignoreSearch: true });
+67:    if (cached) return cached;
+69:      const fallback = await cache.match(fallbackUrl, { ignoreSearch: true });
+76:async function cacheFirst(request) {
+77:  const cache = await caches.open(CACHE_NAME);
+78:  const cached = await cache.match(request);
+79:  if (cached) return cached;
+81:  if (response?.ok) await cache.put(request, response.clone());
+87:  return relative === 'runtime-config.js' ||
+88:    relative === 'config/deployment.json' ||
+89:    relative === 'config/deployment.school-server-p0.json' ||
+90:    relative === 'config/deployment.school-server.example.json' ||
+96:  if (request.method !== 'GET') return;
+98:  if (url.origin !== self.location.origin) return;
+100:  if (!url.pathname.startsWith(scopePath) || request.cache === 'no-store' || isRuntimeRequest(url, scopePath)) return;
+110:  event.respondWith(cacheFirst(request));

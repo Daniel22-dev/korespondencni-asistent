@@ -1,0 +1,15 @@
+{
+  "schema": "garp22-canary-artifact-sweep-v1",
+  "generatedAt": "2026-08-29T08:19:02.137Z",
+  "canaryId": "MTE3XEO4-R8YNU3Q",
+  "scope": [
+    "src",
+    "dist",
+    "dist-school-server",
+    "scripts",
+    ".github"
+  ],
+  "filesScanned": 127,
+  "unexpectedExactHits": [],
+  "status": "passed"
+}

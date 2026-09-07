@@ -1,0 +1,13 @@
+negative-control-exit=1
+{
+  "status": "failed",
+  "passed": 4,
+  "failed": 1,
+  "total": 5
+}
+{
+  "status": "passed",
+  "passed": 5,
+  "failed": 0,
+  "total": 5
+}

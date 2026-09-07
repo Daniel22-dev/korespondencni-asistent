@@ -1,0 +1,8 @@
+N12 EVIDENCE ERRATA
+Date: 2026-09-07
+
+Independent tooling review found that three R2 evidence artifacts disagreed about variant v6. The authoritative historical disposition is AMBER / exit 2 / unresolved-cache-write, matching the independent measurement and sw-bypass-matrix.txt.
+
+The previously stored v6.json (FAIL) is preserved unchanged as v6.R2-original-inconsistent.json for auditability. The active v6.json and bypass-exit-codes.txt are corrected to AMBER / 2.
+
+This correction changes evidence consistency only; it does not alter the frozen KS 5.10.25 runtime.

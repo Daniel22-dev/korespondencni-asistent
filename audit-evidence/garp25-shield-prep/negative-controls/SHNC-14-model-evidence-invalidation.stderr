@@ -1,0 +1,41 @@
+{
+  "schema": "ghrab-ai-assurance-baseline-check-v1",
+  "status": "FAIL",
+  "baselineVersion": "5.10.24",
+  "providerModelPolicy": "standalone runtime may use approved direct provider profiles; school-server runtime is provider-neutral and allows school-gateway only",
+  "errors": [
+    "hash-mismatch:src/runtime-config.js"
+  ],
+  "observed": [
+    {
+      "path": "src/runtime-config.js",
+      "expected": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "observed": "66b3030f3e77c5016da8ec38c0689e8e2675a77d5363091abca948f71081bd31"
+    },
+    {
+      "path": "src/runtime-config.school-server.js",
+      "expected": "f3da9d0cc4bda3c1a88e16800a69953b09904840cd7639c1bfebbdda03ba8a65",
+      "observed": "f3da9d0cc4bda3c1a88e16800a69953b09904840cd7639c1bfebbdda03ba8a65"
+    },
+    {
+      "path": "src/ai-operations.json",
+      "expected": "0a8493e770d206f04e687f4baebe306064d78f35736895a929fb23b64e8f02a5",
+      "observed": "0a8493e770d206f04e687f4baebe306064d78f35736895a929fb23b64e8f02a5"
+    },
+    {
+      "path": "src/js/28-ai-integration.js",
+      "expected": "578df3d6e54296578d58718d6ba57df386b6c00a192a63b8b95e03483b4e1ec3",
+      "observed": "578df3d6e54296578d58718d6ba57df386b6c00a192a63b8b95e03483b4e1ec3"
+    },
+    {
+      "path": "src/js/30-api-gemini.js",
+      "expected": "84380f413cc82f0cb60182b93268fa8b56bc03671c9b2fcb6d0c1e3a45ed4ecd",
+      "observed": "84380f413cc82f0cb60182b93268fa8b56bc03671c9b2fcb6d0c1e3a45ed4ecd"
+    },
+    {
+      "path": "vendor/ghrab-ai-core-1.0.0/ghrab-ai-core-1.0.0.js",
+      "expected": "81acb93e1f17646ab2b58b3744fce38a6ed5c779e8d5e9cba2ae797816ecec44",
+      "observed": "81acb93e1f17646ab2b58b3744fce38a6ed5c779e8d5e9cba2ae797816ecec44"
+    }
+  ]
+}

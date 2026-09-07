@@ -1,0 +1,61 @@
+{
+  "schema": "ghrab-garp22-singlepage-evidence-v1",
+  "generatedAt": "2026-08-29T06:37:15.794Z",
+  "canaryId": "MTE0D3TE-3D3CTGC",
+  "summary": {
+    "passed": 12,
+    "failed": 0,
+    "total": 12,
+    "status": "passed"
+  },
+  "checks": [
+    {
+      "id": "harness.platform-unlock",
+      "ok": true
+    },
+    {
+      "id": "sim08.export-excludes-working-student-data",
+      "ok": true
+    },
+    {
+      "id": "rt19.ai-egress-minimization",
+      "ok": true
+    },
+    {
+      "id": "rt19.preflight-zero-egress-for-raw-canary",
+      "ok": true
+    },
+    {
+      "id": "rt14.preflight-error-redacts-canary",
+      "ok": true
+    },
+    {
+      "id": "sim06.interrupted-ai-explicit-retry",
+      "ok": true
+    },
+    {
+      "id": "sim05.hostile-ai-output-inert",
+      "ok": true
+    },
+    {
+      "id": "sim08.reimport-second-logical-context-no-a",
+      "ok": true
+    },
+    {
+      "id": "rt20.end-work-clears-app-controlled-data",
+      "ok": true
+    },
+    {
+      "id": "rt20.fail-safe-detects-remove-failure",
+      "ok": true
+    },
+    {
+      "id": "rt20.fail-safe-detects-enumeration-failure",
+      "ok": true
+    },
+    {
+      "id": "rt06.canary-not-in-observed-console",
+      "ok": true
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+RI / RISIM MATRIX – KS 5.10.24 – GARP 2.5.1
+
+RI-01 PASS – appId/version/buildId/source package hash/deployment ZIP hash/artifactDigest are frozen; unknown source commit is null, not invented.
+RI-02 PASS – source and dist-school-server are separate; deployment leak scan PASS.
+RI-03 PASS – release-integrity v2 inventories 39 deployment files with size + SHA-256; symlinks forbidden by generator/verifier.
+RI-04 PASS – two deterministic rebuilds produced identical canonical artifactDigest.
+RI-05 PASS – detached Ed25519 signature verified; substitution negative control PASS.
+RI-06 PASS – explicit PREP trust root + keyId; wrong trust root and revoked key DENY.
+RI-07 PASS – independent Node verifier outside protected application runtime.
+RI-08 PASS (PREP fixture) – registry verifier approves current release and denies validly signed old release. Production registry LIVE NOT TESTED.
+RI-09 PASS – full inventory detects byte tamper/missing/mixed version.
+RI-10 NOT TESTED – no live Integrity Service yet; fail-closed behavior is design only.
+RI-11 NOT TESTED – no live Studio/server app-guard integrity integration yet.
+RI-12 NOT TESTED – no live minimal integrity alert/audit channel yet.
+RI-13 NOT TESTED – external watchdog not deployed.
+RI-14 NOT TESTED – production signing-key custody/rotation/recovery drill not established; disposable PREP key only.
+RI-15 PASS – deployment artifact, manifest/signature/public trust metadata, SBOM, deployment/security design and handoff metadata are prepared without requiring source deployment.
+
+RISIM-01 PASS – one-byte/asset tamper -> integrity verifier FAIL.
+RISIM-02 PASS – manifest/signature substitution -> signature verifier FAIL.
+RISIM-03 PASS – validly signed 5.10.23 against registry approved 5.10.24 -> DENIED rollback/version mismatch.
+RISIM-04 PASS – wrong trust root/keyId -> UNVERIFIED.
+RISIM-05 PASS – missing signature -> UNVERIFIED.
+RISIM-06 PASS – mixed deployment version -> integrity verifier FAIL.
+RISIM-07 NOT TESTED – live Integrity Service outage not available.
+RISIM-08 PASS PREP – registry artifactDigest tamper -> registry verifier DENY; production registry authorization service itself remains LIVE NOT TESTED.
+RISIM-09 NOT TESTED – external watchdog absent.
+RISIM-10 PASS – source-map/development leak negative control -> leak scan FAIL; clean deployment PASS.
+
+MECHANICAL GARP 2.5.1 PREP RELEASE GATE: expected to be GREEN once final evidence manifest is attached.
+POLICY RI-PREP: AMBER because RI-14 is required for RI-PREP GREEN and remains NOT TESTED.
+RI-LIVE: DEFERRED / NOT TESTED.

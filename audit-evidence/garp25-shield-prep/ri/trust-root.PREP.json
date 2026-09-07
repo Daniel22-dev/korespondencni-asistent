@@ -1,0 +1,12 @@
+{
+  "schema": "ghrab-trust-root-v1",
+  "profile": "PREP-only-synthetic",
+  "keys": [
+    {
+      "keyId": "prep-ks-ed25519-20260906",
+      "algorithm": "Ed25519",
+      "status": "active",
+      "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAyYZZwBjrwz59bo4v6G+MN0FcaaNKKw2A5TB4dD5nkPk=\n-----END PUBLIC KEY-----\n"
+    }
+  ]
+}

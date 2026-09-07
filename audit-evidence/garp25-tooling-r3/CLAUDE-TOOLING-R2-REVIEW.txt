@@ -1,0 +1,367 @@
+GARP 2.5.1 SHIELD - NEZAVISLA KONTROLA TOOLING R2 (ROLE B / CLAUDE)
+Aplikace: Korespondencni asistent (KS), frozen runtime 5.10.25
+Predmet kontroly: tooling/source snapshot po opravach N6-N10
+Datum kontroly: 2026-09-06
+Rezim: NOVY, VYSLOVNE ZAHAJENY NEZAVISLY TOOLING CYKLUS (ne pokracovani Prompt E)
+Kontrolujici: Claude, role B (neopravuje, pouze overuje a zadava)
+
+======================================================================
+0. VERDIKT V JEDNE VETE
+======================================================================
+Opravy N6 az N8 jsou skutecne a mnou reprodukovane - opraveny release gate nad
+vadnym 5.10.24 konci RED na kroku sw-security-freeze, nad 5.10.25 je GREEN,
+chybejici seznam kritickych assetu je fail-closed a komentarovy bypass uz
+neprojde - ale zaruka "nerozlozitelny dynamicky cache write => AMBER, nikdy
+PASS" z kapitoly 2 neplati doslova: nasel jsem ctyri dalsi tvary zapisu do
+Cache API, ktere konci tichym PASS, mezi nimi importScripts.
+
+OVERALL: AMBER.
+Frozen runtime 5.10.25 zustava podle meho nezavisleho porovnani bajtove
+nedotcen. Tooling R2 je vyrazny posun spravnym smerem, ale jeste ne uzavreny.
+
+======================================================================
+1. POTVRZENI VSTUPU A-F - CTI JAKO PRVNI
+======================================================================
+Kapitola 1 vyslovne zada, at nejprve potvrdim, ze vidim A-F. Potvrzuji presne
+toto:
+
+  A) GARP-2.5.1-ZAVEDENI-TOOLING-R2.zip          NEDORAZILO
+  B) KS-5.10.25-...-TOOLING-R2-SOURCE.zip        ANO, hash overen
+       70fdd552f0d18de3eb0bbb88bbadb37a346adc3f73067d86c51bc0ad7fb54d16 - shoda
+  C) frozen deployment 5.10.25                   mam z kola 2, viz nize
+  D) vadny deployment 5.10.24                    mam z kola 1, viz nize
+  E) OVERENI-KANDIDATA-...-KOLO-2.txt            ANO, muj vlastni vystup
+       c8f221bc04892443531e43c3806ecc0318a5d609583914021d2ba7534d8aa74f - shoda
+  F) tento predavaci protokol                    ANO
+
+K C a D: oba ZIPy uz nejsou mezi nahranymi soubory, ale mam jejich rozbalene
+stromy z predchozich kol teto relace, kde jsem jejich SHA-256 overil pri
+prijeti (9b580c26... a 940668749c...). Integritu stromu 5.10.25 jsem navic
+prave znovu potvrdil proti podepsanemu manifestu (39/39 VERIFIED). Pro
+regresni testy N6 to je dostatecny zaklad, protoze gate i checker pracuji nad
+adresarem, ne nad ZIPem.
+
+A CHYBI POTRETI. Kapitola 1 sama rika: "Bez A nelze ověřit, že oprava je
+ekosystémová a ne jen lokální v KS." Souhlasim s touto vetou a proto:
+
+  - bod 2 kapitoly 5 (selftest primo z GARP-2.5.1-ZAVEDENI-TOOLING-R2.zip,
+    43/43) NELZE PROVEST;
+  - bod 3 kapitoly 5 (porovnat TOOLS/check-sw-security-freeze.mjs a
+    TOOLS/release-gate.mjs z GARP R2 proti kopiim v KS) NELZE PROVEST;
+  - tvrzeni "Interní SHA256SUMS: všechny PASS" a "Frozen selftest: 43/43"
+    pro kanonicky balicek zustavaji NEOVERENA.
+
+Vse, co nize oznacuji za overene, je overene nad LOKALNI KOPII nastroju v KS.
+Ekosystemova cast meho puvodniho nalezu N1 z kola 1 tim padem NENI uzavrena
+ani po tretim kole. Neni to formalita: puvodni GH-02 vada byla presne toho
+druhu, ktera se v ekosystemu opakuje u vice aplikaci.
+
+OMEZENI PROSTREDI (nezmenene): node_modules ani Chromium nejsou k dispozici,
+takze interni testy 171/171, suite-session, reporter 52/52, browser contract,
+AIR structural a Axe jsem nereprodukoval. Predavaci protokol je sam
+neprohlasuje za nove provedene, s cimz souhlasim.
+
+======================================================================
+2. FROZEN RUNTIME - NEZAVISLE OVERENO, ZE SE NEZMENIL
+======================================================================
+Toto je nejdulezitejsi kontrola celeho kola, protoze cely cyklus stoji na
+tvrzeni, ze se sahalo jen na nastroje.
+
+  - vlastni rekurzivni diff dist-school-server ze snapshotu proti frozen
+    deploymentu 5.10.25 z kola 2: ZADNY ROZDIL, bajtova shoda
+  - podepsany manifest nad timto stromem: VERIFIED, 39 souboru,
+    artifactDigest 5e0ebab6c6df6161caad35c9429643fb0318afb5d426d24413682b772fb711ce
+  - jejich vlastni dist-diff.txt i dist-school-server-diff.txt maji 0 bajtu
+
+Potvrzuji: tooling opravy distribuovany runtime nezmenily. Rozhodnuti
+nevytvaret 5.10.26 kvuli nalezum, ktere se tykaji vyhradne nastroju, povazuji
+za spravne.
+
+Zmenene nastroje jsem si ohranicil sam. Mezi kolem 2 a tooling R2 se zmenily
+presne tri soubory z patnacti ve scripts/garp25:
+  check-sw-security-freeze.mjs   (146 -> 399 radku)
+  release-gate.mjs               (79 -> 114 radku)
+  selftest-garp251.mjs
+Zadny jiny nastroj nebyl dotcen. Uzka zmenova plocha je dobre.
+
+======================================================================
+3. N6 - RELEASE GATE - OVERENO
+======================================================================
+Cetl jsem novou logiku a pak ji otestoval.
+
+Logika (radky 45-58 release-gate.mjs):
+  - pokud v deploy adresari existuje sw.js nebo je zadano --sw, gate MUSI mit
+    seznam kritickych assetu;
+  - kandidati jsou pouze --critical-list a
+    path.dirname(deployRoot)/security/security-critical-assets.json;
+  - cwd se skutecne nepouziva, tvrzeni z kapitoly 2 potvrzuji;
+  - kdyz seznam neni, gate konci failEarly('critical-asset-list-missing').
+
+Moje testy nad skutecnymi artefakty:
+
+  opraveny gate, profil prep, VADNY 5.10.24, explicitni seznam
+    -> GATE: RED
+       deployment-leaks   PASS
+       release-integrity  PASS
+       release-signature  PASS
+       assurance-links    FAIL
+       sw-security-freeze FAIL      <- pozadovany selhavajici krok
+  Presne to, co kapitola 2 slibuje. Puvodni vada GH-02 uz branou neprojde.
+
+  opraveny gate, profil prep, 5.10.25, plne vstupy
+    -> GATE: GREEN, 9/9 PASS
+       deployment-leaks, release-integrity, release-signature, release-registry,
+       build-provenance, evidence-manifest, assurance-links, sw-security-freeze,
+       vendored-consistency
+
+  bod 7 kapitoly 5, chybejici seznam
+    -> GATE: RED, errors: ["critical-asset-list-missing"],
+       vypsano i "searched". Fail-closed potvrzeno.
+
+AMBER jako ne-GREEN jsem overil na urovni kodu, ne jen dojmem: checker konci
+exit 2 pri AMBER, gate klasifikuje kazdy nenulovy exit jako non-PASS a
+verdikt pocita failed = steps.filter(s => s.status !== 'PASS'). Jediny AMBER
+krok tedy skutecne zpusobi RED. Overeno i behem: varianta v6 dala
+sw-security-freeze AMBER a gate RED.
+
+======================================================================
+4. N7 A N8 - MATICE, KTEROU JSEM ZOPAKOVAL
+======================================================================
+Zopakoval jsem vsech sest variant z kola 2 plus prejmenovane pole:
+
+  v1 property array + addAll                  FAIL   odhaleno
+  v2 cache.put("critical", ...)               FAIL   odhaleno
+  v3 cache.add(new Request("critical"))       FAIL   odhaleno
+  v4 BASE.concat([...]) + addAll              FAIL   odhaleno
+  v5 "...".split(",") + addAll                FAIL   odhaleno
+  v6 Object.values(MAP) + for..of add         AMBER  neblokujici nalez,
+                                                     ale ne-GREEN pro gate
+  v7 jinak pojmenovane pole                   FAIL   odhaleno
+
+V kole 2 slo sest z techto sedmi variant tichym PASS. Ted neprojde ani jedna.
+To je realny a merzitelny posun.
+
+N8, komentarovy bypass, presne stejny test jako v kole 2 (kriticky seznam
+obsahuje config/data-manifest.json):
+  A) bez zminky v sw.js                       FAIL (HIGH)
+  B) pridan pouze komentar vedle fetch(       FAIL (HIGH)
+V kole 2 se v kroku B FAIL prevratil na PASS. Ted uz ne. Textova proximity
+heuristika je skutecne pryc a vyjimka se uznava strukturalne pres
+isSecurityCriticalRequest -> networkOnlyNoStore. N8 povazuji za uzavreny.
+
+======================================================================
+5. NOVE NALEZY
+======================================================================
+
+----------------------------------------------------------------------
+N11  CTYRI DALSI CACHE API CESTY KONCI TICHYM PASS
+     Zavaznost: MEDIUM (pokryti a pravdivost zaruky)
+     Artefakt 5.10.25 zadnou z nich nepouziva
+----------------------------------------------------------------------
+POPIS
+Bod 10 kapitoly 5 me zada hledat dalsi Cache API write cestu s tim, ze spravny
+vysledek je minimalne AMBER, nikdy silent PASS. Otestoval jsem deset dalsich
+tvaru nad cistym deploymentem 5.10.25, do kterych jsem vzdy skutecne
+precachoval ghrab/ghrab-platform.js:
+
+  w1  for (let i=0;i<L.length;i++) c.add(L[i])        AMBER   spravne
+  w2  L.reduce((p,u)=>p.then(()=>c.add(u)), ...)      AMBER   spravne
+  w6  L.filter(Boolean).map(u=>c.add(u))              AMBER   spravne
+  w7  addAll do JINE cache (caches.open('jina'))      FAIL    spravne
+  w8  Promise.all(L.map(u=>c.add(u)))                 FAIL    spravne
+  w10 c.put(new Request("critical"), r)               FAIL    spravne
+  ---------------------------------------------------------------------
+  w3  c['addAll'](L)          zavorkova notace        PASS    TICHY PASS
+  w4  const f=c.addAll.bind(c); f(L)                  PASS    TICHY PASS
+  w5  c.add('./ghrab/ghrab-plat'+'form.js')           PASS    TICHY PASS
+  w9  importScripts('./extra-precache.js')            PASS    TICHY PASS
+
+Fail-closed sit tedy funguje pro nekolik tvaru, ktere nikdo predem
+nevyjmenoval - w1, w2 a w6 spravne spadnou do AMBER. To je dobre navrzene.
+Ale u ctyr tvaru checker zapis do cache vubec nerozpozna jako zapis, takze ho
+neoznaci ani jako unresolved, a vysledek je ciste PASS bez jedineho nalezu.
+
+NEJZAVAZNEJSI Z NICH JE w9 - importScripts
+Checker analyzuje jediny soubor sw.js. Service worker, ktery si natahne dalsi
+skript pres importScripts, je zcela mimo analyzu a nedostane ani varovani.
+Neni to exoticke: importScripts je standardni vzor service workeru a takto
+funguje mimo jine Workbox. Kdyby nekterá aplikace ekosystemu GHRAB pouzila
+generovany precache manifest pres importScripts, kontrola by mlcela.
+
+w3 a w4 jsou syntakticke varianty tehoz volani. w5 ukazuje, ze slib z kapitoly
+2 bodu 7 neplati doslova: zretezeny retezec v argumentu neni "nerozlozitelny
+dynamicky cache write, ktery konci AMBER", ale write, ktery checker vubec
+nevidi.
+
+CO NETVRDIM
+Netvrdim, ze je 5.10.25 zranitelne. Jeho sw.js zadnou z techto cest nepouziva,
+overil jsem to v kole 2 prochazenim vsech volani zapisu do cache. Jde o
+pravdivost zaruky, kterou standard o sobe vyhlasuje.
+
+POZADOVANA OPRAVA
+1. Rozpoznavat zapis do cache i pres zavorkovou notaci c['add'] a c['addAll'].
+2. Detekovat aliasovani metody (bind, prirazeni do promenne) a takovy zapis
+   klasifikovat jako unresolved, ne ho ignorovat.
+3. Argument, ktery neni jediny staticky literal - zretezeni, sablona s ${},
+   volani funkce - klasifikovat jako unresolved-cache-write, ne prehlizet.
+4. importScripts: bud analyzovat i importovane soubory, kdyz jsou v
+   deploymentu, nebo pri jakemkoli vyskytu importScripts vratit AMBER s
+   duvodem "sw-imports-external-script-not-analyzed". Tise PASS je zde
+   nejhorsi z moznosti.
+5. Prekalibrovat text v poli note: PASS znamena cisty vysledek v rozpoznane
+   obalce, a ta obalka ma byt vyjmenovana.
+
+----------------------------------------------------------------------
+N12  VLASTNI EVIDENCE SI U VARIANTY v6 ODPORUJE
+     Zavaznost: LOW (konzistence dukazu)
+----------------------------------------------------------------------
+Tri artefakty popisuji tentyz test a neshoduji se:
+
+  audit-evidence/garp25-tooling-r2/v6.json          "status": "FAIL", unresolved 0
+  audit-evidence/garp25-tooling-r2/sw-bypass-matrix.txt  [v6] AMBER, unresolved-cache-write
+  audit-evidence/garp25-tooling-r2/bypass-exit-codes.txt v6:1   (exit 1 = FAIL)
+
+Moje vlastni mereni: AMBER, exit 2, jeden unresolved-cache-write. Shoduje se
+tedy s matici, ale ne s v6.json ani s exit-code souborem. Kapitola 2 pak
+propaguje silnejsi tvrzeni ("Object.values(MAP) + for..of cache.add => FAIL").
+
+Funkcne to nic nemeni - AMBER je pro gate stejne ne-GREEN, takze kontrola
+blokuje tak jako tak. Ale v protokolu, jehoz celym smyslem je nevydavat slabsi
+vysledek za silnejsi, maji tri soubory o jednom testu rikat totez.
+
+OPRAVA: sjednotit v6.json, bypass-exit-codes.txt a text kapitoly 2 na skutecne
+namereny vysledek AMBER / exit 2, nebo doplnit fixture, ktera FAIL opravdu
+vyvola, a ulozit ji.
+
+----------------------------------------------------------------------
+N13  FALLBACK NA SEZNAM PREDPOKLADA REPO LAYOUT
+     Zavaznost: LOW (provozni poznamka, chovani je fail-closed)
+----------------------------------------------------------------------
+Nahradni cesta k seznamu je path.dirname(deployRoot)/security/security-
+critical-assets.json, tedy nadrazeny adresar deploymentu. V repozitari to
+sedi. Kdyz ale nekdo overuje samostatne rozbaleny deployment - tedy presne to,
+co dostane skolni IT - seznam se nenajde a gate skonci RED s
+critical-asset-list-missing. Overil jsem to.
+
+Chovani je spravne fail-closed, takze to neni bezpecnostni nalez. Je to ale
+provozni fakt, ktery patri do minimalniho deployment handoffu pro skolni IT:
+bez soucasneho predani security-critical-assets.json a --critical-list nelze
+branu na strane prijemce spustit vubec.
+
+======================================================================
+6. STANOVISKO K BODU 8 - N9 / TB-12
+======================================================================
+Kapitola 5 bod 8 me zada, at uvedu konkretni runtime duvod, pokud dokumentacni
+variantu nepovazuji za dostatecnou.
+
+Zadny takovy duvod nemam a dokumentacni variantu PRIJIMAM.
+V kole 2 jsem sam prohledal ghrab-platform.js i vsechny moduly src/js na
+cteni ghrab-platform-manifest-1.1.2.json a na porovnavani pole artifacts a
+zadneho konzumenta jsem nenasel. Muj nalez byl vyslovne dopredny, ne aktualni
+exploit. TB-12 v SECURITY-THREAT-MODEL.md manifest klasifikuje jako
+neautoritativni build/conformance artefakt bez runtime konzumenta a stanovi
+podminku, ze pred pripadnym budoucim pouzitim Integrity Service se musi pridat
+do seznamu kritickych assetu, vyloucit z precache a routovat network-only.
+To je presne ta podminka, o kterou mi slo. Nemenit kvuli LOW dopřednemu riziku
+zmrazeny runtime povazuji za spravne rozhodnuti.
+
+N9 uzaviram jako ACCEPTED.
+
+======================================================================
+7. CO JSEM JESTE REPRODUKOVAL
+======================================================================
+  lokalni selftest GARP 2.5.1 R2 v KS      PASS, 43/43, failed []
+  N10 - vsech sedm dokumentovanych cest    existuje, overeno po jedne
+  school boundaries                        PASS
+  platform conformance                     PASS
+  quality                                  PASS
+  pinned inputs                            PASS
+  AI assurance baseline                    PASS
+  XSS sink gate                            PASS
+  secret scan                              PASS, 0 nalezu
+  vendored consistency                     PASS, 4/4, drift 0
+  release integrity nad frozen stromem     VERIFIED, 39 souboru
+
+Selftest 43/43 potvrzuji pro lokalni kopii. Nemohu ho porovnat s kanonickym
+balickem (chybi A) a nemohu tedy rict, ze kanonicky standard obsahuje tytez
+kontroly. Sam o sobe je selftest psany toutez stranou, ktera nastroj opravila,
+takze jeho hodnota je v regresni ochrane, ne v nezavislem dukazu.
+
+======================================================================
+8. GATE - MUJ NEZAVISLY ZAVER
+======================================================================
+SECURITY:          AMBER
+  Aplikacni kod se v tomto kole nezmenil a je bajtove totozny s tim, ktery
+  jsem prosel v kole 2. Zadny novy otevreny HIGH/CRITICAL v aplikaci.
+
+PRIVACY:           AMBER
+  Beze zmeny proti kolu 2. Anonymizace a prompt assembly zustavaji uvnitr
+  assurance obalky, overil jsem znovu PASS baseline.
+
+RED TEAM:          AMBER
+  Beze zmeny. Behavioralni AIR je porad 0 pokusu, ASR=N/A.
+
+RELEASE INTEGRITY: AMBER
+  Podepsany manifest, inventar i artifactDigest znovu overeny nad snapshotem.
+  Policy AMBER kvuli RI-14 a RI-LIVE zustava. Bod 11 kapitoly 5 respektuji:
+  serverove revokace, SIM-07 behavioral, DAST, production key custody a served
+  headers nechavam NOT TESTED a nijak je nepovysuji.
+
+SHIELD ASSURANCE:  AMBER
+  N6 a N8 uzavreny, N7 vyrazne zlepsen. GREEN brani N11 a hlavne to, ze
+  ekosystemovost oprav nelze bez balicku A overit.
+
+OVERALL:           AMBER
+
+GH-02: NOT TESTED overall, staticky opraveny PASS v mnou zmerene detekcni
+  obalce, ktera je po N11 znama presneji nez driv.
+AGENTIC: NO, beze zmeny.
+Realna studentska data: NEPOUZIVAT.
+School server production: NEPOVOLENO / NOT TESTED.
+
+======================================================================
+9. ZADANI PRO DALSI KOLO
+======================================================================
+P1 - POSLAT MI BALICEK A
+  GARP-2.5.1-ZAVEDENI-TOOLING-R2.zip. Je to potreti, co chybi, a potreti, co
+  kvuli tomu nemohu uzavrit ekosystemovou cast. Bez nej nelze provest body 2 a
+  3 kapitoly 5, ktere si ChatGPT sam stanovil jako povinne.
+
+P1 - N11
+  Doplnit zavorkovou notaci, aliasovani metody, nestaticky argument a
+  importScripts. Dukaz: vsechny ctyri moje varianty w3, w4, w5, w9 musi
+  skoncit FAIL nebo AMBER.
+
+P2 - N12
+  Sjednotit v6.json, bypass-exit-codes.txt a text kapitoly 2.
+
+P3 - N13
+  Doplnit do deployment handoffu pro skolni IT, ze se spolu s deploymentem
+  predava security-critical-assets.json a ze se gate spousti s --critical-list.
+
+POVINNE DUKAZY DO DALSIHO KOLA
+  - vysledek w3, w4, w5, w9 proti opravenemu checkeru
+  - selftest primo z kanonickeho balicku A plus jeho SHA256SUMS
+  - diff TOOLS/ z A proti scripts/garp25/ v KS
+  - potvrzeni, ze frozen runtime 5.10.25 zustava nezmeneny
+
+======================================================================
+10. ZAVER
+======================================================================
+Tohle kolo je z trech dosud nejlepsi. N6 je opraveno presne tak, jak jsem
+zadal, vcetne toho, ze opravena brana skutecne shodi puvodni vadny artefakt.
+N8 je opraveno strukturalne, ne zaplatou. N7 uz nepropusti zadnou ze sesti
+variant, ktere jsem popsal, a fail-closed sit navic sama odchytila tri tvary,
+ktere nikdo predem nevyjmenoval. To je poprve, kdy oprava sahla dal nez presne
+na to, co jsem popsal - v predchozich kolech jsem si stezoval na opak.
+
+Zbyvaji dve veci. Prvni je vecna: zaruka "nikdy tichy PASS" jeste neplati a
+importScripts je realna, ne akademicka mezera. Druha je procesni a opakuje se
+uz potreti - bez kanonickeho GARP balicku overuji jen lokalni kopii nastroju v
+KS. Cely tenhle cyklus byl zahajen kvuli tomu, aby se prokazala ekosystemovost
+opravy, a prave ta cast zustava neoverena.
+
+Frozen runtime 5.10.25 je podle meho nezavisleho porovnani nedotcen. Aplikace
+je v poradku. Nastroje jsou blizko.
+
+Tento vystup NENI produkcni release a nesmi byt tak oznacen.

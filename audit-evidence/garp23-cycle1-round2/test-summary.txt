@@ -1,0 +1,28 @@
+TEST SUMMARY – exact 5.10.14 corrective candidate
+Test build:
+- internal: 169/169 PASS
+- GHRAB AI Core conformance: 17/17 PASS
+- AI-RED structural: 33/33 PASS; behavioral NOT TESTED; built-in NC PASS
+- GARP single-page: 12/12 PASS
+
+Production build:
+- platform conformance: 124/124 PASS
+- static hardening: 30/30 PASS
+- production test boundary: 8/8 PASS
+- AI profiles: 15/15 PASS
+- app bootstrap: 5/5 PASS
+- lock: 67 locked packages PASS
+- quality: 31/31 PASS using restored stricter 5.10.12 size budget
+- browser contract: PASS
+- XSS sink gate: PASS
+- school-server profile: PASS
+- reporter static/unit: 52 PASS / 0 FAIL; browser part NOT_READY
+- final secret after P5: 135 text files scope / 0 findings / 0 risky filenames
+- final canary after P5: 135 files scope / 0 unexpected hits
+- P5 aggregate: 39/41; only runtime/UI reports missing
+- P5 acceptance: 13/16; runtime/UI and consequent release-pass missing
+- axe runtime: NOT_READY environment
+
+Production footprint after stripping test-only runner:
+- dist/index.html: 646985 bytes
+- original stricter static size budgets restored; quality 31/31.

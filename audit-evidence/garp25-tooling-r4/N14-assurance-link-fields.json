@@ -1,0 +1,7 @@
+{
+  "sourcePackageSha256": "dce4bbda6f5c2a39130814bf0f26e0bc37c10e5f5e50aef71f3c6f6833f00149",
+  "deploymentPackageSha256": "d396edcd4612fa438858c7a2f7f9c8ef8e7227f6a03e080ac6ddca8b716d296e",
+  "buildProvenanceSha256": "d4dc1ba3c9c6a37776b6ae79e1ae07fdefdff10bf5a5a85e25aa6e7f494d6954",
+  "sbomSha256": "af3d0a03cf31f808ce013d7fc88ca6b978af356bf41205b580f558a7ab543670",
+  "evidenceManifestSha256": "8343ce9cc11f8a24fca90b175fb5ce2fe3b3b101ab8759b0e602e361afb703d9"
+}

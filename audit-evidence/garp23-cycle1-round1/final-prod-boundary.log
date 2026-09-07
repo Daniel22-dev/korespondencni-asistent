@@ -1,0 +1,160 @@
+{
+  "schema": "ghrab-garp22-production-test-boundary-v1",
+  "generatedAt": "2026-08-29T09:42:58.835Z",
+  "checks": [
+    {
+      "id": "harness.production-ready",
+      "ok": true,
+      "detail": {
+        "unlockCount": 1,
+        "ready": true
+      }
+    },
+    {
+      "id": "c03.production-build-flag-off",
+      "ok": true,
+      "detail": {
+        "buildFlag": false,
+        "setActive": false,
+        "mockAvailable": false,
+        "coreTestMode": false,
+        "replace": false,
+        "modeUnchanged": true,
+        "coreTestingType": "undefined",
+        "windowRunnerType": "undefined",
+        "windowOpenType": "undefined",
+        "testApiType": "undefined",
+        "runnerError": "TEST_RUNNER_DISABLED",
+        "openResult": false,
+        "marker": "KEEP",
+        "devTestsPresent": false
+      }
+    },
+    {
+      "id": "c03.global-activation-inert",
+      "ok": true,
+      "detail": {
+        "buildFlag": false,
+        "setActive": false,
+        "mockAvailable": false,
+        "coreTestMode": false,
+        "replace": false,
+        "modeUnchanged": true,
+        "coreTestingType": "undefined",
+        "windowRunnerType": "undefined",
+        "windowOpenType": "undefined",
+        "testApiType": "undefined",
+        "runnerError": "TEST_RUNNER_DISABLED",
+        "openResult": false,
+        "marker": "KEEP",
+        "devTestsPresent": false
+      }
+    },
+    {
+      "id": "c03.runtime-replacement-inert",
+      "ok": true,
+      "detail": {
+        "buildFlag": false,
+        "setActive": false,
+        "mockAvailable": false,
+        "coreTestMode": false,
+        "replace": false,
+        "modeUnchanged": true,
+        "coreTestingType": "undefined",
+        "windowRunnerType": "undefined",
+        "windowOpenType": "undefined",
+        "testApiType": "undefined",
+        "runnerError": "TEST_RUNNER_DISABLED",
+        "openResult": false,
+        "marker": "KEEP",
+        "devTestsPresent": false
+      }
+    },
+    {
+      "id": "c03.core-testing-api-not-exported",
+      "ok": true,
+      "detail": {
+        "buildFlag": false,
+        "setActive": false,
+        "mockAvailable": false,
+        "coreTestMode": false,
+        "replace": false,
+        "modeUnchanged": true,
+        "coreTestingType": "undefined",
+        "windowRunnerType": "undefined",
+        "windowOpenType": "undefined",
+        "testApiType": "undefined",
+        "runnerError": "TEST_RUNNER_DISABLED",
+        "openResult": false,
+        "marker": "KEEP",
+        "devTestsPresent": false
+      }
+    },
+    {
+      "id": "c08.production-test-runner-not-window-exported",
+      "ok": true,
+      "detail": {
+        "buildFlag": false,
+        "setActive": false,
+        "mockAvailable": false,
+        "coreTestMode": false,
+        "replace": false,
+        "modeUnchanged": true,
+        "coreTestingType": "undefined",
+        "windowRunnerType": "undefined",
+        "windowOpenType": "undefined",
+        "testApiType": "undefined",
+        "runnerError": "TEST_RUNNER_DISABLED",
+        "openResult": false,
+        "marker": "KEEP",
+        "devTestsPresent": false
+      }
+    },
+    {
+      "id": "c08.production-test-runner-fails-closed",
+      "ok": true,
+      "detail": {
+        "buildFlag": false,
+        "setActive": false,
+        "mockAvailable": false,
+        "coreTestMode": false,
+        "replace": false,
+        "modeUnchanged": true,
+        "coreTestingType": "undefined",
+        "windowRunnerType": "undefined",
+        "windowOpenType": "undefined",
+        "testApiType": "undefined",
+        "runnerError": "TEST_RUNNER_DISABLED",
+        "openResult": false,
+        "marker": "KEEP",
+        "devTestsPresent": false
+      }
+    },
+    {
+      "id": "c09.production-admin-ui-hides-test-runner",
+      "ok": true,
+      "detail": {
+        "buildFlag": false,
+        "setActive": false,
+        "mockAvailable": false,
+        "coreTestMode": false,
+        "replace": false,
+        "modeUnchanged": true,
+        "coreTestingType": "undefined",
+        "windowRunnerType": "undefined",
+        "windowOpenType": "undefined",
+        "testApiType": "undefined",
+        "runnerError": "TEST_RUNNER_DISABLED",
+        "openResult": false,
+        "marker": "KEEP",
+        "devTestsPresent": false
+      }
+    }
+  ],
+  "summary": {
+    "passed": 8,
+    "failed": 0,
+    "total": 8,
+    "status": "passed"
+  }
+}

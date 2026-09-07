@@ -1,0 +1,5 @@
+{
+  "status": "PASS",
+  "output": "audit-evidence/garp25-shield-prep/supply-chain/build-provenance.json",
+  "subjectSha256": "940668749c8e731a46c1157c7030229d1e40e9312aa9638277529a071765e7ca"
+}

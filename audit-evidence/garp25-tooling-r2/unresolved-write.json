@@ -1,0 +1,36 @@
+{
+  "status": "AMBER",
+  "serviceWorker": "/mnt/data/sw_variants/unresolved.js",
+  "criticalListSource": "/mnt/data/sw_variants/critical.json",
+  "precachedEntries": 0,
+  "precacheSources": [],
+  "unresolvedCacheWrites": [
+    {
+      "method": "add",
+      "expression": "dynamicPath",
+      "source": "direct-call",
+      "installOrPrecache": true,
+      "function": null
+    }
+  ],
+  "cacheFirstDetected": false,
+  "structuralNetworkOnlyGuard": false,
+  "criticalAssetsInDeployment": [
+    "ghrab/ghrab-platform.js"
+  ],
+  "findings": [
+    {
+      "severity": "MEDIUM",
+      "issue": "unresolved-cache-write",
+      "detail": {
+        "method": "add",
+        "expression": "dynamicPath",
+        "source": "direct-call",
+        "installOrPrecache": true,
+        "function": null
+      }
+    }
+  ],
+  "checkerRevision": "garp-2.5.1-r2-cache-write-coverage-fail-closed",
+  "note": "Static bounded analysis. PASS means no critical asset found in recognized Cache API write paths, all analyzed writes resolved/guarded, and deployed critical assets have structural isSecurityCriticalRequest -> networkOnlyNoStore routing. Does not replace SIM-07 or behavioral revocation tests."
+}

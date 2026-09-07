@@ -1,0 +1,6 @@
+{
+  "status": "VERIFIED",
+  "algorithm": "Ed25519",
+  "keyId": "nc-key",
+  "keyStatus": "active"
+}

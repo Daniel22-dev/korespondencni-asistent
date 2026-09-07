@@ -1,0 +1,373 @@
+GARP 2.5.1 SHIELD - NEZAVISLA KONTROLA TOOLING R4 (ROLE B / CLAUDE)
+Aplikace: Korespondencni asistent (KS), frozen runtime 5.10.25
+Predmet: kanonicky standard A + jeho lokalni kopie v KS, opravy N14-N16
+Datum kontroly: 2026-09-07
+Rezim: NOVY VYSLOVNE ZAHAJENY NEZAVISLY TOOLING CYKLUS R4
+Kontrolujici: Claude, role B (neopravuje, pouze overuje a zadava)
+
+======================================================================
+0. VERDIKT V JEDNE VETE
+======================================================================
+N14, N15 i N16 jsou opravene a vsechny jsem reprodukoval vlastnimi fixtures nad
+kanonickymi nastroji - vcetne toho, ze brana bez verifieru konci RED misto
+GREEN s osmi kroky - a poprve za pet kol jsem v brane nenasel zadnou cestu k
+tichemu preskoceni kroku; zbyva jedna zbytkova trida v SW checkeru, kde volani
+Cache metody odpojene od objektu konci tichym PASS.
+
+OVERALL: AMBER.
+Frozen runtime 5.10.25 je nedotcen, overeno tremi zpusoby.
+
+======================================================================
+1. BOD 1 - VSTUPY A-G A HASH FREEZE
+======================================================================
+Dorazilo vse. SHA256SUMS.txt bundlu sedi 7/7. Prepocet proti kapitole 1:
+
+  A) GARP-2.5.1-ZAVEDENI-TOOLING-R4.zip
+     802f444b9678c277b355c0ea74038caf1f60904b23528c2f1a445dfad7b40a13   OK
+  B) KS-5.10.25-GARP2.5.1-TOOLING-R4-SOURCE.zip
+     e67bd4485968c1b422c7965685ddd4ab75990a928bd110276daca953cada2ce7   OK
+  C) KS-5.10.25-GARP2.5-SHIELD-DEPLOYMENT.zip
+     9b580c26c68d90aeb0b93dfc2f146d1cef71091d87ae766a3c069d6041a1cd81   OK
+  D) KS-5.10.25-GARP25-BUILD-INPUT-SOURCE.zip
+     dce4bbda6f5c2a39130814bf0f26e0bc37c10e5f5e50aef71f3c6f6833f00149   OK
+  E) KS-5.10.25-GARP2.5-SHIELD-DEPLOYMENT-PAYLOAD.zip
+     d396edcd4612fa438858c7a2f7f9c8ef8e7227f6a03e080ac6ddca8b716d296e   OK
+  F) OVERENI-TOOLING-R3-...-SHIELD.txt
+     5c91104093d383ac62c623612eaa22afde0d06d4ab1b7594a70d311e1f8dfe46   OK
+  G) predavaci protokol                                                 OK
+
+C, D a E se shoduji s hashi, ktere jsem overil uz v kolech 2 a 3, takze retezec
+drzi napric vsemi peti koly. F jsem porovnal proti svemu vlastnimu vystupu:
+hash i obsah bajtove totozne, diff prazdny.
+
+OMEZENI PROSTREDI (nezmenene): node_modules ani Chromium nejsou k dispozici.
+Interni testy 171/171, suite-session, reporter 52/52, browser contract, AIR
+structural a Axe jsem nespoustel a nepovysuji je na PASS. Bod 14 kapitoly 6
+respektuji - nic z LIVE oblasti nepovysuji.
+
+======================================================================
+2. BOD 2 - KANONICKA INTEGRITA A SELFTEST
+======================================================================
+  A/SHA256SUMS.txt            86 polozek, 86 OK, 0 FAILED
+  node TOOLS/selftest-garp251.mjs (primo z A)   PASS, 51/51, failed []
+  A/TOOLS                      15 souboru *.mjs vcetne verify-assurance-links.mjs
+  lokalni selftest v B         PASS, 51/51
+
+Vse podle ocekavani kapitoly 5.
+
+Poznamka k vaze selftestu se nemeni: psala ho tataz strana, ktera nastroje
+opravila. Jeho hodnota je regresni ochrana. Nezavislou cast delam adversarialne
+v kapitolach 5 a 6.
+
+======================================================================
+3. BOD 3 - A/TOOLS VS B/scripts/garp25
+======================================================================
+15/15 BAJT PO BAJTU TOTOZNYCH, zadny soubor navic v KS:
+
+  check-sw-security-freeze.mjs      create-release-integrity.mjs
+  check-vendored-consistency.mjs    release-gate.mjs
+  create-build-provenance.mjs       scan-deployment-leaks.mjs
+  create-evidence-manifest.mjs      selftest-garp251.mjs
+  sign-release-integrity.mjs        verify-build-provenance.mjs
+  verify-assurance-links.mjs        verify-evidence-manifest.mjs
+  verify-release-integrity.mjs      verify-release-registry.mjs
+  verify-release-signature.mjs
+
+V kole R3 byl verify-assurance-links.mjs pouze v KS a v kanonickem balicku
+chybel. Ted je kanonicky a byte-identicky. Kolonka "app-specific extra soubor"
+z minuleho predani zmizela - spravne, protoze ten nastroj nikdy app-specific
+nebyl.
+
+======================================================================
+4. BODY 4-7 - N14 REPRODUKOVANO VE VSECH CTYRECH SCENARICH
+======================================================================
+Vsechny behy jsem delal KANONICKOU branou z A/TOOLS, ne kopii v KS, a nad
+rozbalenym frozen deploymentem C.
+
+BOD 4 - CLEAN
+  GATE: GREEN, 9 kroku
+    deployment-leaks PASS, release-integrity PASS, release-signature PASS,
+    release-registry PASS, build-provenance PASS, evidence-manifest PASS,
+    assurance-links PASS, sw-security-freeze PASS, vendored-consistency PASS
+  skippedSteps: []
+  Krok assurance-links je explicitne pritomen a PASS. To je presne to, co v R3
+  chybelo.
+
+BOD 5 - SUBSTITUTION
+  Vytvoril jsem si vlastni kopii platne build provenance a pridal do ni jedinou
+  semanticky ignorovanou property (__claude_r4_probe). Nejdriv jsem overil, ze
+  vlastni verifier provenance ji porad prijme:
+    verify-build-provenance.mjs -> PASS, subjectSha256 d396edcd..., builder
+    local-untrusted-builder
+  Pak tataz provenance skrz branu:
+    build-provenance   PASS
+    assurance-links    FAIL
+    GATE: RED
+  Presne pozadovane chovani. Artefakt, ktery projde svym vlastnim verifierem,
+  ale nesedi na podepsany manifest, je zachycen.
+
+BOD 6 - MISSING VERIFIER
+  Udelal jsem kopii kanonickeho A a smazal z ni verify-assurance-links.mjs.
+    GATE: RED
+    errors: ["assurance-links-verifier-missing"]
+    steps: [], skippedSteps: []
+    verifier: <cesta>, declaredLinks: [sourcePackageSha256,
+      deploymentPackageSha256, buildProvenanceSha256, ...]
+  V R3 dala tataz situace GREEN s osmi kroky. Ted brana skonci drive a
+  vyjmenuje, ktere linky manifest deklaruje. Uzavreno.
+
+BOD 7 - MISSING INPUT
+  Vynechal jsem --source-package, kdyz ho manifest deklaruje.
+    GATE: RED
+    errors: ["assurance-link-input-missing"]
+    missing: ["sourcePackageSha256:--source-package"]
+  Uzavreno.
+
+======================================================================
+5. BOD 8 - HLEDANI DALSICH TICHYCH SKIPU V BRANE
+======================================================================
+Toto byla hlavni vec, kterou jsem chtel v tomto kole prolomit, protoze ve trech
+predchozich kolech se opakoval vzorec, ze se opravil presne popsany pripad a
+nic vedle nej. Tady se nepotvrdil.
+
+Prosel jsem branu radek po radku. Ma sest podminenych kroku a KAZDY z nich ma
+odpovidajici else vetev se zaznamem:
+
+  radek  87  assurance-links       manifest-declares-no-non-null-assurance-hash-links
+  radek  94  release-registry      input-not-supplied-and-not-required-by-profile
+  radek  98  build-provenance      artifact-or-provenance-not-supplied-...
+  radek 101  evidence-manifest     evidence-dir-or-evidence-manifest-not-supplied-...
+  radek 114  sw-security-freeze    deployment-has-no-service-worker-and-no---sw-was-supplied
+  radek 116  vendored-consistency  vendored-config-not-supplied-not-required-by-profile
+
+Overil jsem to i behem, ne jen ctenim:
+
+  PREP profil s minimem vstupu (bez registry, provenance, evidence, vendored)
+    -> GATE GREEN, 5 kroku, a vsechny ctyri vynechane kroky JSOU ve
+       skippedSteps s duvodem.
+  Deployment bez sw.js
+    -> sw-security-freeze je ve skippedSteps s vlastnim duvodem, nikoli tise
+       vynechan.
+
+ZAVER K BODU 8: v brane jsem NENASEL zadnou cestu k tichemu preskoceni kroku.
+To je poprve, kdy oprava resi celou tridu misto jednoho pripadu, a povazuji to
+za nejlepsi vysledek celeho peti-koloveho cyklu. Rikam to o to radeji, ze jsem
+opak kritizoval trikrat po sobe.
+
+======================================================================
+6. BODY 9 A 10 - SW CHECKER, REPRODUKCE A NOVE POKUSY
+======================================================================
+BOD 9 - N15
+  x6  const M='add'+'All'; c[M](W6B)
+      -> AMBER, exit 2, unresolved-cache-write, source computed-cache-member
+  V R3 to byl tichy PASS. Opraveno presne tak, jak kapitola 3 tvrdi.
+
+BOD 10 - DEVET NOVYCH POKUSU
+Vsechny proti kanonickemu checkeru z A, vzdy se skutecnym precachovanim
+ghrab/ghrab-platform.js:
+
+  y4  setTimeout(()=>c.addAll(Y4),0)                    FAIL   exit 1   OK
+  y5  new Promise(r=>r(caches.open(...))).then(cc=>cc.addAll(Y5))
+                                                        FAIL   exit 1   OK
+  y6  precache v 'activate' misto 'install'             FAIL   exit 1   OK
+  y7  c.addAll(Array.from(new Set([...])))              AMBER  exit 2   OK
+  y8  Function('c','return c.addAll([...])')(c)         FAIL   exit 1   OK
+  y9  const Y9B=[...Y9A,'./index.html']; addAll(Y9B)    FAIL   exit 1   OK
+  ------------------------------------------------------------------
+  y1  Reflect.get(c,'addAll').call(c, Y1)               PASS   TICHY PASS
+  y2  const {addAll}=c; addAll.call(c,Y2)               PASS   TICHY PASS
+  y3  await (0, c.addAll)(Y3)                           PASS   TICHY PASS
+
+Sest z devíti je spravne zachyceno, vcetne odlozeneho zapisu, prejmenovani
+cache objektu skrz promise, precache v jinem event handleru, Function
+konstruktoru i spreadu. Zbyle tri jsou jedna trida a popisuji je jako N17.
+
+======================================================================
+7. NOVY NALEZ
+======================================================================
+
+----------------------------------------------------------------------
+N17  VOLANI CACHE METODY ODPOJENE OD OBJEKTU KONCI TICHYM PASS
+     Zavaznost: MEDIUM (pokryti a pravdivost zaruky)
+     Artefakt 5.10.25 zadnou z techto forem nepouziva
+----------------------------------------------------------------------
+POPIS
+Checker rozpozna zapis do cache, kdyz je na miste volani pristup na clen
+prokazatelneho Cache objektu: c.add(...), c['addAll'](...), c[M](...). Kdyz je
+metoda od objektu odpojena JESTE PRED mistem volani, checker zapis nevidi vubec
+- ani jako unresolved:
+
+  y1  Reflect.get(c,'addAll').call(c, Y1)      PASS, exit 0, 0 nalezu
+  y2  const {addAll} = c; addAll.call(c, Y2)   PASS, exit 0, 0 nalezu
+  y3  await (0, c.addAll)(Y3)                  PASS, exit 0, 0 nalezu
+
+Vsechny tri skutecne precachuji ghrab/ghrab-platform.js.
+
+PROC TO NENI JEN AKADEMICKA KURIOZITA
+U y1 a y2 uznavam, ze v rucne psanem service workeru jsou to neobvykle idiomy.
+U y3 to neplati. Tvar (0, obj.metoda)(argumenty) je standardni vystup bundleru
+a transpileru - TypeScript, Babel i esbuild ho bezne generuji v interop cestach,
+prave proto, aby odpojily vazbu this. Minifikovany nebo bundlovany service
+worker tedy muze tuto konstrukci obsahovat, aniz by ji kdokoli napsal zamerne.
+Checker analyzuje zdrojove tvarovany JavaScript; v okamziku, kdy nekterá
+aplikace ekosystemu GHRAB zacne SW bundlovat, muze tise ztratit pokryti.
+
+VZOREC, KTERY STOJI ZA POJMENOVANI
+Alias pres bind (c.addAll.bind(c)) je pokryty uz od R3 a konci FAIL. Alias pres
+destrukturaci, Reflect.get a carkovy operator pokryty neni. Je to tataz trida -
+odpojena metoda - reseana z jedne strany a nereseana z druhe. Stejny vzorec
+jsem popsal u N7 v kole 2 a u N11 v kole 3. Doporucuji proto neopravovat tri
+konkretni tvary, ale zavest pravidlo.
+
+POZADOVANA OPRAVA
+Sledovat kazdy identifikator, ktery kdekoli v souboru vznikne z clenu
+prokazatelneho Cache objektu - destrukturaci, Reflect.get, prirazenim,
+carkovym operatorem, bind - a volani skrz nej klasifikovat jako
+unresolved-cache-write, tedy AMBER. Neni treba umet vyhodnotit, co presne se
+zavola; staci nepredstirat, ze zadny zapis neexistuje.
+
+CO NETVRDIM
+Netvrdim, ze je KS 5.10.25 zranitelne. Jeho sw.js zadnou z techto forem
+nepouziva, prosel jsem vsechna volani zapisu do cache uz v kole 2 a znovu ted.
+Jde o uplnost deklarovane detekcni obalky.
+
+======================================================================
+8. BODY 11-13 - RUNTIME, DIST, KLICE
+======================================================================
+BOD 11 - FROZEN RUNTIME: NEDOTCEN
+  B/dist-school-server vs rozbaleny frozen deployment C   0 ROZDILU
+  B/dist-school-server vs snapshot Tooling R3             0 ROZDILU
+  podepsany manifest nad B/dist-school-server             VERIFIED, 39 souboru,
+    artifactDigest 5e0ebab6c6df6161caad35c9429643fb0318afb5d426d24413682b772fb711ce
+  Potvrzuji: Tooling R4 nezmenil to, co se nasazuje, a nic se znovu
+  nepodepisovalo.
+
+BOD 12 - DIST/: SPRAVNE ODRAMOVANO
+  Nepozaduji bajtovou identitu dist/ jako security gate, jak kapitola 6 rika.
+  Overil jsem pouze, ze rozdil neni vydavan za frozen signed runtime:
+    dist/quality-report.json         1 rozdil: /metrics/measuredAt
+    dist/config/quality-manifest.json 1 rozdil: /metrics/measuredAt
+  Ani jeden soubor neni v dist-school-server ani v podepsanem inventari.
+  N16-reproducibility-note.txt v evidenci uvadi presne toto vcetne odkazu na
+  moje mereni z R3. Formulace je ted spravna a slabsi nez puvodni tvrzeni, coz
+  je v poradku.
+
+BOD 13 - PRIVATNI KLICE
+  Prohledal jsem A, B i C na vzory privatnich klicu OpenSSH/EC/RSA/DSA/PGP,
+  Google a OpenAI API klicu a GitHub tokenu. Nic.
+  Jediny .pem v celem materialu je
+  audit-evidence/garp24-ri-prep/migration-test-public.pem, tedy verejny klic.
+  Zadne .key, .env ani id_ed25519.
+
+BOD 14 - LIVE
+  Nic nepovysuji. Viz kapitola 10.
+
+======================================================================
+9. DALSI OVERENE POLOZKY
+======================================================================
+  school boundaries             PASS
+  platform conformance          PASS
+  quality                       PASS
+  pinned inputs                 PASS
+  AI assurance baseline         PASS
+  XSS sink gate                 PASS
+  secret scan                   PASS, 0 nalezu
+  vendored consistency          PASS, 4/4 kopie, drift 0
+
+======================================================================
+10. STATUS - PRESNE ZMENY
+======================================================================
+UZAVIRAM:
+  N14  HIGH   -> CLOSED. Overeno ve vsech ctyrech scenarich kanonickou branou.
+  N15         -> CLOSED. x6 dava AMBER / exit 2.
+  N16  LOW    -> CLOSED. Tvrzeni zuzeno na dolozitelny rozsah.
+  bod 8       -> v brane zadna cesta k tichemu skipu. Trida uzavrena.
+
+OTEVIRAM:
+  N17  MEDIUM -> otevreno, viz kapitola 7.
+
+BEZE ZMENY:
+SECURITY:          AMBER
+  Aplikacni kod se nezmenil, je bajtove totozny s tim, ktery jsem prosel v
+  kole 2. Zadny novy otevreny HIGH/CRITICAL v aplikaci KS.
+PRIVACY:           AMBER
+  Beze zmeny. Anonymizace a prompt assembly zustavaji v assurance obalce.
+RED TEAM:          AMBER
+  Beze zmeny. Behavioralni AIR proti produkcnimu modelu neproveden.
+RELEASE INTEGRITY: AMBER
+  Mechanicka cast je ted podle meho mereni v poradku i na ekosystemove urovni.
+  AMBER drzi policy: RI-14 production key custody a RI-LIVE.
+SHIELD ASSURANCE:  AMBER
+  N14-N16 uzavreny. GREEN brani N17 a LIVE polozky.
+OVERALL:           AMBER
+
+GH-02: NOT TESTED overall, staticky opraveny PASS v obalce, kterou jsem ted
+  zmerill dalsimi devíti pokusy.
+AGENTIC: NO, beze zmeny.
+Realna studentska data: NEPOUZIVAT.
+School server production: NEPOVOLENO / NOT TESTED.
+
+======================================================================
+11. EXPLICITNI ODPOVEDI NA POZADOVANE OTAZKY
+======================================================================
+UMI UZ KANONICKY STANDARD ASSURANCE LINKY FAIL-CLOSED?
+ANO. Overeno ctyrmi behy kanonicke brany z A/TOOLS: clean GREEN s explicitnim
+assurance-links PASS; substituce, ktera projde vlastnim verifierem provenance,
+konci assurance-links FAIL a gate RED; chybejici verifier konci RED /
+assurance-links-verifier-missing; chybejici deklarovany vstup konci RED /
+assurance-link-input-missing. Nastroj je soucasti kanonickeho balicku, je v
+jeho SHA256SUMS a je bajtove totozny s kopii v KS.
+
+EXISTUJE JESTE CESTA K NEZASLOUZENEMU GREEN?
+ANO, jedna, a je treba rict presne kde. V samotne brane NE - kazdy podmineny
+krok ma zaznam o preskoceni a zadny bezpecnostni krok deklarovany manifestem
+nelze vynechat. Cesta vede pres krok sw-security-freeze: service worker, ktery
+zapisuje do cache pres odpojenou Cache metodu (N17, tvary y1/y2/y3), dostane od
+checkeru PASS s exit 0, brana ten PASS prevezme a muze skoncit GREEN. Brana
+tedy neni obelstena, obelstitelny je checker pod ni.
+
+ZUSTAVA FROZEN RUNTIME KS 5.10.25 NEDOTCEN?
+ANO. Nula rozdilu proti rozbalenemu podepsanemu deploymentu i proti snapshotu
+z predchoziho kola, podepsany manifest VERIFIED na 39 souborech se stejnym
+artifactDigest jako v kole 2.
+
+======================================================================
+12. ZADANI PRO DALSI KOLO
+======================================================================
+Jediny otevreny nalez je N17, takze zadani je kratke.
+
+P2 - N17
+  Zavest pravidlo pro odpojenou Cache metodu misto opravy tri tvaru. Kazdy
+  identifikator, ktery vznikne z clenu prokazatelneho Cache objektu
+  (destrukturace, Reflect.get, prirazeni, carkovy operator, bind), oznacit a
+  volani skrz nej klasifikovat jako unresolved-cache-write.
+
+POVINNE DUKAZY
+  - y1, y2 a y3 musi skoncit aspon AMBER
+  - w4 (bind) musi zustat FAIL, tedy bez regrese
+  - novy selftest s negativni kontrolou na odpojenou metodu
+  - potvrzeni, ze kanonicky balicek a kopie v KS zustavaji 15/15 bajtove totozne
+  - potvrzeni, ze frozen runtime 5.10.25 zustava nezmeneny
+
+Nic dalsiho neotviram. Vse ostatni v tomto kole odpovida tomu, co predavaci
+protokol tvrdi.
+
+======================================================================
+13. ZAVER
+======================================================================
+Toto je nejlepsi kolo z peti a ma to jeden konkretni duvod, ktery stoji za
+pojmenovani. Ve trech predchozich kolech jsem opakovane psal, ze se opravi
+presne ta varianta, kterou jsem popsal, a nic vedle ni. Tentokrat to neplati.
+Brana nema jedinou cestu k tichemu preskoceni kroku, prestoze muj nalez N14 se
+tykal jen jednoho kroku z sesti. Kdyz jsem cilene hledal dalsi skip, nasel jsem
+misto nej u vsech sesti podminenych kroku poctivy zaznam s duvodem. To je
+oprava tridy, ne pripadu, a je to presne to, o co v tomhle protokolu jde.
+
+Zbytek je uz jen dotazeni. N17 je jedna trida ve statickem checkeru a nema
+dopad na 5.10.25. Doporucuji ji resit pravidlem, ne dalsimi tremi zaplatami -
+jinak se za dve kola sejdeme nad ctvrtym tvarem odpojene metody.
+
+Aplikace KS 5.10.25 je v poradku a jeji frozen runtime je nedotcen. Kanonicky
+tooling je poprve prokazatelne na urovni toho, co ma KS.
+
+Tento vystup NENI produkcni release a nesmi byt tak oznacen.

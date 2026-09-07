@@ -1,0 +1,33 @@
+KS 5.10.25 - GARP 2.5.1 PROMPT C CORRECTIVE CLOSURE
+Date: 2026-09-06
+
+CLAUDE DISPOSITION
+N1 ACCEPT - HIGH assurance finding confirmed. Previous 5.10.24 GH-02/GHNC-12 PASS was false negative. 5.10.25 removes security-critical GHRAB platform runtime from P3 precache by source-of-truth filtering and replaces the variable-name allowlist checker with data-flow discovery. New checker FAILs unchanged 5.10.24 and PASSes 5.10.25. GH-02 overall remains NOT TESTED without SIM-07 + GHNC-03 behavioral revocation.
+N2 ACCEPT - HIGH privacy/assurance gap confirmed. AI assurance baseline now includes 40-anonymizace.js and 50-koncept-a-prompty.js. Independent mutation of either invalidates evidence; clean baseline PASS. Their functional source bytes are unchanged from 5.10.24.
+N3 PARTIAL ACCEPT / TECHNICALLY REMEDIATED - signed manifest now binds buildProvenanceSha256, evidenceManifestSha256, sbomSha256 and deploymentPackageSha256. deploymentPackageSha256 is defined as deterministic pre-sign deployment payload ZIP. Final signed ZIP has an external SHA-256 because embedding the final ZIP hash inside the ZIP itself is self-referential. Substitution NC for provenance, evidence and payload all FAIL.
+N4 ACCEPT - reporter claim narrowed to byte identity inside KS snapshot; cross-repository canonical identity remains NOT TESTED.
+N5 ACCEPT AS OBSERVATION - threat model explicitly declares Studio app-guard outside KS release-integrity envelope.
+
+CORE CORRECTIVE EVIDENCE
+- GHNC-12: new checker on unchanged 5.10.24 -> CRITICAL/FAIL.
+- GHNC-02: arbitrary renamed precache array containing critical platform runtime -> CRITICAL/FAIL; clean 5.10.25 PASS.
+- SHNC-14: anonymization mutation -> FAIL; prompt-assembly mutation -> FAIL; clean baseline PASS.
+- assurance links: clean PASS; provenance substitution FAIL; evidence substitution FAIL; payload substitution FAIL.
+- RI negatives: byte tamper FAIL, signature substitution FAIL, revoked key FAIL, registry mismatch/rollback FAIL, genuine mixed-version index.html FAIL, source-map leak FAIL.
+- PREP release gate: GREEN, 9/9 steps PASS.
+
+REGRESSION
+PASS: platform 124/124; quality 31/31; school boundaries 9/9; suite simulation 10/10; internal 171/171; Core 17/17; AI profiles 15/15; AI-RED structural 33/33; reporter static/unit 52/52; browser contract; XSS gate; secret/canary scans; npm audit --offline 0 known vulnerabilities; deterministic build with frozen GHRAB_BUILD_TIME.
+NOT TESTED / environment-limited: navigated runtime (managed Chromium timeout), Axe (axe-core 4.12.1 unavailable), full UI browser harness timeout, live-model behavioral AIR, real school-server LIVE controls.
+
+POLICY GATES
+SECURITY: AMBER
+PRIVACY: AMBER
+RED TEAM: AMBER
+RELEASE INTEGRITY: AMBER (mechanical PREP gate GREEN; production key custody/RI-LIVE NOT TESTED)
+SHIELD ASSURANCE: AMBER
+OVERALL: AMBER
+
+REÁLNÁ STUDENTSKÁ DATA: NEPOUŽÍVAT.
+TESTOVACÍ PROVOZ POUZE SE SYNTETICKÝMI DATY.
+SCHOOL SERVER PRODUCTION: NEPOVOLENO / NOT TESTED.

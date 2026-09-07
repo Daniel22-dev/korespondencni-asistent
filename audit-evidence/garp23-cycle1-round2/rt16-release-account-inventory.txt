@@ -1,0 +1,16 @@
+RT-16 KEY CUSTODY & ACCOUNT HARDENING – 5.10.14
+PASS evidence available:
+- GitHub Actions pinning: all external actions pinned to full commit SHA (static gate).
+- package-lock: 67 locked packages, integrity/registry checks PASS.
+- workflow permissions explicit/minimal by purpose; deploy uses contents:read + pages:write + id-token:write; sync workflow write permissions remain purpose-specific.
+- candidate/secret scan: no private/API signing key found.
+
+NOT TESTED / external organizational evidence:
+- actual signing private-key holder/role and storage class;
+- backup/recovery custody and rotation/revocation drill;
+- MFA/passkey/hardware-key state on release account;
+- legacy branch protection/approval rules: GitHub integration GET branch protection returned HTTP 403 Resource not accessible by integration;
+- repository rulesets endpoint returned [] — this alone does not prove absence/presence of legacy branch protection;
+- secret scanning / push protection account/repository settings.
+
+Status RT-16: NOT TESTED. Release Integrity cannot be GREEN. No secret values requested or recorded.

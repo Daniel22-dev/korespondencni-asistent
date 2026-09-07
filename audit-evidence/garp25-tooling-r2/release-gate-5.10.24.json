@@ -1,0 +1,38 @@
+{
+  "gate": "GARP-2.5.1-RELEASE-GATE-R2",
+  "profile": "prep",
+  "status": "RED",
+  "serviceWorker": "/mnt/data/ks_51024_full/korespondencni-asistent-main/dist-school-server/sw.js",
+  "criticalAssetList": "/mnt/data/ks_51024_full/korespondencni-asistent-main/security/security-critical-assets.json",
+  "steps": [
+    {
+      "step": "deployment-leaks",
+      "script": "scan-deployment-leaks.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "detail": "{\n  \"status\": \"PASS\",\n  \"root\": \"/mnt/data/ks_51024_full/korespondencni-asistent-main/dist-school-server\",\n  \"info\": [\n    \"INFO-binary-not-scanned:assets/brand/school-logo.png\",\n    \"INFO-binary-not-scanned:icons/apple-touch-icon.png\",\n    \"INFO-binary-not-scanned:icons/icon-128.png\",\n    \"INFO-binary-not-scanned:icons/icon-180.png\",\n    \"INFO-binary-not-scanned:icons/icon-192.png\",\n    \"INFO-binary-not-scanned:icons/icon-32.png\",\n    \"INFO-binary-not-scanned:icons/icon-48.png\",\n    \"INFO-binary-not-scanned:icons/icon-512.png\",\n    \"INFO-binary-not-scanned:icons/icon-72.png\",\n    \"INFO-binary-not-scanned:icons/icon-96.png\",\n    \"INFO-binary-not-scanned:icons/icon-maskable-512.png\"\n  ]\n}"
+    },
+    {
+      "step": "release-integrity",
+      "script": "verify-release-integrity.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "detail": "{\n  \"status\": \"VERIFIED\",\n  \"files\": 39,\n  \"artifactDigest\": \"7af5b8cab1cbd07a0f0a5bd7e47af5800932cd22d8605cd1322defba295b49d0\"\n}"
+    },
+    {
+      "step": "release-signature",
+      "script": "verify-release-signature.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "detail": "{\n  \"status\": \"VERIFIED\",\n  \"algorithm\": \"Ed25519\",\n  \"keyId\": \"prep-ks-ed25519-20260906\",\n  \"keyStatus\": \"active\"\n}"
+    },
+    {
+      "step": "sw-security-freeze",
+      "script": "check-sw-security-freeze.mjs",
+      "status": "FAIL",
+      "exitCode": 1,
+      "detail": "{\n  \"status\": \"FAIL\",\n  \"serviceWorker\": \"/mnt/data/ks_51024_full/korespondencni-asistent-main/dist-school-server/sw.js\",\n  \"criticalListSource\": \"/mnt/data/ks_51024_full/korespondencni-asistent-main/security/security-critical-assets.json\",\n  \"precachedEntries\": 27,\n  \"precacheSources\": [\n    {\n      \"source\": \"addAll:expression\",\n      \"entries\": [\n        \"./\",\n        \"./index.html\",\n        \"./manifest.webmanifest\",\n        \"./manual/\",\n        \"./manual/index.html\",\n        \"./access/error-reporter.js\",\n        \"./access/error-reporter.css\",\n        \"./access/error-reporter-adapter.js\",\n        \"./icons/icon-32.png\",\n        \"./icons/icon-48.png\",\n        \"./icons/icon-72.png\",\n        \"./icons/icon-96.png\",\n        \"./icons/icon-128.png\",\n        \"./icons/icon-180.png\",\n        \"./icons/icon-192.png\",\n        \"./icons/icon-512.png\",\n        \"./icons/icon-maskable-512.png\",\n        \"./icons/apple-touch-icon.png\",\n        \"./config/brand-manifest.json\",\n        \"./config/platform-manifest.json\",\n        \"./assets/brand/school-logo.png\",\n        \"./ghrab-platform.consumer.json\"\n      ]\n    },\n    {\n      \"source\": \"map-add:GHRAB_PLATFORM_P3_ASSETS\",\n      \"entries\": [\n        \"."
+    }
+  ],
+  "note": "PREP profil muze pouzit lokalni builder, ale pokud deployment obsahuje service worker, SW kontrola a autoritativni critical-asset list jsou povinne. Neni to school-server LIVE GREEN."
+}

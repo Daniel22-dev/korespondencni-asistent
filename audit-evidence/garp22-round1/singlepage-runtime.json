@@ -1,0 +1,126 @@
+{
+  "schema": "ghrab-garp22-singlepage-evidence-v1",
+  "generatedAt": "2026-08-28T12:45:44.110Z",
+  "canary": {
+    "id": "MTCY341A-YEPFF02",
+    "marker": "GARP-STUDENT-CANARY-MTCY341A-YEPFF02",
+    "email": "garp.student.canary.mtcy341a-yepff02@example.invalid",
+    "markerA": "GARP-STUDENT-CANARY-MTCY341A-YEPFF02-A",
+    "markerB": "GARP-STUDENT-CANARY-MTCY341A-YEPFF02-B"
+  },
+  "checks": [
+    {
+      "id": "harness.platform-unlock",
+      "ok": true,
+      "detail": {
+        "protectedBefore": 1,
+        "unlockCount": 1,
+        "ready": true
+      }
+    },
+    {
+      "id": "sim08.export-excludes-working-student-data",
+      "ok": true,
+      "detail": {
+        "containsA": false,
+        "containsEmail": false,
+        "length": 207
+      }
+    },
+    {
+      "id": "rt19.ai-egress-minimization",
+      "ok": true,
+      "detail": {
+        "payloadKeys": [
+          "prompt",
+          "system",
+          "schema",
+          "schemaId",
+          "thinking",
+          "operation",
+          "modelProfile",
+          "privacy"
+        ],
+        "containsMarker": false,
+        "containsEmail": false,
+        "containsAuditKey": false
+      }
+    },
+    {
+      "id": "rt19.preflight-zero-egress-for-raw-canary",
+      "ok": true,
+      "detail": {
+        "callsAfterBlocked": 0,
+        "blockedCode": "PREFLIGHT_BLOCKED"
+      }
+    },
+    {
+      "id": "rt14.preflight-error-redacts-canary",
+      "ok": true,
+      "detail": {
+        "blockedCode": "PREFLIGHT_BLOCKED",
+        "messageContainsCanary": false
+      }
+    },
+    {
+      "id": "sim06.interrupted-ai-explicit-retry",
+      "ok": true,
+      "detail": {
+        "calls": 2,
+        "first": "SERVER_UNAVAILABLE",
+        "second": "RETRY-OK",
+        "opsContainsPrompt": false
+      }
+    },
+    {
+      "id": "sim05.hostile-ai-output-inert",
+      "ok": true,
+      "detail": {
+        "xss": 0,
+        "img": false,
+        "script": false,
+        "literal": true
+      }
+    },
+    {
+      "id": "sim08.reimport-second-logical-context-no-a",
+      "ok": true,
+      "detail": {
+        "hasA": false,
+        "hasB": true,
+        "inputValue": "GARP-STUDENT-CANARY-MTCY341A-YEPFF02-B"
+      }
+    },
+    {
+      "id": "rt20.end-work-clears-app-controlled-data",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "storageHas": false,
+        "stateHas": false,
+        "domHas": false,
+        "remainingOwnedKeys": []
+      }
+    },
+    {
+      "id": "rt06.canary-not-in-observed-console",
+      "ok": true,
+      "detail": {
+        "eventCount": 4
+      }
+    },
+    {
+      "id": "rt06.canary-not-in-url",
+      "ok": true,
+      "detail": {
+        "url": "about:"
+      }
+    }
+  ],
+  "summary": {
+    "passed": 11,
+    "failed": 0,
+    "total": 11,
+    "status": "passed"
+  }
+}

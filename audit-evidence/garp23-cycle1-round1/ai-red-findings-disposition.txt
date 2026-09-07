@@ -1,0 +1,22 @@
+GARP 2.3 — AI-RED findings / disposition — Korespondenční asistent 5.10.13
+
+AR-01 / MEDIUM STRUCTURAL HARDENING / OPRAVENO
+Původní 5.10.12: outgoing rewrite/compose/proofread, draft refinement a tone-check používaly místy prosté nebo trojité uvozovky. System prompt již obsahoval obecnou injection obranu, ale prompt assembly nebyla jednotně a strojově oddělena do explicitních trust zón.
+Oprava: jednotné JSON-encoded <untrusted-data> a <user-directive> bloky; delimiter/tag znaky jsou uvnitř JSON escaped.
+Důkaz: interní AI-RED regresní testy + ai-red-structural.json.
+
+AR-02 / MEDIUM STRUCTURAL HARDENING / OPRAVENO
+Původní 5.10.12: položky požadavků vytěžené AI z nedůvěryhodného příchozího e-mailu se při tvorbě odpovědi vracely do dalšího promptu jako instrukčně vypadající text. To vytvářelo second-order prompt-injection povrch.
+Oprava: model-derived selected/excluded requirements se serializují jako <untrusted-data> a nesmějí vytvořit nový tail/instruction block.
+Důkaz: test „AI-RED second-order požadavky…“ + air03.second-order-model-output-contained.
+
+AR-03 / LOW-MEDIUM STRUCTURAL HARDENING / OPRAVENO
+Původní 5.10.12: helper Synonyma posílal vybrané slovo a kontext v obyčejných uvozovkách a jeho pomocný system prompt neměl kompletní PROMPT_INJECTION_RULE. Jde o sekundární AI cestu s omezeným blast radius, ale text může pocházet z nedůvěryhodného e-mailu.
+Oprava: buildSynonymPrompt/buildSynonymSystemPrompt používá stejnou trust boundary a injection policy jako hlavní AI cesty.
+Důkaz: interní regresní test + air03.secondary-synonym-path-contained.
+
+AR-04 / DEFENSE-IN-DEPTH / OPRAVENO
+HTML import nyní před převodem na text odstraňuje také zjevně skrytý obsah ([hidden], aria-hidden=true, display:none, visibility:hidden). Toto není jediná obrana; výsledný text se stále považuje za untrusted.
+Důkaz: AIR-05 import HTML test + air05.hidden-html-preprocess.
+
+Žádný z těchto nálezů nebyl v tomto prostředí prokázán jako úspěšný live jailbreak konkrétního Gemini modelu. Šlo o potvrzené strukturální slabší body prompt assembly, které zvyšovaly útokový povrch. Behaviorální provider test zůstává NOT TESTED.

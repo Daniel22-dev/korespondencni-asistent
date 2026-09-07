@@ -1,0 +1,37 @@
+PROVIDER BOUNDARY – stav ověřen 2026-08-29
+Korespondenční asistent 5.10.12
+
+Tento dokument není právní posudek. Je to provozní bezpečnostní hranice pro GARP.
+
+1. Současný serverless Direct Gemini režim
+- Aplikace podporuje přímé volání Gemini Developer API pomocí uživatelského klíče.
+- Google v aktuální dokumentaci rozlišuje Free a Paid Tier.
+- Free Tier: obsah je používán ke zlepšování produktů.
+- Paid Tier: obsah není používán ke zlepšování produktů.
+- Proto se současný Free Tier nepovažuje za vhodný pro reálná studentská data v tomto konzervativním GARP release rozhodnutí.
+
+2. Cesta pro reálná studentská data
+Před povolením reálných studentských dat musí být zvolena a doložena alespoň jedna vhodná provozní varianta:
+A) Gemini API Paid Tier s odpovídajícím školním schválením, nebo
+B) připravený school-server režim s centrální serverovou AI bránou a schváleným poskytovatelem.
+
+Pro Paid Tier doporučená konfigurace:
+- nepovolovat dobrovolné sdílení datasetů/logů pro zlepšování modelů;
+- u GenerateContent nezapínat ukládání požadavků, pokud není provozně nutné;
+- je-li logging zapnutý, nastavit nejkratší potřebnou retenci; Google uvádí konfigurovatelné okno 7/14/28/55 dní;
+- ověřit školní právní/GDPR podmínky a zpracovatelskou dokumentaci mimo samotný GARP kódový audit.
+
+3. API key readiness
+Google uvádí přechod Gemini API ze standardních API keys na authorization keys.
+Od září 2026 mají být standardní keys odmítány. Před provozem ověřit, že používaný klíč je authorization key, nebo jej migrovat.
+
+Oficiální zdroje ověřené 2026-08-29:
+- https://ai.google.dev/gemini-api/docs/pricing
+- https://ai.google.dev/gemini-api/docs/billing
+- https://ai.google.dev/gemini-api/docs/logs-policy
+- https://ai.google.dev/gemini-api/docs/logs-datasets
+- https://ai.google.dev/gemini-api/docs/api-key
+
+DOKUD NENÍ PROVIDER BOUNDARY UZAVŘENA:
+REÁLNÁ STUDENTSKÁ DATA: NEPOUŽÍVAT
+TESTOVACÍ PROVOZ POUZE SE SYNTETICKÝMI DATY

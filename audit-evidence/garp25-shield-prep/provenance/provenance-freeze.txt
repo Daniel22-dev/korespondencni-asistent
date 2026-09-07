@@ -1,0 +1,58 @@
+GARP 2.5.1 – PROVENANCE FREEZE – Korespondenční asistent
+Date: 2026-09-06
+
+INPUTS
+- original current source 5.10.22: b03287cd1e02286bdefea4bbee0b79ce1dba68c61b9be312d7095371dd11d413  korespondencni-asistent-main(20260906-131348).zip
+- GARP 2.4 intermediate 5.10.23: 224b5ff19177fdfa433f59f0f10c711f196abb24b191edcabfdff88e8266dc6a  KANDIDAT-KS-5.10.23-GARP-2.4-RI-PREP-KOLO-D.zip
+- GARP 2.4 handoff: 33121d25127a6c773e19a1cbe20d77ceca3f3c320cd1266775ea2765159763e8  PREDANI-KS-5.10.23-GARP-2.4-RI-PREP-PRO-CLAUDE.txt
+- GARP 2.5.1 package: c92ecc903a4fedfcbef86638361b7548dc96eeb8645d7a00045be3017f7c59cf  GARP-2.5.1-ZAVEDENI.zip
+- GARP 2.5.1 SHA256SUMS: 234414662bbe6b3f8b97ccd7efacff0ec581703bd7c6f06e8c3c5f3a1f179b24
+- GARP 2.5.1 selftest: 32/32 PASS
+
+EXACT BUILD INPUT IDENTITY
+- appId: correspondence
+- version: 5.10.24
+- exact build-input source ZIP SHA-256: b3075a0858cff614d5e3a5eeecfadd5ca807f0ef7658b89233774f92fa85166d
+- final deployment ZIP SHA-256: 940668749c8e731a46c1157c7030229d1e40e9312aa9638277529a071765e7ca
+- canonical artifactDigest: 7af5b8cab1cbd07a0f0a5bd7e47af5800932cd22d8605cd1322defba295b49d0
+- SBOM SHA-256: 49025abbc9991a2941da6e857a9ddea822b3dfbfdbdd71890c5f82210151f197
+
+LAST AUTHORITATIVE GARP BASELINE
+- version: 5.10.14
+- cycle: GARP 2.3, Claude kolo 1 + ChatGPT corrective
+- baseline RT/SIM evidence: audit-evidence/garp23-cycle1-round2/rt-sim-matrix.txt
+- baseline AIR evidence: audit-evidence/garp23-cycle1-round2/ai-red-air-matrix.txt
+- baseline overall: AMBER because behavioral AIR/SIM/browser/live controls remained NOT TESTED.
+- exact standalone 5.10.14 source ZIP is not present in the supplied 5.10.22/5.10.23 snapshots; therefore a byte-for-byte 5.10.14 -> 5.10.24 patch is NOT TESTED and is not fabricated. The exact machine diff for the available frozen 5.10.23 intermediate -> 5.10.24 is preserved in exact-diff-5.10.23-to-5.10.24.patch.
+
+CHANGE CATEGORIES
+A – EXISTING CHANGES AFTER 5.10.14 BEFORE GARP 2.4
+- 5.10.15: EML/user privacy hotfix and preventive-topic false-positive reduction.
+- 5.10.16: strict-name anonymization false-positive hotfix.
+- 5.10.17: Platform 1.1.2 + suite-session migration.
+- 5.10.18: BFCache/session cleanup hardening.
+- 5.10.19: fresh history traversal cleanup hardening.
+- 5.10.20: runtime QA bootstrap hotfix.
+- 5.10.21: Axe contrast hotfix.
+- 5.10.22: browser QA target readiness hotfix.
+These are carried from the supplied current source and were revalidated by the current regression chain where executable.
+
+B – INHERITED GARP 2.4 RI WORK
+- 5.10.23 release-integrity tooling, detached Ed25519 signing hook, verifier, leak scan, RI/RISIM evidence.
+- GARP 2.5.1 canonical RI v2 tools replace/extend the intermediate application copy; no separate final 2.4 release is claimed.
+
+C – NEW GARP 2.5.1 SHIELD WORK
+- GH-02 service-worker security-freeze fix: critical runtime/deployment/platform/release-integrity assets network-only + no-store.
+- school build no longer mutates canonical shared error-reporter bytes; deployment-specific Studio path stays in local adapter.
+- threat model, attack surface, deployment-security design, AI resource budget, exceptions, crosswalk, binary-rights record.
+- CycloneDX 1.7 SBOM, build provenance, deterministic rebuild hook, evidence tooling, pinned-input policy and AI evidence-invalidation baseline.
+- GARP 2.5.1 negative controls and PREP release-gate evidence.
+- release identity/changelog corrected to GARP 2.5.1.
+
+D – UNEXPECTED / UNDOCUMENTED
+- none observed in the exact 5.10.23 -> 5.10.24 machine diff after classification.
+
+TRUST MATERIAL (PREP ONLY)
+- public trust-root SHA-256: 19af9636dd12d127348702fb1e9e2502aac457c73e4e80e490d8682170be00ac
+- PREP release-registry SHA-256: d2be9945694cbb3c4239ffcc8b3ebcfa85e65f38233f5e186ca9fcdf5d00e0e9
+- disposable private signing key was generated under /tmp and deleted; it is absent from source/deployment/evidence.

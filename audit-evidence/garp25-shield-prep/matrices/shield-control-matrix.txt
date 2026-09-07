@@ -1,0 +1,76 @@
+SHIELD CONTROL MATRIX – KS 5.10.24
+
+SH-APP
+SH-APP-01 PASS – current threat model.
+SH-APP-02 PASS – attack surface inventory.
+SH-APP-03 PASS PREP / LIVE NOT TESTED – inherited signed-permit/auth boundary tests; actual school server session/revocation not live.
+SH-APP-04 PASS – XSS sink gate + structural AIR/hostile output controls.
+SH-APP-05 PASS PREP – SW hardening and browser contract; served CSP/HSTS is LIVE NOT TESTED and unsafe-inline is registered exception.
+SH-APP-06 PASS – inherited import/export/file handling tests, limits and sanitization.
+SH-APP-07 PASS (project-specific static equivalent) – quality/XSS/AIR/GARP static analyzers; no claim of third-party Semgrep/CodeQL scan.
+SH-APP-08 PASS WITH FRESHNESS LIMITATION – npm audit --offline 0 vulnerabilities; fresh online advisory feed must be rerun before LIVE.
+SH-APP-09 PASS – CycloneDX 1.7 SBOM, 67 components, hashed.
+SH-APP-10 NOT TESTED full DAST – browser contract passes but runtime/Axe/server served tests are environment/live limited.
+SH-APP-11 PASS – source secret scan + deployment leak scan + SHNC-01.
+SH-APP-12 PASS – explicit exception register.
+
+SH-SC
+SH-SC-01 PASS – exact build-input source ZIP SHA-256 frozen; no source commit invented.
+SH-SC-02 NOT TESTED – live repository branch/ruleset/admin protection not provable from snapshot.
+SH-SC-03 PASS – 17 GitHub Action uses pinned to full SHA; exact direct npm versions + lockfile; SHNC-09 PASS.
+SH-SC-04 PASS PREP – repeated deterministic build from frozen source; not a trusted/hermetic production builder.
+SH-SC-05 PASS PREP – build provenance generated for exact deployment ZIP; builder explicitly local-untrusted.
+SH-SC-06 PASS PREP – provenance verifier PASS with --allow-local-builder; production builder trust NOT TESTED.
+SH-SC-07 PASS – rebuild equivalence artifactDigest identical.
+SH-SC-08 PASS – source/deployment separation + leak scan.
+SH-SC-09 PASS PREP – Ed25519 signed release + public trust root.
+SH-SC-10 NOT TESTED production – revoked-key verifier PASS, but real key rotation/custody/recovery drill absent.
+SH-SC-11 PASS PREP – single release-gate fail-closed entry point; missing-input GHNC-14 PASS. Protected CI enforcement LIVE NOT TESTED.
+SH-SC-12 PASS – final evidence manifest created/verified; tamper NC PASS.
+
+SH-RUN (PREP design; school-server enforcement remains LIVE NOT TESTED)
+SH-RUN-01 PASS PREP design – least privilege specified; LIVE enforcement NOT TESTED.
+SH-RUN-02 PASS PREP design – non-root required; LIVE NOT TESTED.
+SH-RUN-03 PASS PREP design – read-only web root required; LIVE NOT TESTED.
+SH-RUN-04 PASS PREP design – dedicated service identity required; LIVE NOT TESTED.
+SH-RUN-05 PASS PREP design – same-origin app gateway/provider egress separation specified; LIVE network policy NOT TESTED.
+SH-RUN-06 PASS PREP design – server-only secret store; client local provider key dynamically rejected in school profile; server secret store LIVE NOT TESTED.
+SH-RUN-07 PASS PREP design – HTTPS/HSTS/session transport required; served response LIVE NOT TESTED.
+SH-RUN-08 PASS PREP design – per-user/global rate limits specified; LIVE NOT TESTED.
+SH-RUN-09 PASS – AI resource budget documented.
+SH-RUN-10 PASS PREP – client timeout/retry bounds exist; server circuit enforcement LIVE NOT TESTED.
+SH-RUN-11 PASS PREP – client request/part bounds dynamically tested; server CPU/memory/token limits LIVE NOT TESTED.
+SH-RUN-12 PASS PREP – PC-01/suite-session ownership model; real concurrent multi-user isolation LIVE NOT TESTED.
+SH-RUN-13 PASS PREP design – security services defined fail-closed; live Integrity Service NOT TESTED.
+SH-RUN-14 N/A in child app – no break-glass/admin override implemented; any future server override requires separate controlled design.
+SH-RUN-15 PASS PREP design – trust-root/registry backup requirement documented; restore drill LIVE NOT TESTED.
+
+SH-DET
+SH-DET-01 NOT TESTED – live security event model/channel not implemented.
+SH-DET-02 PASS PREP structural – reporter static/unit 52/52 and redaction rules; browser canary behavior NOT TESTED.
+SH-DET-03 NOT TESTED – tamper-resistant server audit storage absent.
+SH-DET-04 NOT TESTED – live integrity alert channel absent.
+SH-DET-05 NOT TESTED – out-of-band alert/watchdog absent.
+SH-DET-06 NOT TESTED – SHNC-15 alert-event control not executable without alert pipeline.
+SH-DET-07 PASS PREP – GARP incident response + deployment security requirements available.
+SH-DET-08 NOT TESTED – backup/restore drill not performed.
+SH-DET-09 NOT TESTED – production key-compromise drill impossible before production key provisioning.
+SH-DET-10 NOT TESTED – organizational evidence-retention policy not established in this snapshot.
+SH-DET-11 PASS PREP – GARP severity/remediation policy and exception register provide intake/triage model.
+SH-DET-12 PASS PREP – AI assurance baseline forces model/provider/prompt changes to invalidate current evidence; provider incident process LIVE governance pending.
+
+SH-AI
+SH-AI-01 NOT TESTED behavior – structural prompt-injection controls PASS; live-model AIR attempts=0.
+SH-AI-02 NOT TESTED behavior – privacy/preflight structural controls PASS; live provider/retention behavior not fully verified.
+SH-AI-03 N/A – AGENTIC=NO, model has no tool/action capability.
+SH-AI-04 PASS PREP – AI Core/vendor/profile inputs inventoried and hashed; school runtime provider-neutral.
+SH-AI-05 N/A – no model training, RAG/vector store or model-memory poisoning surface in KS.
+SH-AI-06 PASS PREP – request/output/timeout/retry budgets + SHNC-07 client bounded deny; server rate/concurrency LIVE NOT TESTED.
+SH-AI-07 PASS PREP – drafting assistant requires human review; no autonomous decision/action.
+SH-AI-08 PASS structural – hidden/system context extraction prohibited and structural AIR coverage present; behavioral AIR remains NOT TESTED.
+SH-AI-09 N/A – no vector/embedding subsystem.
+SH-AI-10 PASS structural – hostile AI output inert/escaped; AIR-11/SHNC-13 evidence.
+SH-AI-11 PASS – AI assurance baseline + SHNC-14 invalidation control.
+SH-AI-12 PASS PREP – school profile fail-closed to school-gateway only and requests are cancel/timeout bounded; LIVE provider circuit breaker pending.
+
+SH-AG-01..SH-AG-15: N/A – AGENTIC=NO verified against application call graph; no MCP/tool/function/action executor and operation capabilities empty.

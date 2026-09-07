@@ -1,0 +1,6 @@
+{
+  "status": "FAIL",
+  "errors": [
+    "subject.sha256"
+  ]
+}

@@ -1,0 +1,73 @@
+GARP 2.5.1 GHRAB – PRŮVODNÍ LIST APLIKACE
+
+======================================================================
+1. IDENTITA
+======================================================================
+appId:                    correspondence
+Název:                    Korespondenční asistent (KS)
+Repozitář:                korespondencni-asistent (repo snapshot; veřejná Pages cesta je v README)
+Aktuální verze:           5.10.25
+Verze standardu:          GARP 2.5.1 GHRAB
+SHA-256 SHA256SUMS balíčku, podle kterého se audituje:  234414662bbe6b3f8b97ccd7efacff0ec581703bd7c6f06e8c3c5f3a1f179b24
+Poslední uzavřené kolo:   2026-08-29, GARP 2.3 Claude kolo 1 + ChatGPT corrective 5.10.14, OVERALL AMBER
+
+======================================================================
+2. TRVALÁ KLASIFIKACE
+======================================================================
+Třída dat:                D2
+  odůvodnění:             aplikace může zpracovat školní e-mail obsahující údaje o žácích; audit používá jen syntetická data.
+Povolená egress cesta:    standalone: Direct Gemini pouze po lokálním privacy preflightu; school: same-origin `/api/v1/ai/*` school gateway, provider credential pouze serverově.
+AGENTIC:                  NO
+  ověřeno proti call grafu dne: 2026-09-06; osm registrovaných textových AI operací, requiredCapabilities prázdné, žádný tool/MCP/action executor.
+Deployment profil:        A statický frontend; school artifact je určen za B serverovou hranici
+Build profil:             školní (auditovaný kandidát); obecný standalone zůstává podporován
+Service worker:           ANO
+Vendorované komponenty:   GHRAB Platform 1.1.2, GHRAB AI Core 1.0.0, sdílený error reporter
+
+======================================================================
+3. TRVALÁ ROZHODNUTÍ
+======================================================================
+KD-01 | SH-AG / GH-14 | N/A pro agentic controls | model nemá nástrojovou/capability/action cestu; změna call grafu automaticky ruší N/A | GARP 2.5.1 delta audit | 2026-09-06
+KD-02 | reálná data v auditu | zakázána | všechny RT/SIM/SHNC/GHNC používají syntetické značky; žádné student PII se nevkládá do evidence | GARP 2.5.1 | 2026-09-06
+
+======================================================================
+4. REGISTR DLUHŮ
+======================================================================
+DL-01 | MEDIUM | behaviorální AIR proti živému produkčnímu modelu není v PREP prostředí ověřen | structural AIR 33/33 + negative control | LIVE / model-change review | bezpečně provedený live-model corpus bez reálných dat
+DL-02 | LIVE BLOCKER | school-server auth/revocation, served CSP/HSTS a browser revocation nejsou lokálně dostupné | fail-closed design, school profile, SW no-store | SHIELD-LIVE | staging/produkční server + prohlížečová evidence
+DL-03 | LIVE BLOCKER | produkční signing-key custody/recovery/MFA není provisionováno | disposable PREP key, žádný private key v kandidátu | RI-LIVE | attestation skutečného custody + recovery/rotation drill
+DL-04 | MEDIUM / DEPLOYMENT | samostatné právní doklady k PNG ikonám/logu nejsou v auditu | hash inventory + známý school brand asset | před school/public release | interní potvrzení práv k distribuci
+DL-05 | MEDIUM | statický meta CSP stále používá unsafe-inline | XSS QA, safe rendering, school CSP provider egress omezen | SHIELD-LIVE | served CSP nonce/hash nebo schválené časově omezené řešení
+DL-06 | ECOSYSTEM NT | cross-repo GH-01 a Studio repository_dispatch allowlist nelze uzavřít z jediného KS repo | lokální vendored consistency drift=0 | ekosystémové kolo | všechny child repo + Studio evidence
+
+======================================================================
+5. STAV KONTROL, KTERÉ ZŮSTÁVAJÍ NOT TESTED
+======================================================================
+Behaviorální AIR | bez produkčního credentialu/modelového testu; mock není povýšen na behaviorální PASS | bezpečný live test se syntetickým corpusem
+SHIELD-LIVE | není skutečný school server | staging/produkční server
+RI-LIVE | není Integrity Service/produkční registry/custody | server + provozní trust root/registry/key custody
+SH-SC-02 | ZIP neobsahuje organizační GitHub branch-protection evidence | GitHub/org evidence
+GHNC-03 | behaviorální revokace na již otevřené kartě vyžaduje Studio/server | staging Studio + auth revocation
+GHNC-08/09 | Studio repository_dispatch server side není součást KS snapshotu | AI Studio repo/workflow
+GH-12 právní evidence | auditní snapshot neobsahuje doklady k obrazovým assetům | vlastnické/licenční potvrzení
+Served headers/HSTS | lokální build není skutečná HTTP serverová konfigurace | school server
+
+======================================================================
+6. HISTORIE KOL
+======================================================================
+2026-08-29 | Claude + ChatGPT | baseline 5.10.14 (hashy v audit-evidence/garp23-cycle1-round2) | OVERALL AMBER | CLAUDE-KOLO-1-OVERENI.txt + corrective evidence
+2026-09-06 | ChatGPT | b03287cd1e02286bdefea4bbee0b79ce1dba68c61b9be312d7095371dd11d413 (aktuální vstup 5.10.22) | GARP 2.4 mezistav, nefinální | audit-evidence/garp24-*
+2026-09-06 | ChatGPT | 224b5ff19177fdfa433f59f0f10c711f196abb24b191edcabfdff88e8266dc6a (GARP 2.4 5.10.23 mezistav) | GARP 2.5.1 SHIELD-PREP delta probíhá | PREDANI 5.10.24
+2026-09-06 | Claude role B | 6cf34302d32a6f49a26a9dd8d249c307219fab651a5d73d638636f8f84a12417 (review 5.10.24) | OVERALL AMBER; N1/N2 HIGH potvrzeny k opravě | OVERENI-KANDIDATA-KS-5.10.24-GARP2.5.1-SHIELD.txt
+2026-09-06 | ChatGPT corrective | 5.10.25 | GARP 2.5.1 Prompt C corrective round probíhá | audit-evidence/garp25-shield-fix-5.10.25
+
+======================================================================
+7. CO SE MUSÍ ZNOVU OTEVŘÍT PŘI PŘÍŠTÍ ZMĚNĚ
+======================================================================
+- změna provideru/modelu/system promptu/prompt assembly -> AIR/RT-09 + SH-AI revalidace;
+- přidání tool/MCP/file/action/autonomní capability -> AGENTIC přechází z NO a otevírá SH-AG + SHNC-17..20;
+- změna auth/app-guard/session/storage ownership -> relevantní RT/SIM/GH-03/GH-06;
+- změna SW/security-critical assetů -> GH-02 + SIM-07 + GHNC-02/03;
+- změna platform/error-reporter vendor copy -> GH-01 + GHNC-01;
+- změna release schema/trust root/registry/key -> RI-01..15 + RISIM/SHNC rollback/revocation;
+- přechod na school server -> Prompt F / SHIELD-LIVE a následná nezávislá kontrola.

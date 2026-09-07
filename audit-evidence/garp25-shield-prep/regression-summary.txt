@@ -1,0 +1,30 @@
+GARP 2.5.1 FINAL REGRESSION SUMMARY – KS 5.10.24
+PASS:
+- GARP 2.5.1 package selftest: 32/32.
+- GHRAB Platform conformance: 124/124.
+- suite-session deterministic simulation: 10/10 including negative control.
+- quality: 31/31.
+- XSS sink gate: PASS; known unsafe-inline CSP compatibility debt remains registered.
+- source secret scan: 161 files, 0 findings.
+- canary scan: 161 files, 0 unexpected exact hits.
+- GARP25 school boundaries: 9/9 (includes dynamic local-key denial and oversized-request bounded deny).
+- SW security-freeze: PASS.
+- vendored consistency: 4/4 copies, drift 0.
+- pinned inputs: GitHub Actions 17/17 full 40-char SHA; direct npm inputs exact; lockfile v3 match.
+- AI assurance baseline: PASS.
+- AI profiles: 15/15.
+- internal application tests: 171/171.
+- GHRAB AI Core conformance: 17/17 (from current test build/internal runner chain).
+- AI-RED structural: 33/33; built-in negative control unsafe FAIL / safe PASS.
+- reporter static/unit: 52/52, 0 FAIL.
+- browser contract: PASS.
+- npm audit --offline: 0 vulnerabilities in locally available advisory/cache state.
+- final RI inventory/signature/registry/leak checks: PASS.
+
+NOT TESTED / ENVIRONMENT LIMITED:
+- full npm test command's UI-interaction tail timed out in managed Chromium on the final rerun; the deterministic/internal portion passed, and a prior same-runtime 5.10.24 run had UI 51/51. No PASS is newly claimed from the timed-out final UI rerun.
+- qa:runtime: Runtime page timeout: index.html under managed browser policy.
+- Axe: not-ready-environment; exact runtime scan not executed.
+- reporter browser behavior: URLBlocklist blocks local test pages.
+- unrestricted Browser Back/Restore/Multi-Tab/Service Worker update/revocation behavior: NOT TESTED here.
+- live-model AIR: 0 attempts; ASR N/A.

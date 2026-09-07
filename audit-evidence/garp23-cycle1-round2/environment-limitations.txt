@@ -1,0 +1,8 @@
+Environment limitations – GARP 2.3 round C
+- Live behavioral Direct Gemini AIR: NOT TESTED, production credential deliberately unavailable/not requested. attempts=0; ASR=N/A.
+- qa-p5-runtime: Runtime page timeout: index.html under managed browser policy. NOT TESTED for release evidence.
+- qa-p5-ui: production artifact intentionally has no test namespace/full runner; UI harness cannot call __GHRAB_KORESP_TESTS__.run on production. No PASS claimed.
+- qa-p5-axe-runtime: status not-ready-environment, exact axe-core runtime unavailable to this runner.
+- Reporter browser part: NOT_READY due managed URLBlocklist. Static/unit 52 PASS / 0 FAIL.
+- Actual jsdom path of scripts/test.mjs: locally unavailable module; Chromium fallback 169/169 + 17/17 PASS. Source fix + negative control are evidence; Claude round 2 should independently run npm ci/jsdom path.
+- SIM-03/SIM-04/SIM-07 require an unrestricted navigated browser.

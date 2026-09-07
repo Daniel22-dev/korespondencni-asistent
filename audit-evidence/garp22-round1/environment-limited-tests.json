@@ -1,0 +1,35 @@
+{
+  "schema": "garp22-environment-limits-v1",
+  "generatedAt": "2026-08-28T12:49:24.514579+00:00",
+  "managedChromiumPolicy": "/etc/chromium/policies/managed/000_policy_merge.json contains URLBlocklist=[\"*\"]",
+  "tests": [
+    {
+      "id": "qa-p5-runtime",
+      "exitCode": 1,
+      "status": "NOT TESTED",
+      "reason": "Managed Chromium URLBlocklist blocks navigated test pages / runtime navigation.",
+      "log": "audit-evidence/garp22-round1/final-p5-runtime.log"
+    },
+    {
+      "id": "qa-p5-axe-runtime",
+      "exitCode": 0,
+      "status": "NOT TESTED",
+      "reason": "Harness returned status=not-ready-environment and scanned=0; exact axe-core 4.12.1 was unavailable, so exit code 0 is not evidence of a performed scan.",
+      "log": "audit-evidence/garp22-round1/final-axe-runtime.log"
+    },
+    {
+      "id": "qa-p5-release",
+      "exitCode": 1,
+      "status": "NOT TESTED",
+      "reason": "Downstream release gate ended 45/46 solely because report.runtime.exists was unavailable after the environment-blocked runtime harness.",
+      "log": "audit-evidence/garp22-round1/final-p5-release.log"
+    },
+    {
+      "id": "error-reporter-browser-integration",
+      "exitCode": 0,
+      "status": "NOT TESTED",
+      "reason": "Static/unit reporter checks passed 51/51, but its browser integration was explicitly NOT_READY because managed URLBlocklist blocks test pages.",
+      "log": "audit-evidence/garp22-round1/final-error-reporter.log"
+    }
+  ]
+}

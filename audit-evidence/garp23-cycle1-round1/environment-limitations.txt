@@ -1,0 +1,20 @@
+GARP 2.3 — environment limitations — Korespondenční asistent 5.10.13
+
+1. LIVE AI PROVIDER
+- Auditní prostředí nemá produkční Gemini/school-gateway credential.
+- Z bezpečnostních důvodů nebyl credential vyžadován, generován ani obcházen.
+- AIR-01 až AIR-12 mají strukturální PASS, ale behaviorální stav NOT TESTED.
+- Podle GARP 2.3 live-model rule nelze RT-09 ani RED TEAM GATE povýšit na GREEN.
+
+2. NAVIGOVANÝ CHROMIUM
+- System-managed Chromium má URLBlocklist ["*"].
+- Politika nebyla měněna ani obcházena.
+- qa-p5-runtime: Runtime page timeout: index.html.
+- qa-p5-ui-interactions: navigovaný UI runtime nedostupný.
+- axe: not-ready-environment.
+- SIM-03 Back/Restore/Reopen, SIM-04 Multi-Tab a SIM-07 SW update/recovery zůstávají NOT TESTED.
+
+3. RT-16 ACCOUNT / KEY CUSTODY
+- Artefakt může ověřit pinning, lock, veřejné workflow hranice a nepřítomnost private key v distribuci.
+- Nelze z něj bezpečně dokázat MFA/passkey, signing-key custody/backup/rotation a branch protection uživatelského účtu.
+- RT-16 zůstává NOT TESTED/AMBER do organizační attestace.

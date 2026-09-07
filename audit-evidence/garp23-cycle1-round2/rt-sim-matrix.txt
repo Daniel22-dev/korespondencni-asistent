@@ -1,0 +1,34 @@
+GARP 2.3 – autoritativní RT/SIM matice po opravném kole – Korespondenční asistent 5.10.14
+
+RT-00 PASS – fresh data map/PC-01, 1 provider egress, 8 operations. Availability: available. Fail-safe: scope mismatches are gate failures.
+RT-01 PASS – access harness 17/17 + app bootstrap 5/5. Availability: available. Fail-safe: no permit denies app.
+RT-02 PASS – tampered storage/signature does not authorize. Availability: available. Fail-safe deny.
+RT-03 PASS – signature/audience checks in access harness. Availability: available. Fail-safe deny.
+RT-04 PASS – expired/overlong permit rejected. Availability: available. Fail-safe deny.
+RT-05 NOT TESTED – sharedAccessVersion mismatch partial PASS, full SIM-07 offline/update lifecycle unavailable. Recovery: normal signed current bundle / clean SW lifecycle.
+RT-06 PASS – synthetic canary, preflight zero-egress, console/artifact sweeps. Availability: available. Fail-safe blocks request.
+RT-07 PASS – XSS sink gate + hostile AI output inert. Availability: available. Recovery: no active rendering path found.
+RT-08 PASS – import limits/sanitization + AIR-05 hidden HTML PASS after C-02. Availability: available. Fail-safe sanitizes/blocks.
+RT-09 NOT TESTED – structural AI-RED 33/33 PASS but live-model AIR attempts 0, ASR N/A. Mandatory AIR behavior blocks GREEN.
+RT-10 PASS – final secret scan 0 findings; synthetic negative control FAIL. Availability: available.
+RT-11 PASS – teacher not admin / invalid role rejected in access harness. Availability: available.
+RT-12 PASS – browser boundary static assertions. Availability: available.
+RT-13 PASS WITH DEBT – no unsafe-eval/eval/new Function; known CSP unsafe-inline compatibility debt remains.
+RT-14 PASS – preflight/error redaction and reporter sanitization. Availability: available.
+RT-15 NOT TESTED – actual multi-tab SIM-04 unavailable. Recovery: reload/explicit state handling remains unproven multi-tab.
+RT-16 NOT TESTED – 40-char pinned Actions, lock integrity and workflow permissions checked; actual MFA/key custody/backup/rotation/legacy branch protection not safely provable. GitHub rulesets endpoint returned []; branch-protection endpoint 403 via integration.
+RT-17 NOT TESTED – structural A/B isolation PASS, but SIM-03/SIM-04 and live AIR-10 not complete.
+RT-18 PASS – school-server same-origin profile builds/QA PASS. Current architecture remains serverless.
+RT-19 PASS – single GHRAB_AI.generate egress, 8 ops, mock payload minimization and cross-context structural checks. Provider retention is external boundary.
+RT-20 NOT TESTED – app-local endWork and fail-safe deletion PASS; full status blocked by SIM-03 and provider retention boundary.
+
+SIM-01 PASS – signed permit app A allow/app B deny, audience/scope/role fail-closed.
+SIM-02 PASS – revocation propagates online and survives offline signed LKG.
+SIM-03 NOT TESTED – Browser Back / Restore / Reopen requires unrestricted navigated browser.
+SIM-04 NOT TESTED – actual Multi-Tab A/B collision requires unrestricted navigated browser.
+SIM-05 PASS – hostile AI response rendered inert.
+SIM-06 PASS – interrupted request + explicit retry without hidden leakage.
+SIM-07 NOT TESTED – full Service Worker update/recovery lifecycle unavailable.
+SIM-08 PASS – export/reimport second logical context isolation.
+
+Gate consequence: critical RT-17/RT-20 plus mandatory SIM-03/SIM-04 and mandatory behavioral AIR remain NOT TESTED, therefore OVERALL cannot exceed AMBER.

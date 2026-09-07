@@ -1,0 +1,101 @@
+
+> ghrab-korespondencni-asistent@5.10.12 qa:xss
+> node scripts/qa-p5-xss-sinks.mjs
+
+{
+  "schema": "ghrab-p5-xss-sink-audit-v1",
+  "appId": "correspondence",
+  "counts": {
+    "innerHTML": 99,
+    "insertAdjacentHTML": 2,
+    "outerHTML": 0,
+    "documentWrite": 0,
+    "eval": 0,
+    "newFunction": 0
+  },
+  "baseline": {
+    "innerHTML": 99,
+    "insertAdjacentHTML": 2,
+    "outerHTML": 0,
+    "documentWrite": 0,
+    "eval": 0,
+    "newFunction": 0
+  },
+  "csp": {
+    "unsafeInlineScript": true,
+    "unsafeInlineStyle": true
+  },
+  "evidence": [
+    {
+      "file": "src/access/error-reporter.js",
+      "kind": "innerHTML",
+      "count": 2
+    },
+    {
+      "file": "src/index.template.html",
+      "kind": "innerHTML",
+      "count": 1
+    },
+    {
+      "file": "src/js/10-release-changelog.js",
+      "kind": "innerHTML",
+      "count": 1
+    },
+    {
+      "file": "src/js/20-vzhled-a-ovladani.js",
+      "kind": "innerHTML",
+      "count": 4
+    },
+    {
+      "file": "src/js/30-api-gemini.js",
+      "kind": "innerHTML",
+      "count": 3
+    },
+    {
+      "file": "src/js/40-anonymizace.js",
+      "kind": "innerHTML",
+      "count": 22
+    },
+    {
+      "file": "src/js/40-anonymizace.js",
+      "kind": "insertAdjacentHTML",
+      "count": 1
+    },
+    {
+      "file": "src/js/50-koncept-a-prompty.js",
+      "kind": "innerHTML",
+      "count": 7
+    },
+    {
+      "file": "src/js/60-prichozi-a-muj-email.js",
+      "kind": "innerHTML",
+      "count": 42
+    },
+    {
+      "file": "src/js/70-nastroje-testy-data.js",
+      "kind": "innerHTML",
+      "count": 5
+    },
+    {
+      "file": "src/js/70-nastroje-testy-data.js",
+      "kind": "insertAdjacentHTML",
+      "count": 1
+    },
+    {
+      "file": "src/js/75-pracovni-stul.js",
+      "kind": "innerHTML",
+      "count": 8
+    },
+    {
+      "file": "src/manual/index.html",
+      "kind": "innerHTML",
+      "count": 4
+    }
+  ],
+  "limitations": [
+    "This is a regression inventory, not proof that every HTML sink is safe.",
+    "Current inline-script architecture may still require unsafe-inline until CSP refactoring."
+  ],
+  "failures": [],
+  "status": "passed"
+}

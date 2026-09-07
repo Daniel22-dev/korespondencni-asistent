@@ -1,0 +1,7 @@
+{
+  "status": "FAIL",
+  "errors": [
+    "size:scanner-summary.json",
+    "sha256:scanner-summary.json"
+  ]
+}

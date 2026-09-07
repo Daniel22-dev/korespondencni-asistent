@@ -1,0 +1,90 @@
+{
+  "schema": "garp22-rt00-pc01-v2",
+  "generatedAt": "2026-08-29T08:15:36.520Z",
+  "syntheticOnly": true,
+  "architecture": {
+    "current": "SERVERLESS",
+    "futureSchoolServer": "prepared",
+    "notes": [
+      "GitHub Pages client runtime",
+      "school-server same-origin profile is buildable"
+    ]
+  },
+  "aiEgress": {
+    "productionGeneratePaths": [
+      {
+        "file": "src/js/30-api-gemini.js",
+        "offset": 19372
+      }
+    ],
+    "count": 1
+  },
+  "fileReaders": {
+    "all": [
+      {
+        "file": "src/js/60-prichozi-a-muj-email.js",
+        "offset": 68938
+      },
+      {
+        "file": "src/js/70-nastroje-testy-data.js",
+        "offset": 150453
+      },
+      {
+        "file": "src/js/75-pracovni-stul.js",
+        "offset": 33333
+      },
+      {
+        "file": "src/access/error-reporter.js",
+        "offset": 15788
+      }
+    ],
+    "count": 4,
+    "applicationCount": 3,
+    "reporterCount": 1
+  },
+  "storage": {
+    "namespaces": [
+      "ghrab.handoff.v1",
+      "ghrab.pilot.events.v2",
+      "ks5_blocks",
+      "ks5_desk_collapsed",
+      "ks5_followups",
+      "ks5_recent_scenarios",
+      "ks5_selected_signature",
+      "ks5_signatures",
+      "ks5_workbench_drafts",
+      "rozbor_dict",
+      "rozbor_gemini_key",
+      "rozbor_gemini_key_session",
+      "rozbor_gemini_model",
+      "rozbor_history",
+      "rozbor_last_prompt_debug",
+      "rozbor_mode",
+      "rozbor_name_hints",
+      "rozbor_no_history",
+      "rozbor_ops_log",
+      "rozbor_profile",
+      "rozbor_security_guide_seen_v1",
+      "rozbor_templates",
+      "rozbor_test_marker",
+      "rozbor_tour_seen_v1",
+      "rozbor_ui_mode",
+      "rozbor_work_session_v2"
+    ],
+    "indexedDbReferences": 0
+  },
+  "serviceWorker": {
+    "nonGetBypass": true,
+    "cacheApi": true
+  },
+  "exportBoundary": {
+    "canExportDefined": true,
+    "gmailNoopener": true
+  },
+  "guardBootstrap": {
+    "protectedScript": true,
+    "protectAppCall": true
+  },
+  "sourceTreeSha256": "c2ae99f04c4744fbef5b03b3dd4e36c8ba12882958a0465a8e0907a104278da1",
+  "status": "passed"
+}

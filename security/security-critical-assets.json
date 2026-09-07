@@ -1,0 +1,9 @@
+[
+  "runtime-config.js",
+  "runtime-config.school-server.js",
+  "config/deployment.json",
+  "config/deployment.school-server.json",
+  "ghrab/ghrab-platform.js",
+  "release-integrity.json",
+  "release-integrity.sig"
+]

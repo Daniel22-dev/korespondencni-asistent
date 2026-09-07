@@ -1,0 +1,47 @@
+Korespondencni asistent 5.10.20 - hotfix test summary
+Date: 2026-09-04
+Platform: GHRAB Platform 1.1.2
+Synthetic data only.
+
+PASS:
+- production build 5.10.20
+- Platform conformance: 124/124
+- Platform vendor vs AI Studio 0.21.40 reference: byte-for-byte match
+- deterministic suite-session simulation: 10/10
+- internal tests: 171/171
+- GHRAB AI Core conformance: 17/17
+- UI interaction regression: 51/51
+- AI profiles: 15/15
+- school-server profile QA: PASS
+- qa:lock: PASS
+- qa:quality: 31/31
+- qa:browser hermetic: PASS
+- qa:xss: PASS
+- GARP evidence-path: PASS
+- GARP test-harness: PASS
+- GARP bootstrap: PASS
+- GARP 2.3 AI-RED structural on test build: 33/33
+- AI-RED negative control: expected unsafe FAIL observed FAIL; safe PASS observed PASS
+- secret scan: PASS, 135 files, 0 findings
+- canary scan: PASS, 135 files, 0 unexpected exact hits
+- reporter regression/static: 52 PASS / 0 FAIL
+- qa runtime bootstrap static regression: PASS for runtime and Axe harnesses
+
+NOT TESTED / ENVIRONMENT LIMITATION:
+- qa:runtime real local-http navigation: Chromium managed URLBlocklist blocks 127.0.0.1; local run times out on index.html.
+- qa:suite-session real local-http navigation: same URLBlocklist; browser explicitly reports 127.0.0.1 is blocked.
+- qa:axe: axe-core 4.12.1 not installed in this environment; scanned=0, status not-ready-environment.
+- behavior-level/live AIR against a real AI provider: no production credential; NOT TESTED. Structural AIR was tested on the test build.
+
+CI evidence inherited from the supplied 5.10.19 GitHub Actions logs:
+- qa:suite-session Browser Back/Forward is PASS.
+- back-dom-not-restored is true.
+- qa:runtime is the only newly exposed failing stage in those runs and reports initFailures=3 with no a11y findings, overflow, browser exceptions or QA errors.
+
+Open ecosystem findings unchanged:
+- F-02: app-wide ACK is not proof that every same-origin tab completed cleanup.
+- F-03: same-origin scripts can write the global suite tombstone and foreign child ACK state.
+- E-01 cannot be closed ecosystem-wide until all relevant child apps are migrated and jointly tested.
+
+Local release verdict: AMBER, not GREEN.
+GitHub Actions must independently rerun qa:runtime and qa:axe with the fixed harness and confirm initFailures=0 before this hotfix can be promoted further.

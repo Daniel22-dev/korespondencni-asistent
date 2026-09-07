@@ -1,0 +1,37 @@
+PC-01 PATH COVERAGE / DUPLICATE ENTRY POINTS — KS 5.10.25
+Datum: 2026-09-06
+Syntetická/testovací data pouze.
+
+N1 / GH-02 — service worker security freeze
+Prozkoumané cesty zápisu do CacheStorage:
+1. src/sw.js CORE_ASSETS -> cache.addAll(CORE_ASSETS)
+2. src/sw.js optionalAssets -> optionalAssets.map(asset => cache.add(asset))
+3. scripts/apply-ghrab-platform.mjs -> generovaný GHRAB_PLATFORM_P3_ASSETS -> cache.add(asset)
+4. dist/sw.js a dist-school-server/sw.js po postprocessingu
+5. fetch handler -> isSecurityCriticalRequest -> networkOnlyNoStore
+
+Výsledek:
+- security-critical source of truth = security/security-critical-assets.json;
+- platformní P3 postprocessor před precache filtruje všechny položky proti tomuto seznamu;
+- ghrab/ghrab-platform.js není v žádném precache zdroji 5.10.25;
+- nový checker analyzuje cache.add/cache.addAll bez allowlistu názvů proměnných;
+- nový checker FAIL na skutečném 5.10.24 a PASS na 5.10.25;
+- disposable přejmenované pole RANDOMIZED_CACHE_LIST s vloženým kritickým assetem -> FAIL.
+
+N2 / AI assurance invalidation
+Prozkoumané AI/privacy vstupy:
+1. runtime config standalone + school
+2. ai-operations registry
+3. src/js/28-ai-integration.js
+4. src/js/30-api-gemini.js
+5. vendor GHRAB AI Core
+6. src/js/40-anonymizace.js
+7. src/js/50-koncept-a-prompty.js
+
+Výsledek:
+- baseline obsahuje všech 8 vstupů;
+- samostatná syntetická mutace 40-anonymizace.js -> baseline FAIL;
+- samostatná syntetická mutace 50-koncept-a-prompty.js -> baseline FAIL;
+- čistý strom -> PASS.
+
+Závěr PC-01: PASS pro opravy N1/N2 v rozsahu PREP. LIVE/browser revocation zůstává NOT TESTED.

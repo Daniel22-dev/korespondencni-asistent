@@ -1,0 +1,11 @@
+NEW CYCLE PROVENANCE CHECK
+input_sha256=c9ff594803a148720d70543f8420ef7cd5b56857ab4828fee13ca4f1851af868
+Selected source/config/scripts/workflow/package files compared against exact 5.10.12 input:
+UNCHANGED package.json
+UNCHANGED package-lock.json
+UNCHANGED src
+UNCHANGED scripts
+UNCHANGED .github
+UNCHANGED README.md
+UNCHANGED CHANGELOG.md
+Note: dist was freshly rebuilt; audit-evidence/garp22-newcycle-round1 is intentionally new evidence.

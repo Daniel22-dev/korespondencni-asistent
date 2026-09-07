@@ -1,0 +1,8 @@
+SHIELD CONTROL MATRIX - KS 5.10.25 corrective
+SH-APP: app threat model/attack surface/XSS/secret scan/SBOM/static controls PASS PREP; full DAST and served headers NOT TESTED.
+SH-SC: pinned inputs, frozen build-input snapshot, local PREP provenance, deterministic rebuild, source/deployment separation, signed release and evidence linkage are PASS PREP after final RI gate; live branch protections and production key governance NOT TESTED.
+SH-RUN: design/profile/budget/client bounds PASS PREP; actual server identity, read-only root, network policy, secret store, served TLS/HSTS, rate/concurrency and Integrity Service are LIVE NOT TESTED.
+SH-DET: reporter structural controls PASS PREP; tamper-resistant server audit, live integrity alerts, watchdog, backup/restore and key-compromise drills NOT TESTED.
+SH-AI: AGENTIC=NO. AI resource/profile/bounded request/human-review/hostile-output structural controls PASS PREP. SH-AI-11 PASS after N2 correction: baseline covers anonymization + prompt assembly and SHNC-14 independently mutates both. Behavioral live-model AIR remains NOT TESTED.
+SH-AG-01..15 N/A - no tool/MCP/function/action executor.
+OVERALL SHIELD ASSURANCE maximum: AMBER until LIVE controls and production governance exist.

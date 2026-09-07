@@ -1,0 +1,17 @@
+{
+  "status": "PASS",
+  "root": "/mnt/data/ks251_work/dist-school-server",
+  "info": [
+    "INFO-binary-not-scanned:assets/brand/school-logo.png",
+    "INFO-binary-not-scanned:icons/apple-touch-icon.png",
+    "INFO-binary-not-scanned:icons/icon-128.png",
+    "INFO-binary-not-scanned:icons/icon-180.png",
+    "INFO-binary-not-scanned:icons/icon-192.png",
+    "INFO-binary-not-scanned:icons/icon-32.png",
+    "INFO-binary-not-scanned:icons/icon-48.png",
+    "INFO-binary-not-scanned:icons/icon-512.png",
+    "INFO-binary-not-scanned:icons/icon-72.png",
+    "INFO-binary-not-scanned:icons/icon-96.png",
+    "INFO-binary-not-scanned:icons/icon-maskable-512.png"
+  ]
+}

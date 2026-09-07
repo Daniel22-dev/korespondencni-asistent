@@ -1,0 +1,43 @@
+{
+  "schema": "garp22-negative-controls-v1",
+  "generatedAt": "2026-08-28T12:43:48.729134+00:00",
+  "isolation": "All deliberate failures were introduced only in disposable /tmp copies. No negative-control mutation was applied to the candidate tree.",
+  "controls": [
+    {
+      "id": "NC-RT14-PREFLIGHT-REDACTION",
+      "expectedFailObserved": true,
+      "exitCode": 1,
+      "failedCheck": "rt14.preflight-error-redacts-canary"
+    },
+    {
+      "id": "NC-RT20-END-WORK",
+      "expectedFailObserved": true,
+      "exitCode": 1,
+      "failedCheck": "rt20.end-work-clears-app-controlled-data"
+    },
+    {
+      "id": "NC-RT19-EGRESS-MINIMIZATION",
+      "expectedFailObserved": true,
+      "exitCode": 1,
+      "failedCheck": "rt19.ai-egress-minimization"
+    },
+    {
+      "id": "NC-RT10-SECRET-SCAN",
+      "expectedFailObserved": true,
+      "exitCode": 1,
+      "detectedType": "google-api-key",
+      "valuePrinted": false
+    },
+    {
+      "id": "NC-RT06-CANARY-SWEEP",
+      "expectedFailObserved": true,
+      "exitCode": 1,
+      "detectedArtifact": "src/NEGATIVE-CONTROL-CANARY.txt"
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "total": 5,
+    "status": "passed"
+  }
+}

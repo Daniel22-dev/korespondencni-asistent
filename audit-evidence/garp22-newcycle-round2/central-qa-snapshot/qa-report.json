@@ -1,0 +1,434 @@
+{
+  "application": "AI Studio GHRAB",
+  "appId": "ai-studio-ghrab",
+  "version": "0.21.35",
+  "qaStandard": "GHRAB-QA-1.0.2",
+  "date": "2026-08-28T15:27:40.508Z",
+  "commit": "328701510c0cad4005d935a95b8c28c04255fe71",
+  "buildSha256": "649768419aecc25a146006ab9cfab2b50a54bee20a2fd6ffe4fbbbffe8f1eede",
+  "gates": [
+    {
+      "name": "project",
+      "status": "PASS",
+      "findings": [],
+      "details": {
+        "commands": [
+          {
+            "command": "npm ci --no-fund",
+            "label": "project-install",
+            "code": 0,
+            "log": "qa-results/qa-logs/project-install.log"
+          },
+          {
+            "command": "npm test",
+            "label": "project-tests",
+            "code": 0,
+            "log": "qa-results/qa-logs/project-tests.log"
+          },
+          {
+            "command": "npm run build",
+            "label": "project-build",
+            "code": 0,
+            "log": "qa-results/qa-logs/project-build.log"
+          },
+          {
+            "command": "npm audit --audit-level=high",
+            "label": "project-audit",
+            "code": 0,
+            "log": "qa-results/qa-logs/project-audit.log"
+          }
+        ]
+      }
+    },
+    {
+      "name": "technical",
+      "status": "PASS",
+      "findings": [],
+      "details": {
+        "packageVersion": "0.21.35",
+        "node": "v22.23.2",
+        "filesChecked": 470
+      }
+    },
+    {
+      "name": "security",
+      "status": "PASS",
+      "findings": [],
+      "details": {
+        "filesChecked": 427,
+        "projectValidator": {
+          "applicationsChecked": 8,
+          "outputKinds": [
+            "activity-builder",
+            "correspondence",
+            "differentiator",
+            "essay-evaluator",
+            "generator",
+            "lesson-hub",
+            "ludus",
+            "sortio"
+          ],
+          "fallbackSnapshotConfirmed": false
+        }
+      }
+    },
+    {
+      "name": "pwa",
+      "status": "PASS",
+      "findings": [],
+      "details": {
+        "targets": 1
+      }
+    },
+    {
+      "name": "combinatorial",
+      "status": "PASS",
+      "findings": [],
+      "details": {
+        "parameters": 4,
+        "parameterValues": {
+          "role": [
+            "admin",
+            "teacher"
+          ],
+          "permit": [
+            "valid",
+            "revoked",
+            "offline"
+          ],
+          "application": [
+            "enabled",
+            "blocked",
+            "unavailable"
+          ],
+          "device": [
+            "mobile",
+            "desktop"
+          ]
+        },
+        "theoreticalCombinations": 36,
+        "executedScenarios": 9,
+        "pairwisePairs": 37,
+        "coveredPairs": 37,
+        "pairwiseCoveragePercent": 100,
+        "criticalTriples": [
+          {
+            "role": "teacher",
+            "permit": "revoked",
+            "application": "enabled"
+          },
+          {
+            "role": "admin",
+            "permit": "offline",
+            "application": "unavailable"
+          }
+        ],
+        "fixedScenarios": [
+          {
+            "role": "admin",
+            "permit": "valid",
+            "application": "enabled",
+            "device": "desktop"
+          }
+        ],
+        "matrix": [
+          {
+            "id": "PW-001",
+            "status": "PASS",
+            "parameters": {
+              "role": "admin",
+              "permit": "valid",
+              "application": "enabled",
+              "device": "desktop"
+            },
+            "evidence": "role=admin; permit=valid; app=enabled; failClosed=true; registry=true"
+          },
+          {
+            "id": "PW-002",
+            "status": "PASS",
+            "parameters": {
+              "role": "teacher",
+              "permit": "revoked",
+              "application": "enabled",
+              "device": "mobile"
+            },
+            "evidence": "role=teacher; permit=revoked; app=enabled; failClosed=true; registry=true"
+          },
+          {
+            "id": "PW-003",
+            "status": "PASS",
+            "parameters": {
+              "role": "admin",
+              "permit": "offline",
+              "application": "unavailable",
+              "device": "mobile"
+            },
+            "evidence": "role=admin; permit=offline; app=unavailable; failClosed=true; registry=true"
+          },
+          {
+            "id": "PW-004",
+            "status": "PASS",
+            "parameters": {
+              "role": "teacher",
+              "permit": "offline",
+              "application": "blocked",
+              "device": "desktop"
+            },
+            "evidence": "role=teacher; permit=offline; app=blocked; failClosed=true; registry=true"
+          },
+          {
+            "id": "PW-005",
+            "status": "PASS",
+            "parameters": {
+              "role": "admin",
+              "permit": "valid",
+              "application": "blocked",
+              "device": "mobile"
+            },
+            "evidence": "role=admin; permit=valid; app=blocked; failClosed=true; registry=true"
+          },
+          {
+            "id": "PW-006",
+            "status": "PASS",
+            "parameters": {
+              "role": "admin",
+              "permit": "revoked",
+              "application": "unavailable",
+              "device": "desktop"
+            },
+            "evidence": "role=admin; permit=revoked; app=unavailable; failClosed=true; registry=true"
+          },
+          {
+            "id": "PW-007",
+            "status": "PASS",
+            "parameters": {
+              "role": "teacher",
+              "permit": "valid",
+              "application": "unavailable",
+              "device": "mobile"
+            },
+            "evidence": "role=teacher; permit=valid; app=unavailable; failClosed=true; registry=true"
+          },
+          {
+            "id": "PW-008",
+            "status": "PASS",
+            "parameters": {
+              "role": "admin",
+              "permit": "revoked",
+              "application": "blocked",
+              "device": "mobile"
+            },
+            "evidence": "role=admin; permit=revoked; app=blocked; failClosed=true; registry=true"
+          },
+          {
+            "id": "PW-009",
+            "status": "PASS",
+            "parameters": {
+              "role": "admin",
+              "permit": "offline",
+              "application": "enabled",
+              "device": "mobile"
+            },
+            "evidence": "role=admin; permit=offline; app=enabled; failClosed=true; registry=true"
+          }
+        ],
+        "limitations": [
+          "Deployed síťové chování je potvrzováno až samostatným smoke testem stejného buildu."
+        ]
+      }
+    },
+    {
+      "name": "visual",
+      "status": "PASS",
+      "findings": [],
+      "details": {
+        "scenarios": 5,
+        "runs": 13,
+        "matrix": [
+          {
+            "scenario": "studio-home",
+            "viewport": "360x800",
+            "status": "PASS",
+            "message": "",
+            "screenshot": "qa-screenshots/studio-home__360x800.png"
+          },
+          {
+            "scenario": "studio-home",
+            "viewport": "412x915",
+            "status": "PASS",
+            "message": "",
+            "screenshot": "qa-screenshots/studio-home__412x915.png"
+          },
+          {
+            "scenario": "studio-home",
+            "viewport": "768x1024",
+            "status": "PASS",
+            "message": "",
+            "screenshot": "qa-screenshots/studio-home__768x1024.png"
+          },
+          {
+            "scenario": "studio-home",
+            "viewport": "1366x768",
+            "status": "PASS",
+            "message": "",
+            "screenshot": "qa-screenshots/studio-home__1366x768.png"
+          },
+          {
+            "scenario": "studio-home",
+            "viewport": "1920x1080",
+            "status": "PASS",
+            "message": "",
+            "screenshot": "qa-screenshots/studio-home__1920x1080.png"
+          },
+          {
+            "scenario": "studio-access",
+            "viewport": "360x800",
+            "status": "PASS",
+            "message": "",
+            "screenshot": "qa-screenshots/studio-access__360x800.png"
+          },
+          {
+            "scenario": "studio-access",
+            "viewport": "1366x768",
+            "status": "PASS",
+            "message": "",
+            "screenshot": "qa-screenshots/studio-access__1366x768.png"
+          },
+          {
+            "scenario": "studio-automation",
+            "viewport": "412x915",
+            "status": "PASS",
+            "message": "",
+            "screenshot": "qa-screenshots/studio-automation__412x915.png"
+          },
+          {
+            "scenario": "studio-automation",
+            "viewport": "1920x1080",
+            "status": "PASS",
+            "message": "",
+            "screenshot": "qa-screenshots/studio-automation__1920x1080.png"
+          },
+          {
+            "scenario": "studio-manuals-support",
+            "viewport": "360x800",
+            "status": "PASS",
+            "message": "",
+            "screenshot": "qa-screenshots/studio-manuals-support__360x800.png"
+          },
+          {
+            "scenario": "studio-manuals-support",
+            "viewport": "1366x768",
+            "status": "PASS",
+            "message": "",
+            "screenshot": "qa-screenshots/studio-manuals-support__1366x768.png"
+          },
+          {
+            "scenario": "studio-manuals-catalog",
+            "viewport": "360x800",
+            "status": "PASS",
+            "message": "",
+            "screenshot": "qa-screenshots/studio-manuals-catalog__360x800.png"
+          },
+          {
+            "scenario": "studio-manuals-catalog",
+            "viewport": "1366x768",
+            "status": "PASS",
+            "message": "",
+            "screenshot": "qa-screenshots/studio-manuals-catalog__1366x768.png"
+          }
+        ]
+      }
+    },
+    {
+      "name": "critical",
+      "status": "PASS",
+      "findings": [],
+      "details": {
+        "flows": [
+          {
+            "id": "STUDIO-OPEN",
+            "name": "Otevření centrálního rozcestníku",
+            "status": "PASS",
+            "evidence": [
+              "http://127.0.0.1:39245/index.html"
+            ]
+          },
+          {
+            "id": "STUDIO-CHROME-CONTROLS",
+            "name": "Sdílená tlačítka navigace, nastavení a jazyka reagují",
+            "status": "PASS",
+            "evidence": [
+              "http://127.0.0.1:39245/index.html"
+            ]
+          },
+          {
+            "id": "STUDIO-CACHE-ISOLATION",
+            "name": "Service worker nemaže cizí cache",
+            "status": "PASS",
+            "evidence": [
+              "src/sw.js: PASS"
+            ]
+          },
+          {
+            "id": "STUDIO-ACTIVA-INTEGRATION",
+            "name": "ACTIVA je v registru, politice a manuálech",
+            "status": "PASS",
+            "evidence": [
+              "src/config/apps.fallback.json: PASS",
+              "src/config/access-policy.json: PASS",
+              "src/manualy/manualy.js: PASS"
+            ]
+          },
+          {
+            "id": "STUDIO-SORTIO-INTEGRATION",
+            "name": "SORTIO je v registru, politice a manuálech",
+            "status": "PASS",
+            "evidence": [
+              "src/config/apps.fallback.json: PASS",
+              "src/config/sources.json: PASS",
+              "src/config/access-policy.json: PASS",
+              "src/manualy/manualy.js: PASS",
+              "src/assets/apps/sortio.svg: PASS"
+            ]
+          },
+          {
+            "id": "STUDIO-LESSON-HUB-INTEGRATION",
+            "name": "Lesson Hub je v registru, politice, manuálech a telemetrii",
+            "status": "PASS",
+            "evidence": [
+              "src/config/apps.fallback.json: PASS",
+              "src/config/sources.json: PASS",
+              "src/config/access-policy.json: PASS",
+              "src/manualy/manualy.js: PASS",
+              "src/access/app-guard.js: PASS",
+              "src/report/report.js: PASS",
+              "src/assets/apps/lesson-hub.png: PASS"
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "counts": {
+    "PASS": 7,
+    "WARN": 0,
+    "FAIL": 0
+  },
+  "blockerAndMajor": [],
+  "minor": [],
+  "skipped": [
+    {
+      "check": "project-headless",
+      "reason": "Příkaz není pro tento projekt definován."
+    }
+  ],
+  "manualApproval": {
+    "present": false,
+    "valid": false,
+    "manualVisualReview": false,
+    "deployedSmokeTest": false,
+    "reviewer": null
+  },
+  "automaticVerdict": "AUTOMATED_READY",
+  "verdict": "AUTOMATED_READY"
+}

@@ -1,0 +1,38 @@
+GARP 2.5.1 TOOLING R5 - KS 5.10.25
+
+Scope: tooling-only closure after independent R4 review. Frozen application/runtime version remains 5.10.25.
+
+Accepted finding:
+- N17 MEDIUM: detached Cache method calls could be invisible to the SW checker.
+
+R5 evidence:
+- y1 Reflect.get detached method -> AMBER / exit 2 / unresolved-cache-write
+- y2 destructured method -> AMBER / exit 2 / unresolved-cache-write
+- y3 comma-operator detached method -> AMBER / exit 2 / unresolved-cache-write
+- w4 bind alias regression -> FAIL / exit 1
+- local selftest -> 55/55 PASS
+- canonical selftest -> 55/55 PASS
+
+No distributed runtime was rebuilt or re-signed. dist-school-server must remain byte-identical to the frozen signed 5.10.25 deployment.
+Policy/LIVE items remain AMBER/NOT TESTED and are not upgraded by this tooling-only closure.
+
+Additional closure checks:
+- e1 Reflect.get -> alias -> call: AMBER
+- e2 destructured renamed alias: AMBER
+- e3 comma operator + bracket member: AMBER
+- src/: 0 differences vs Tooling R4
+- vendor/: 0 differences vs Tooling R4
+- config/: 0 differences vs Tooling R4
+- dist-school-server/: 0 differences vs Tooling R4 and 0 differences vs frozen signed deployment ZIP
+- school boundaries PASS
+- clean SW checker PASS
+- vendored consistency PASS (4/4, drift 0)
+- pinned inputs PASS
+- AI assurance baseline PASS
+- platform conformance 124/124 PASS
+- quality 31/31 PASS (generic dist/ quality timestamp is not a release reproducibility gate)
+- secret scan PASS, 0 findings
+- canary scan PASS, 0 unexpected hits
+sha_entries=87
+canonical_tools=15
+tool_identity_nonidentical=0

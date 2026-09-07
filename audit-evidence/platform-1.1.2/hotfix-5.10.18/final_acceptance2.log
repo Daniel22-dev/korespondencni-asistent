@@ -1,0 +1,14 @@
+{
+  "appId": "correspondence",
+  "appVersion": "5.10.18",
+  "status": "failed",
+  "summary": {
+    "total": 20,
+    "passed": 18,
+    "failed": 2
+  },
+  "failed": [
+    "file.dist/qa-p5-runtime-report.json",
+    "status.dist/qa-p5-release-report.json"
+  ]
+}

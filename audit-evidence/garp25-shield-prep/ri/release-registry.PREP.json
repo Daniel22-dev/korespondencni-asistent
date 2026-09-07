@@ -1,0 +1,27 @@
+{
+  "schema": "ghrab-release-registry-v1",
+  "profile": "PREP-only-synthetic",
+  "apps": [
+    {
+      "appId": "correspondence",
+      "status": "approved",
+      "approvedVersion": "5.10.24",
+      "artifactDigest": "7af5b8cab1cbd07a0f0a5bd7e47af5800932cd22d8605cd1322defba295b49d0",
+      "keyId": "prep-ks-ed25519-20260906",
+      "history": [
+        {
+          "version": "5.10.14",
+          "approvedAt": "2026-09-05T00:00:00Z"
+        },
+        {
+          "version": "5.10.23",
+          "approvedAt": "2026-09-06T00:00:00Z"
+        },
+        {
+          "version": "5.10.24",
+          "approvedAt": "2026-09-06T00:00:00Z"
+        }
+      ]
+    }
+  ]
+}

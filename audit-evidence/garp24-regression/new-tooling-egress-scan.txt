@@ -1,0 +1,12 @@
+New GARP 2.4 tooling network/egress lexical scan
+Files:
+scripts/garp24/create-release-integrity.mjs
+scripts/garp24/prepare-release-integrity.mjs
+scripts/garp24/scan-deployment-leaks.mjs
+scripts/garp24/sign-release-integrity.mjs
+scripts/garp24/verify-release-bundle.mjs
+scripts/garp24/verify-release-integrity.mjs
+scripts/garp24/verify-release-signature.mjs
+scripts/qa-garp24-ri-prep.mjs
+
+Matches for fetch/http/https/WebSocket/net/dgram/tls:

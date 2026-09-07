@@ -1,0 +1,446 @@
+GARP 2.2 – NEZÁVISLÁ KONTROLA CLAUDE
+Korespondenční asistent 5.10.11 · fáze D / kolo 2
+Kontrolovaný artefakt:
+Korespondencni-asistent-5.10.11-GARP2.2-kandidat-Claude-kolo-2.zip
+
+======================================================================
+1. IDENTIFIKACE A PROVENANCE
+======================================================================
+Verze: 5.10.11
+SHA-256 kontrolovaného ZIPu:
+1567746bd38da525f176e4143714dcdd383f5e9e3184acd51bce079a606a05a6
+Shoda s hodnotou deklarovanou ChatGPT: ANO.
+
+Řetěz vstupů ověřen nezávisle, všechny tři hashe souhlasí:
+- vstupní ZIP 5.10.10  c55d0c25…0ddfeb6  OVĚŘENO proti mému souboru
+- Claude kolo 1 TXT    805df23e…dececc4  OVĚŘENO – vložená kopie
+                                          CLAUDE-KOLO-1-OVERENI.txt je
+                                          bajtově totožná s mým výstupem
+- GARP 2.2 balíček     7287e5d8…7d2f532  převzato, nemám originál
+
+Auditor: Claude – nezávislá kontrola, bez oprav kódu.
+EVIDENCE MODE: KOMBINACE – vlastní rebuild, vlastní spuštěné testy,
+vlastní adversariální sondy, vlastní negative controls, čtení kódu.
+
+Prostředí Claude: Node v22.22.2, jsdom 24.1.3. Chromium ani Playwright
+browser nejsou dostupné (síťová restrikce). Navigované scénáře nemohu
+uzavřít ani v tomto kole.
+
+REPRODUKOVATELNÝ REBUILD: POTVRZENO.
+  dist/index.html        d5fbd2f7d5e928af611798e4cf4ce64bb51cae17b8f5caf5cca0c0163fc2ed25
+  dist/sw.js             c1ee2e2c3e366e4559969ee434bb52f7208a459bf7a2a5565b98eb94d52b3678
+  dist/manifest.webmanifest 0bca4ed4e396023d128572547f9e3eeccf7fd908d22469a1386e155619df69d2
+Všechny bitově shodné s dodaným buildem. Jediné rozdíly v celém dist/
+jsou builtAt a publishedAt.
+
+VLASTNÍ SCAN CELÉHO DISTRIBUOVANÉHO ZIPU:
+313 souborových položek, 237 textových prohledáno,
+0 secret nálezů, 0 rizikových názvů, 0 path-traversal cest.
+Potvrzuji deklaraci ChatGPT z části 1 jejich protokolu.
+
+======================================================================
+2. DISPOZICE MÝCH NÁLEZŮ C-01 AŽ C-07 – VLASTNÍ OVĚŘENÍ
+======================================================================
+Neověřoval jsem tvrzení protokolu, ale kód a chování.
+
+C-01 OPRAVENO S ROZSAHOVOU VÝHRADOU – viz nález C-12 níže.
+clearAllLocalData nyní vrací {ok, removeFailures, remainingOwnedKeys,
+memoryUiOk}; success toast jen při skutečném úspěchu; při neúspěchu
+persistentní varování „Neopouštěj sdílené zařízení“; endWorkAndClearData
+skládá výsledek z transientOk && reporterOk && deletion.ok a reload má
+fallback varování po 1500 ms. Bezpodmínečné true je pryč.
+
+C-02 OPRAVENO – POTVRZENO VLASTNÍ NEGATIVE CONTROL.
+NC2-CLAUDE-STORAGE-SCOPE, provedena pouze v odkládací kopii /tmp/nc2,
+kandidátní strom nemutován:
+  endWorkReturned:                true
+  novaAssertion_storageHasCanary: true   <- únik DETEKOVÁN
+  remainingOwnedKeys:             []
+  unrelatedPreserved:             true
+  survivingKeys:                  ["correspondence_leak_v1"]
+Assertion, která v kole 1 únik přehlédla, jej nyní zachytí. Vakuová
+kontrola rt06.canary-not-in-url byla skutečně vyřazena z PASS countu a
+přesunuta do environmentNotes jako NOT TESTED. Počet check() volání
+v harness je 11, URL mezi nimi není.
+
+C-03 / AD-01 OPRAVENO – POTVRZENO VLASTNÍ ADVERSARIÁLNÍ SONDOU.
+Sonda spuštěna proti PRODUKČNÍMU dist ze dvou originů:
+  veřejný daniel22-dev.github.io/?test=1  a  localhost:8080/?test=1
+Výsledek v obou případech identický:
+  TEST_HOOKS_BUILD_ENABLED       false
+  IS_TEST_MODE                   false
+  __setTestRunActive(true) vrací false, TEST_RUN_ACTIVE zůstává false
+  typeof GHRAB_AI.__testing      "undefined"
+  GHRABRuntime.replaceForTesting vrací false
+  testMockAvailable()            false
+  podstrčený __TEST_MOCK_GEMINI  NEBYL zavolán
+  callGemini skončil             API_KEY_MISSING
+Produkční build je inertní nezávisle na originu, protože build flag je
+tvrdší podmínka než origin gate. To je silnější, než protokol tvrdí.
+Zbytkový detail: dist stále obsahuje volání
+GHRAB_AI.__testing.replaceRuntimeConfig, které je za guardem
+nedosažitelné. Není to zranitelnost; při regresi guardu by to skončilo
+TypeError, tedy fail-closed. Vedu jako INFO.
+
+C-04 OPRAVENO A ROZŠÍŘENO NAD RÁMEC NÁLEZU.
+data-manifest.json má nyní sekci dataFlows s ai-egress,
+error-reporter-fetch-wrapper (včetně výslovného doesNotRecord: request
+body, request headers, query string, API key), studio-bridge a
+prompt-debug s maxPromptChars 30000 / maxSystemChars 12000.
+Navíc ověřuji, že deklarace disabledForStrictSensitiveScenarios NENÍ
+jen text: saveLastPromptDebug skutečně při isStrictScenarioActive() nebo
+hasSensitiveSchoolTerms() záznam neuloží a existující smaže.
+
+C-05 OPRAVENO – OVĚŘENO SKUTEČNOU SÉMANTIKOU GIT.
+V dočasném repozitáři s dodaným .gitignore:
+  audit-evidence/garp22-round2/final-build.log  -> commitne se
+  other.log                                     -> ignorován (.gitignore:4)
+Negace !audit-evidence/**/*.log funguje. V balíčku je 21 .log souborů.
+
+C-06 OPRAVENO.
+window.GHRABErrorReporter nyní vystavuje clearDraft(); resetDraft maže
+screenshoty, revokuje jejich object URL, ruší preparedFile/preparedBlob
+a preparedUrl, čistí technicalErrors, komentář i kroky.
+endWorkAndClearData jej volá PŘED mazáním storage.
+Výhrada k důkazu: harness si pro tuto kontrolu podstrčí vlastní stub
+clearDraft a ověřuje pouze, že byl zavolán právě jednou. Skutečné
+vyčištění konceptu a snímků runtime testováno není. Vedu jako INFO.
+
+C-07 OPRAVENO – POTVRZENA PŘESNÁ PARITA.
+Porovnal jsem řetězce znak po znaku:
+  security-headers.json staticProfile.contentSecurityPolicy
+  ==  meta CSP v dist/index.html                     SHODA: True
+Šablona obsahuje pouze token __GHRAB_STATIC_CSP__ (1 výskyt), build jej
+nahrazuje kanonickou hodnotou a padá, pokud token chybí nebo profil není
+platný. Nová politika je navíc PŘÍSNĚJŠÍ než ta, která se dříve
+vynucovala: default-src je teď 'self' bez data: blob:.
+Školní profil správně zužuje connect-src na 'self' bez googleapis.
+Známý dluh unsafe-inline pro script/style trvá; unsafe-eval, eval ani
+new Function nejsou.
+
+ŽÁDNÝ Z MÝCH NÁLEZŮ NEBYL ODMÍTNUT A ŽÁDNÝ NEBYL OPRAVEN JEN NA PAPÍŘE.
+
+======================================================================
+3. NEZÁVISLE REPRODUKOVANÉ TESTY
+======================================================================
+Test                            Deklarováno   Naměřeno mnou   Shoda
+qa-p5-lock                      3 / 67        3 / 67          ANO
+qa-p3-quality                   31/31         31/31           ANO
+qa-ai-profiles                  15/15         15/15           ANO
+qa-garp22-static-surface        25/25         25/25           ANO
+qa-p5-xss-sinks                 eval 0        eval 0, nF 0    ANO
+qa-p5-release                   39/41         39/41           ANO
+qa-p5-acceptance                13/16         13/16           ANO
+GitHub Actions pinning          17/17 SHA     17/17, 0 tagů   ANO
+package-lock                    67 resolved   67, 0 bez integrity ANO
+reporter static/unit            52 PASS       84 PASS / 0 FAIL VYŠŠÍ
+
+secret scan / canary sweep      130 souborů   133 souborů     NESHODA
+  -> viz nález C-11
+
+Reporter: stejně jako v kole 1 u mě proběhla i integrační část, kterou
+ChatGPT nemohl spustit. 84 PASS / 0 FAIL, včetně jediné instance
+reportéru při samostatném spuštění i přes AI Studio a bezpečného
+fallbacku support.json. Jde o jsdom, ne o skutečný prohlížeč, takže
+status posouvám na ČÁSTEČNĚ OVĚŘENO, nikoli PASS.
+
+Nereprodukovatelné u mě: qa-p3-browser 19/19, test-ui-interactions,
+qa-garp22-singlepage 11/11, qa-garp22-production-test-boundary 5/5.
+Produkční hranici jsem ale ověřil vlastní sondou nezávisle (viz C-03).
+
+Nezávisle jsem také ověřil dvě věci, které by při povrchním čtení
+vypadaly jako zhoršení, a NEJSOU:
+- Pokles release gate ze 46 na 41 checků NENÍ oslabení brány. Skripty
+  qa-p5-release.mjs i qa-p5-acceptance.mjs jsou proti kolu 1 bajtově
+  shodné; počet checků je datově závislý a klesl jen proto, že v dist
+  chybí qa-p5-ui-interactions-report.json.
+- deploy.yml publikuje PRODUKČNÍ build. Poslední build před uploadem je
+  npm run build uvnitř qa:p5:ci; npm test se v deploy pipeline nespouští.
+  pretest byl navíc správně přepnut na build:test.
+- Ochrana proti omylu funguje: když jsem do dist umístil testovací build,
+  qa-garp22-static-surface spadl na
+  rt09.production-ai-test-hooks-disabled {prodFlag:false, testFlagOn:true}.
+
+======================================================================
+4. NOVÉ NÁLEZY KOLA 2
+======================================================================
+
+C-12 / MEDIUM / OTEVŘENO – ZBYTKOVÁ DÍRA V OPRAVĚ C-01
+Větev „nelze ověřit obsah úložiště“ je NEDOSAŽITELNÁ.
+removeOwnedStorageKeys počítá s tím, že appStorageKeys() vyhodí výjimku:
+  try{keys=appStorageKeys(store);}
+  catch(_){return {failures:[prefix+":enumeration-before"],
+                   remaining:[prefix+":<unverified>"]};}
+Jenže storageKeyList() spolkne KAŽDOU výjimku dvěma vlastními try/catch
+a vrátí prázdné pole. Enumerace tedy nikdy nevyhodí a fallback se
+nespustí.
+Vlastní izolovaná reprodukce proti skutečné implementaci:
+  blockedStore = {get length(){throw new Error("synthetic-enumeration-failure")}}
+  removeOwnedStorageKeys(blockedStore,"blockedStorage")
+  -> {"failures":[],"remaining":[]}
+  test očekává failures obsahuje "blockedStorage:enumeration-before" -> false
+  test očekává remaining obsahuje "blockedStorage:<unverified>"     -> false
+Důsledek: pokud prohlížeč znemožní enumeraci úložiště (partitioning,
+security/quota error, zpřísněný privacy režim), vyjde failures=[],
+remaining=[] a tedy ok=true. Uživatel na sdíleném zařízení dostane
+„Lokální data smazána ✓“, aniž bylo cokoli ověřeno. To je přesně původní
+selhání C-01, jen posunuté o úroveň níž.
+Nález potvrzuje i sám projekt: jeho vlastní regresní test
+„Smazání dat je fail-safe při chybě úložiště“ SELHÁVÁ.
+
+C-13 / HIGH / OTEVŘENO – DEKLAROVANÉ PASS BEZ DŮKAZU, DŮKAZ TVRDÍ OPAK
+GARP 2.2 vyžaduje, aby každý PASS měl konkrétní důkaz. Dva hlavní údaje
+z části 6 protokolu důkaz nemají a přiložený důkaz tvrdí opak.
+
+(a) „interní regresní sada: 164/164 PASS“ a „Core conformance 17/17 PASS“
+    Přiložený audit-evidence/garp22-round2/core-tests-testbuild.log končí:
+      ✗ interní testy nešly spustit:
+        ReferenceError: Cannot access 'escAttr' before initialization
+      ✗ Core conformance suite nevrátila výsledek
+      CELKEM: 2 problémů — release stopka.
+    V balíčku není ŽÁDNÝ jiný log, který by 164/164 nebo 17/17 doložil.
+
+(b) „GARP single-page runtime: 11/11 PASS“
+    Přiložený garp-singlepage-testbuild.log končí pádem:
+      Error: ReferenceError: E is not defined
+    Harness spadl na řádku 53, tedy hned u první SIM-08 kontroly.
+    Soubor singlepage-runtime.json sice 11/11 obsahuje, ale vznikl
+    v 14:09, zatímco přiložený log je z 13:57. Úspěšný běh tedy
+    proběhl, ale JEHO LOG NEBYL ZACHYCEN; v balíčku zůstal log
+    neúspěšného pokusu.
+
+Vlastní měření k bodu (a): sadu jsem spustil sám proti čistému
+testovacímu buildu z trusted local originu, s aktivními hooky:
+  hooksActive: true, total: 164, failed: 1
+  jediné selhání: „Smazání dat je fail-safe při chybě úložiště“
+Tvrzení 164/164 tedy není jen nedoložené — v mém prostředí je nepravdivé,
+a to právě kvůli C-12.
+
+C-09 / MEDIUM / OTEVŘENO – OPRAVA C-03 ROZBILA IN-APP TEST RUNNER
+Proti PRODUKČNÍMU buildu selhává 15 ze 164 testů, protože mock je nyní
+správně inertní. Selhávají:
+  Direct Gemini adaptér měří operaci a provider request
+  School Gateway používá neutrální kontrakt bez API klíče
+  Nedostupný School Gateway se skrytě nepřepne na Gemini
+  Editor nabízí a provede cílenou úpravu Přirozeněji
+  Centrální preflight je povinný
+  Mock funguje bez ?test=1
+  Kontrola tónu přes mock
+  Vybrané připomínky z hodnocení se zapracují jen do dané varianty
+  Preflight kontroluje skutečný finální prompt
+  E2E Příchozí přes mock
+  Výběr jedné ze tří variant vyčistí pracovní plochu
+  Vlastní poznámka dovolí odpověď bez vybraného požadavku
+  E2E Můj e-mail přes mock
+  Profily AI jsou provider-neutrální a řídí request
+  Smazání dat je fail-safe při chybě úložiště
+Manuál přitom uvádí, že v produkci AI Studio zpřístupní vývojářské
+nástroje správci. Ten tedy uvidí 15 selhání, která nejsou skutečné vady.
+Mezi nimi ironicky i regresní test opravy C-01.
+
+C-08 / MEDIUM / OTEVŘENO – DESTRUKTIVNÍ TEST RUNNER ZŮSTAL NEZAHRAZENÝ
+window.runKorespTests a window.openTestRunner jsou v produkčním buildu
+volatelné z veřejného originu, bez build flagu i bez origin gate.
+Ověřeno sondou: typeof obou je "function" při
+TEST_HOOKS_BUILD_ENABLED=false na daniel22-dev.github.io.
+Během běhu jsem pozorovoval sawStorageEmptiedDuringRun: true, tedy
+tranzitní vymazání všech app-owned dat; obnova závisí na paměťovém
+snapshotu ve finally. Zavření karty, pád nebo navigace během běhu
+znamená ztrátu profilu, slovníku skutečných jmen, šablon a podpisů.
+Sada navíc v produkci volá reálné clearAllLocalData a
+endWorkAndClearData.
+PC-01 v protokolu enumeroval __setTestRunActive, __TEST_MOCK_GEMINI,
+__TEST_MOCK_GATEWAY, replaceForTesting, GHRAB_AI.__testing i ?test=1,
+ale runKorespTests ani openTestRunner v něm nejsou vůbec.
+
+POCTIVÁ KOREKCE K C-08: můj první běh naznačoval trvalou ztrátu šablony.
+Po zopakování s platným fixture (my_ucel místo ucel) vyšlo lostKeys: [],
+changedKeys: []. Ztráta byla chyba mého testovacího vzorku, nikoli
+aplikace. Snapshot/restore je při normálním doběhu úplný. Nález C-08 se
+proto týká rizika při přerušeném běhu a chybějícího gate, NIKOLI
+prokázané ztráty dat.
+
+C-10 / LOW / OTEVŘENO – CANARY TVARY ZAPEČENÉ V PRODUKČNÍM BUNDLE
+GARP-STUDENT-CANARY-ENDWORK-A a -B jsou natvrdo v
+src/js/70-nastroje-testy-data.js (řádek 1623) a tím i v dist/index.html
+a dist-school-server/index.html. Část 1 protokolu tvrdí, že přesný
+canary je pouze v auditní evidence JSON, ne v aplikaci a buildu.
+Sweep to nezachytí, protože hledá výhradně aktuální ID běhu. Doporučuji
+buď markery generovat za běhu, nebo invariant v protokolu přeformulovat
+na „aktuální canary“.
+
+C-11 / LOW / OTEVŘENO – EVIDENČNÍ MEZERA VE SCANU
+secret-scan.json i canary-artifact-sweep.json uvádějí filesScanned 130.
+Na dodaném stromu je ve stejném scope (src, scripts, .github, dist,
+dist-school-server) 133 způsobilých textových souborů. Rozdíl tvoří QA
+reporty, které vznikly v dist až po scanu (scan 14:11:34, reporty téže
+minuty později). Tři soubory v dodaném ZIPu tedy nejsou pokryty
+zaznamenaným důkazem.
+Skutečné riziko jsem vyloučil vlastním scanem: 133/133 zdrojových i
+237/237 textových položek celého ZIPu, 0 nálezů. Jde o mezeru v důkazu,
+ne o nález.
+
+C-14 / INFO – RUNTIME PRIVACY DŮKAZ A VYDÁVANÝ ARTEFAKT SE TRVALE ROZEŠLY
+Následek opravy C-03. GARP single-page runtime, který nese PASS pro
+RT-14, RT-19, RT-20-app-local, SIM-05, SIM-06 a SIM-08, může nyní běžet
+jedině na testovacím buildu. Vydávaný produkční build tímto harnessem
+otestovat nelze. Časově to potvrzuje i chronologie: singlepage-runtime
+14:09, produkční build 14:11.
+Není to vada, je to strukturální cena hardeningu — ale GARP by to měl
+vést jako trvalý dluh, ne mlčky.
+
+C-15 / INFO – ÚBYTEK DŮKAZU PROTI KOLU 1
+V kole 1 byl test-ui-interactions doložen jako 42/42 PASS a v dist byl
+qa-p5-ui-interactions-report.json. V kole 2 harness nedoběhl, report
+v dist chybí a p5-acceptance kvůli tomu padá na tři body.
+Ověřoval jsem hypotézu, že to způsobila oprava C-03 — NEPOTVRDILA SE:
+ani test-ui-interactions.mjs, ani qa-p5-runtime.mjs testovací hooky
+nepoužívají. Příčina je prostředí (u ChatGPT nově „Runtime page timeout“
+místo dřívějšího URLBlocklist). Kandidát 5.10.11 má tedy méně UI důkazů
+než kandidát 5.10.10, přestože obsahuje více změn.
+
+======================================================================
+5. NEGATIVE CONTROLS PROVEDENÉ CLAUDE
+======================================================================
+NC2-CLAUDE-STORAGE-SCOPE — reprodukce mé kontroly z kola 1 proti
+opravenému kódu. Mutace pouze v /tmp/nc2; kandidátní strom ověřen jako
+nemutovaný. Výsledek: nová assertion únik detekuje. Oprava C-02 je
+účinná, ne kosmetická.
+
+CLAUDE-PROD-BOUNDARY — adversariální aktivace testovacích vstupů
+v produkčním buildu ze dvou originů. Všechny vstupy inertní, podstrčený
+mock nezavolán.
+
+CLAUDE-TESTRUNNER-PROBE — sonda dosažitelnosti a destruktivity
+interního test runneru v produkci. Doložila C-08 i C-09.
+
+CLAUDE-FAILSAFE-PROBE — izolovaná reprodukce fail-safe větve proti
+skutečné implementaci. Doložila C-12.
+
+Syntetická data ve všech případech, žádná reálná studentská data.
+
+======================================================================
+6. REVIZE STATUSŮ RT / SIM
+======================================================================
+Přebírám statusy ChatGPT s těmito úpravami:
+
+RT-06 PASS -> PASS. Odstranění vakuové URL kontroly potvrzuji jako
+správné a poctivé řešení, ne jako zametení. Zbylých deset kontrol je
+věcných.
+
+RT-09 PASS -> PASS S VÝHRADOU. Produkční hranice AI mocku je pevná a
+ověřil jsem ji vlastní sondou. Ale runKorespTests/openTestRunner zůstaly
+mimo enumeraci i mimo gate (C-08).
+
+RT-13 PASS -> POTVRZUJI. C-07 je uzavřen, parita je strojově vynucená
+dvěma assertions a politika se zpřísnila.
+
+RT-16 NOT TESTED -> zůstává. Artefaktová část je ale nejsilnější dosud:
+bitově shodný rebuild, pinning 17/17, lockfile 67/67, čistý scan ZIPu.
+Nově do RT-16 patří i C-13: release evidence není konzistentní.
+
+RT-20 NOT TESTED -> POTVRZUJI, s tvrdším odůvodněním než má protokol.
+Nejde jen o chybějící SIM-03. App-local část, kterou protokol označuje
+jako „výrazně silnější a runtime PASS“, má stále nedosažitelnou
+fail-safe větev (C-12) a její vlastní regresní test selhává.
+
+Nově navrhuji vést jako otevřené i evidence integrity mimo RT matici,
+protože C-13 se netýká jednoho RT, ale důvěryhodnosti celého balíčku.
+
+SIM-01 až SIM-04 a SIM-07: NOT TESTED — potvrzuji i ze své strany.
+SIM-05, SIM-06, SIM-08: PASS pouze na testovacím buildu, viz C-14.
+
+======================================================================
+7. GATE
+======================================================================
+                     ChatGPT    Claude
+SECURITY GATE        AMBER      AMBER
+PRIVACY GATE         AMBER      AMBER
+RED TEAM GATE        AMBER      AMBER
+RELEASE INTEGRITY    AMBER      AMBER
+OVERALL              AMBER      AMBER
+
+Potvrzuji všechny čtyři gate jako AMBER a OVERALL AMBER.
+
+Nezhoršuji na RED: nenašel jsem potvrzený únik studentských dat, žádný
+secret, žádný druhý produkční AI egress, žádnou obejitelnou produkční
+testovací cestu k AI. Sedm nálezů z kola 1 bylo skutečně opraveno a
+u pěti z nich jsem opravu ověřil vlastním spuštěním, ne čtením.
+
+Zdůrazňuji ale, že RELEASE INTEGRITY je AMBER z NOVÉHO důvodu, který
+protokol neuvádí. C-13 znamená, že dva hlavní deklarované výsledky
+nemají v balíčku důkaz a přiložený důkaz tvrdí opak. Dokud to není
+napraveno, není tento kandidát způsobilý k povýšení na finální release
+bez ohledu na ostatní gate.
+
+REÁLNÁ STUDENTSKÁ DATA: NEPOUŽÍVAT
+TESTOVACÍ PROVOZ POUZE SE SYNTETICKÝMI DATY
+
+======================================================================
+8. REGISTR DLUHŮ
+======================================================================
+UZAVŘENO tímto kolem:
+C-01 částečně (zbývá C-12), C-02, C-03, C-04, C-05, C-06, C-07, AD-01.
+
+PŘENÁŠÍ SE od ChatGPT: D-01 až D-09 z kola 1 zůstávají otevřené
+(centrální app-guard, SIM-03/04/07, key custody, axe, unsafe-inline,
+provider retence).
+
+NOVÉ Z TOHOTO KOLA:
+ID   | oblast                | závažnost | stav
+C-08 | RT-09 test entry point| MEDIUM    | OPEN
+C-09 | in-app test runner    | MEDIUM    | OPEN
+C-10 | canary v bundlu       | LOW       | OPEN
+C-11 | scope důkazu scanu    | LOW       | OPEN
+C-12 | RT-20 fail-safe větev | MEDIUM    | OPEN
+C-13 | integrita evidence    | HIGH      | OPEN
+C-14 | důkaz vs. artefakt    | INFO      | OPEN
+C-15 | úbytek UI důkazu      | INFO      | OPEN
+
+======================================================================
+9. ZADÁNÍ PRO KOLO 3
+======================================================================
+1. C-13 má nejvyšší prioritu. Buď doložit 164/164 a 17/17 skutečným
+   logem z úspěšného běhu, nebo tyto hodnoty z protokolu odstranit.
+   Nahradit garp-singlepage-testbuild.log logem běhu ze 14:09, který
+   odpovídá přiloženému singlepage-runtime.json. Zavést pravidlo, že se
+   do balíčku přikládá log POSLEDNÍHO běhu, ne prvního pokusu.
+2. Vyšetřit ReferenceError „Cannot access 'escAttr' before
+   initialization“ a „E is not defined“. Jde o TDZ/pořadí v sestaveném
+   bundlu, tedy stejnou třídu jako dřívější geminiModel TDZ. Není to
+   jen environmentální šum.
+3. C-12: storageKeyList musí umět selhání propagovat, nebo
+   removeOwnedStorageKeys nesmí spoléhat na výjimku. Například vrátit
+   {keys, enumerable:false} a fail-safe navázat na tento příznak.
+   Po opravě musí test „Smazání dat je fail-safe při chybě úložiště“
+   projít; dnes správně selhává.
+4. C-08: doplnit runKorespTests a openTestRunner do PC-01 a zahradit je
+   stejným TEST_HOOKS_BUILD_ENABLED && isTrustedLocalTestOrigin gate
+   jako AI mock.
+5. C-09: rozhodnout, co má správce v produkci vidět. Buď test runner
+   v produkčním buildu skrýt úplně, nebo testy závislé na mocku
+   označit jako přeskočené místo selhaných.
+6. C-10: canary markery generovat za běhu, ať v buildu nezůstávají.
+7. C-11: pořadí kroků otočit — QA reporty do dist zapsat před finálním
+   scanem, nebo scan spouštět jako poslední krok před zabalením.
+8. C-14: zavést do GARP trvalou položku „runtime privacy evidence běží
+   na testovacím buildu, ne na vydávaném artefaktu“ a doplnit důkaz, že
+   se oba buildy liší pouze test-hook flagem (diff dist produkce vs.
+   test mimo tento flag).
+9. C-06: doplnit runtime kontrolu, že skutečný clearDraft opravdu smaže
+   koncept a snímky, místo ověření přes podstrčený stub.
+
+======================================================================
+10. POTVRZENÍ PŘEDÁNÍ
+======================================================================
+[X] Protokol ChatGPT nebyl přebrán jako pravda; každý bod ověřen.
+[X] Kód nebyl opravován; role auditora dodržena.
+[X] Použita pouze syntetická data.
+[X] Vlastní negative controls provedeny, mutace jen v odkládacích
+    kopiích; kandidátní strom ověřen jako nemutovaný.
+[X] Rozpor mezi deklarací a přiloženým důkazem je pojmenován (C-13).
+[X] Vlastní chyba v testovacím vzorku je přiznána a opravena (C-08).
+[X] Hypotéza, která se nepotvrdila, je uvedena jako nepotvrzená (C-15).
+[X] Nedostupné scénáře jsou NOT TESTED, nikoli domýšlené.
+[X] Kritické NOT TESTED omezují OVERALL nejvýše na AMBER.
+[ ] Finální release — NEDOPORUČUJI, dokud není uzavřeno C-13 a C-12.

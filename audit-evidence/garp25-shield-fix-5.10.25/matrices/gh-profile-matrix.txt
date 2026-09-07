@@ -1,0 +1,15 @@
+GHRAB ECOSYSTEM PROFILE - KS 5.10.25 - Prompt C corrective
+GH-01 PASS within KS snapshot - platform/error-reporter distributed byte identity checked; reporter cross-repo canonical identity remains NOT TESTED.
+GH-02 NOT TESTED overall - corrected static checker PASS and valid GHNC-02/GHNC-12 evidence; GARP 2.5.1 requires SIM-07 + GHNC-03 behavioral revocation for full PASS.
+GH-03 NOT TESTED - live Studio permit/revocation behavior unavailable.
+GH-04 NOT TESTED - Studio repository_dispatch/registry mutation authority is outside KS snapshot.
+GH-05 PASS PREP - school profile rejects direct local provider path before credential/network use; no school local provider secret path.
+GH-06 PASS classification / PRIVACY AMBER - D2; client privacy preflight retained, school egress same-origin gateway; provider/live governance remains external.
+GH-07 NOT TESTED overall - reporter static/unit 52/52, browser transport behavior unavailable.
+GH-08 PASS - stable PWA identity/start_url remains version-neutral; current boundary checks PASS.
+GH-09 PASS as accounting - gates remain explicitly AMBER; no false GREEN.
+GH-10 PASS for corrected N1 self-certification - new checker FAILs unchanged 5.10.24 and PASSes corrected 5.10.25; previous 5.10.24 PASS is recorded as false negative.
+GH-11 NOT TESTED - production signing key custody/rotation/recovery absent.
+GH-12 NOT TESTED - binary rights evidence absent.
+GH-13 NOT TESTED - actual served CSP/HSTS/headers require school server.
+GH-14 PASS - AGENTIC=NO against call graph; no tool/MCP/action executor.

@@ -1,0 +1,38 @@
+KS 5.10.25 - GARP 2.5.1 Prompt C corrective regression summary
+Date: 2026-09-06
+Synthetic data only.
+
+PASS / reproduced in this corrective round:
+- build production + school-server profile: PASS (fixed build time used for reproducibility proof)
+- platform conformance: 124/124 PASS
+- quality: 31/31 PASS
+- GARP25 school boundaries: 9/9 PASS
+- SW security-freeze static: PASS; checker revision variable-name-independent
+- vendored consistency: 4/4 distributed copies, drift 0
+- pinned inputs: 3/3 PASS
+- AI assurance baseline: PASS; now includes anonymization + prompt assembly
+- suite-session deterministic simulation: 10/10 PASS
+- internal tests: 171/171 PASS
+- Core conformance: 17/17 PASS
+- AI profiles: 15/15 PASS
+- AI-RED structural: 33/33 PASS; behavioral AIR remains NOT TESTED
+- reporter static/unit: 52 PASS / 0 FAIL; browser reporter path NOT_READY due managed Chromium policy
+- browser contract: PASS
+- XSS sink regression gate: PASS
+- secret scan: 161 files, 0 findings
+- canary scan: 161 files, 0 unexpected exact hits
+- GARP evidence path: PASS
+- GARP test-harness negative control: PASS
+- GARP bootstrap: 5/5 PASS
+- npm audit --offline: 0 known vulnerabilities in available offline advisory data
+- deterministic deployment rebuild: PASS when GHRAB_BUILD_TIME is frozen; artifactDigest 5e0ebab6c6df6161caad35c9429643fb0318afb5d426d24413682b772fb711ce
+
+Environment-limited / NOT TESTED, with raw failures preserved:
+- qa:runtime: exit 1, Runtime page timeout: index.html -> NOT TESTED in managed browser environment
+- Axe runtime: exit 1 because exact axe-core 4.12.1 is not installed -> NOT TESTED
+- full UI-interactions browser harness: timed out -> NOT TESTED
+- npm ci --offline: failed because xmlchars 2.2.0 tarball is absent from local npm cache; no dependency result is promoted from this attempt
+- meta release/acceptance scripts: raw FAIL because runtime/UI/browser report set was incomplete at that point; not treated as an application functional failure
+
+Honesty rule:
+No environment-limited item above is promoted to PASS. GH-02 overall remains NOT TESTED under GARP 2.5.1 because static PASS is not sufficient without SIM-07 + behavioral open-client revocation (GHNC-03).

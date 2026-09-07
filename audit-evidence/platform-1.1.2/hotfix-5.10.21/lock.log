@@ -1,0 +1,13 @@
+
+> ghrab-korespondencni-asistent@5.10.21 qa:lock
+> node scripts/qa-p5-lock.mjs
+
+{
+  "schema": "ghrab-p5-lock-audit-v1",
+  "status": "passed",
+  "package": "ghrab-korespondencni-asistent",
+  "version": "5.10.21",
+  "directDependencies": 3,
+  "lockedPackages": 67,
+  "registry": "https://registry.npmjs.org"
+}

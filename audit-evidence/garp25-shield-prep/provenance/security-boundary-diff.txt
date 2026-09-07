@@ -1,0 +1,21 @@
+GARP 2.5.1 – SECURITY-BOUNDARY DIFF – 5.10.23 -> 5.10.24
+Machine patch: exact-diff-5.10.23-to-5.10.24.patch
+Changed-file inventory: changed-files-5.10.23-to-5.10.24.txt
+
+1. Distribuovaný runtime změněn? ANO.
+   Security-relevant runtime delta: src/sw.js only for GH-02 cache semantics; plus release identity/changelog text and build metadata. Security-critical assets now use network-only/no-store. Revalidated: SW freeze checker, GHNC-02, GHNC-12 pre-fix FAIL/post-fix PASS, suite simulation, platform/browser/static regressions.
+
+2. Prompt assembly / system prompt / provider / model změněn? NE.
+   No functional delta in AI prompt assembly/provider/model code. AI assurance baseline hashes the relevant files. Structural AIR 33/33 was rerun; behavioral live-model AIR remains NOT TESTED. Any future baseline hash change invalidates current AIR evidence (SHNC-14 PASS control).
+
+3. Auth / app-guard / session změněn? NE in application runtime.
+   No auth/app-guard/session production logic change in 5.10.23 -> 5.10.24. Build/profile QA changed only to preserve byte-identical shared reporter. Historical Platform 1.1.2 suite-session changes from 5.10.17-19 were revalidated through suite-session simulation 10/10; unrestricted live/browser revocation remains NOT TESTED.
+
+4. Storage / import / export / data flow změněn? NE.
+   No new storage ownership, import/export or application data-flow logic. PC-01 and prior GARP 2.3 data map carried forward; full regression and suite-session simulation rerun.
+
+5. AI tool / MCP / agent scope změněn? NE.
+   AGENTIC=NO. Call-graph check found one GHRAB_AI.generate application call and no tool/MCP/action executor; all eight operations have no required capabilities.
+
+6. Network egress změněn? ANO only for same-origin security-critical static fetch caching semantics.
+   AI egress route is unchanged. The SW now forces security-critical same-origin assets to network-only/no-store. Standalone AI remains direct provider after privacy preflight; school build remains provider-neutral same-origin school-gateway only.

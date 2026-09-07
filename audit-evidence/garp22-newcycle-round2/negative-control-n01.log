@@ -1,0 +1,12 @@
+negative-control-exit=1 artifact-status=failed
+{
+  "status": "failed",
+  "failed": [
+    "RT01-no-permit-failclosed",
+    "RT02-storage-tamper-does-not-authorize",
+    "SIM01-app-B-denied",
+    "SIM01-app-B-no-training-policy-denied"
+  ],
+  "unexpectedError": null
+}
+clean-status=passed tests=17

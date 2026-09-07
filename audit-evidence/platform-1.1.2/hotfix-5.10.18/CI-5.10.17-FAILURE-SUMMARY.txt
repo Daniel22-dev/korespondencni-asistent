@@ -1,0 +1,25 @@
+Korespondenční asistent 5.10.17 / Platform 1.1.2 – souhrn CI chyb dodaných 2026-09-04
+
+Analyzované GitHub Actions log ZIPy (vše pouze syntetická QA data):
+- logs_91901969725.zip SHA-256 03e6a216ec7b40f875054e334656dec38dd45c793c038eaf84253ac5badaecf9
+- logs_91901969969.zip SHA-256 1aa52953cf44b523cb5239c1c4e6e64b7a7c47ace5ad78202cc64ba9d7fe84df
+- logs_91901969924.zip SHA-256 cdb3ba88b9c3ebab133b0df43f4b4f3e89a3886b39c7c2b9d149bbc839755e93
+- logs_91901969813.zip SHA-256 1d0a89d6ede87898b70f75b8768dfff5afe1f43a6fd53ac760580182cf01dc2d
+
+Všechny čtyři běhy reprodukují stejnou kořenovou chybu suite-session QA, nikoli čtyři nezávislé vady.
+Scénář: browser-back-forward
+Výsledek: FAIL
+Jediná selhávající kontrola v tomto scénáři: back-dom-not-restored = false.
+Současně byly v témže scénáři PASS:
+- back-local-cleared
+- back-session-cleared
+- back-tab-marked
+- back-acknowledged
+- back-page-locked-before-clean-reload
+- back-no-runtime-errors
+
+Fail-closed-storage-error v dodaných CI logách PROŠEL; nebyl zdrojem pádu.
+Negative control rovněž prokazoval očekávané FAIL chování deaktivovaného handleru.
+
+Interpretace:
+Persistence byla po suite end vyčištěná a ACK již existoval, ale Chromium po history.back() obnovilo syntetický canary do DOM pole z BFCache snapshotu. Šlo tedy o reálnou stale DOM/in-memory shared-device cestu.

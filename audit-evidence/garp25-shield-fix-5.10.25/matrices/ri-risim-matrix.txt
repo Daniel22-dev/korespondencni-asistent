@@ -1,0 +1,15 @@
+RI / RISIM - KS 5.10.25 corrective
+RI-01 PASS PREP - app/version/build/source payload identifiers frozen; no commit invented.
+RI-02 PASS - source/build/deployment separation; leak scan required at final gate.
+RI-03 PASS - full release inventory with SHA-256/size; symlinks forbidden.
+RI-04 PASS - deterministic rebuild with frozen GHRAB_BUILD_TIME; artifactDigest identical.
+RI-05 PASS PREP after final signing - detached Ed25519 verification required.
+RI-06 PASS PREP after final trust-root checks; production custody remains NOT TESTED.
+RI-07 PASS - independent verifier outside app runtime.
+RI-08 PASS PREP fixture after registry control; production registry LIVE NOT TESTED.
+RI-09 PASS after final tamper/mixed deployment controls.
+RI-10..13 NOT TESTED - live Integrity Service / Studio enforcement / alert / watchdog absent.
+RI-14 NOT TESTED - production signing key custody/rotation/recovery absent.
+RI-15 PASS PREP - deployment, manifest/signature, public trust metadata, SBOM/provenance/evidence prepared without private key.
+N3 linkage design: signed release manifest binds buildProvenanceSha256, evidenceManifestSha256, sbomSha256 and deploymentPackageSha256. deploymentPackageSha256 denotes deterministic PRE-SIGN deployment payload ZIP; final signed ZIP is externally hashed because embedding its own final hash would be self-referential.
+Final RISIM/SHNC execution is recorded in the RI evidence directory; policy RI-PREP remains AMBER because RI-14 is NOT TESTED even if mechanical PREP gate is GREEN.

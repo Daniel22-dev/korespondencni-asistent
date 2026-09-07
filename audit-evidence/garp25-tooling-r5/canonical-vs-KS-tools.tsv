@@ -1,0 +1,15 @@
+check-sw-security-freeze.mjs	IDENTICAL
+check-vendored-consistency.mjs	IDENTICAL
+create-build-provenance.mjs	IDENTICAL
+create-evidence-manifest.mjs	IDENTICAL
+create-release-integrity.mjs	IDENTICAL
+release-gate.mjs	IDENTICAL
+scan-deployment-leaks.mjs	IDENTICAL
+selftest-garp251.mjs	IDENTICAL
+sign-release-integrity.mjs	IDENTICAL
+verify-assurance-links.mjs	IDENTICAL
+verify-build-provenance.mjs	IDENTICAL
+verify-evidence-manifest.mjs	IDENTICAL
+verify-release-integrity.mjs	IDENTICAL
+verify-release-registry.mjs	IDENTICAL
+verify-release-signature.mjs	IDENTICAL

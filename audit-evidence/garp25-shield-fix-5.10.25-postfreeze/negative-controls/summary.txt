@@ -1,0 +1,11 @@
+N3-provenance-substitution=EXPECTED_FAIL
+N3-evidence-substitution=EXPECTED_FAIL
+N3-deployment-payload-substitution=EXPECTED_FAIL
+RISIM-01-byte-tamper=EXPECTED_FAIL
+RISIM-02-manifest-signature-substitution=EXPECTED_FAIL
+SHNC-16-revoked-key=EXPECTED_FAIL
+RISIM-08-registry-tamper=EXPECTED_FAIL
+RISIM-06-mixed-deployment(index.html from 5.10.24)=EXPECTED_FAIL
+RISIM-10-source-map-leak=EXPECTED_FAIL
+clean-state-after-controls=PASS
+NOTE: first RISIM-06 fixture used runtime-config.js from 5.10.24, which is byte-identical and therefore correctly did not constitute a mixed artifact. The control was corrected to a genuinely changed 5.10.24 index.html and then failed as expected.

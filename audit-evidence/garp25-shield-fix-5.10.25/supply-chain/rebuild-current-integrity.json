@@ -1,0 +1,6 @@
+{
+  "status": "PASS",
+  "output": "/tmp/ks-5.10.25-rebuild-ri.json",
+  "files": 39,
+  "artifactDigest": "dc79d0e83744c9cfb0941cfe03e05f8db8db6a8def9f9f2eb67b7f8e7c67b9e9"
+}

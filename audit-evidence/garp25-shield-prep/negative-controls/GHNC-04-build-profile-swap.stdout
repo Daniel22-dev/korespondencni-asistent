@@ -1,0 +1,38 @@
+{
+  "schema": "ghrab-school-profile-qa-v1",
+  "status": "failed",
+  "failures": [
+    {
+      "label": "school.profile",
+      "detail": "github-pages"
+    },
+    {
+      "label": "school.auth.server-session",
+      "detail": "signed-permit"
+    },
+    {
+      "label": "school.ai.school-gateway",
+      "detail": "direct-gemini"
+    },
+    {
+      "label": "school.local-keys.disabled",
+      "detail": ""
+    },
+    {
+      "label": "school.no-standalone-studio-path",
+      "detail": "config/deployment.json"
+    },
+    {
+      "label": "school.reporter-adapter.studio-path",
+      "detail": "/AI-Studio-GHRAB/"
+    },
+    {
+      "label": "school.guard.index.html",
+      "detail": "/AI-Studio-GHRAB/access/app-guard.js"
+    },
+    {
+      "label": "school.guard.manual/index.html",
+      "detail": "/AI-Studio-GHRAB/access/app-guard.js"
+    }
+  ]
+}

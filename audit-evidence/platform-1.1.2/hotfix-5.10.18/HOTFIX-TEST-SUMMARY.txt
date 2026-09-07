@@ -1,0 +1,35 @@
+Korespondenční asistent 5.10.18 / Platform 1.1.2 – lokální hotfix QA 2026-09-04
+
+PASS:
+- production build 5.10.18
+- GHRAB Platform conformance 124/124
+- vendor Platform 1.1.2 byte-for-byte shodná s AI Studio 0.21.40
+- suite-session deterministic multi-context simulation 9/9, včetně fail-closed a negative control
+- core tests 171/171
+- GHRAB AI Core conformance 17/17
+- UI interaction regression production build 48/48
+- quality 31/31
+- browser QA status passed
+- XSS sink inventory status passed
+- package lock gate passed
+- AI profiles 15/15
+- school-server profile QA passed
+- GARP evidence-path passed
+- GARP test-harness gate passed; negative control expected FAIL / observed FAIL
+- GARP bootstrap 5/5
+- secret scan passed, 0 findings
+- canary scan passed, 0 unexpected exact hits
+- AIR structural test-build 33/33; negative control expected FAIL / observed FAIL
+- reporter static/regression 52 PASS / 0 FAIL
+
+NOT TESTED / ENVIRONMENT LIMITATION:
+- qa:suite-session real HTTP/Chromium rerun: local managed Chromium policy blocks 127.0.0.1 ("Your organization doesn't allow you to view this site"). Proto se hotfix browser-back-forward musí nezávisle znovu ověřit v GitHub Actions/Claude prostředí.
+- qa:runtime: stejná localhost navigační blokace; runtime report nevznikl.
+- Axe runtime: axe-core v lokálním prostředí není použitelně nainstalován; scanned=0 / not-ready-environment.
+- Reporter browser portion: URLBlocklist; static/regression část 52/0.
+- AIR behaviorální live model testy: NOT TESTED bez produkčního credentialu; pouze strukturální AIR 33/33.
+
+Release gate po regeneraci dostupných produkčních reportů: 43/44; jediný chybějící bod report.runtime.exists.
+Acceptance: 18/20; chybí runtime report a z něj odvozený PASS release status.
+
+VERDIKT: AMBER. Neoznačovat GREEN před nezávislým CI průchodem reálného browser-back-forward suite-session scénáře a před splněním ostatních GARP podmínek. E-01 zůstává ekosystémově OPEN; F-02/F-03 zůstávají ekosystémový follow-up/debt.

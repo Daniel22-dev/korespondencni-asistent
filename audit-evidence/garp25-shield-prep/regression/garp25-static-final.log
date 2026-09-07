@@ -1,0 +1,181 @@
+
+> ghrab-korespondencni-asistent@5.10.24 qa:garp25:static
+> npm run qa:garp25:school-boundaries && npm run qa:garp25:sw && npm run qa:garp25:vendored && npm run qa:garp25:pinned-inputs && npm run qa:garp25:ai-baseline
+
+
+> ghrab-korespondencni-asistent@5.10.24 qa:garp25:school-boundaries
+> node scripts/qa-garp25-school-boundaries.mjs
+
+{
+  "schema": "ghrab-ks-garp25-school-boundaries-v1",
+  "appId": "correspondence",
+  "version": "5.10.24",
+  "syntheticOnly": true,
+  "checks": [
+    {
+      "id": "GH05-profile",
+      "status": "PASS",
+      "detail": "{\"profile\":\"school-server\",\"authMode\":\"server-session\",\"aiTransport\":\"school-gateway\"}"
+    },
+    {
+      "id": "GH05-local-provider-config",
+      "status": "PASS",
+      "detail": "features.allowLocalProviderKeys=false"
+    },
+    {
+      "id": "GH05-runtime-allowlist",
+      "status": "PASS",
+      "detail": "{\"defaultMode\":\"school-gateway\",\"selectedMode\":\"school-gateway\",\"allowedModes\":[\"school-gateway\"],\"allowUserModeSelection\":false,\"automaticFallback\":false,\"gatewayUrl\":\"/api/v1/ai/generate\",\"healthUrl\":\"/api/v1/ai/health\",\"requestTimeoutMs\":120000,\"gatewayMaxRetries\":1,\"maxRequestBytes\":18874368,\"maxPartBytes\":14680064}"
+    },
+    {
+      "id": "GH05-provider-neutral-runtime",
+      "status": "PASS",
+      "detail": "school runtime has no provider/model literal"
+    },
+    {
+      "id": "GHNC-05-direct-mode-runtime-denied",
+      "status": "PASS",
+      "detail": "active=school-gateway; error=CONFIGURATION_ERROR"
+    },
+    {
+      "id": "GHNC-05-local-key-not-consumed",
+      "status": "PASS",
+      "detail": "credentialCalls=0"
+    },
+    {
+      "id": "SHNC-07-client-oversize-bounded-deny",
+      "status": "PASS",
+      "detail": "error=PAYLOAD_TOO_LARGE; credentialCalls=0; maxPartBytes=14680064"
+    },
+    {
+      "id": "GH08-PWA-stable-id",
+      "status": "PASS",
+      "detail": "{\"sourceId\":\"/korespondencni-asistent/\",\"schoolId\":\"./\",\"start_url\":\"./\",\"scope\":\"./\"}"
+    },
+    {
+      "id": "GH14-agentic-no",
+      "status": "PASS",
+      "detail": "GHRAB_AI.generate=1; agentHits=none"
+    }
+  ],
+  "summary": {
+    "total": 9,
+    "passed": 9,
+    "failed": 0,
+    "status": "PASS"
+  }
+}
+
+> ghrab-korespondencni-asistent@5.10.24 qa:garp25:sw
+> node scripts/garp25/check-sw-security-freeze.mjs dist-school-server/sw.js dist-school-server security/security-critical-assets.json
+
+{
+  "status": "PASS",
+  "serviceWorker": "dist-school-server/sw.js",
+  "precachedEntries": 22,
+  "cacheFirstDetected": true,
+  "criticalAssetsInDeployment": [
+    "config/deployment.json",
+    "config/deployment.school-server.json",
+    "ghrab/ghrab-platform.js",
+    "runtime-config.js",
+    "runtime-config.school-server.js"
+  ],
+  "findings": [],
+  "note": "Staticka kontrola. Nenahrazuje SIM-07 (update/recovery) ani behavioralni test revokace v prohlizeci."
+}
+
+> ghrab-korespondencni-asistent@5.10.24 qa:garp25:vendored
+> node scripts/garp25/check-vendored-consistency.mjs security/vendored-consistency.KS.json
+
+{
+  "status": "PASS",
+  "canonicalRoot": "..",
+  "components": [
+    {
+      "id": "platform",
+      "sha256": "199d03d9dc9263a9e74ed1f1102df0324f3b63e78704f1c70aeacec5feec530c"
+    },
+    {
+      "id": "error-reporter",
+      "sha256": "bd017b1ba8c94d53554a1f9bd4a47794063a77c96d196ab7f64356b2d779d7e6"
+    }
+  ],
+  "checkedCopies": 4,
+  "drift": 0,
+  "findings": []
+}
+
+> ghrab-korespondencni-asistent@5.10.24 qa:garp25:pinned-inputs
+> node scripts/qa-garp25-pinned-inputs.mjs
+
+{
+  "schema": "ghrab-ks-pinned-inputs-v1",
+  "root": "/mnt/data/ks251_work",
+  "checks": [
+    {
+      "id": "SHNC-09-github-actions-full-sha",
+      "status": "PASS",
+      "detail": "{\"uses\":17,\"badUses\":[]}"
+    },
+    {
+      "id": "SH-SC-pinned-direct-npm",
+      "status": "PASS",
+      "detail": "{\"directDependencies\":3,\"floating\":[]}"
+    },
+    {
+      "id": "SH-SC-lockfile-direct-match",
+      "status": "PASS",
+      "detail": "{\"lockfileVersion\":3,\"mismatches\":[]}"
+    }
+  ],
+  "summary": {
+    "total": 3,
+    "passed": 3,
+    "failed": 0,
+    "status": "PASS"
+  }
+}
+
+> ghrab-korespondencni-asistent@5.10.24 qa:garp25:ai-baseline
+> node scripts/qa-garp25-ai-assurance-baseline.mjs
+
+{
+  "schema": "ghrab-ai-assurance-baseline-check-v1",
+  "status": "PASS",
+  "baselineVersion": "5.10.24",
+  "providerModelPolicy": "standalone runtime may use approved direct provider profiles; school-server runtime is provider-neutral and allows school-gateway only",
+  "errors": [],
+  "observed": [
+    {
+      "path": "src/runtime-config.js",
+      "expected": "66b3030f3e77c5016da8ec38c0689e8e2675a77d5363091abca948f71081bd31",
+      "observed": "66b3030f3e77c5016da8ec38c0689e8e2675a77d5363091abca948f71081bd31"
+    },
+    {
+      "path": "src/runtime-config.school-server.js",
+      "expected": "f3da9d0cc4bda3c1a88e16800a69953b09904840cd7639c1bfebbdda03ba8a65",
+      "observed": "f3da9d0cc4bda3c1a88e16800a69953b09904840cd7639c1bfebbdda03ba8a65"
+    },
+    {
+      "path": "src/ai-operations.json",
+      "expected": "0a8493e770d206f04e687f4baebe306064d78f35736895a929fb23b64e8f02a5",
+      "observed": "0a8493e770d206f04e687f4baebe306064d78f35736895a929fb23b64e8f02a5"
+    },
+    {
+      "path": "src/js/28-ai-integration.js",
+      "expected": "578df3d6e54296578d58718d6ba57df386b6c00a192a63b8b95e03483b4e1ec3",
+      "observed": "578df3d6e54296578d58718d6ba57df386b6c00a192a63b8b95e03483b4e1ec3"
+    },
+    {
+      "path": "src/js/30-api-gemini.js",
+      "expected": "84380f413cc82f0cb60182b93268fa8b56bc03671c9b2fcb6d0c1e3a45ed4ecd",
+      "observed": "84380f413cc82f0cb60182b93268fa8b56bc03671c9b2fcb6d0c1e3a45ed4ecd"
+    },
+    {
+      "path": "vendor/ghrab-ai-core-1.0.0/ghrab-ai-core-1.0.0.js",
+      "expected": "81acb93e1f17646ab2b58b3744fce38a6ed5c779e8d5e9cba2ae797816ecec44",
+      "observed": "81acb93e1f17646ab2b58b3744fce38a6ed5c779e8d5e9cba2ae797816ecec44"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+file:///mnt/data/ka_garp23_cycle1/app/korespondencni-asistent-main/scripts/qa-garp22-singlepage.mjs:26
+class Cdp{constructor(url){this.ws=new WebSocket(url);this.seq=0;this.pending=new Map();this.events=[];this.ready=new Promise((res,rej)=>{this.ws.onopen=res;this.ws.onerror=rej});this.ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.id&&this.pending.has(m.id)){const p=this.pending.get(m.id);this.pending.delete(m.id);m.error?p.reject(new Error(JSON.stringify(m.error))):p.resolve(m.result);}else this.events.push(m);};}async call(method,params={}){await this.ready;return new Promise((res,rej)=>{const id=++this.seq;this.pending.set(id,{resolve:res,reject:rej});this.ws.send(JSON.stringify({id,method,params}));});}async eval(expression){const r=await this.call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true,userGesture:true});if(r.exceptionDetails)throw new Error(r.exceptionDetails.exception?.description||r.exceptionDetails.text||'Runtime evaluate failed');return r.result?.value;}close(){try{this.ws.close();}catch{}}}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          ^
+
+Error: ReferenceError: E is not defined
+    at <anonymous>:1:51
+    at <anonymous>:1:412
+    at Cdp.eval (file:///mnt/data/ka_garp23_cycle1/app/korespondencni-asistent-main/scripts/qa-garp22-singlepage.mjs:26:779)
+    at async file:///mnt/data/ka_garp23_cycle1/app/korespondencni-asistent-main/scripts/qa-garp22-singlepage.mjs:55:18
+
+Node.js v22.16.0

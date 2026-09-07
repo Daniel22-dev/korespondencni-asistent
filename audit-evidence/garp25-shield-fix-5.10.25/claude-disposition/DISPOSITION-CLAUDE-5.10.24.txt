@@ -1,0 +1,25 @@
+GARP 2.5.1 SHIELD — DISPOSITION CLAUDE REVIEW KS 5.10.24
+Datum: 2026-09-06
+Cílová oprava: 5.10.25
+
+N1 GH-02 / GHNC-12 false negative — ACCEPT (HIGH assurance)
+Důkaz: skutečný 5.10.24 obsahuje ghrab/ghrab-platform.js v GHRAB_PLATFORM_P3_ASSETS a starý checker jej nevidí kvůli názvu proměnné. Nový checker nad nezměněným 5.10.24 vrací FAIL/CRITICAL.
+Oprava: P3 precache filtruje proti security/security-critical-assets.json; checker je variable-name-independent; GHNC-02/GHNC-12 opakovány.
+
+N2 AI assurance baseline — ACCEPT (HIGH privacy/assurance)
+Důkaz: 5.10.24 baseline neobsahoval src/js/40-anonymizace.js ani src/js/50-koncept-a-prompty.js.
+Oprava: oba soubory přidány a SHNC-14 proveden zvlášť pro každý.
+
+N3 signed manifest / provenance/evidence/deployment package — PARTIAL ACCEPT
+Potvrzeno: vazba podpisu na provenance/evidence/SBOM byla slabá, pokud jejich očekávané hashe nebyly v podepsaném manifestu.
+Oprava: buildProvenanceSha256, evidenceManifestSha256, sbomSha256 a deploymentPackageSha256 jsou před podpisem vyplněny. deploymentPackageSha256 se vztahuje k deterministickému PRE-SIGN deployment payload ZIPu bez release-integrity.json/.sig; final signed bundle má samostatný externí SHA-256. Toto odstraňuje sebereferenční hash finálního ZIPu.
+Doplněn verify-assurance-links.mjs a release gate jej povinně spouští. Záměna provenance/evidence musí FAIL.
+
+N4 vendored reporter canonical — ACCEPT jako LOW přesnost tvrzení
+Oprava: dokumentace výslovně říká, že ověřena je source -> dist -> dist-school-server byte identita uvnitř KS. Cross-repo kanonická shoda = NOT TESTED.
+
+N5 app-guard mimo RI obálku — ACCEPT jako observation
+Oprava: SECURITY-THREAT-MODEL.md explicitně deklaruje externí Studio/app-guard trust boundary. Integrita app-guardu patří do AI Studio / RI-LIVE.
+
+Formální omezení Claude kola:
+Claude nedostal GARP-2.5.1-ZAVEDENI.zip, takže jeho kolo nebylo formálně kompletní Prompt E. Technické nálezy N1-N5 byly přesto nezávisle ověřeny proti kandidátu a vypořádány v Prompt C corrective round.

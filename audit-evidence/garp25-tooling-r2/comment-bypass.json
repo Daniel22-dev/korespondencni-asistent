@@ -1,0 +1,48 @@
+{
+  "status": "FAIL",
+  "serviceWorker": "/mnt/data/sw_variants/comment.js",
+  "criticalListSource": "/mnt/data/sw_variants/data-critical.json",
+  "precachedEntries": 1,
+  "precacheSources": [
+    {
+      "source": "addAll:expression",
+      "entries": [
+        "./index.html"
+      ]
+    }
+  ],
+  "unresolvedCacheWrites": [
+    {
+      "method": "put",
+      "expression": "request",
+      "source": "unguarded-runtime-helper",
+      "installOrPrecache": false,
+      "function": "cacheFirst"
+    }
+  ],
+  "cacheFirstDetected": true,
+  "structuralNetworkOnlyGuard": false,
+  "criticalAssetsInDeployment": [
+    "config/data-manifest.json"
+  ],
+  "findings": [
+    {
+      "severity": "HIGH",
+      "issue": "security-critical asset nema strukturani isSecurityCriticalRequest -> networkOnlyNoStore vyjimku pred cache-first",
+      "detail": "config/data-manifest.json"
+    },
+    {
+      "severity": "MEDIUM",
+      "issue": "unresolved-cache-write",
+      "detail": {
+        "method": "put",
+        "expression": "request",
+        "source": "unguarded-runtime-helper",
+        "installOrPrecache": false,
+        "function": "cacheFirst"
+      }
+    }
+  ],
+  "checkerRevision": "garp-2.5.1-r2-cache-write-coverage-fail-closed",
+  "note": "Static bounded analysis. PASS means no critical asset found in recognized Cache API write paths, all analyzed writes resolved/guarded, and deployed critical assets have structural isSecurityCriticalRequest -> networkOnlyNoStore routing. Does not replace SIM-07 or behavioral revocation tests."
+}

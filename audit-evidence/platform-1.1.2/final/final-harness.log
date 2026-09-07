@@ -1,0 +1,20 @@
+
+> ghrab-korespondencni-asistent@5.10.17 qa:garp:test-harness
+> node scripts/qa-garp23-test-harness.mjs
+
+{
+  "schema": "garp23-test-harness-gate-v1",
+  "generatedAt": "2026-09-04T19:02:37.063Z",
+  "clean": {
+    "jsdomUrl": true,
+    "autoQuery": false,
+    "manualSuite": true,
+    "passed": true
+  },
+  "negativeControl": {
+    "mutation": "restore ?test=1 on JSDOM URL",
+    "expected": "FAIL",
+    "observed": "FAIL"
+  },
+  "status": "passed"
+}

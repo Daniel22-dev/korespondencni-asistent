@@ -1,0 +1,27 @@
+{
+  "status": "FAIL",
+  "canonicalRoot": "..",
+  "components": [
+    {
+      "id": "platform",
+      "sha256": "199d03d9dc9263a9e74ed1f1102df0324f3b63e78704f1c70aeacec5feec530c"
+    },
+    {
+      "id": "error-reporter",
+      "sha256": "bd017b1ba8c94d53554a1f9bd4a47794063a77c96d196ab7f64356b2d779d7e6"
+    }
+  ],
+  "checkedCopies": 4,
+  "drift": 1,
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "appId": "correspondence",
+      "component": "platform",
+      "issue": "DRIFT",
+      "detail": "dist-school-server/ghrab/ghrab-platform.js",
+      "observed": "81bb42aa4476e117d31666b92466d717147c5d2adaee8d9552c1d38050f9a1c8",
+      "expected": "199d03d9dc9263a9e74ed1f1102df0324f3b63e78704f1c70aeacec5feec530c"
+    }
+  ]
+}

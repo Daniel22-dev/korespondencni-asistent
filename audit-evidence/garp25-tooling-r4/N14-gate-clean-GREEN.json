@@ -1,0 +1,82 @@
+{
+  "gate": "GARP-2.5.1-RELEASE-GATE-R4",
+  "profile": "prep",
+  "status": "GREEN",
+  "serviceWorker": "/mnt/data/r4_frozen/sw.js",
+  "criticalAssetList": "/mnt/data/r4_src/korespondencni-asistent-main/security/security-critical-assets.json",
+  "assuranceVerifier": "/mnt/data/r4_std/GARP-2.5.1-ZAVEDENI-TOOLING-R3/TOOLS/verify-assurance-links.mjs",
+  "declaredAssuranceLinks": [
+    "sourcePackageSha256",
+    "deploymentPackageSha256",
+    "buildProvenanceSha256",
+    "sbomSha256",
+    "evidenceManifestSha256"
+  ],
+  "steps": [
+    {
+      "step": "deployment-leaks",
+      "script": "scan-deployment-leaks.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "detail": "{\n  \"status\": \"PASS\",\n  \"root\": \"/mnt/data/r4_frozen\",\n  \"info\": [\n    \"INFO-binary-not-scanned:assets/brand/school-logo.png\",\n    \"INFO-binary-not-scanned:icons/apple-touch-icon.png\",\n    \"INFO-binary-not-scanned:icons/icon-128.png\",\n    \"INFO-binary-not-scanned:icons/icon-180.png\",\n    \"INFO-binary-not-scanned:icons/icon-192.png\",\n    \"INFO-binary-not-scanned:icons/icon-32.png\",\n    \"INFO-binary-not-scanned:icons/icon-48.png\",\n    \"INFO-binary-not-scanned:icons/icon-512.png\",\n    \"INFO-binary-not-scanned:icons/icon-72.png\",\n    \"INFO-binary-not-scanned:icons/icon-96.png\",\n    \"INFO-binary-not-scanned:icons/icon-maskable-512.png\"\n  ]\n}"
+    },
+    {
+      "step": "release-integrity",
+      "script": "verify-release-integrity.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "detail": "{\n  \"status\": \"VERIFIED\",\n  \"files\": 39,\n  \"artifactDigest\": \"5e0ebab6c6df6161caad35c9429643fb0318afb5d426d24413682b772fb711ce\"\n}"
+    },
+    {
+      "step": "release-signature",
+      "script": "verify-release-signature.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "detail": "{\n  \"status\": \"VERIFIED\",\n  \"algorithm\": \"Ed25519\",\n  \"keyId\": \"prep-ks-ed25519-20260906-r2\",\n  \"keyStatus\": \"active\"\n}"
+    },
+    {
+      "step": "release-registry",
+      "script": "verify-release-registry.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "detail": "{\n  \"status\": \"APPROVED\",\n  \"appId\": \"correspondence\",\n  \"version\": \"5.10.25\",\n  \"artifactDigest\": \"5e0ebab6c6df6161caad35c9429643fb0318afb5d426d24413682b772fb711ce\",\n  \"keyId\": \"prep-ks-ed25519-20260906-r2\"\n}"
+    },
+    {
+      "step": "build-provenance",
+      "script": "verify-build-provenance.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "detail": "{\n  \"status\": \"PASS\",\n  \"subjectSha256\": \"d396edcd4612fa438858c7a2f7f9c8ef8e7227f6a03e080ac6ddca8b716d296e\",\n  \"builderId\": \"local-untrusted-builder\",\n  \"sourceRevision\": null,\n  \"warnings\": [\n    \"builder=local-untrusted-builder (PREP only, nikdy skolni release)\"\n  ]\n}"
+    },
+    {
+      "step": "evidence-manifest",
+      "script": "verify-evidence-manifest.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "detail": "{\n  \"status\": \"PASS\",\n  \"files\": 106\n}"
+    },
+    {
+      "step": "assurance-links",
+      "script": "verify-assurance-links.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "detail": "{\n  \"schema\": \"ghrab-assurance-links-verification-v1\",\n  \"status\": \"PASS\",\n  \"manifest\": \"/mnt/data/r4_frozen/release-integrity.json\",\n  \"observed\": [\n    {\n      \"field\": \"sourcePackageSha256\",\n      \"status\": \"PASS\",\n      \"expected\": \"dce4bbda6f5c2a39130814bf0f26e0bc37c10e5f5e50aef71f3c6f6833f00149\",\n      \"actual\": \"dce4bbda6f5c2a39130814bf0f26e0bc37c10e5f5e50aef71f3c6f6833f00149\",\n      \"file\": \"/mnt/data/KS-5.10.25-GARP25-BUILD-INPUT-SOURCE.zip\"\n    },\n    {\n      \"field\": \"deploymentPackageSha256\",\n      \"status\": \"PASS\",\n      \"expected\": \"d396edcd4612fa438858c7a2f7f9c8ef8e7227f6a03e080ac6ddca8b716d296e\",\n      \"actual\": \"d396edcd4612fa438858c7a2f7f9c8ef8e7227f6a03e080ac6ddca8b716d296e\",\n      \"file\": \"/mnt/data/KS-5.10.25-GARP2.5-SHIELD-DEPLOYMENT-PAYLOAD.zip\"\n    },\n    {\n      \"field\": \"buildProvenanceSha256\",\n      \"status\": \"PASS\",\n      \"expected\": \"d4dc1ba3c9c6a37776b6ae79e1ae07fdefdff10bf5a5a85e25aa6e7f494d6954\",\n      \"actual\": \"d4dc1ba3c9c6a37776b6ae79e1ae07fdefdff10bf5a5a85e25aa6e7f494d6954\",\n      \"file\": \"/mnt/data/r4_src/korespondencni-asistent-main/audit-evidence/garp25-shield-fix-5.10.25/supply-chain/build-provenance.json\"\n    },\n    {\n      \"field\": \"sbomSh"
+    },
+    {
+      "step": "sw-security-freeze",
+      "script": "check-sw-security-freeze.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "detail": "{\n  \"status\": \"PASS\",\n  \"serviceWorker\": \"/mnt/data/r4_frozen/sw.js\",\n  \"criticalListSource\": \"/mnt/data/r4_src/korespondencni-asistent-main/security/security-critical-assets.json\",\n  \"precachedEntries\": 26,\n  \"precacheSources\": [\n    {\n      \"source\": \"addAll:expression\",\n      \"entries\": [\n        \"./\",\n        \"./index.html\",\n        \"./manifest.webmanifest\",\n        \"./manual/\",\n        \"./manual/index.html\",\n        \"./access/error-reporter.js\",\n        \"./access/error-reporter.css\",\n        \"./access/error-reporter-adapter.js\",\n        \"./icons/icon-32.png\",\n        \"./icons/icon-48.png\",\n        \"./icons/icon-72.png\",\n        \"./icons/icon-96.png\",\n        \"./icons/icon-128.png\",\n        \"./icons/icon-180.png\",\n        \"./icons/icon-192.png\",\n        \"./icons/icon-512.png\",\n        \"./icons/icon-maskable-512.png\",\n        \"./icons/apple-touch-icon.png\",\n        \"./config/brand-manifest.json\",\n        \"./config/platform-manifest.json\",\n        \"./assets/brand/school-logo.png\",\n        \"./ghrab-platform.consumer.json\"\n      ]\n    },\n    {\n      \"source\": \"map-add:GHRAB_PLATFORM_P3_ASSETS\",\n      \"entries\": [\n        \"./ghrab/ghrab-platform.css\",\n        \"./ghrab/ghrab-artifact"
+    },
+    {
+      "step": "vendored-consistency",
+      "script": "check-vendored-consistency.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "detail": "{\n  \"status\": \"PASS\",\n  \"canonicalRoot\": \"..\",\n  \"components\": [\n    {\n      \"id\": \"platform\",\n      \"sha256\": \"199d03d9dc9263a9e74ed1f1102df0324f3b63e78704f1c70aeacec5feec530c\"\n    },\n    {\n      \"id\": \"error-reporter\",\n      \"sha256\": \"bd017b1ba8c94d53554a1f9bd4a47794063a77c96d196ab7f64356b2d779d7e6\"\n    }\n  ],\n  \"checkedCopies\": 4,\n  \"drift\": 0,\n  \"findings\": []\n}"
+    }
+  ],
+  "skippedSteps": [],
+  "note": "PREP profil muze pouzit lokalni builder. Bezpecnostni kroky deklarovane manifestem se nesmi tise preskocit; chybejici verifier nebo odpovidajici assurance vstup je RED. Neni to school-server LIVE GREEN."
+}

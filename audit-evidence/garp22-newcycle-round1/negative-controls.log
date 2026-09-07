@@ -1,0 +1,68 @@
+===== NC-RT20-ENUMERATION =====
+EXPECTED_FAIL observed: PASS
+5-  ✓ žádná duplicitní ID
+6-  ✗ 1/164 interních testů selhalo
+7:      Smazání dat je fail-safe při chybě úložiště · nemožnost ověřit obsah úložiště nebyla vyhodnocena jako selhání
+8-  ✓ 17/17 Core conformance testů prošlo
+9-  ✓ Gemini nepoužívá thinkingLevel low
+===== NC-RT09-TEST-RUNNER-GATE =====
+EXPECTED_FAIL observed: PASS
+159-    },
+160-    {
+161:      "id": "rt09.test-runner-build-and-origin-gated",
+162-      "ok": false,
+163-      "detail": {
+164-        "note": "Even lexical access fails closed outside a local test build."
+165-      }
+166-    },
+===== NC-RT10-SECRET-SCAN =====
+EXPECTED_FAIL observed: PASS
+{
+  "status": "failed",
+  "filesScanned": 123,
+  "findings": [
+    {
+      "type": "openai-like-key",
+      "path": "src/garp-nc-secret.txt",
+      "count": 1
+    }
+  ],
+  "riskyFilenames": []
+}
+===== NC-SIM01-APP-SCOPE =====
+EXPECTED_FAIL observed: PASS
+file:///tmp/nc_access_scope.mjs:77
+const results=[]; const check=(id,cond,detail)=>{results.push({id,ok:!!cond,detail}); if(!cond) throw new Error(`${id}: ${detail}`);};
+                                                                                                      ^
+
+Error: SIM01-app-B-denied: {"enabled":false,"reason":"training-missing","permit":{"schema":"ghrab-access-permit-v1","iss":"ai-studio-ghrab","aud":"ai-studio-ghrab","sub":"synthetic-teacher","jti":"garp-synth-jti-main","kid":"garp-synth-permit-key","role":"teacher","apps":["generator"],"training":{"generator":{"code":"GEN-01","version":"2026-09"}},"iat":1787985823,"exp":1787989453}}
+    at check (file:///tmp/nc_access_scope.mjs:77:103)
+    at file:///tmp/nc_access_scope.mjs:84:1
+
+Node.js v22.16.0
+NEGATIVE CONTROLS: 4/4 expected failures observed
+===== NC-SIM01-APP-SCOPE-STRONG =====
+EXPECTED_FAIL missing: FAIL rc=1
+EXPECTED_FAIL observed: PASS (scope bypass would allow B)
+file:///tmp/nc_access_scope_strong.mjs:77
+const results=[]; const check=(id,cond,detail)=>{results.push({id,ok:!!cond,detail}); if(!cond) throw new Error(`${id}: ${detail}`);};
+                                                                                                      ^
+
+Error: SIM01-app-B-no-training-policy-denied: {"enabled":true,"reason":"permitted","permit":{"schema":"ghrab-access-permit-v1","iss":"ai-studio-ghrab","aud":"ai-studio-ghrab","sub":"synthetic-teacher","jti":"garp-synth-jti-main","kid":"garp-synth-permit-key","role":"teacher","apps":["generator"],"training":{"generator":{"code":"GEN-01","version":"2026-09"}},"iat":1787985849,"exp":1787989479}}
+    at check (file:///tmp/nc_access_scope_strong.mjs:77:103)
+    at file:///tmp/nc_access_scope_strong.mjs:85:1
+
+Node.js v22.16.0
+NC-CANARY-SWEEP expected_fail_rc=1
+{
+  "schema": "garp22-newcycle-canary-sweep-v1",
+  "filesScanned": 1,
+  "valuesChecked": 2,
+  "hits": [
+    {
+      "file": "src/nc-injected.js",
+      "kind": "marker"
+    }
+  ],
+  "status": "FAIL"
+}

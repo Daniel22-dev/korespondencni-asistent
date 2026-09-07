@@ -1,0 +1,236 @@
+GARP 2.2 – NEZÁVISLÁ KONTROLA CLAUDE
+NOVÝ CYKLUS · KOLO 2 · UZAVŘENÍ TECHNICKÉ SMYČKY
+Korespondenční asistent 5.10.12
+Kontrolovaný artefakt:
+Korespondencni-asistent-5.10.12-GARP2.2-NOVY-CYKLUS-kandidat-Claude-kolo-2.zip
+
+======================================================================
+1. PROVENANCE
+======================================================================
+SHA-256 kontrolovaného ZIPu:
+83028078b2974a5faf387f5707644dc7253a30bde20abd41d77792014f0284a6
+Shoda s deklarací: ANO.
+
+Můj vlastní protokol z kola 1 nového cyklu:
+c05c408cb988f4c66de99837b181d8e36ded74f30bc33aaa221d9a1b1537361d
+Shoda s deklarací: ANO – ověřeno proti mému originálu.
+
+RUNTIME APLIKACE BEZE ZMĚNY – ověřeno mým vlastním rekurzivním diffem
+proti kandidátu z kola 1, nikoli přijetím runtime-source-unchanged.json:
+  src/     beze změny
+  vendor/  beze změny
+Změny jsou výhradně v scripts/, package.json, .github/workflows/deploy.yml
+a v auditní evidenci. To odpovídá deklaraci.
+
+REPRODUKOVATELNÝ REBUILD: POTVRZENO, bitově shodné:
+  dist/index.html           516051e18dc96a63e312d50c97896cdeb0f56b1fb0bbe240b37ed1cc65e87407
+  dist/sw.js                a450bbfd1039988790af5dbabc257958d38d3a34f280680177ab16921b53fc71
+  dist/manifest.webmanifest 406fb4818a0a1ee916090f0d21fcdc96b60dced55db427c8e5963eed89f11339
+
+VLASTNÍ SCAN CELÉHO ZIPU:
+504 položek, 454 souborů, 295 textových prohledáno.
+0 secret nálezů, 0 rizikových názvů, 0 path-traversal cest.
+Aktuální canary GARP-STUDENT-CANARY-MTE3XEO4-R8YNU3Q se vyskytuje
+výhradně uvnitř audit-evidence. Mimo evidenci jsou pouze prefix
+"GARP-STUDENT-CANARY-ENDWORK-" bez hodnoty (generovaný za běhu) a
+vyhledávací řetězce v qa-garp22-static-surface.mjs, což je právě ta
+assertion, která zapečené canary hlídá. 0 neočekávaných výskytů.
+
+======================================================================
+2. VYPOŘÁDÁNÍ MÝCH NÁLEZŮ N-01 AŽ N-06 A AD-02
+======================================================================
+Všechny jsem ověřoval vlastním spuštěním, ne čtením protokolu.
+
+N-01 OPRAVENO – POTVRZENO VLASTNÍ NEGATIVE CONTROL.
+check() už nevyhazuje výjimku, výsledky se sbírají a artefakt se zapíše
+vždy. Moje NC v disposable kopii /tmp/nc-n01: do SKUTEČNÉ centrální
+hasAppAccess() vložen bezpodmínečný enabled:true.
+  exit = 1
+  access-runtime.json  status: "failed"
+  failed checks: RT01-no-permit-failclosed,
+                 RT02-storage-tamper-does-not-authorize,
+                 SIM01-app-B-denied,
+                 SIM01-app-B-no-training-policy-denied
+Artefakt tedy nyní prokazatelně UMÍ obsahovat selhání. Zastaralý
+"passed" po pádu se neopakuje. Nález uzavírám.
+
+N-02 OPRAVENO – POTVRZENO OBOUSTRANNĚ.
+generatedQualityArtifacts nyní obsahuje všech deset QA reportů.
+Vlastní měření:
+  quality nad čistým dist        31/31, distBytes 1 266 139 <= 1 275 000
+  quality PO zápisu QA reportů   31/31, distBytes 1 266 139 <= 1 275 000
+Závislost na pořadí je pryč. Deploy navíc QA reporty před uploadem maže.
+Nález uzavírám s drobnou výhradou M-02 níže.
+
+N-03 OPRAVENO.
+GARP skripty používají GARP_EVIDENCE_DIR, aktuální evidence leží přímo
+v garp22-newcycle-round2 a citovaný singlepage-runtime.json je tam.
+Historické neúspěšné pokusy jsou odděleny do historical-attempts
+s vlastním README. Nález uzavírám.
+
+N-04 PONECHÁNO JAKO FAIL-CLOSED INFO – souhlasím s rozhodnutím.
+Návrat Object.keys fallbacku by obnovil maskování selhání z C-12.
+
+N-05 VYJASNĚNO – souhlasím.
+Assertion se jmenuje pc01.three-app-file-reader-paths, RT-00 eviduje
+4 celkem, RT05 test je označen jako partial. Číslování už nemate.
+
+N-06 OPRAVENO – POTVRZENO VLASTNÍ NEGATIVE CONTROL.
+Nový qa-garp22-app-bootstrap-integration.mjs čte skutečný bootstrap
+z dist/index.html. Mé vlastní spuštění: 5/5 PASS.
+Moje NC v disposable kopii /tmp/nc-n06: v dist/index.html změněno
+  const allowed = await protectApp(...); if (allowed) {
+na
+  const allowed = await protectApp(...); if (true) {
+  výsledek: 4/5, exit = 1,
+  artefakt v garp22-current: status "failed"
+  selhala právě N06.denial-does-not-unlock
+Test je falsifikovatelný a měří to, co má. Tím je uzavřena i systémová
+výhrada z mého kola 1: doloženo je nejen že centrální vrstva rozhoduje
+správně, ale i že tato aplikace její deny respektuje před spuštěním
+runtime. Nález uzavírám.
+
+AD-02 OPRAVENO ČÁSTEČNĚ – viz M-01.
+Vlastní pokusy o traversal:
+  GARP_EVIDENCE_DIR='../../src'     -> exit 1, Invalid GARP_EVIDENCE_DIR
+  GARP_EVIDENCE_DIR='evil/../../etc'-> exit 1, Invalid GARP_EVIDENCE_DIR
+Separátorové varianty jsou skutečně blokované.
+
+======================================================================
+3. NEZÁVISLE REPRODUKOVANÉ TESTY
+======================================================================
+Test                        Deklarováno   Naměřeno mnou    Shoda
+qa-p5-lock                  67 locked     67 locked        ANO
+qa-garp22-static-surface    28/28         28/28            ANO
+qa-ai-profiles              15/15         15/15            ANO
+qa-p3-quality               31/31         31/31            ANO
+access runtime harness      17/17         17/17            ANO
+app bootstrap integration   5/5           5/5              ANO
+secret scan                 127 / 0       124 / 0          ANO*
+canary sweep                127 / 0       124 / 0          ANO*
+reporter static/unit        52 PASS       85 PASS / 0 FAIL VYŠŠÍ
+qa-p5-release               37/39         34/37            ROZDÍL*
+
+* Rozdíl v počtu skenovaných souborů (124 vs 127) je metodický: já
+  skenoval pristine strom, ChatGPT strom po vygenerování QA reportů.
+  Nálezy jsou v obou případech nulové.
+* qa-p5-release 34/37 místo 37/39 je čistě environmentální: u mě navíc
+  padá report.browser.exists, protože bez Chromia nemohu vygenerovat
+  qa-p3-browser-report.json. Není to vada kandidáta.
+
+Nereprodukovatelné u mě (chybí Chromium): singlepage 12/12,
+production boundary 8/8, browser 19/19, platform 124/124.
+
+======================================================================
+4. NOVÉ NÁLEZY
+======================================================================
+
+M-01 / LOW / AUDIT TOOLING / OTEVŘENO
+Oprava AD-02 je neúplná. Allowlist
+  /^[A-Za-z0-9._-]+$/
+propouští samotné ".." , protože tečka je v povolené třídě a "+" ji
+dovolí zopakovat. Ověřeno mým vlastním spuštěním:
+  node -e "/^[A-Za-z0-9._-]+$/.test('..')"   -> true
+  GARP_EVIDENCE_DIR='..' node scripts/qa-garp22-secret-scan.mjs
+    -> exit 0
+    -> secret-scan.json zapsán do KOŘENE REPOZITÁŘE,
+       tedy mimo audit-evidence/
+Dopad je stejné třídy jako u AD-02 samotného: integrita auditního
+toolingu, nikoli produkční data ani runtime. Vyžaduje navíc, aby někdo
+tu proměnnou nastavil.
+Doporučená oprava: odmítnout "." a ".." explicitně, nebo cílovou cestu
+resolvovat a ověřit, že leží uvnitř audit-evidence.
+
+M-02 / LOW / OTEVŘENO
+Úklid před nasazením je neúplný. Krok v deploy.yml
+  rm -f dist/quality-report.json
+  rm -f dist/qa-*-report.json
+neodstraní dist/config/quality-manifest.json, přestože právě ten je
+v qa-p3-quality veden jako generovaný QA artefakt. Deklarované
+rozhodnutí zní, že QA metadata se v Pages artefaktu publikovat nemají;
+tento soubor tam zůstává.
+Poznámka k pořadí: úklid běží AŽ PO qa:p5:ci, takže release gate stále
+měří kompletní sadu. Pořadí je správné.
+
+Žádný nález nevyžaduje změnu distribuovaného aplikačního kódu.
+
+======================================================================
+5. GATE
+======================================================================
+                     ChatGPT    Claude
+SECURITY GATE        AMBER      AMBER
+PRIVACY GATE         AMBER      AMBER
+RED TEAM GATE        AMBER      AMBER
+RELEASE INTEGRITY    AMBER      AMBER
+OVERALL              AMBER      AMBER
+
+Potvrzuji všechny čtyři gate i OVERALL jako AMBER.
+
+Souhlasím s odůvodněním protokolu a nemám co přidat k důvodům, proč
+není GREEN. Oba nové nálezy jsou LOW a týkají se auditního toolingu a
+deploy úklidu, nikoli aplikace.
+
+TECHNICKÁ OPRAVNÁ SMYČKA JE Z MÉ STRANY UZAVŘENA.
+Nenašel jsem žádnou nutnou změnu distribuovaného kódu.
+
+======================================================================
+6. CO ZBÝVÁ K ÚPLNÉMU READY
+======================================================================
+Nic z toho už nelze vyřešit dalším kolem auditu v tomto prostředí.
+Zbývají tři věci a všechny jsou mimo dosah jak ChatGPT, tak můj:
+
+1. SIM-03 (Back / Restore / Reopen), SIM-04 (Multi-Tab) a SIM-07
+   (Service Worker update/recovery).
+   Blokuje je managed Chromium s URLBlocklist ["*"] u ChatGPT a
+   nedostupnost prohlížeče u mě. Dokud neproběhnou, nemohou být PASS
+   ani RT-05, RT-15, RT-17 a RT-20 — a bez nich není GREEN možné.
+   Řešení: jednorázově spustit GARP browser lifecycle testy na
+   nespravovaném počítači s běžným Chrome nebo Chromium.
+
+2. RT-16 key custody a account hardening.
+   Branch-protection API vrací 403 i mně, rulesets endpoint je prázdný;
+   z toho nelze odvodit PASS ani FAIL. Řešení je organizační, ne
+   technické: textový výpis nebo screenshot nastavení GitHubu bez
+   jakýchkoli tajných hodnot plus krátká attestace, kdo drží podpisový
+   klíč, kde je záloha a jak probíhá rotace.
+
+3. CSP unsafe-inline a retence u poskytovatele AI.
+   První je známý architektonický dluh, druhý je externí provozní
+   hranice, kterou z klienta ověřit nelze.
+
+Do té doby platí, co protokol uvádí:
+REÁLNÁ STUDENTSKÁ DATA: NEPOUŽÍVAT
+TESTOVACÍ PROVOZ POUZE SE SYNTETICKÝMI DATY
+
+======================================================================
+7. REGISTR DLUHŮ – STAV PO TOMTO KOLE
+======================================================================
+UZAVŘENO A OVĚŘENO MNOU: N-01, N-02, N-03, N-06, AD-02 (částečně),
+a z minulého cyklu C-08, C-09, C-10, C-11, C-12, C-13.
+PONECHÁNO ZÁMĚRNĚ: N-04 (fail-closed), N-05 (vyjasněno).
+
+OTEVŘENO:
+ID     | oblast                          | závažnost | kdo to zavře
+M-01   | allowlist propouští ".."        | LOW       | ChatGPT
+M-02   | úklid nechává quality-manifest  | LOW       | ChatGPT
+SIM-03 | Back / Restore / Reopen         | blokuje GREEN | nespravovaný PC
+SIM-04 | Multi-Tab                       | blokuje GREEN | nespravovaný PC
+SIM-07 | SW update / recovery            | blokuje GREEN | nespravovaný PC
+RT-16  | key custody, MFA, branch prot.  | blokuje GREEN | Daniel, organizačně
+RT-13  | CSP unsafe-inline               | dluh      | architektura
+—      | retence u poskytovatele AI      | dluh      | mimo aplikaci
+
+======================================================================
+8. POTVRZENÍ PŘEDÁNÍ
+======================================================================
+[X] Protokol ChatGPT nebyl přebrán jako pravda.
+[X] N-01, N-02, N-03, N-06 a AD-02 ověřeny vlastním spuštěním.
+[X] Pro N-01 a N-06 jsem provedl vlastní negative control a obě
+    prokázaly očekávané selhání; mutace jen v disposable kopiích.
+[X] Neúplnost opravy AD-02 doložena vlastním spuštěním (M-01).
+[X] Runtime aplikace ověřen jako nezměněný vlastním diffem.
+[X] Rozdíly v číslech vysvětleny, ne zamlčeny.
+[X] Nedostupné scénáře zůstávají NOT TESTED.
+[X] Použita pouze syntetická data.
+[X] Technická opravná smyčka uzavřena; další kolo auditu není potřeba.
+[ ] GREEN / provoz s reálnými daty — dosud NE, viz sekce 6.

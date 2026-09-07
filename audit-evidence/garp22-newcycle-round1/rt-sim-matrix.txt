@@ -1,0 +1,127 @@
+GARP 2.2 — NOVÝ CYKLUS — RT/SIM MATICE
+Aplikace: Korespondenční asistent 5.10.12
+Pouze syntetická data: ANO
+
+RT-00 PASS — Data Map & Scope
+Metoda: data-manifest + reference search + build/runtime inventory.
+Důkaz: rt00-data-map.txt, pc01-inventory.txt.
+Availability/fail-safe: inventář sám službu neomezuje.
+
+RT-01 PASS — Access Bypass
+Metoda: přesný veřejný snapshot nasazené sdílené access vrstvy + syntetické podepsané permity; no-permit fail-closed; oddělení aplikací; 5.10.12 hermetický test přístupové brány.
+Důkaz: access-runtime.json (RT01-no-permit-failclosed, RT01-set-valid-permit, SIM01-*), core-testbuild.log, central-access-snapshot/.
+Availability/fail-safe: chybějící/neověřitelná autorizace blokuje přístup; stav je pozorovatelný přístupovou bránou a recovery vede přes AI Studio / nové platné oprávnění.
+
+RT-02 PASS — Client Storage Tampering
+Metoda: syntetický podvržený permit v klientském storage proti skutečné access logice.
+Důkaz: access-runtime.json / RT02-storage-tamper-does-not-authorize.
+Availability/fail-safe: neplatný stav se odmítne; oprávněný uživatel musí znovu získat platný permit.
+
+RT-03 PASS — Authorization Token
+Metoda: syntetické ES256 permity + actual access-control; audience, role, expirace, 90 dní, revokace, podpis/config hranice; centrální CI navíc ověřuje podpis/revokaci/rotaci.
+Důkaz: access-runtime.json; central-qa-snapshot/qa-logs/project-tests.log.
+Availability/fail-safe: chyba podpisu/claimů/revokace = deny; recovery nové platné oprávnění.
+
+RT-04 PASS — Time Manipulation
+Metoda: syntetická expirace/limit 90 dní + centrální regresní LKG/30d/24h časové scénáře.
+Důkaz: access-runtime.json (RT04-*); central-qa-snapshot/qa-logs/project-tests.log.
+Availability/fail-safe: stale/expired stav se fail-closed odmítne; vyžaduje nové online ověření.
+
+RT-05 NOT TESTED — Offline / Rollback
+Částečně ověřeno: online revocation + offline signed LKG + sharedAccessVersion mismatch fail-closed; SW statické hranice ověřeny.
+Blokátor PASS: relevantní SIM-07 service-worker update/recovery na přesném release 5.10.12 nebyl kvůli managed URLBlocklist navigovaně proveden.
+Důkaz: access-runtime.json, final-production-suite.log, school-profile.log.
+Availability/fail-safe: stale/mismatch se blokuje; další test = unrestricted browser se starým/novým SW a otevřenou kartou.
+
+RT-06 PASS — Student Data Leakage
+Metoda: čerstvý unikátní syntetický canary; runtime kontrola export/console/build-config/AI preflight a finální sweep zdroje+build+QA reportů; SIM-08.
+Důkaz: garp-singlepage-testbuild.log 12/12, singlepage-runtime.json, final-canary-sweep.log, canary-sweep-current.log; NC canary-sweep v negative-controls.log.
+Očekávaný egress: uživatelem explicitně zvolený Gmail compose může obsahovat finální exportovaný text; nejde o skrytý egress. Neočekávaný canary v app/build nebyl nalezen.
+Availability/fail-safe: preflight může legitimní požadavek zablokovat při podezření na citlivý vstup; je viditelný a uživatel může vstup opravit/anonymizovat.
+
+RT-07 PASS — XSS / Untrusted Rendering
+Metoda: SIM-05 hostile AI HTML jako inertní data + sink inventory + nulový eval/new Function.
+Důkaz: garp-singlepage-testbuild.log, final-production-suite.log / XSS SINKS.
+Availability/fail-safe: escaping/sanitizace může omezit aktivní formátování, nikoli ztratit pracovní data.
+
+RT-08 PASS — Malicious Import
+Metoda: interní regresní sada 164/164 v test buildu, importní limity/sanitizace z předchozích oprav, SIM-08 export/reimport.
+Důkaz: core-testbuild.log, garp-singlepage-testbuild.log, PC-01 import inventory.
+Availability/fail-safe: příliš velký/neplatný import je odmítnut s lokální chybou; původní stav zůstává.
+
+RT-09 PASS — AI Prompt Injection
+Metoda: syntetický otrávený obsah oddělen jako nedůvěryhodná data; produkční AI/test hooks inertní; SIM-05.
+Důkaz: core-testbuild.log 164/164, garp-singlepage-testbuild.log, final-production-suite.log / production boundary 8/8, static hardening 28/28.
+Availability/fail-safe: bezpečnostní preflight může request odmítnout; žádný externí útok nebyl prováděn.
+
+RT-10 PASS — Secret Exposure (PŘEDBĚŽNĚ DO ZIP SCANU)
+Metoda: secret scan zdroje/scripts/workflows/dist/dist-school-server; risky filenames; SHA-pinned workflow inventory; finální distribuovaný ZIP bude skenován po zabalení.
+Důkaz: final-secret-scan.log (128 souborů, 0 nálezů), rt16-release-account-inventory.txt; NC-RT10 v negative-controls.log.
+Availability/fail-safe: scan jen blokuje release, ne provoz aplikace.
+
+RT-11 PASS — Role Escalation
+Metoda: teacher není admin, neplatná vyšší role odmítnuta, cross-app scope/audience a revokace.
+Důkaz: access-runtime.json; SIM-01/SIM-02.
+Availability/fail-safe: neznámá/nižší role je deny; recovery změnou centrálního oprávnění.
+
+RT-12 PASS — postMessage / iframe / URL
+Metoda: static hardening ověřuje komunikační/navigační povrch; explicitní Gmail export používá noopener; nenalezen druhý privilegovaný cross-origin kanál.
+Důkaz: final-production-suite.log / static hardening 28/28; pc01-inventory.txt.
+Availability/fail-safe: omezení cross-origin cest nebrání základnímu lokálnímu workflow.
+
+RT-13 PASS S PŘENÁŠENÝM ARCHITEKTONICKÝM DLUHEM — CSP / Browser Boundary
+Metoda: CSP single source of truth/parita, production test boundary, eval/new Function = 0.
+Důkaz: final-production-suite.log.
+Dluh: legacy CSP stále používá odůvodněné unsafe-inline pro script/style; nesmí být vydáváno jako odstraněné.
+Availability/fail-safe: přísnější CSP může blokovat nekompatibilní obsah; recovery je oprava CSP/build, ne fail-open.
+
+RT-14 PASS — Error Data Leakage
+Metoda: preflight blok s čerstvým canary neechoje citlivý řetězec; reporter URL/query sanitizace; statické/unit reporter kontroly.
+Důkaz: garp-singlepage-testbuild.log, final-production-suite.log (reporter 52 PASS/0 FAIL; browser integration NOT_READY).
+Availability/fail-safe: technická diagnostika je zkrácena/sanitizována; uživatel může ztratit část diagnostického detailu, ne pracovní obsah.
+
+RT-15 NOT TESTED — Concurrency / State
+Částečně ověřeno: SIM-06 interrupted request/retry PASS.
+Blokátor PASS: povinný SIM-04 multi-tab A/B nebyl navigovaně proveden.
+Důkaz: garp-singlepage-testbuild.log; environment URLBlocklist.
+Availability/fail-safe: další test = dvě skutečné karty v unrestricted browseru, opačné pořadí dokončení a kontrola state/export.
+
+RT-16 NOT TESTED — Supply Chain / Release + Key Custody & Account Hardening
+Částečně ověřeno: 17/17 actions SHA-pinned, lockfile 67/67, build/release evidence, centrální čerstvý CI/deploy, žádný private signing key v aplikačním artefaktu.
+Blokátory PASS: SIM-07 exact-app SW lifecycle NOT TESTED; nelze bezpečně doložit MFA/passkey, skutečnou custody/zálohu signing key, branch protection ani push-protection z dodaného artefaktu/konektoru. Branch-protection API vrací 403; GitHub rulesets endpoint vrací prázdný seznam, což samo o sobě neprokazuje stav legacy branch protection.
+Důkaz: rt16-release-account-inventory.txt, central-qa-snapshot/*, provenance-source-compare.log.
+Availability/fail-safe: release gate má zůstat AMBER, dokud organizační/account vrstva není attestována a SIM-07 proveden.
+
+RT-17 NOT TESTED — Cross-Student Data Isolation
+Částečně ověřeno: app-local end-work A/B canary + SIM-08 export/reimport PASS.
+Blokátory PASS: SIM-03 reload/back/reopen/session restore a SIM-04 multi-tab jsou relevantní a NOT TESTED kvůli managed URLBlocklist.
+Důkaz: garp-singlepage-testbuild.log; final-release-gates.log.
+Availability/fail-safe: další test = Student A/B v unrestricted browseru přes reload, back/forward, novou kartu, novou session, reopen a offline/cache.
+KRITICKÉ PRO GREEN.
+
+RT-18 PASS — School-Server Readiness
+Metoda: čerstvý same-origin school-server build + QA; direct provider key cesta je ve školním profilu zakázána.
+Důkaz: school-profile.log.
+Availability/fail-safe: při nedostupném school gateway se nesmí skrytě přepnout na direct provider.
+
+RT-19 PASS — AI Data Minimization
+Metoda: jediný produkční AI egress; anonymizovaný/minimalizovaný payload; blokovaný citlivý canary = nulový egress; interrupted retry bez starých dat.
+Důkaz: pc01-inventory.txt, garp-singlepage-testbuild.log, final-production-suite.log.
+Availability/fail-safe: preflight může blokovat legitimní request; oprava/anonymizace je recovery.
+
+RT-20 NOT TESTED — Data Retention / Deletion
+Částečně silně ověřeno: app-local endWork maže local/session owned data, transient state a reporter draft; enumeration failure je fail-safe; negative control prokazatelně selže po porušení ochrany; SIM-06 a SIM-08 PASS.
+Blokátor PASS: relevantní SIM-03 browser restore/reopen není proveden, takže nelze uzavřít browser history/session restore a úplný shared-device lifecycle.
+Důkaz: garp-singlepage-testbuild.log, singlepage-runtime.json, negative-controls.log.
+Availability/fail-safe: při nemožnosti ověřit mazání aplikace hlásí neúspěch a výslovně varuje neopouštět sdílené zařízení.
+KRITICKÉ PRO GREEN.
+
+SIMULACE
+SIM-01 PASS — synthetic signed permit, audience/scope/role/cross-app; access-runtime.json; silný NC scope v negative-controls.log.
+SIM-02 PASS — online revocation -> offline signed LKG retains revocation; access-runtime.json + central QA.
+SIM-03 NOT TESTED — managed URLBlocklist znemožňuje skutečné Back/Restore/Reopen na kandidátu.
+SIM-04 NOT TESTED — managed URLBlocklist znemožňuje dvě skutečné současné karty A/B.
+SIM-05 PASS — hostile AI HTML/input inert; garp-singlepage-testbuild.log.
+SIM-06 PASS — interrupted request/retry, žádná záměna/starý egress; garp-singlepage-testbuild.log.
+SIM-07 NOT TESTED — exact-app service-worker update/recovery drill vyžaduje navigovaný browser.
+SIM-08 PASS — synthetic export/reimport/second-user boundary; garp-singlepage-testbuild.log.

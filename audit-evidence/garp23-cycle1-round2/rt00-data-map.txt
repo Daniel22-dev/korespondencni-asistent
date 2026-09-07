@@ -1,0 +1,9 @@
+RT-00 DATA MAP & SCOPE – 5.10.14
+Architecture: SERVERLESS current; SCHOOL SERVER profile prepared, not connected.
+AI transport current: direct-gemini only; no automatic fallback.
+Configured profiles: economy=gemini-3.5-flash-lite, balanced=gemini-3.6-flash, quality=gemini-3.5-flash; behavioral provider credential unavailable in audit environment.
+AI operations: 8. Production callGemini call-sites: 6. Provider egress: exactly 1 GHRAB_AI.generate path.
+FileReader: 3 application paths + reporter screenshot reader = 4 total.
+No application IndexedDB path.
+App storage/session/debug and end-work paths remain as in prior GARP 2.2 data map; endWork deletion/fail-safe tests remain PASS.
+Student-data rule: only synthetic data used in this cycle.

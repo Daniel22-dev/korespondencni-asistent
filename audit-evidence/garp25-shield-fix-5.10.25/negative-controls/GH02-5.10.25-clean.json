@@ -1,0 +1,56 @@
+{
+  "status": "PASS",
+  "serviceWorker": "dist-school-server/sw.js",
+  "precachedEntries": 26,
+  "precacheSources": [
+    {
+      "source": "addAll:CORE_ASSETS",
+      "entries": [
+        "./",
+        "./index.html",
+        "./manifest.webmanifest",
+        "./manual/",
+        "./manual/index.html",
+        "./access/error-reporter.js",
+        "./access/error-reporter.css",
+        "./access/error-reporter-adapter.js",
+        "./icons/icon-32.png",
+        "./icons/icon-48.png",
+        "./icons/icon-72.png",
+        "./icons/icon-96.png",
+        "./icons/icon-128.png",
+        "./icons/icon-180.png",
+        "./icons/icon-192.png",
+        "./icons/icon-512.png",
+        "./icons/icon-maskable-512.png",
+        "./icons/apple-touch-icon.png",
+        "./config/brand-manifest.json",
+        "./config/platform-manifest.json",
+        "./assets/brand/school-logo.png",
+        "./ghrab-platform.consumer.json"
+      ]
+    },
+    {
+      "source": "iterated-add:GHRAB_PLATFORM_P3_ASSETS",
+      "entries": [
+        "./ghrab/ghrab-platform.css",
+        "./ghrab/ghrab-artifact-envelope-v1.schema.json",
+        "./ghrab/ghrab-app-registry-v2.schema.json",
+        "./ghrab/ghrab-platform-manifest-1.1.2.json",
+        "./assets/brand/school-logo.png",
+        "./ghrab-platform.consumer.json"
+      ]
+    }
+  ],
+  "cacheFirstDetected": true,
+  "criticalAssetsInDeployment": [
+    "config/deployment.json",
+    "config/deployment.school-server.json",
+    "ghrab/ghrab-platform.js",
+    "runtime-config.js",
+    "runtime-config.school-server.js"
+  ],
+  "findings": [],
+  "checkerRevision": "ks-5.10.25-variable-name-independent-precache-discovery",
+  "note": "Staticka kontrola. Nenahrazuje SIM-07 (update/recovery) ani behavioralni test revokace v prohlizeci."
+}

@@ -1,0 +1,21 @@
+GARP 2.4 – VOLNÉ ADVERSARIÁLNÍ HLEDÁNÍ MIMO POVINNÉ RISIM – KS 5.10.23
+
+Hypotéza A: nový integrity tooling může nechtěně přidat síťový egress/telemetrii.
+Metoda: lexical scan všech nových scripts/garp24/* a qa-garp24-ri-prep.mjs na fetch/WebSocket/XMLHttpRequest/http/https/net/dgram/tls.
+Výsledek: 0 matches. Důkaz: audit-evidence/garp24-regression/new-tooling-egress-scan.txt.
+
+Hypotéza B: testovací private key může po RI-PREP harnessu zůstat v repu/deploymentu/evidence nebo /tmp.
+Metoda: ephemeral key pouze v mkdtemp; exit cleanup; scan kandidátního stromu na PRIVATE KEY header; leak scan deploymentu; kontrola /tmp/ks-garp24-ri-* po běhu.
+Výsledek: private key soubor není přiložen; /tmp test dir po clean run neexistuje. Textové výskyty PRIVATE KEY v bezpečnostních scanner skriptech nejsou klíče.
+
+Hypotéza C: manifest může být „self-consistent“ jen pro generátor a ne pro nezávislý verifier.
+Metoda: oddělený verify-release-bundle + detached signature; pak tamper negative controls.
+Výsledek: clean PASS, tamper/wrong key/missing sig/mixed deployment expected FAIL.
+
+Hypotéza D: referenční GARP generator/verifier mohou mít odlišnou kanonizaci.
+Metoda: spustit neupravené referenční TOOLS/create-release-integrity.mjs + verify-release-integrity.mjs nad reálnou víceadresářovou disposable kopií KS deploymentu.
+Výsledek: nález – create exit 0, následný verify TAMPERED artifactDigest. Root cause globální vs per-directory pořadí. Lokální app-copy generator opraven a retestován. Důkaz: reference-create.log/reference-verify.log + reference-garp24-tooling-finding.txt.
+
+Hypotéza E: release metadata změna 5.10.23 mohla skrýt funkční runtime změnu.
+Metoda: file-by-file diff proti přesnému input 5.10.22 snapshotu a normalizace 5.10.22 -> 5.10.23.
+Výsledek: aplikační runtime/source změny mimo changelog jsou VERSION_ONLY; nové funkční soubory jsou release tooling/harness. Důkaz: runtime-boundary-diff.txt.

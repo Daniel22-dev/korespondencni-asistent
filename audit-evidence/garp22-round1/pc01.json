@@ -1,0 +1,72 @@
+{
+  "schema": "garp22-pc01-v1",
+  "generatedAt": "2026-08-28T12:49:24.571642+00:00",
+  "status": "PASS",
+  "fixes": [
+    {
+      "id": "F-01 preflight error redaction",
+      "search": "all production AI egress calls + assertGeminiSafety",
+      "pathsFound": [
+        {
+          "file": "src/js/30-api-gemini.js",
+          "line": 276
+        }
+      ],
+      "coverage": "Single production GHRAB_AI.generate path routes through callGemini -> assertGeminiSafety; runtime canary and negative control cover this sink."
+    },
+    {
+      "id": "F-02 import hardening",
+      "search": "new FileReader across src/js",
+      "pathsFound": [
+        {
+          "file": "src/js/60-prichozi-a-muj-email.js",
+          "line": 845
+        },
+        {
+          "file": "src/js/70-nastroje-testy-data.js",
+          "line": 1762
+        },
+        {
+          "file": "src/js/75-pracovni-stul.js",
+          "line": 237
+        }
+      ],
+      "coverage": "Three file-reader paths enumerated: message/EML existing 5/40 MB limits; settings new 1 MB limit + dictionary normalization; school library new 1 MB + block schema/length/count sanitization."
+    },
+    {
+      "id": "F-03 end-work deletion",
+      "search": "app-owned storage namespace + AI Studio handoff/event keys + workbench transient state",
+      "pathsFound": [
+        "rozbor_*",
+        "ks5_*",
+        "ghrab.correspondence.*",
+        "ghrab.handoff.v1",
+        "ghrab.pilot.events.v2",
+        "ST.in/ST.my",
+        "workbench activeDraft"
+      ],
+      "coverage": "clearAllLocalData handles local/session app keys; endWork also resets pane state, DOM/workbench transient state and normally reloads page."
+    },
+    {
+      "id": "F-04 manifest truth",
+      "search": "retention/delete/server endpoints and end-work public API",
+      "pathsFound": [
+        "src/config/data-manifest.json",
+        "src/js/70-nastroje-testy-data.js"
+      ],
+      "coverage": "Manifest now matches implemented client deletion and does not claim automatic expiry/server deletion."
+    }
+  ],
+  "duplicatePathChecks": {
+    "productionAIGenerateCount": 1,
+    "fileReaderCount": 3,
+    "indexedDbReferences": 0,
+    "serviceWorkerOnlyGETCached": true
+  },
+  "evidence": [
+    "audit-evidence/garp22-round1/singlepage-runtime.json",
+    "audit-evidence/garp22-round1/negative-controls.json",
+    "audit-evidence/garp22-round1/static-security-surface.json",
+    "audit-evidence/garp22-round1/final-core-tests.log"
+  ]
+}

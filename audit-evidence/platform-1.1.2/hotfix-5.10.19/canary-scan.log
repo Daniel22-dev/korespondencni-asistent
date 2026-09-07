@@ -1,0 +1,9 @@
+
+> ghrab-korespondencni-asistent@5.10.19 qa:garp:canary-scan
+> node scripts/qa-garp22-canary-scan.mjs
+
+{
+  "status": "passed",
+  "filesScanned": 134,
+  "unexpectedExactHits": []
+}

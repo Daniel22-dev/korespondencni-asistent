@@ -1,0 +1,18 @@
+GARP 2.4 REFERENCE TOOLING FINDING – ARTIFACT DIGEST ORDERING
+Datum: 2026-09-06
+Severity pro KS: LOW / TOOLING COMPATIBILITY; není to aplikační runtime nález.
+
+Reprodukce:
+- Referenční TOOLS/create-release-integrity.mjs z dodaného GARP 2.4 balíčku byl spuštěn nad reálným víceadresářovým dist-school-server KS.
+- Generátor prošel (exit 0), ale následný referenční TOOLS/verify-release-integrity.mjs odmítl čistý artefakt jako TAMPERED pouze na artifactDigest.
+- Evidence: audit-evidence/garp24-regression/reference-create.log a reference-verify.log.
+
+Root cause:
+- Generátor skládá artifactDigest v pořadí rekurzivního DFS průchodu jednotlivými adresáři.
+- Verifier před přepočtem globálně seřadí files[] podle path.
+- U plochého syntetického self-testu GARP se rozdíl nemusí projevit; u KS s více adresáři ano.
+
+Lokální oprava v kandidátu:
+- scripts/garp24/create-release-integrity.mjs po walk() globálně řadí rows podle path stejným kanonickým způsobem jako verifier.
+- Samotný distribuovaný GARP 2.4 ZIP nebyl měněn.
+- Po opravě čistý KS deployment PASS, všechny požadované RISIM negativní kontroly FAIL podle očekávání a čistý re-pass PASS.

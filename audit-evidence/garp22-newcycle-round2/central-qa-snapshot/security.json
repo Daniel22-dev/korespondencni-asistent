@@ -1,0 +1,22 @@
+{
+  "name": "security",
+  "status": "PASS",
+  "findings": [],
+  "details": {
+    "filesChecked": 427,
+    "projectValidator": {
+      "applicationsChecked": 8,
+      "outputKinds": [
+        "activity-builder",
+        "correspondence",
+        "differentiator",
+        "essay-evaluator",
+        "generator",
+        "lesson-hub",
+        "ludus",
+        "sortio"
+      ],
+      "fallbackSnapshotConfirmed": false
+    }
+  }
+}

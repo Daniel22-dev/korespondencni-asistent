@@ -1,0 +1,35 @@
+
+> ghrab-korespondencni-asistent@5.10.20 qa:suite-session
+> node scripts/qa-suite-session.mjs
+
+Suite coordinator diagnostic: {
+  "readyState": "complete",
+  "platform": null,
+  "session": null,
+  "datasetPlatform": null,
+  "compat": null,
+  "scripts": [
+    {
+      "src": "",
+      "id": "",
+      "type": ""
+    },
+    {
+      "src": "",
+      "id": "",
+      "type": ""
+    }
+  ],
+  "fetchStatus": "fetch:TypeError: Failed to fetch",
+  "body": "127.0.0.1 is blocked\n\nYour organization doesn’t allow you to view this site"
+}
+file:///mnt/data/fix_5_10_20/korespondencni-asistent-5.10.20-platform-1.1.2-candidate/scripts/qa-suite-session.mjs:101
+async function waitExpr(page,expr,timeoutMs=7000){const until=Date.now()+timeoutMs;let last;while(Date.now()<until){try{last=await page.eval(expr);if(last)return last;}catch{}await sleep(40);}throw new Error('waitExpr timeout: '+expr+' last='+JSON.stringify(last));}
+                                                                                                                                                                                                      ^
+
+Error: waitExpr timeout: document.readyState==='complete'&&window.GHRAB_PLATFORM?.session?.contract==='ghrab-suite-session-v1' last=false
+    at waitExpr (file:///mnt/data/fix_5_10_20/korespondencni-asistent-5.10.20-platform-1.1.2-candidate/scripts/qa-suite-session.mjs:101:199)
+    at async waitCoordinator (file:///mnt/data/fix_5_10_20/korespondencni-asistent-5.10.20-platform-1.1.2-candidate/scripts/qa-suite-session.mjs:104:14)
+    at async file:///mnt/data/fix_5_10_20/korespondencni-asistent-5.10.20-platform-1.1.2-candidate/scripts/qa-suite-session.mjs:143:50
+
+Node.js v22.16.0

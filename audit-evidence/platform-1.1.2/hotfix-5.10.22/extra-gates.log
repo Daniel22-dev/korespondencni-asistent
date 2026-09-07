@@ -1,0 +1,180 @@
+=== profiles ===
+
+> ghrab-korespondencni-asistent@5.10.22 qa:profiles
+> node scripts/qa-ai-profiles.mjs
+
+{
+  "schema": "ghrab-ai-profile-gate-v1",
+  "appId": "correspondence",
+  "appVersion": "5.10.22",
+  "expectedProfiles": [
+    "economy",
+    "balanced",
+    "quality"
+  ],
+  "checks": [
+    {
+      "id": "ui.exact-three-profiles",
+      "ok": true,
+      "detail": "economy,balanced,quality"
+    },
+    {
+      "id": "ui.provider-neutral",
+      "ok": true,
+      "detail": "no provider model IDs/free model input"
+    },
+    {
+      "id": "state.profile-only",
+      "ok": true,
+      "detail": "provider-neutral state"
+    },
+    {
+      "id": "integration.no-model-override",
+      "ok": true,
+      "detail": "Core chooses model from runtime profile map"
+    },
+    {
+      "id": "flows.no-hardcoded-profile",
+      "ok": true,
+      "detail": "user-selected profile remains authoritative"
+    },
+    {
+      "id": "api.request-uses-selected-profile",
+      "ok": true,
+      "detail": "callGemini resolves selectedModelProfile"
+    },
+    {
+      "id": "api.legacy-migration-only",
+      "ok": true,
+      "detail": "legacy provider IDs migrate to profiles"
+    },
+    {
+      "id": "operations.all-three-allowed",
+      "ok": true,
+      "detail": "8 operations"
+    },
+    {
+      "id": "direct.mode",
+      "ok": true,
+      "detail": "direct-gemini"
+    },
+    {
+      "id": "direct.profile-keys",
+      "ok": true,
+      "detail": "economy,balanced,quality"
+    },
+    {
+      "id": "direct.profile-models-distinct",
+      "ok": true,
+      "detail": "economy=gemini-3.5-flash-lite | balanced=gemini-3.6-flash | quality=gemini-3.5-flash"
+    },
+    {
+      "id": "direct.provider-is-runtime-only",
+      "ok": true,
+      "detail": "direct runtime owns Gemini IDs"
+    },
+    {
+      "id": "school.mode",
+      "ok": true,
+      "detail": "school-gateway"
+    },
+    {
+      "id": "school.provider-neutral",
+      "ok": true,
+      "detail": "no provider/model in school runtime"
+    },
+    {
+      "id": "school.same-profile-contract",
+      "ok": true,
+      "detail": "same Core profile contract"
+    }
+  ],
+  "summary": {
+    "passed": 15,
+    "failed": 0
+  },
+  "status": "passed"
+}
+=== garp harness ===
+
+> ghrab-korespondencni-asistent@5.10.22 qa:garp:test-harness
+> node scripts/qa-garp23-test-harness.mjs
+
+{
+  "schema": "garp23-test-harness-gate-v1",
+  "generatedAt": "2026-09-05T08:57:07.437Z",
+  "clean": {
+    "jsdomUrl": true,
+    "autoQuery": false,
+    "manualSuite": true,
+    "passed": true
+  },
+  "negativeControl": {
+    "mutation": "restore ?test=1 on JSDOM URL",
+    "expected": "FAIL",
+    "observed": "FAIL"
+  },
+  "status": "passed"
+}
+=== evidence path ===
+
+> ghrab-korespondencni-asistent@5.10.22 qa:garp:evidence-path
+> node scripts/test-garp-evidence-path.mjs
+
+{
+  "schema": "garp22-evidence-path-selftest-v1",
+  "checks": [
+    {
+      "id": "valid-name-inside-audit-evidence",
+      "ok": true,
+      "detail": "/tmp/garp-evidence-path-4WhfeN/audit-evidence/garp22-final-close"
+    },
+    {
+      "id": "reject-\".\"",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "reject-\"..\"",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "reject-\"../../src\"",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "reject-\"evil/../../etc\"",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "reject-\"a/b\"",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "reject-\"../x\"",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "id": "reject-symlink-outside-audit-evidence",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "status": "passed"
+}
+=== bootstrap ===
+
+> ghrab-korespondencni-asistent@5.10.22 qa:garp:bootstrap
+> node scripts/qa-garp22-app-bootstrap-integration.mjs
+
+{
+  "status": "passed",
+  "passed": 5,
+  "failed": 0,
+  "total": 5
+}

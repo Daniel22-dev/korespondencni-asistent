@@ -1,0 +1,3 @@
+Files /tmp/ks_payload_compare/platform-build-info.json and dist-school-server/platform-build-info.json differ
+Files /tmp/ks_payload_compare/server-ready-build-info.json and dist-school-server/server-ready-build-info.json differ
+Files /tmp/ks_payload_compare/studio-manifest.json and dist-school-server/studio-manifest.json differ

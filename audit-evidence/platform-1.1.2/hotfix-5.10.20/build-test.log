@@ -1,0 +1,6 @@
+
+> ghrab-korespondencni-asistent@5.10.20 build:test
+> node scripts/build.mjs --test-hooks
+
+[build] Korespondenční asistent: verze 5.10.20 · Core 1.0.0 ověřen SHA-256 · 8 AI operací · 14 aplikačních JS modulů · test hooks LOCAL TEST ONLY · dist připraven
+[P3] correspondence 5.10.20: platform 1.1.2, HTML 2, cache ghrab-correspondence-v5.10.20

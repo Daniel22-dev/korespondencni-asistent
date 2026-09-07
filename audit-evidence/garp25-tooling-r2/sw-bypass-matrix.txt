@@ -1,0 +1,27 @@
+GARP 2.5.1 R2 – N7/N8 bypass matrix
+[v1]
+  "status": "FAIL",
+      "issue": "security-critical asset je v Cache API write/precache ceste",
+[v2]
+  "status": "FAIL",
+      "issue": "security-critical asset je v Cache API write/precache ceste",
+[v3]
+  "status": "FAIL",
+      "issue": "security-critical asset je v Cache API write/precache ceste",
+[v4]
+  "status": "FAIL",
+      "issue": "security-critical asset je v Cache API write/precache ceste",
+[v5]
+  "status": "FAIL",
+      "issue": "security-critical asset je v Cache API write/precache ceste",
+[v6]
+  "status": "AMBER",
+      "issue": "unresolved-cache-write",
+[comment]
+  "status": "FAIL",
+      "issue": "unresolved-cache-write",
+[unresolved]
+  "status": "AMBER",
+      "issue": "unresolved-cache-write",
+
+N12 correction (2026-09-07): v6 historical disposition is AMBER / exit 2. Previous v6.json FAIL/exit 1 was inconsistent and is preserved separately as v6.R2-original-inconsistent.json.

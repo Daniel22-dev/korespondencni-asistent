@@ -1,0 +1,188 @@
+
+> ghrab-korespondencni-asistent@5.10.25 qa:garp25:static
+> npm run qa:garp25:school-boundaries && npm run qa:garp25:sw && npm run qa:garp25:vendored && npm run qa:garp25:pinned-inputs && npm run qa:garp25:ai-baseline
+
+
+> ghrab-korespondencni-asistent@5.10.25 qa:garp25:school-boundaries
+> node scripts/qa-garp25-school-boundaries.mjs
+
+{
+  "schema": "ghrab-ks-garp25-school-boundaries-v1",
+  "appId": "correspondence",
+  "version": "5.10.25",
+  "syntheticOnly": true,
+  "checks": [
+    {
+      "id": "GH05-profile",
+      "status": "PASS",
+      "detail": "{\"profile\":\"school-server\",\"authMode\":\"server-session\",\"aiTransport\":\"school-gateway\"}"
+    },
+    {
+      "id": "GH05-local-provider-config",
+      "status": "PASS",
+      "detail": "features.allowLocalProviderKeys=false"
+    },
+    {
+      "id": "GH05-runtime-allowlist",
+      "status": "PASS",
+      "detail": "{\"defaultMode\":\"school-gateway\",\"selectedMode\":\"school-gateway\",\"allowedModes\":[\"school-gateway\"],\"allowUserModeSelection\":false,\"automaticFallback\":false,\"gatewayUrl\":\"/api/v1/ai/generate\",\"healthUrl\":\"/api/v1/ai/health\",\"requestTimeoutMs\":120000,\"gatewayMaxRetries\":1,\"maxRequestBytes\":18874368,\"maxPartBytes\":14680064}"
+    },
+    {
+      "id": "GH05-provider-neutral-runtime",
+      "status": "PASS",
+      "detail": "school runtime has no provider/model literal"
+    },
+    {
+      "id": "GHNC-05-direct-mode-runtime-denied",
+      "status": "PASS",
+      "detail": "active=school-gateway; error=CONFIGURATION_ERROR"
+    },
+    {
+      "id": "GHNC-05-local-key-not-consumed",
+      "status": "PASS",
+      "detail": "credentialCalls=0"
+    },
+    {
+      "id": "SHNC-07-client-oversize-bounded-deny",
+      "status": "PASS",
+      "detail": "error=PAYLOAD_TOO_LARGE; credentialCalls=0; maxPartBytes=14680064"
+    },
+    {
+      "id": "GH08-PWA-stable-id",
+      "status": "PASS",
+      "detail": "{\"sourceId\":\"/korespondencni-asistent/\",\"schoolId\":\"./\",\"start_url\":\"./\",\"scope\":\"./\"}"
+    },
+    {
+      "id": "GH14-agentic-no",
+      "status": "PASS",
+      "detail": "GHRAB_AI.generate=1; agentHits=none"
+    }
+  ],
+  "summary": {
+    "total": 9,
+    "passed": 9,
+    "failed": 0,
+    "status": "PASS"
+  }
+}
+
+> ghrab-korespondencni-asistent@5.10.25 qa:garp25:sw
+> node scripts/garp25/check-sw-security-freeze.mjs dist-school-server/sw.js dist-school-server security/security-critical-assets.json
+
+{
+  "status": "PASS",
+  "serviceWorker": "dist-school-server/sw.js",
+  "criticalListSource": "security/security-critical-assets.json",
+  "precachedEntries": 26,
+  "precacheSources": [
+    {
+      "source": "addAll:expression",
+      "entries": [
+        "./",
+        "./index.html",
+        "./manifest.webmanifest",
+        "./manual/",
+        "./manual/index.html",
+        "./access/error-reporter.js",
+        "./access/error-reporter.css",
+        "./access/error-reporter-adapter.js",
+        "./icons/icon-32.png",
+        "./icons/icon-48.png",
+        "./icons/icon-72.png",
+        "./icons/icon-96.png",
+        "./icons/icon-128.png",
+        "./icons/icon-180.png",
+        "./icons/icon-192.png",
+        "./icons/icon-512.png",
+        "./icons/icon-maskable-512.png",
+        "./icons/apple-touch-icon.png",
+        "./config/brand-manifest.json",
+        "./config/platform-manifest.json",
+        "./assets/brand/school-logo.png",
+        "./ghrab-platform.consumer.json"
+      ]
+    },
+    {
+      "source": "map-add:GHRAB_PLATFORM_P3_ASSETS",
+      "entries": [
+        "./ghrab/ghrab-platform.css",
+        "./ghrab/ghrab-artifact-envelope-v1.schema.json",
+        "./ghrab/ghrab-app-registry-v2.schema.json",
+        "./ghrab/ghrab-platform-manifest-1.1.2.json",
+        "./assets/brand/school-logo.png",
+        "./ghrab-platform.consumer.json"
+      ]
+    }
+  ],
+  "unresolvedCacheWrites": [],
+  "cacheFirstDetected": true,
+  "structuralNetworkOnlyGuard": true,
+  "criticalAssetsInDeployment": [
+    "config/deployment.json",
+    "config/deployment.school-server.json",
+    "ghrab/ghrab-platform.js",
+    "release-integrity.json",
+    "release-integrity.sig",
+    "runtime-config.js",
+    "runtime-config.school-server.js"
+  ],
+  "findings": [],
+  "checkerRevision": "garp-2.5.1-r5-detached-cache-method-fail-closed",
+  "note": "Static bounded analysis. PASS means no critical asset was found in the explicitly recognized Cache API write envelope; recognized writes were resolved/guarded; importScripts is absent; and deployed critical assets have structural isSecurityCriticalRequest -> networkOnlyNoStore routing. Unknown/dynamic recognized writes, including non-literal computed Cache member calls and detached Cache-method calls, are AMBER. This is not a proof for arbitrary JavaScript and does not replace SIM-07 or behavioral revocation tests."
+}
+
+> ghrab-korespondencni-asistent@5.10.25 qa:garp25:vendored
+> node scripts/garp25/check-vendored-consistency.mjs security/vendored-consistency.KS.json
+
+{
+  "status": "PASS",
+  "canonicalRoot": "..",
+  "components": [
+    {
+      "id": "platform",
+      "sha256": "199d03d9dc9263a9e74ed1f1102df0324f3b63e78704f1c70aeacec5feec530c"
+    },
+    {
+      "id": "error-reporter",
+      "sha256": "bd017b1ba8c94d53554a1f9bd4a47794063a77c96d196ab7f64356b2d779d7e6"
+    }
+  ],
+  "checkedCopies": 4,
+  "drift": 0,
+  "findings": []
+}
+
+> ghrab-korespondencni-asistent@5.10.25 qa:garp25:pinned-inputs
+> node scripts/qa-garp25-pinned-inputs.mjs
+
+{
+  "schema": "ghrab-ks-pinned-inputs-v1",
+  "root": "/mnt/data/r5_src/korespondencni-asistent-main",
+  "checks": [
+    {
+      "id": "SHNC-09-github-actions-full-sha",
+      "status": "PASS",
+      "detail": "{\"uses\":17,\"badUses\":[]}"
+    },
+    {
+      "id": "SH-SC-pinned-direct-npm",
+      "status": "PASS",
+      "detail": "{\"directDependencies\":3,\"floating\":[]}"
+    },
+    {
+      "id": "SH-SC-lockfile-direct-match",
+      "status": "PASS",
+      "detail": "{\"lockfileVersion\":3,\"mismatches\":[]}"
+    }
+  ],
+  "summary": {
+    "total": 3,
+    "passed": 3,
+    "failed": 0,
+    "status": "PASS"
+  }
+}
+
+> ghrab-korespondencni-asistent@5.10.25 qa:garp25:ai-baseline
+> node scripts/qa-garp25-ai-assurance-baseline.mjs
+

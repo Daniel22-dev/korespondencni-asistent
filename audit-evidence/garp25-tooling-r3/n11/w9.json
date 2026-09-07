@@ -1,0 +1,36 @@
+{
+  "status": "AMBER",
+  "serviceWorker": "/mnt/data/r3_n11_tests/w9.js",
+  "criticalListSource": "/mnt/data/r3_n11_tests/critical.json",
+  "precachedEntries": 0,
+  "precacheSources": [],
+  "unresolvedCacheWrites": [
+    {
+      "method": "importScripts",
+      "expression": "'./extra-precache.js'",
+      "source": "sw-imports-external-script-not-analyzed",
+      "installOrPrecache": false,
+      "function": null
+    }
+  ],
+  "cacheFirstDetected": false,
+  "structuralNetworkOnlyGuard": false,
+  "criticalAssetsInDeployment": [
+    "ghrab/ghrab-platform.js"
+  ],
+  "findings": [
+    {
+      "severity": "MEDIUM",
+      "issue": "unresolved-cache-write",
+      "detail": {
+        "method": "importScripts",
+        "expression": "'./extra-precache.js'",
+        "source": "sw-imports-external-script-not-analyzed",
+        "installOrPrecache": false,
+        "function": null
+      }
+    }
+  ],
+  "checkerRevision": "garp-2.5.1-r3-cache-write-coverage-fail-closed",
+  "note": "Static bounded analysis. PASS means no critical asset was found in the explicitly recognized Cache API write envelope; recognized writes were resolved/guarded; importScripts is absent; and deployed critical assets have structural isSecurityCriticalRequest -> networkOnlyNoStore routing. Unknown/dynamic recognized writes are AMBER. This is not a proof for arbitrary JavaScript and does not replace SIM-07 or behavioral revocation tests."
+}

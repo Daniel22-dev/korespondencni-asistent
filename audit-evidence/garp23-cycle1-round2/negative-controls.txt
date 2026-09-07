@@ -1,0 +1,9 @@
+Negative controls – current corrective round
+1. NC-AIRED-TRUST-BOUNDARY: built-in unsafe boundary FAIL -> hardened PASS.
+2. NC-C01: disposable model-derived tone text reinserted into user directive -> AIR-03 FAIL and AIR-12 toneDerived 0/24. Clean 33/33 PASS.
+3. NC-C02: disposable hidden-style filter weakened -> AIR-05 FAIL; hidden markers survive. Clean PASS.
+4. NC-C03 test harness: synthetic ?test=1 restored in jsdom URL -> gate FAIL; clean PASS.
+5. NC-SECRET: disposable synthetic secret-shaped fixture -> secret scanner FAIL; clean 0 findings.
+6. NC-CANARY: disposable synthetic canary-shaped fixture -> canary scanner FAIL; clean 0 hits.
+7. NC-PROD-RUNNER: production stripping disabled in disposable build -> rt09.production-test-runner-payload-stripped FAIL; clean static 30/30 PASS.
+All disposable mutations were outside the candidate tree and were not packaged.

@@ -1,0 +1,16 @@
+GARP 2.4 – PŘENÁŠENÝ REGISTR DLUHŮ / AMBER – KS 5.10.23
+
+ZDROJ: poslední doložená GARP 2.3 baseline 5.10.14 + Platform 1.1.2 post-baseline release notes 5.10.17–5.10.22.
+
+D-01 | RT-09/AIR behavior | NOT TESTED | live-model behavior AIR-01/02/03/09/10/11/12 nebyl proveden bez production credential | změna v GARP 2.4 delta: ŽÁDNÁ | další krok: samostatný bezpečný behaviorální AI-RED audit.
+D-02 | SIM-03 Browser Back/Restore/Reopen | NOT TESTED v tomto prostředí | navigovaný localhost je blokován managed Chromium policy | změna: deterministická suite-session simulace PASS, ale nenahrazuje browser evidence | další krok: GitHub Actions / unrestricted browser.
+D-03 | SIM-04 Multi-Tab | NOT TESTED plnohodnotně v navigovaném browseru | stejné omezení | další krok: CI/staging browser.
+D-04 | SIM-07 SW update/recovery | NOT TESTED plnohodnotně | unrestricted browser/staging potřebný | další krok: CI/staging.
+D-05 | RT-17 Cross-student isolation | NOT TESTED jako plný GARP PASS | navázáno na SIM-03/SIM-04 + live AIR-10 | další krok: samostatná privacy validation se syntetickými A/B markery.
+D-06 | RT-20 retention/deletion | NOT TESTED jako plný GARP PASS | browser restore + provider retention boundary | další krok: staging/browser + provider governance evidence.
+D-07 | F-02 Platform app-wide ACK vs all tabs | OPEN ECOSYSTEM FOLLOW-UP | deterministická simulace riziko demonstruje | GARP 2.4 delta nezměnila Platform runtime.
+D-08 | F-03 same-origin trust boundary | OPEN ECOSYSTEM DEBT | inherent same-origin writable shared state | GARP 2.4 delta nezměnila Platform runtime.
+D-09 | RI-14 production signing key custody | NOT TESTED | produkční klíč úmyslně nebyl vytvářen/vyžádán | další krok: custody/backup/rotation/revocation attestation bez secretu.
+D-10 | RI-LIVE | NOT TESTED | school-server Release Registry/Integrity Service/app-guard/watchdog ještě nejsou live | další krok: workflow F -> G po zprovoznění serveru.
+
+Žádný řádek nebyl v GARP 2.4 migraci falešně uzavřen.

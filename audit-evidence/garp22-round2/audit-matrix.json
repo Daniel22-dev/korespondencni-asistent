@@ -1,0 +1,58 @@
+{
+  "schema": "garp22-audit-matrix-v1",
+  "phase": "C",
+  "round": 2,
+  "appId": "correspondence",
+  "appVersion": "5.10.11",
+  "architecture": "SERVERLESS with prepared SCHOOL SERVER profile",
+  "syntheticDataOnly": true,
+  "rt": [
+    {"id":"RT-00","status":"PASS","evidence":"Actual code-derived data map, PC-01, storage/network/import enumeration; manifest corrected for prompt debug, bridge and reporter fetch wrapper."},
+    {"id":"RT-01","status":"NOT TESTED","evidence":"Central app-guard/auth enforcement is not present in this application ZIP; SIM-01 unavailable."},
+    {"id":"RT-02","status":"NOT TESTED","evidence":"Satellite storage deletion/tampering was tested, but authorization tampering depends on the central access layer outside this ZIP."},
+    {"id":"RT-03","status":"NOT TESTED","evidence":"Token signature/audience/issuer/revocation layer belongs to central access ecosystem; SIM-01/SIM-02 not available here."},
+    {"id":"RT-04","status":"NOT TESTED","evidence":"Central authorization/LKG time manipulation evidence unavailable; SIM-02 not tested."},
+    {"id":"RT-05","status":"NOT TESTED","evidence":"Static SW boundaries verified, but full rollback/update/recovery drill SIM-07 and central LKG behavior are not executed."},
+    {"id":"RT-06","status":"PASS","evidence":"Fresh synthetic canary covers app storage, state/DOM, console, AI egress, export/reimport and artifact sweep; no student-data URL write path was found in RT-00/RT-12. The old vacuous about:blank URL assertion was removed from PASS counting."},
+    {"id":"RT-07","status":"PASS","evidence":"SIM-05 hostile AI HTML is inert; XSS sink inventory has no eval/new Function regression."},
+    {"id":"RT-08","status":"PASS","evidence":"Import size/schema/content limits and sanitizers are covered by internal regression and static path coverage; SIM-08 export/reimport passes."},
+    {"id":"RT-09","status":"PASS","evidence":"Prompt injection boundaries remain covered; production test/mock activation is disabled and vendor Core testing API is stripped from production export; SIM-05 passes."},
+    {"id":"RT-10","status":"PASS","evidence":"Source/build secret scan passes; final distributed ZIP is separately scanned before handoff. No secret values are printed."},
+    {"id":"RT-11","status":"NOT TESTED","evidence":"Teacher/deputy-admin/admin authorization enforcement is central app-guard functionality; SIM-01/SIM-02 unavailable."},
+    {"id":"RT-12","status":"PASS","evidence":"No app window.postMessage or iframe path, _blank links require noopener, reporter open flow is constrained, and no student-data URL sink was found."},
+    {"id":"RT-13","status":"PASS","evidence":"Exact CSP parity between canonical security-headers.json and dist meta CSP; no unsafe-eval/eval/new Function. Known unsafe-inline compatibility debt remains explicitly tracked."},
+    {"id":"RT-14","status":"PASS","evidence":"Synthetic blocked preflight message contains no canary; reporter sanitizes technical URL/error data and clearDraft is integrated."},
+    {"id":"RT-15","status":"NOT TESTED","evidence":"SIM-06 interrupted request/retry passes, but relevant SIM-04 multi-tab collision cannot be executed under managed browser constraints."},
+    {"id":"RT-16","status":"NOT TESTED","evidence":"17/17 Actions SHA-pinned, lockfile 67/67 integrity/registry controlled, reproducible rebuild selected files bit-identical; key custody/MFA/branch-protection/account hardening and SIM-07 are not independently verifiable here."},
+    {"id":"RT-17","status":"NOT TESTED","evidence":"SIM-08 A->reimport->B passes locally, but mandatory relevant SIM-03 reopen/restore and SIM-04 multi-tab isolation remain unavailable."},
+    {"id":"RT-18","status":"PASS","evidence":"Architecture truthfully declared SERVERLESS; school-server profile builds and QA passes with same-origin school gateway and no client provider secret requirement."},
+    {"id":"RT-19","status":"PASS","evidence":"AI EGRESS INSPECTION captures the single GHRAB_AI.generate request path; synthetic unrelated canary/storage/email data are absent, raw PII preflight has zero mock egress, SIM-06 passes."},
+    {"id":"RT-20","status":"NOT TESTED","evidence":"App-local end-work deletion is now fail-safe and verified with independent canary plus NC-RT20-SCOPE; reporter memory is cleared. Aggregate RT-20 cannot PASS because mandatory relevant SIM-03 reopen/restore and external/provider retention are not fully verifiable."}
+  ],
+  "sim": [
+    {"id":"SIM-01","status":"NOT TESTED","reason":"Central cross-app authorization/token layer absent from ZIP."},
+    {"id":"SIM-02","status":"NOT TESTED","reason":"Central revocation/permission propagation layer unavailable."},
+    {"id":"SIM-03","status":"NOT TESTED","reason":"Managed Chromium blocks navigated reopen/restore scenario."},
+    {"id":"SIM-04","status":"NOT TESTED","reason":"Managed Chromium/local URL policy prevents real multi-tab state-collision scenario."},
+    {"id":"SIM-05","status":"PASS","reason":"Synthetic hostile AI HTML/markup remained inert."},
+    {"id":"SIM-06","status":"PASS","reason":"Synthetic first-request failure plus explicit retry produced expected result without prompt leakage/hidden duplicate egress."},
+    {"id":"SIM-07","status":"NOT TESTED","reason":"Full service-worker update/recovery drill requires navigated browser lifecycle not available here."},
+    {"id":"SIM-08","status":"PASS","reason":"Synthetic export excludes working A; reimport in second logical context does not resurrect A and accepts B."}
+  ],
+  "pc01":"PASS_WITH_ENVIRONMENT_LIMITS",
+  "negativeControls":[
+    {"id":"NC-RT20-SCOPE","status":"PASS","evidence":"Mutated out-of-namespace synthetic canary makes independent evidence FAIL; after removal clean baseline returns PASS."},
+    {"id":"RT20-remove-failure","status":"PASS","evidence":"Synthetic removeItem and storage-enumeration failures are detected as unsuccessful deletion."},
+    {"id":"production-test-hook-boundary","status":"PASS","evidence":"Production activation attempts are inert and GHRAB_AI.__testing is not exported."}
+  ],
+  "gates": {
+    "SECURITY":"AMBER",
+    "PRIVACY":"AMBER",
+    "RED_TEAM":"AMBER",
+    "RELEASE_INTEGRITY":"AMBER",
+    "OVERALL":"AMBER"
+  },
+  "realStudentData":"DO NOT USE",
+  "testOperation":"SYNTHETIC DATA ONLY",
+  "nextWorkflowStep":"SECOND INDEPENDENT CLAUDE REVIEW REQUIRED because distributed code/config changed after Claude round 1."
+}

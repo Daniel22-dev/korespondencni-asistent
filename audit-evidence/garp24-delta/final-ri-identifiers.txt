@@ -1,0 +1,11 @@
+GARP 2.4 RI-PREP – FINAL LOCAL IDENTIFIERS – KS 5.10.23
+
+artifactDigest: f43d6a0b308c91a17feee345fa55172d40998a4fcfb47bfe6a1a5a9a0c3c98db
+release-integrity.json SHA-256: 2f2a29cbc4e8960c6b11523d875a96626d9a642dfdc37aac86d243833e0d4a80
+release-integrity.sig SHA-256: 6b5ba4520b1ef143da7579c2a881132c298e768632edbff2b4513a58304be4d1
+migration-test-public.pem SHA-256: 020cd8394fce874bc23a23370584637fa644196536d1a062d691e4547d85bd6d
+signature algorithm: Ed25519
+keyId: correspondence-garp24-migration-test-5.10.23
+sourceCommit: null
+sourcePackageSha256 in manifest: null (no immutable 5.10.23 source package/commit supplied; not guessed)
+deploymentPackageSha256 in manifest: null (outer candidate ZIP hash is recorded in external handoff protocol)

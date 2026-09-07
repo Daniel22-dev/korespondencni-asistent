@@ -1,0 +1,15 @@
+GHRAB ECOSYSTEM PROFILE – KS 5.10.24
+GH-01 PASS within KS snapshot – canonical Platform/error-reporter vs 4 distributed copies, drift 0. Cross-repository whole-ecosystem identity remains separate ecosystem audit.
+GH-02 NOT TESTED overall – static SW freeze control PASS and GHNC-02 PASS, but mandatory behavior revocation GHNC-03 not available.
+GH-03 NOT TESTED – permit/revocation baseline exists, live Studio/open-client revocation not executed.
+GH-04 NOT TESTED – repository_dispatch/registry mutation authority belongs to Studio repo and is not provable from KS snapshot.
+GH-05 PASS – school build is server-session/school-gateway/provider-neutral; local provider key runtime denial GHNC-05 PASS.
+GH-06 PASS classification – D2; standalone direct provider only after privacy preflight, school egress same-origin gateway. Provider retention/live governance keeps PRIVACY AMBER.
+GH-07 NOT TESTED overall – reporter static/unit 52 PASS, but GHNC-06/07 transport/browser behavior unavailable.
+GH-08 PASS – stable PWA identity/start_url, no version; GHNC-10 PASS.
+GH-09 PASS as status accounting – five required gates are explicitly closed as AMBER, no false GREEN; ecosystem overall remains AMBER.
+GH-10 PASS – GH-02 has pre-fix FAIL and post-fix PASS evidence; other disposable controls kept separate from clean candidate.
+GH-11 NOT TESTED – production release key not provisioned; rotation/recovery drill absent.
+GH-12 NOT TESTED – binary icon/logo rights cannot be proven from supplied source metadata.
+GH-13 NOT TESTED – actual served CSP/HSTS/headers require school server; static header config is not counted as served evidence.
+GH-14 PASS – AGENTIC=NO verified against actual call graph and empty capability declarations.

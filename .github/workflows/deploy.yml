@@ -1,0 +1,74 @@
+name: Build, test and deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
+
+
+      - name: Install pinned Playwright Chromium
+        shell: bash
+        run: |
+          npx playwright install --with-deps chromium
+          node -e "console.log('CHROMIUM_PATH=' + require('playwright').chromium.executablePath())" >> "$GITHUB_ENV"
+      - name: Run unified error reporter regression
+        run: npm run test:reporter
+      - name: Verify GHRAB Platform P3 conformance
+        run: npm run qa:platform
+
+
+      - name: Enforce P5 R2 release gate
+        run: npm run qa:p5:ci
+
+      - name: Remove QA-only reports from deploy artifact
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          rm -f dist/quality-report.json
+          rm -f dist/qa-*-report.json
+          rm -f dist/config/quality-manifest.json
+
+      - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
+        if: github.event_name != 'pull_request'
+
+      - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
+        if: github.event_name != 'pull_request'
+        with:
+          path: dist
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build-test
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4

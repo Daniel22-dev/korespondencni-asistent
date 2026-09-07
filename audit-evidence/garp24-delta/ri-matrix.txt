@@ -1,0 +1,100 @@
+GARP 2.4 – RELEASE INTEGRITY MATRIX – KS 5.10.23
+Profil: RI-PREP
+Datum: 2026-09-06
+
+Deployment root: dist-school-server/
+Manifest: dist-school-server/release-integrity.json
+Detached signature: dist-school-server/release-integrity.sig
+Test trust root evidence: audit-evidence/garp24-ri-prep/migration-test-public.pem
+Test keyId: correspondence-garp24-migration-test-5.10.23
+Algorithm: Ed25519
+Private test key included in repo/deployment/evidence: NE
+Production signing key/trust root: NOT PROVISIONED / NOT TESTED
+
+RI-01 PROVENANCE: PASS
+- appId/version/buildId explicit; input ZIP + GARP package SHA-256 documented.
+- sourceCommit a immutable 5.10.23 sourcePackage hash nejsou k dispozici a nejsou domyšleny; manifest je null.
+- output candidate ZIP hash bude v externím předávacím protokolu po zabalení.
+
+RI-02 SOURCE/DEPLOYMENT SEPARATION: PASS
+- source tree oddělen od dist-school-server/.
+- leak scan clean PASS; .git/.github/audit/test/node_modules/*.map/private-key typy nejsou v deploymentu.
+
+RI-03 FILE INVENTORY: PASS
+- úplný inventory distribuovaných souborů, size + SHA-256; clean verifier PASS.
+
+RI-04 ARTIFACT DIGEST: PASS
+- deterministický canonical path order; clean verifier přepočítá shodný artifactDigest.
+- referenční GARP generator ordering bug byl reprodukován a lokálně opraven v aplikační kopii toolu.
+
+RI-05 DETACHED SIGNATURE: PASS V RI-PREP TESTU
+- Ed25519 detached signature vytvořena testovacím ephemeral klíčem a nezávisle ověřena.
+- Nejde o production release signature.
+
+RI-06 TRUST ROOT / KEY ID: PASS V RI-PREP TESTU
+- explicitní test keyId + oddělený public key; wrong trust root -> UNVERIFIED.
+- production trust root provisioning patří do RI-14/RI-LIVE.
+
+RI-07 INDEPENDENT VERIFICATION: PASS
+- samostatný scripts/garp24/verify-release-bundle.mjs, mimo chráněný aplikační runtime.
+
+RI-08 APPROVED RELEASE REGISTRY / ANTI-ROLLBACK: NOT TESTED
+- Release Registry na školním serveru dosud není živý.
+
+RI-09 PARTIAL/MIXED DEPLOYMENT DETECTION: PASS
+- unexpected executable/mixed marker -> TAMPERED; úplný inventory brání tiché směsi releasů.
+
+RI-10 INTEGRITY SERVICE FAIL-CLOSED: NOT TESTED
+- serverová Integrity Service dosud neexistuje / není napojena.
+
+RI-11 AI STUDIO APP-GUARD INTEGRATION: NOT TESTED
+- integrity permit policy se musí ověřit až na school-server/staging RI-LIVE.
+
+RI-12 MINIMAL ALERTING + AUDIT TRAIL: NOT TESTED
+- kandidát nepřidává alerting ani egress; nový tooling má 0 síťových API ve statickém scanování.
+- minimální alert contract je budoucí RI-LIVE krok.
+
+RI-13 EXTERNAL WATCHDOG: NOT TESTED
+- watchdog není v RI-PREP provisionován.
+
+RI-14 SIGNING KEY CUSTODY / ROTATION / RECOVERY: NOT TESTED
+- production private key není vyžádán ani vytvořen.
+- policy pro rotaci/revokaci existuje v GARP 2.4, ale skutečná custody, backup, recovery drill a release-account MFA nebyly doloženy.
+- TATO POLOŽKA BLOKUJE RI-PREP GREEN podle GARP 2.4 gate pravidla.
+
+RI-15 SOURCE-DISCLOSURE MINIMIZATION / IT HANDOFF: PASS
+- provozní artefakt je dist-school-server; source není runtime podmínkou.
+- manifest/signature/verifier/leak policy a handoff informace jsou dokumentovány.
+
+RISIM-01 ONE-BYTE TAMPER: PASS
+- přesně jeden byte v index.html disposable kopie flipnut; verifier expected FAIL/TAMPERED.
+
+RISIM-02 MANIFEST/SIGNATURE SUBSTITUTION: PASS
+- buildId v manifestu změněn bez nového podpisu -> SIGNATURE_INVALID.
+
+RISIM-03 SIGNED OLD RELEASE ROLLBACK: NOT TESTED
+- vyžaduje Approved Release Registry policy; RI-LIVE.
+
+RISIM-04 WRONG TRUST ROOT/KEYID: PASS
+- jiný Ed25519 public key -> UNVERIFIED/SIGNATURE_INVALID.
+
+RISIM-05 MISSING MANIFEST/SIGNATURE: PASS
+- odstraněná signature -> UNVERIFIED/MISSING_SIGNATURE.
+
+RISIM-06 PARTIAL/MIXED DEPLOYMENT: PASS
+- vložen neočekávaný executable asset -> TAMPERED.
+
+RISIM-07 INTEGRITY SERVICE OUTAGE: NOT TESTED
+- serverová služba dosud není k dispozici.
+
+RISIM-08 UNAUTHORIZED RELEASE REGISTRY CHANGE: NOT TESTED
+- Release Registry dosud není k dispozici.
+
+RISIM-09 EXTERNAL WATCHDOG VISIBILITY: NOT TESTED
+- watchdog dosud není k dispozici.
+
+RISIM-10 SOURCE/DEVELOPMENT LEAK NEGATIVE CONTROL: PASS
+- disposable .map -> leak scanner FAIL; po odstranění clean deployment PASS.
+
+RELEASE INTEGRITY GATE: AMBER
+Důvod: technická lokální RI-PREP vrstva je funkční a požadované D-simulace PASS, ale RI-14 production key custody je NOT TESTED a RI-LIVE části RI-08/10/11/12/13 + RISIM-03/07/08/09 nejsou provedeny. Žádný RED blocker nebyl zjištěn.

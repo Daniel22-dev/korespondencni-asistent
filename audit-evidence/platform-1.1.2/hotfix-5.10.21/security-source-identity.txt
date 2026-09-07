@@ -1,0 +1,5 @@
+SECURITY/LIFECYCLE SOURCE IDENTITY
+src/js/78-suite-session.js
+00b342254ace67f2107d79d03e61f9b3ba5d51692c4819b91c4a2736921f5811  /mnt/data/axe_fix_51020/korespondencni-asistent-5.10.20-platform-1.1.2-candidate/src/js/78-suite-session.js
+00b342254ace67f2107d79d03e61f9b3ba5d51692c4819b91c4a2736921f5811  /mnt/data/fix_51021/korespondencni-asistent-5.10.21-platform-1.1.2-candidate/src/js/78-suite-session.js
+identity=PASS

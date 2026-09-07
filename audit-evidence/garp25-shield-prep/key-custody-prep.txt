@@ -1,0 +1,7 @@
+RI-14 / SH-SC-10 – PREP KEY CUSTODY STATUS
+status=NOT TESTED for production
+- No production release signing key has been provisioned.
+- The GARP 2.5.1 PREP test used a disposable Ed25519 key under /tmp only.
+- The disposable private key was deleted after signing and was never copied into source, deployment, evidence or logs.
+- Public trust metadata and revoked-key behavior are tested.
+- Before RI-PREP can be policy-GREEN, school governance must establish primary custody, encrypted/offline recovery, named keyId, rotation/revocation procedure, and a documented recovery/rotation drill/attestation without exposing the secret.

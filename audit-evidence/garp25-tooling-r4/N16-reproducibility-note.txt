@@ -1,0 +1,5 @@
+N16 disposition (Tooling R4)
+
+- Frozen signed profile dist-school-server: byte-identical to KS-5.10.25 signed deployment (diff output empty).
+- Generic dist/: NOT claimed byte-reproducible across rebuilds. Independent R3 review measured two metadata differences vs Tooling R2: dist/quality-report.json and dist/config/quality-manifest.json, only metrics.measuredAt.
+- Tooling R4 does not rebuild either deployment profile; it only updates source/tooling/evidence/docs.

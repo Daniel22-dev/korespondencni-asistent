@@ -1,0 +1,39 @@
+GARP 2.4 – EXISTUJÍCÍ REGRESE / BUILD / QUALITY / SECURITY – KS 5.10.23
+Datum: 2026-09-06
+
+PASS – skutečně spuštěno po delta migraci
+- build:test: PASS.
+- scripts/test.mjs: 171/171 interních testů + 17/17 GHRAB AI Core conformance PASS.
+- test-ui-interactions.mjs: 51/51 PASS.
+- qa:profiles: 15/15 PASS.
+- build: produkční build PASS.
+- qa:school-profile: dist-school-server build + school profile QA PASS.
+- verify:platform: GHRAB Platform 1.1.2 conformance 124/124 PASS.
+- qa:lock: 67 locked packages PASS.
+- qa:quality: 31/31 PASS, 0 warnings.
+- qa:browser: PASS; browser contract/a11y/performance checks bez failure.
+- qa:garp:evidence-path: PASS včetně rejection path traversal/symlink escape.
+- qa:garp:test-harness: PASS; negative control (?test=1 mutation) expected FAIL -> observed FAIL.
+- qa:garp:bootstrap: 5/5 PASS.
+- qa:xss: PASS; jde o sink regression inventory, nikoli absolutní důkaz bezpečnosti všech HTML sinků.
+- qa:garp:secret-scan: 142 souborů, 0 findings, 0 risky filenames.
+- qa:garp:canary-scan: 142 souborů, 0 unexpected exact hits.
+- qa:suite-session:simulation: 10/10 PASS včetně negative-control-handler-disabled a diagnostik F-02/F-03.
+- qa:garp23:ai-red ve fresh test buildu: structural 33/33 PASS; built-in AI-RED negative control expected unsafe FAIL / safe PASS. Behavioral model test zůstává NOT TESTED.
+- test:reporter: 52 PASS / 0 FAIL; browser část reportéru NOT_READY kvůli spravované URLBlocklist.
+- GARP 2.4 RI-PREP harness: PASS, viz audit-evidence/garp24-ri-prep/ri-prep-results.json.
+
+NOT TESTED / ENVIRONMENTÁLNĚ NEDOSTUPNÉ – NEVYDÁVÁNO ZA PASS
+- qa:suite-session navigovaný HTTP test: NOT TESTED. Spravovaný Chromium vrací pro 127.0.0.1 stránku "Your organization doesn’t allow you to view this site"; Platforma se proto nenačte. Deterministická simulace 10/10 PASS, ale nenahrazuje navigovaný test.
+- qa:runtime: NOT TESTED / environment-limited. Runtime page timeout na index.html. Nejde o doložený aplikační FAIL; PASS není tvrzen.
+- qa:axe: NOT TESTED / not-ready-environment. Harness uvádí, že přesný axe-core runtime není pro tento runner připraven; 0 stránek skutečně scanováno.
+- reporter browser část: NOT_READY kvůli spravované URLBlocklist; statická/unit část 52/0 PASS.
+- live-model behavioral AIR: NOT TESTED; production credential nebyl vyžádán ani použit.
+
+AGREGOVANÝ P5 RELEASE/ACCEPTANCE
+- Nebyl označen PASS. Po samostatných bězích a rebuildech chyběly některé generované reporty v dist a qa-p5-release/acceptance proto správně skončily FAIL.
+- Důkaz: audit-evidence/garp24-regression/p5-release-aggregate.log a p5-acceptance-aggregate.log.
+- Tento stav je evidenční/environmentální omezení a je důvodem, proč čtyři gate zůstávají konzervativně AMBER; není maskován.
+
+DŮLEŽITÉ
+- GARP 2.4 delta neměnila prompt assembly, auth/access, anonymizaci, storage ownership ani AI egress. Plný behavioral AIR/RT/SIM audit proto nebyl z důvodu této migrace znovu otevřen, ale existující AMBER/NOT TESTED dluhy byly přeneseny.

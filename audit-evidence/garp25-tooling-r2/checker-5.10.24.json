@@ -1,0 +1,68 @@
+{
+  "status": "FAIL",
+  "serviceWorker": "/mnt/data/ks_51024_review/korespondencni-asistent-main/dist-school-server/sw.js",
+  "criticalListSource": "/mnt/data/ks_51024_review/korespondencni-asistent-main/security/security-critical-assets.json",
+  "precachedEntries": 27,
+  "precacheSources": [
+    {
+      "source": "addAll:expression",
+      "entries": [
+        "./",
+        "./index.html",
+        "./manifest.webmanifest",
+        "./manual/",
+        "./manual/index.html",
+        "./access/error-reporter.js",
+        "./access/error-reporter.css",
+        "./access/error-reporter-adapter.js",
+        "./icons/icon-32.png",
+        "./icons/icon-48.png",
+        "./icons/icon-72.png",
+        "./icons/icon-96.png",
+        "./icons/icon-128.png",
+        "./icons/icon-180.png",
+        "./icons/icon-192.png",
+        "./icons/icon-512.png",
+        "./icons/icon-maskable-512.png",
+        "./icons/apple-touch-icon.png",
+        "./config/brand-manifest.json",
+        "./config/platform-manifest.json",
+        "./assets/brand/school-logo.png",
+        "./ghrab-platform.consumer.json"
+      ]
+    },
+    {
+      "source": "map-add:GHRAB_PLATFORM_P3_ASSETS",
+      "entries": [
+        "./ghrab/ghrab-platform.js",
+        "./ghrab/ghrab-platform.css",
+        "./ghrab/ghrab-artifact-envelope-v1.schema.json",
+        "./ghrab/ghrab-app-registry-v2.schema.json",
+        "./ghrab/ghrab-platform-manifest-1.1.2.json",
+        "./assets/brand/school-logo.png",
+        "./ghrab-platform.consumer.json"
+      ]
+    }
+  ],
+  "unresolvedCacheWrites": [],
+  "cacheFirstDetected": true,
+  "structuralNetworkOnlyGuard": true,
+  "criticalAssetsInDeployment": [
+    "config/deployment.json",
+    "config/deployment.school-server.json",
+    "ghrab/ghrab-platform.js",
+    "release-integrity.json",
+    "release-integrity.sig",
+    "runtime-config.js",
+    "runtime-config.school-server.js"
+  ],
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "issue": "security-critical asset je v Cache API write/precache ceste",
+      "detail": "./ghrab/ghrab-platform.js (vzor: ghrab/ghrab-platform.js)"
+    }
+  ],
+  "checkerRevision": "garp-2.5.1-r2-cache-write-coverage-fail-closed",
+  "note": "Static bounded analysis. PASS means no critical asset found in recognized Cache API write paths, all analyzed writes resolved/guarded, and deployed critical assets have structural isSecurityCriticalRequest -> networkOnlyNoStore routing. Does not replace SIM-07 or behavioral revocation tests."
+}

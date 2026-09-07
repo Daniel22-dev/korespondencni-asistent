@@ -1,0 +1,23 @@
+{
+  "status": "FAIL",
+  "serviceWorker": "/tmp/ks-ghnc02.8VzrC2/dist/sw.js",
+  "precachedEntries": 23,
+  "cacheFirstDetected": true,
+  "criticalAssetsInDeployment": [
+    "config/deployment.json",
+    "config/deployment.school-server.json",
+    "ghrab/ghrab-platform.js",
+    "release-integrity.json",
+    "release-integrity.sig",
+    "runtime-config.js",
+    "runtime-config.school-server.js"
+  ],
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "issue": "security-critical asset je v precache SW",
+      "detail": "./ghrab/ghrab-platform.js (vzor: ghrab/ghrab-platform.js)"
+    }
+  ],
+  "note": "Staticka kontrola. Nenahrazuje SIM-07 (update/recovery) ani behavioralni test revokace v prohlizeci."
+}

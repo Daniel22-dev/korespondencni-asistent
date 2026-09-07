@@ -1,0 +1,26 @@
+{
+  "schema": "garp22-claude-findings-review-v1",
+  "phase": "C",
+  "appId": "correspondence",
+  "appVersion": "5.10.11",
+  "sourceReview": "independent-code-and-evidence-review",
+  "syntheticDataOnly": true,
+  "findings": [
+    {"id":"C-01","claudeSeverity":"MEDIUM","verification":"CONFIRMED","resolution":"FIXED","evidence":["src/js/70-nastroje-testy-data.js:removeOwnedStorageKeys","src/js/70-nastroje-testy-data.js:clearAllLocalData","src/js/70-nastroje-testy-data.js:endWorkAndClearData","audit-evidence/garp22-round2/singlepage-runtime.json"],"note":"Deletion success is now derived from observed removal/remaining-key results; enumeration failures are failures; user success/warning text follows the result. Reload has a persistent fallback warning if navigation does not occur."},
+    {"id":"C-02","claudeSeverity":"MEDIUM","verification":"CONFIRMED","resolution":"FIXED","evidence":["scripts/qa-garp22-singlepage.mjs","audit-evidence/garp22-round2/singlepage-runtime.json"],"note":"RT-20 canary scan enumerates all values independently of APP_STORAGE_KEY_RE. NC-RT20-SCOPE produces expected FAIL then clean PASS. about:blank URL assertion was removed from PASS count and is explicitly NOT TESTED."},
+    {"id":"C-03","claudeSeverity":"MEDIUM","verification":"CONFIRMED_AND_EXPANDED","resolution":"FIXED","evidence":["scripts/build.mjs","src/js/10-release-changelog.js","src/js/28-ai-integration.js","src/js/30-api-gemini.js","scripts/qa-garp22-production-test-boundary.mjs","audit-evidence/garp22-round2/production-test-boundary.json"],"note":"Claude-identified app hooks are build-flag/local-origin gated. PC-01 additionally found vendor GHRAB_AI.__testing public export as a sibling activation path; production build now strips that export and replaceForTesting is inert."},
+    {"id":"C-04","claudeSeverity":"LOW-MEDIUM","verification":"CONFIRMED","resolution":"FIXED","evidence":["src/config/data-manifest.json","scripts/qa-garp22-static-surface.mjs"],"note":"Manifest now declares rozbor_last_prompt_debug, Studio bridge keys, and the error-reporter fetch wrapper including fields it deliberately does not record."},
+    {"id":"C-05","claudeSeverity":"LOW","verification":"CONFIRMED","resolution":"FIXED","evidence":[".gitignore","scripts/qa-garp22-static-surface.mjs"],"note":"audit-evidence/**/*.log is explicitly unignored after the global *.log rule."},
+    {"id":"C-06","claudeSeverity":"INFO","verification":"CONFIRMED","resolution":"FIXED","evidence":["src/access/error-reporter.js","src/js/70-nastroje-testy-data.js","scripts/test-error-reporter.mjs"],"note":"Reporter exposes clearDraft(); endWork calls it before deletion, so draft/screenshots do not depend solely on successful reload."},
+    {"id":"C-07","claudeSeverity":"MEDIUM","verification":"CONFIRMED","resolution":"FIXED","evidence":["src/config/security-headers.json","src/index.template.html","scripts/build.mjs","scripts/qa-garp22-static-surface.mjs"],"note":"Static CSP has one canonical source in security-headers.json and build injects it into index.template.html; exact parity is asserted against dist/index.html."}
+  ],
+  "rejectedFindings": [],
+  "additionalFinding": {
+    "id":"AD-01",
+    "severity":"MEDIUM",
+    "status":"FIXED",
+    "origin":"PC-01/free-adversarial",
+    "description":"Vendor GHRAB AI Core exposed __testing.setTestHooks/replaceRuntimeConfig in the production global API, providing a sibling route around an app-only test-hook fix.",
+    "resolution":"Production build strips the __testing API export while preserving the signed vendor source artifact unchanged; test builds retain it. App-level replaceForTesting is also build/local-origin gated."
+  }
+}

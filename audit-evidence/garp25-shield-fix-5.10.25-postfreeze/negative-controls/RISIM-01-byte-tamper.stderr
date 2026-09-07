@@ -1,0 +1,7 @@
+{
+  "status": "TAMPERED",
+  "errors": [
+    "size:runtime-config.js",
+    "sha256:runtime-config.js"
+  ]
+}

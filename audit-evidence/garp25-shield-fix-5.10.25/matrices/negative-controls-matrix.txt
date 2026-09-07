@@ -1,0 +1,10 @@
+NEGATIVE CONTROLS - KS 5.10.25 corrective
+GHNC-02 PASS - renamed arbitrary precache array containing security-critical ghrab-platform.js -> new checker CRITICAL/FAIL; clean corrected tree PASS.
+GHNC-12 PASS - new checker on unchanged 5.10.24 -> FAIL/CRITICAL; corrected 5.10.25 -> PASS. Previous 5.10.24 PASS explicitly invalidated as false negative.
+SHNC-14 PASS - independent mutation of src/js/40-anonymizace.js invalidates AI assurance baseline; independent mutation of src/js/50-koncept-a-prompty.js also invalidates; clean baseline PASS.
+N3 assurance-link substitution controls: to be executed after final signed manifest is generated; provenance and evidence substitution must FAIL.
+Inherited/repeated relevant PREP controls remain subject to final RI negative-control run: byte tamper, signature substitution, rollback/registry, revoked key, mixed deployment, source-map leak.
+GHNC-03 NOT TESTED - open-client revocation requires live Studio/school server.
+SHNC-11 NOT TESTED - served headers unavailable.
+SHNC-15 NOT TESTED - live alert pipeline unavailable.
+SHNC-17..20 N/A - AGENTIC=NO.

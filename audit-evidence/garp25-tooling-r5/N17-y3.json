@@ -1,0 +1,42 @@
+{
+  "status": "AMBER",
+  "serviceWorker": "/mnt/data/r5_n17_fixtures/y3.js",
+  "criticalListSource": "/mnt/data/r5_src/korespondencni-asistent-main/security/security-critical-assets.json",
+  "precachedEntries": 0,
+  "precacheSources": [],
+  "unresolvedCacheWrites": [
+    {
+      "method": "addAll",
+      "expression": "(0,c.addAll)(",
+      "source": "detached-comma-cache-method:c",
+      "installOrPrecache": true,
+      "function": null
+    }
+  ],
+  "cacheFirstDetected": false,
+  "structuralNetworkOnlyGuard": false,
+  "criticalAssetsInDeployment": [
+    "config/deployment.json",
+    "config/deployment.school-server.json",
+    "ghrab/ghrab-platform.js",
+    "release-integrity.json",
+    "release-integrity.sig",
+    "runtime-config.js",
+    "runtime-config.school-server.js"
+  ],
+  "findings": [
+    {
+      "severity": "MEDIUM",
+      "issue": "unresolved-cache-write",
+      "detail": {
+        "method": "addAll",
+        "expression": "(0,c.addAll)(",
+        "source": "detached-comma-cache-method:c",
+        "installOrPrecache": true,
+        "function": null
+      }
+    }
+  ],
+  "checkerRevision": "garp-2.5.1-r5-detached-cache-method-fail-closed",
+  "note": "Static bounded analysis. PASS means no critical asset was found in the explicitly recognized Cache API write envelope; recognized writes were resolved/guarded; importScripts is absent; and deployed critical assets have structural isSecurityCriticalRequest -> networkOnlyNoStore routing. Unknown/dynamic recognized writes, including non-literal computed Cache member calls and detached Cache-method calls, are AMBER. This is not a proof for arbitrary JavaScript and does not replace SIM-07 or behavioral revocation tests."
+}

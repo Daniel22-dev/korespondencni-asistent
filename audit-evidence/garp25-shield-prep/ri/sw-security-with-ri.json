@@ -1,0 +1,17 @@
+{
+  "status": "PASS",
+  "serviceWorker": "dist-school-server/sw.js",
+  "precachedEntries": 22,
+  "cacheFirstDetected": true,
+  "criticalAssetsInDeployment": [
+    "config/deployment.json",
+    "config/deployment.school-server.json",
+    "ghrab/ghrab-platform.js",
+    "release-integrity.json",
+    "release-integrity.sig",
+    "runtime-config.js",
+    "runtime-config.school-server.js"
+  ],
+  "findings": [],
+  "note": "Staticka kontrola. Nenahrazuje SIM-07 (update/recovery) ani behavioralni test revokace v prohlizeci."
+}

@@ -1,0 +1,7 @@
+{
+  "status": "DENIED",
+  "errors": [
+    "version-mismatch:observed=5.10.23,approved=5.10.24",
+    "rollback-denied:5.10.23<5.10.24"
+  ]
+}

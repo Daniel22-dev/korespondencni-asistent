@@ -1,0 +1,5 @@
+status=PASS_CONTROL
+claim=GARP2.5 checks are not claimed as protected CI gate in this candidate
+continue_on_error_occurrences:
+scheduled_security_occurrences:
+garp25_workflow_occurrences:

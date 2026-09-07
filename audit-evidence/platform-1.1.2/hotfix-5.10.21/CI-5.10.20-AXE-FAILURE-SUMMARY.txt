@@ -1,0 +1,8 @@
+CI commit: 11250a50098269c6815215ff3c3da26c64cfc0ac
+Input app: 5.10.20 / Platform 1.1.2
+GitHub Actions check suites supplied by user: 92018677848, 92018677877, 92018677916, 92018677924, 92018677925.
+Observed: qa:runtime PASS, initFailures=0, browserExceptions=0, qaErrors=0; suite-session scenarios including Browser Back/Forward and fail-closed PASS.
+Blocking failure: qa:axe, 20 serious blockers.
+Downloaded GitHub artifact axe-p5-r2-11250a50098269c6815215ff3c3da26c64cfc0ac showed exactly 10 color-contrast violation nodes in manual/index.html at 1280px and the same 10 at 390px.
+Each affected element: .term:nth-child(1..10) > b; Axe measured #2c6e6b on #111e2c at 2.84:1; required 4.5:1.
+No Axe violations were reported for index.html. Main page had incomplete/manual-review items only; they were not counted as release blockers by the existing policy.

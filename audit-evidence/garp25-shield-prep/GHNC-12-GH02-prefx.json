@@ -1,0 +1,63 @@
+{
+  "status": "FAIL",
+  "serviceWorker": "/mnt/data/ks251_24/korespondencni-asistent-main/src/sw.js",
+  "precachedEntries": 22,
+  "cacheFirstDetected": true,
+  "criticalAssetsInDeployment": [
+    "config/deployment.json",
+    "config/deployment.school-server.json",
+    "ghrab/ghrab-platform.js",
+    "release-integrity.json",
+    "release-integrity.sig",
+    "runtime-config.js",
+    "runtime-config.school-server.js"
+  ],
+  "findings": [
+    {
+      "severity": "HIGH",
+      "issue": "SW zna asset, ma cache-first strategii a nema pro nej network-first/no-store vetev",
+      "detail": "runtime-config.js"
+    },
+    {
+      "severity": "HIGH",
+      "issue": "security-critical asset existuje v deploymentu, ale SW jej nijak nevyjima z cache-first",
+      "detail": "runtime-config.school-server.js"
+    },
+    {
+      "severity": "HIGH",
+      "issue": "SW zna asset, ma cache-first strategii a nema pro nej network-first/no-store vetev",
+      "detail": "config/deployment.json"
+    },
+    {
+      "severity": "HIGH",
+      "issue": "security-critical asset existuje v deploymentu, ale SW jej nijak nevyjima z cache-first",
+      "detail": "config/deployment.school-server.json"
+    },
+    {
+      "severity": "HIGH",
+      "issue": "security-critical asset existuje v deploymentu, ale SW jej nijak nevyjima z cache-first",
+      "detail": "ghrab/ghrab-platform.js"
+    },
+    {
+      "severity": "HIGH",
+      "issue": "security-critical asset existuje v deploymentu, ale SW jej nijak nevyjima z cache-first",
+      "detail": "release-integrity.json"
+    },
+    {
+      "severity": "HIGH",
+      "issue": "security-critical asset existuje v deploymentu, ale SW jej nijak nevyjima z cache-first",
+      "detail": "release-integrity.sig"
+    },
+    {
+      "severity": "MEDIUM",
+      "issue": "security-critical asset je zminen ve filtru runtime requestu - overit, ze jej nevyrazuje z obsluhy",
+      "detail": "runtime-config.js"
+    },
+    {
+      "severity": "MEDIUM",
+      "issue": "security-critical asset je zminen ve filtru runtime requestu - overit, ze jej nevyrazuje z obsluhy",
+      "detail": "config/deployment.json"
+    }
+  ],
+  "note": "Staticka kontrola. Nenahrazuje SIM-07 (update/recovery) ani behavioralni test revokace v prohlizeci."
+}

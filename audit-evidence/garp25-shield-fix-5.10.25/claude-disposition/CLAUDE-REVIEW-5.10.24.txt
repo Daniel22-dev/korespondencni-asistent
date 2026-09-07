@@ -1,0 +1,415 @@
+GARP 2.5.1 SHIELD - NEZAVISLA KONTROLA KANDIDATA (ROLE B / CLAUDE)
+Korespondencni asistent (KS) 5.10.24
+Datum kontroly: 2026-09-06
+Rezim: PROMPT E - DELTA REVIEW HOTOVEHO KANDIDATA
+Kontrolujici: Claude, role B (neopravuje, pouze overuje a zadava)
+Urceno pro: ChatGPT / Codex jako zadani oprav 5.10.25
+
+======================================================================
+0. VERDIKT V JEDNE VETE
+======================================================================
+Kandidat 5.10.24 obstal ve vsech kryptografickych a inventarnich kontrolach,
+ktere jsem dokazal reprodukovat nezavisle, ale NELZE ho prijmout se stavajicim
+hodnocenim GH-02 / GHNC-12 / GHNC-02: prokazal jsem, ze deklarovany
+security-critical asset ghrab/ghrab-platform.js je v nasazenem service workeru
+stale v precache a ze PASS te kontroly je falesne negativni nalez zpusobeny
+nazvem promenne, nikoli nepritomnosti te vlastnosti.
+
+OVERALL doporuceni: AMBER, ale s jinym duvodem nez uvadi predavaci protokol.
+Predavaci protokol tvrdi "nebyl zjisten novy otevreny HIGH/CRITICAL aplikacni
+nalez". S tim nesouhlasim: nalez N1 nize je novy a je HIGH v rovine assurance.
+
+======================================================================
+1. OMEZENI TOHOTO KOLA - CTI JAKO PRVNI
+======================================================================
+1.1 CHYBEJICI VSTUP
+Kapitola 13 predavaciho protokolu vyzaduje, aby Claude dostal soucasne ctyri
+polozky. Dostal jsem tri:
+  ANO  KS-5.10.24-GARP2.5-SHIELD-KANDIDAT.zip
+  ANO  KS-5.10.24-GARP2.5-SHIELD-DEPLOYMENT.zip
+  ANO  PREDANI-KS-5.10.24-GARP2.5-SHIELD.txt
+  NE   GARP-2.5.1-ZAVEDENI.zip
+
+Dusledek: nemam doslovne zneni PROMPTY/E-CLAUDE-GARP25-SHIELD-DELTA-REVIEW.txt.
+Tato kontrola je proto vedena podle vyctu overovanych bodu v kapitole 13
+predavaciho protokolu, nikoli podle autoritativniho promptu E. Nemohu
+zarucit, ze pokryva vsechny formalni nalezitosti promptu E (zejmena predepsany
+format vystupu a povinna pole verdiktu). Toto kolo se NESMI oznacit za
+formalne uzavrene kolo Prompt E, dokud nebude porovnano s promptem samotnym.
+
+1.2 OMEZENI PROSTREDI
+node_modules v kandidatovi neni a prostredi nema pristup do npm registry
+mimo povolene domeny. Nemohl jsem proto nezavisle reprodukovat testy zavisle
+na jsdom / playwright / axe-core:
+  - internal application tests 171/171
+  - suite-session deterministic simulation 10/10
+  - reporter static/unit 52/52
+  - browser contract, qa:runtime, Axe, UI interactions
+Tyto polozky pro me zustavaji NEOVERENE (ne vyvracene). Prebiram je z logu
+kandidata jako tvrzeni, nikoli jako mnou potvrzeny dukaz.
+
+======================================================================
+2. CO JSEM NEZAVISLE REPRODUKOVAL A CO SOUHLASI
+======================================================================
+2.1 PROVENANCE FREEZE - SOUHLASI
+Prepocitane SHA-256 nahranych baliku:
+  KANDIDAT   c797ca338bec72bb62a46f32cb8a64764cc09f5c52b280a6a1892a9af183dec6
+  DEPLOYMENT 940668749c8e731a46c1157c7030229d1e40e9312aa9638277529a071765e7ca
+Oba presne odpovidaji kapitole 1 predavaciho protokolu.
+
+2.2 RELEASE INTEGRITY - SOUHLASI, OVERENO MIMO PROJEKTOVE SKRIPTY
+- Prepocital jsem SHA-256 vsech 39 souboru deploymentu vlastnim kodem v Pythonu.
+  Vysledek: 39/39 shoda velikosti i hashe, 0 odchylek.
+- Na disku je 41 souboru; dva navic jsou release-integrity.json a
+  release-integrity.sig, tedy korektne vyjmute. Zadny nezname souboru navic,
+  zadny chybejici. Detekce castecneho nasazeni ma tedy realny podklad.
+- artifactDigest jsem prepocital vlastni implementaci algoritmu
+  ghrab-artifact-digest-v2 (NFC, utf8-bytewise razeni, hlavicka + radky):
+  7af5b8cab1cbd07a0f0a5bd7e47af5800932cd22d8605cd1322defba295b49d0
+  Shoduje se s manifestem. Algoritmus je skutecne nezavisle reprodukovatelny.
+- Podpis Ed25519 jsem overil knihovnou mimo projekt (python cryptography),
+  nikoli skriptem kandidata. Platny, 64 bajtu, klic prep-ks-ed25519-20260906
+  odpovida PREP trust rootu. Podepsana zprava jsou bajty souboru
+  release-integrity.json.
+- Projektove verifiery daly stejny vysledek: VERIFIED / APPROVED / PASS.
+
+2.3 NEGATIVNI KONTROLY - REPRODUKOVANY, NE JEN PRECTENY
+Provedl jsem vlastni mutace, nespolehal jsem na ulozene logy:
+  byte tamper v runtime-config.js      -> TAMPERED (size + sha256)   OK
+  soubor navic v deploymentu           -> TAMPERED (unexpected)      OK
+  cisty strom po mutacich              -> VERIFIED, 39 souboru       OK
+  registr s jinou verzi a digestem     -> DENIED, rollback-denied    OK
+  revokovany klic v trust rootu        -> UNVERIFIED, key-status     OK
+  mutace evidence                      -> FAIL (regression-summary)  OK
+Anti-rollback, trust root a evidence tamper detekce funguji tak, jak protokol
+tvrdi.
+
+2.4 DALSI REPRODUKOVANE GATE
+  vendored consistency        PASS, 4/4 kopie, drift 0
+  school boundaries GARP25    9/9 PASS
+  secret scan                 158 souboru, 0 nalezu
+  XSS sink gate               passed, 0 selhani
+  pinned inputs               PASS, 0 selhani
+  AI assurance baseline       PASS, 6/6 hashu sedi
+  platform conformance        124/124 PASS, 0 selhani
+  evidence manifest           PASS, 157 souboru
+  build provenance            PASS proti skutecnemu nahranemu DEPLOYMENT.zip
+                              (subjectSha256 sedi; builder local-untrusted)
+
+2.5 SOURCE / DEPLOYMENT SEPARACE - SOUHLASI
+  - deployment je bajt po bajtu totozny s dist-school-server (diff -rq: 0 rozdilu)
+  - zadny privatni klic, zadny vzor OpenAI/Google API klice
+  - zadne .map, .pem, .key, .env, .test.*, .spec.*
+  - v produkcnim index.html 0 vyskytu testovacich hooku
+Tvrzeni "private key in source/deployment/evidence: NE" potvrzuji.
+
+2.6 G25-KS-02 (SDILENY REPORTER) - CASTECNE POTVRZENO, VIZ N4
+Vlastnim sha256sum jsem overil, ze ghrab-platform.js i error-reporter.js jsou
+bajtove totozne napric vendor / dist / dist-school-server i uvnitr nahraneho
+DEPLOYMENT.zip. Oprava prepisovani Studio URL ve sdilene komponente je
+skutecne provedena.
+
+2.7 AGENTIC = NO - POTVRZENO PROTI CALL GRAFU
+Prohledal jsem src/js i oba sestavene index.html na vzory tools / schemat
+function callingu / MCP / executoru / eval / new Function / dynamickeho importu
+rizeneho modelem. Jedine dynamicke importy jsou dva pevne zadratovane cesty:
+access/app-guard.js a access/error-reporter-adapter.js. Zadny nastroj, zadny
+tool schema, zadny action executor. Klasifikace AGENTIC=NO je oprávnena a
+N/A u SH-AG-01..15 a SHNC-17..20 je v poradku.
+
+======================================================================
+3. NALEZY
+======================================================================
+
+----------------------------------------------------------------------
+N1  GH-02 NENI DOOPRAVENO A GHNC-12 / GHNC-02 JSOU FALESNE NEGATIVNI
+    Zavaznost: HIGH (assurance / kontrolni mechanismus)
+               MEDIUM (bezprostredni bezici riziko)
+    Typ: novy otevreny nalez, ktery predavaci protokol nezachytil
+----------------------------------------------------------------------
+POPIS
+security/security-critical-assets.json deklaruje ghrab/ghrab-platform.js jako
+security-critical. Nasazeny dist-school-server/sw.js (a stejne tak sw.js uvnitr
+DEPLOYMENT.zip) obsahuje na konci vlozeny blok:
+
+  /* GHRAB_PLATFORM_P3_START */
+  const GHRAB_PLATFORM_P3_ASSETS=[ ... "./ghrab/ghrab-platform.js", ... ];
+  self.addEventListener('install', ... cache.add(asset) ... );
+  /* GHRAB_PLATFORM_P3_END */
+
+Jde o druhy install listener, ktery security-critical asset ulozi do cache.
+Tim je porusene pravidlo c. 1 samotneho checkeru
+(scripts/garp25/check-sw-security-freeze.mjs): "security-critical assety
+NEJSOU v precache/manifestu SW".
+
+PROC TO KONTROLA NEODHALILA
+Checker hleda precache pouze podle nazvu promenne:
+  (?:PRECACHE|STATIC_ASSETS|urlsToCache|CORE_ASSETS|APP_SHELL|precacheManifest)
+Nazev GHRAB_PLATFORM_P3_ASSETS do teto mnoziny nespada, takze celych 7 polozek
+je pro kontrolu neviditelnych. Proto hlasi precachedEntries: 22, coz je presne
+pocet polozek CORE_ASSETS a nic vic.
+
+DUKAZ (reprodukovatelny)
+Vzal jsem kopii nasazeneho stromu a zmenil JEDINOU vec - identifikator pole
+GHRAB_PLATFORM_P3_ASSETS na PRECACHE. Obsah pole, obsah SW ani deployment jsem
+nezmenil. Vysledek stejneho checkeru na stejnem obsahu:
+
+  status: FAIL
+  precachedEntries: 27
+  findings: [ CRITICAL, "security-critical asset je v precache SW",
+              detail "./ghrab/ghrab-platform.js (vzor: ghrab/ghrab-platform.js)" ]
+
+Zaverem: mezi PASS a CRITICAL/FAIL stoji nazev promenne, nikoli bezpecnostni
+vlastnost artefaktu.
+
+ROZSAH DOPADU
+a) GHNC-12 self-certification "pre-fix FAIL / post-fix PASS" neprokazuje to, co
+   ma prokazovat. Prokazuje pouze to, ze checker detekuje TVAR chyby pritomny
+   ve verzi 5.10.23, ne ze vlastnost je v 5.10.24 odstranena.
+b) GHNC-02 "disposable precache platformy -> CRITICAL/FAIL; clean PASS" ma
+   neplatnou clean baseline. Cisty strom NENI cisty - asset tam je, jen jinde.
+   Negativni kontrola pridala do CORE_ASSETS presne to, co uz v souboru bylo.
+c) GH-10 "PASS - pre-fix FAIL/post-fix PASS for GH-02" je tim padem nezasluzene.
+d) Kontrola je nastroj GARP 2.5.1, ne KS. Stejna slepa skvrna plati pro kazdou
+   aplikaci ekosystemu GHRAB, ktera pouziva stejny vlozeny P3 blok. To je
+   ekosystemovy problem, ne lokalni.
+
+CO NETVRDIM
+Netvrdim, ze jde o aktivne zneuzitelne zmrazeni brany v 5.10.24. Fetch handler
+smeruje ghrab/ghrab-platform.js pres isSecurityCriticalRequest do
+networkOnlyNoStore, takze ulozena kopie se za soucasneho stavu neservíruje.
+Riziko je latentni a kontrolni: v cache lezi zmrazena kopie platform runtime,
+kterou zadna kontrola nevidi, a jedina vec, ktera brani jejimu pouziti, je jedna
+vetev ve fetch handleru. Vedlejsi ucinek stejneho bloku: pokud kterykoli P3
+asset neni pri instalaci dostupny, install SW tvrde spadne (throw), coz je
+zaroven otazka dostupnosti offline rezimu.
+
+POZADOVANA OPRAVA (5.10.25)
+1. Odstranit ./ghrab/ghrab-platform.js z GHRAB_PLATFORM_P3_ASSETS, nebo cely P3
+   precache blok upravit tak, aby security-critical assety vynechaval podle
+   security/security-critical-assets.json.
+2. Opravit checker tak, aby nezavisel na nazvu promenne. Minimalne: parsovat
+   argumenty vsech volani cache.add / cache.addAll v SW, ne jen vyjmenovana
+   pole. Toto je zmena nastroje GARP 2.5.1, ne aplikace - je nutne ji vratit
+   do standardu, aby nezustala jen v KS.
+3. Znovu provest GHNC-02 i GHNC-12 nad opravenym stromem a novym checkerem a
+   pripojit dukaz, ze na NEOPRAVENEM 5.10.24 novy checker FAIL.
+4. V evidenci uvest, ze predchozi PASS byl falesne negativni.
+
+----------------------------------------------------------------------
+N2  AI ASSURANCE BASELINE NEPOKRYVA ANONYMIZACI ANI SESTAVOVANI PROMPTU
+    Zavaznost: HIGH (privacy / integrita dukazu)
+----------------------------------------------------------------------
+POPIS
+security/AI-ASSURANCE-BASELINE.json sleduje 6 souboru:
+  src/runtime-config.js
+  src/runtime-config.school-server.js
+  src/ai-operations.json
+  src/js/28-ai-integration.js          (115 radku)
+  src/js/30-api-gemini.js
+  vendor/ghrab-ai-core-1.0.0/ghrab-ai-core-1.0.0.js
+
+Nesleduje:
+  src/js/40-anonymizace.js             (1468 radku) - jadro anonymizace
+  src/js/50-koncept-a-prompty.js       (659 radku)  - sestaveni promptu
+
+DOPAD
+a) Kapitola 3 predavaciho protokolu tvrdi "Prompt assembly/system prompt/
+   provider/model zmenen? NE. ... Current assurance baseline hashes relevantni
+   AI soubory." Druha cast te vety neplati pro modul, ktery prompt skutecne
+   sestavuje. Pro TOTO kolo je tvrzeni podlozene exact diffem, takze
+   nezpochybnuji fakt; zpochybnuji mechanismus, ktery ho ma hlidat dal.
+b) SHNC-14 "model-change evidence invalidation: PASS" ma diru. Zmena v
+   40-anonymizace.js nebo 50-koncept-a-prompty.js NEZNEPLATNI AI evidenci.
+   Znamena to, ze AIR structural 33/33 a privacy dukazy lze v pristim kole
+   prenest pres realnou zmenu anonymizace, aniz by to cokoli detekovalo.
+c) Anonymizace je jadro privacy kontroly D2 aplikace. Prave ta ma byt uvnitr
+   obalky, ktera pri zmene zneplatnuje dukazy.
+
+POZNAMKA: release-integrity oba moduly pokryva (jsou zabundlovane do
+index.html), takze bajtova integrita nasazeneho artefaktu je v poradku. Diru
+ma vylucne mechanismus zneplatnovani AI dukazu.
+
+POZADOVANA OPRAVA (5.10.25)
+1. Pridat oba soubory do AI-ASSURANCE-BASELINE.json a regenerovat hashe.
+2. Znovu provest SHNC-14 se dvema mutacemi: jedna v 40-anonymizace.js, jedna
+   v 50-koncept-a-prompty.js. Obe musi zneplatnit AI evidenci.
+3. Prehodnotit SH-AI-11 z PASS na PASS az po teto oprave.
+
+----------------------------------------------------------------------
+N3  PODEPSANY MANIFEST NEVAZE PROVENANCE, EVIDENCE ANI DEPLOYMENT BALIK
+    Zavaznost: MEDIUM (chain of custody)
+----------------------------------------------------------------------
+POPIS
+V podepsanem release-integrity.json jsou tri pole schematu prazdna:
+  buildProvenanceSha256: null
+  evidenceManifestSha256: null
+  deploymentPackageSha256: null
+Pritom oba artefakty existuji a samostatne overuji: provenance PASS proti
+skutecnemu DEPLOYMENT.zip, evidence manifest PASS na 157 souborech.
+
+DOPAD
+Podpis Ed25519 kryje inventar souboru a sbomSha256, ale nekryje build
+provenance ani evidence manifest. Zamena provenance nebo evidence manifestu
+tedy neporusi podpis vydani. SHNC-03 a SHNC-10 ji odhali pouze tehdy, kdyz
+verifier dostane spravny ocekavany hash jinou cestou. Pro solo spravu (jeden
+clovek, jeden stroj) je to prakticky nezajistene.
+
+POZADOVANA OPRAVA
+Naplnit vsechna tri pole pred podpisem a doplnit negativni kontrolu:
+zamena provenance nebo evidence manifestu musi zneplatnit podepsane vydani.
+
+----------------------------------------------------------------------
+N4  VENDORED CONSISTENCY U REPORTERU JE SEBEREFERENCNI
+    Zavaznost: LOW (presnost tvrzeni)
+----------------------------------------------------------------------
+security/vendored-consistency.KS.json ma pro komponentu error-reporter
+canonical = src/access/error-reporter.js, tedy vlastni zdroj KS. Kontrola
+prokazuje "dist kopie == zdroj KS", nikoli "KS == kanonicka sdilena komponenta
+ekosystemu". Pro platform je canonical vendorovany snapshot, coz je lepsi, ale
+porad ne cross-repo.
+
+Soubor sam v poznamce priznava, ze GH-01 napric repozitari neprokazuje - to je
+poctive. Kapitola 2 predavaciho protokolu ale rika, ze "sdileny reporter
+zustava bajtove identicky s kanonickou sdilenou komponentou", coz je silnejsi
+tvrzeni, nez bylo overeno.
+
+POZADOVANA OPRAVA
+Preformulovat tvrzeni na overeny rozsah, nebo doplnit hash kanonicke
+komponenty ze zdrojoveho repozitare do konfigurace.
+
+----------------------------------------------------------------------
+N5  APP-GUARD LEZI MIMO INTEGRITNI OBALKU KS
+    Zavaznost: OBSERVATION (patri do threat modelu, ne mezi nalezy)
+----------------------------------------------------------------------
+Aplikace nacita branu pres await import('/ai-studio/access/app-guard.js')
+(ve verzi pro Studio '/AI-Studio-GHRAB/access/app-guard.js'). Tato cesta je
+mimo scope service workeru KS i mimo release-integrity.json KS. Podepsana
+integrita KS tedy nekryje branu, ktera KS chrani.
+
+To je konzistentni s tim, ze GH-03 a RI-11 jsou NOT TESTED, ale melo by to byt
+explicitne v SECURITY-THREAT-MODEL.md jako deklarovana hranice duvery, ne jen
+implicitne vyplyvat z NT statusu.
+
+======================================================================
+4. NAVRHOVANE ZMENY STATUSU
+======================================================================
+Z PASS na FAIL / NEPLATNE:
+  GH-02          PASS static      -> FAIL (oprava nedokoncena, N1)
+  GHNC-12        PASS             -> FAIL (falesne negativni, N1)
+  GHNC-02        PASS             -> NEPLATNA BASELINE (N1)
+  GH-10          PASS             -> NEPROKAZANO (N1)
+
+Z PASS na PASS S VYHRADOU:
+  SH-APP-05      PASS PREP        -> PASS PREP S VYHRADOU N1
+  SH-AI-11       PASS             -> PASS S MEZEROU (N2)
+  SHNC-14        PASS             -> CASTECNY PASS (N2)
+  G25-KS-02      PASS 4/4         -> PASS v rozsahu KS; cross-repo NOT TESTED (N4)
+  Build provenance / Evidence manifest
+                 PASS             -> PASS, ale nevazano podpisem (N3)
+
+Ponechavam beze zmeny (souhlasim s predavacim protokolem):
+  cely blok RI-01..RI-09, RI-15, RISIM-01..06, RISIM-08, RISIM-10
+  SHNC-01..06, SHNC-09, SHNC-10, SHNC-16
+  AGENTIC=NO a vsechna N/A z toho plynouci
+  vsechny NOT TESTED polozky v kapitolach 4, 5, 6, 7, 8, 9, 11 - jsou podle me
+  oznaceny poctive a nikde jsem nenasel NT vydavane za PASS
+
+Nepridavam zadny dalsi PASS. Zejmena neprebiram jako overene ty testy, ktere
+jsem sam nespustil (viz 1.2).
+
+======================================================================
+5. ODPOVEDI NA OSM OTAZEK Z KAPITOLY 13 PREDAVACIHO PROTOKOLU
+======================================================================
+1. GH-02/GHNC-12 pre-fix vs post-fix skutecne detekuje puvodni chybu?
+   CASTECNE. Detekuje tvar chyby v 5.10.23, ale post-fix PASS je falesne
+   negativni. Viz N1.
+
+2. Shared vendor byte identity po zmene school buildu?
+   ANO, potvrzeno vlastnim sha256sum vcetne obsahu DEPLOYMENT.zip. Rozsah
+   tvrzeni je ale uzsi, nez protokol rika. Viz N4.
+
+3. Release-integrity v2 / signature / trust-root / registry / anti-rollback?
+   ANO, plne potvrzeno nezavislou implementaci i vlastnimi negativnimi
+   kontrolami. Nejsilnejsi cast celeho baliku.
+
+4. Source/deployment separation a absence private key?
+   ANO, potvrzeno. Zadny klic, zadne mapy, zadne testovaci artefakty.
+
+5. Provenance / rebuild / evidence manifest a SHNC negativni kontroly?
+   ANO na uroven jednotlivych artefaktu. ALE nejsou vazane podpisem. Viz N3.
+
+6. Klasifikace AGENTIC=NO proti call graphu?
+   ANO, potvrzeno.
+
+7. Ma byt nektery PASS konzervativne snizen na NOT TESTED?
+   ANO, ctyri na FAIL/neplatne a pet na PASS s vyhradou. Viz kapitola 4.
+
+8. Byl prehlednut novy HIGH/CRITICAL nalez?
+   ANO. N1 je novy a v rovine assurance HIGH. Tvrzeni "novy potvrzeny otevreny
+   HIGH/CRITICAL: NENI" v kapitole 2 predavaciho protokolu tedy neplati.
+
+======================================================================
+6. ZADANI PRO CHATGPT / CODEX - 5.10.25
+======================================================================
+Poradi podle priority.
+
+P1 - N1, cast aplikace
+  Odstranit security-critical assety z GHRAB_PLATFORM_P3_ASSETS v src i v obou
+  build profilech. Zdrojem pravdy musi byt security/security-critical-assets.json,
+  ne rucni seznam.
+
+P1 - N1, cast nastroje GARP 2.5.1
+  Prepsat detekci precache v scripts/garp25/check-sw-security-freeze.mjs tak,
+  aby nezavisela na nazvu promenne. Doporuceny pristup: najit vsechna volani
+  cache.add( a cache.addAll( a vyhodnotit jejich argumenty vcetne poli
+  dosazenych pres identifikator. Zmenu vratit do standardu GARP 2.5.1, protoze
+  se tyka vsech aplikaci GHRAB.
+
+P1 - N2
+  Doplnit src/js/40-anonymizace.js a src/js/50-koncept-a-prompty.js do
+  security/AI-ASSURANCE-BASELINE.json, regenerovat hashe, znovu provest SHNC-14
+  se dvema mutacemi.
+
+P2 - N3
+  Naplnit buildProvenanceSha256, evidenceManifestSha256 a
+  deploymentPackageSha256 pred podpisem. Doplnit negativni kontrolu na zamenu
+  provenance a evidence.
+
+P3 - N4
+  Upresnit tvrzeni o kanonicke shode reporteru, nebo doplnit hash z kanonickeho
+  repozitare.
+
+P3 - N5
+  Doplnit do SECURITY-THREAT-MODEL.md explicitni hranici duvery pro app-guard
+  nacitany mimo integritni obalku KS.
+
+POVINNE DUKAZY K 5.10.25
+  - novy checker FAIL na neopravenem 5.10.24 (dukaz, ze nova kontrola opravdu
+    chytá to, co stara nechytila)
+  - novy checker PASS na opravenem 5.10.25
+  - GHNC-02 a GHNC-12 znovu, s platnou clean baseline
+  - SHNC-14 se dvema novymi mutacemi
+  - negativni kontrola zameny provenance a evidence
+  - regenerovany a znovu podepsany release-integrity.json s naplnenymi poli
+  - v CHANGELOG i v novem predavacim protokolu explicitni veta, ze predchozi
+    PASS u GH-02/GHNC-12 byl falesne negativni
+
+======================================================================
+7. ZAVER
+======================================================================
+Kryptograficka a inventarni vrstva 5.10.24 je podle me v poradku a obstala i
+proti nezavisle implementaci mimo projektove skripty. To je skutecny vysledek
+a nesnizuji ho.
+
+Kandidata presto NEDOPORUCUJI uzavrit jako kolo Prompt E bez opravy N1 a N2.
+Duvod neni v tom, ze by aplikace byla nebezpecna dnes, ale v tom, ze dve
+kontroly, ktere maji hlidat nejcitlivejsi vlastnosti systemu - zmrazeni
+security-critical assetu a zneplatneni AI dukazu pri zmene anonymizace a
+promptu - v soucasne podobe hlidaji mene, nez o sobe tvrdi. Prijmout PASS,
+ktery vznikl nazvem promenne, by bylo presne to falesne GREEN, proti kteremu
+je GARP 2.5.1 postavena.
+
+Tento vystup NENI produkcni release a nesmi byt tak oznacen.
+Realna studentska data: NEPOUZIVAT.
+School server production: NEPOVOLENO / NOT TESTED.

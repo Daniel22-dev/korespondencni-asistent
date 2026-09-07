@@ -1,0 +1,10 @@
+GARP 2.3 — Korespondenční asistent — nový AI-RED cyklus — fáze A / kolo 1
+Aplikace: Korespondenční asistent 5.10.13
+Datum: 2026-08-29
+Pouze syntetická data: ANO
+Vstup aplikace: Korespondencni-asistent-5.10.12-GARP2.2-TECHNICKY-UZAVRENO-EXTERNI-GREEN-PENDING.zip
+SHA-256 vstupu: ca3986a4dbfb545f53f2273e359ec17cbde8fb90e06e063992e0855e6b956d6c
+GARP: GARP-2.3-RED-TEAM-AI-RED-PROMPT-INJECTION-JAILBREAK-HARDENED.zip
+SHA-256 GARP: d9e1d88d40ea0214f0e4e1cb685750faa49089ad3aa124bba1ec02cf30a1b2ad
+Autoritativní evidence tohoto kola: audit-evidence/garp23-cycle1-round1/
+EVIDENCE MODE: skutečně spuštěné lokální testy + artefaktová/source kontrola; live behaviorální provider test je NOT TESTED, protože auditní prostředí nemá produkční Gemini/school-gateway credential.

@@ -1,0 +1,145 @@
+=== build:test ===
+
+> ghrab-korespondencni-asistent@5.10.12 build:test
+> node scripts/build.mjs --test-hooks
+
+[build] Korespondenční asistent: verze 5.10.12 · Core 1.0.0 ověřen SHA-256 · 8 AI operací · 13 aplikačních JS modulů · test hooks LOCAL TEST ONLY · dist připraven
+[P3] correspondence 5.10.12: platform 1.1.0, HTML 2, cache ghrab-correspondence-v5.10.12
+=== qa-ai-profiles ===
+{
+  "schema": "ghrab-ai-profile-gate-v1",
+  "appId": "correspondence",
+  "appVersion": "5.10.12",
+  "expectedProfiles": [
+    "economy",
+    "balanced",
+    "quality"
+  ],
+  "checks": [
+    {
+      "id": "ui.exact-three-profiles",
+      "ok": true,
+      "detail": "economy,balanced,quality"
+    },
+    {
+      "id": "ui.provider-neutral",
+      "ok": true,
+      "detail": "no provider model IDs/free model input"
+    },
+    {
+      "id": "state.profile-only",
+      "ok": true,
+      "detail": "provider-neutral state"
+    },
+    {
+      "id": "integration.no-model-override",
+      "ok": true,
+      "detail": "Core chooses model from runtime profile map"
+    },
+    {
+      "id": "flows.no-hardcoded-profile",
+      "ok": true,
+      "detail": "user-selected profile remains authoritative"
+    },
+    {
+      "id": "api.request-uses-selected-profile",
+      "ok": true,
+      "detail": "callGemini resolves selectedModelProfile"
+    },
+    {
+      "id": "api.legacy-migration-only",
+      "ok": true,
+      "detail": "legacy provider IDs migrate to profiles"
+    },
+    {
+      "id": "operations.all-three-allowed",
+      "ok": true,
+      "detail": "8 operations"
+    },
+    {
+      "id": "direct.mode",
+      "ok": true,
+      "detail": "direct-gemini"
+    },
+    {
+      "id": "direct.profile-keys",
+      "ok": true,
+      "detail": "economy,balanced,quality"
+    },
+    {
+      "id": "direct.profile-models-distinct",
+      "ok": true,
+      "detail": "economy=gemini-3.5-flash-lite | balanced=gemini-3.6-flash | quality=gemini-3.5-flash"
+    },
+    {
+      "id": "direct.provider-is-runtime-only",
+      "ok": true,
+      "detail": "direct runtime owns Gemini IDs"
+    },
+    {
+      "id": "school.mode",
+      "ok": true,
+      "detail": "school-gateway"
+    },
+    {
+      "id": "school.provider-neutral",
+      "ok": true,
+      "detail": "no provider/model in school runtime"
+    },
+    {
+      "id": "school.same-profile-contract",
+      "ok": true,
+      "detail": "same Core profile contract"
+    }
+  ],
+  "summary": {
+    "passed": 15,
+    "failed": 0
+  },
+  "status": "passed"
+}
+=== core test.mjs ===
+  ℹ jsdom není lokálně dostupný, používám hermetický Chromium fallback
+  ✓ přístupová brána AI Studia
+  ✓ bez nativních blokujících dialogů
+  ✓ start bez runtime chyb
+  ✓ žádná duplicitní ID
+  ✓ 164/164 interních testů prošlo
+  ✓ 17/17 Core conformance testů prošlo
+  ✓ Gemini nepoužívá thinkingLevel low
+  ✓ Gemini má výstupní limit 32768
+  ✓ vydaný GHRAB AI Core a oba transporty
+  ✓ aplikační AI vrstva a UI jsou provider-neutrální
+  ✓ UI má Úsporný / Doporučený / Důkladný jako centrální profily
+  ✓ Direct Gemini runtime mapuje všechny tři profily
+  ✓ školní runtime je provider-neutrální school-gateway
+  ✓ pravidla přímého adresáta a českého oslovení používají bezpečné značky
+  ✓ KS používá jediný lokální společný reportér s pracovním e-mailem
+  ✓ ZIP se stahuje přímým kliknutím před otevřením Gmailu
+  ✓ zavření reportu nabízí smazání nebo ponechání konceptu
+  ✓ sjednocený workflow snímání je přítomen
+  ✓ společné CSS pokrývá oba motivy a bezpečné okraje
+  ✓ adaptér KS respektuje skutečný motiv a verzi
+  ✓ společný reportér je syntakticky platný
+  ✓ stará paralelní implementace KS byla odstraněna
+  ✓ automatický fallback je zakázaný
+  ✓ veřejná runtime konfigurace je načítaná
+  ✓ jednoznačná PWA identita a verze
+  ✓ Studio manifest deklaruje živou server-ready integraci
+  ✓ veřejný registr osmi AI operací je konzistentní
+  ✓ service worker spravuje jen vlastní a historické cache
+  ✓ runtime konfigurace, no-store požadavky a školní API jsou mimo PWA cache
+  ✓ service worker zahrnuje společný reportér, CSS i adaptér
+  ✓ manuál dědí oprávnění AI Studia
+  ✓ manuál nevytváří druhý reportér a odkazuje na centrální návod
+  ✓ manuál má návrat do aplikace
+  ✓ skloňování osob má jediný lokální zdroj pravdy
+  ✓ privacy-stage neruší skrývání kroku 2
+  ✓ starý nepřístupný školní návod není v sestavené aplikaci
+  ✓ bez osiřelých stylů po odstraněných průvodcích
+  ✓ obě pracovní cesty otevírají pravidla bez opuštění aplikace
+  ✓ verze manuálu, aplikace a README jsou sjednocené
+  ✓ bezpečnostní kapitola má stabilní ID, navigaci a strukturu
+  ✓ manuál dokumentuje omezení odvozených příjmení
+  ✓ generované dist je v .gitignore
+CELKEM: vše zelené — release gate OK.

@@ -1,0 +1,54 @@
+{
+  "schema": "ghrab-ks-garp25-school-boundaries-v1",
+  "appId": "correspondence",
+  "version": "5.10.24",
+  "syntheticOnly": true,
+  "checks": [
+    {
+      "id": "GH05-profile",
+      "status": "PASS",
+      "detail": "{\"profile\":\"school-server\",\"authMode\":\"server-session\",\"aiTransport\":\"school-gateway\"}"
+    },
+    {
+      "id": "GH05-local-provider-config",
+      "status": "PASS",
+      "detail": "features.allowLocalProviderKeys=false"
+    },
+    {
+      "id": "GH05-runtime-allowlist",
+      "status": "PASS",
+      "detail": "{\"defaultMode\":\"school-gateway\",\"selectedMode\":\"school-gateway\",\"allowedModes\":[\"school-gateway\"],\"allowUserModeSelection\":false,\"automaticFallback\":false,\"gatewayUrl\":\"/api/v1/ai/generate\",\"healthUrl\":\"/api/v1/ai/health\",\"requestTimeoutMs\":120000,\"gatewayMaxRetries\":1,\"maxRequestBytes\":18874368,\"maxPartBytes\":14680064}"
+    },
+    {
+      "id": "GH05-provider-neutral-runtime",
+      "status": "PASS",
+      "detail": "school runtime has no provider/model literal"
+    },
+    {
+      "id": "GHNC-05-direct-mode-runtime-denied",
+      "status": "PASS",
+      "detail": "active=school-gateway; error=CONFIGURATION_ERROR"
+    },
+    {
+      "id": "GHNC-05-local-key-not-consumed",
+      "status": "PASS",
+      "detail": "credentialCalls=0"
+    },
+    {
+      "id": "GH08-PWA-stable-id",
+      "status": "PASS",
+      "detail": "{\"sourceId\":\"/korespondencni-asistent/\",\"schoolId\":\"./\",\"start_url\":\"./\",\"scope\":\"./\"}"
+    },
+    {
+      "id": "GH14-agentic-no",
+      "status": "PASS",
+      "detail": "GHRAB_AI.generate=1; agentHits=none"
+    }
+  ],
+  "summary": {
+    "total": 8,
+    "passed": 8,
+    "failed": 0,
+    "status": "PASS"
+  }
+}

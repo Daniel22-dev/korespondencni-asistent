@@ -1,0 +1,77 @@
+{
+  "schema": "ghrab-garp24-ri-prep-evidence-v1",
+  "appId": "correspondence",
+  "version": "5.10.23",
+  "generatedAt": "2026-09-06T13:31:08.083Z",
+  "provenance": {
+    "inputSourcePackageSha256": "b03287cd1e02286bdefea4bbee0b79ce1dba68c61b9be312d7095371dd11d413",
+    "garp24PackageSha256": "f5d203b2824e529dda49f3e4701abb54239bb054a2527be5e7dbca4b0f5dbc36",
+    "sourceCommit": null,
+    "deploymentPackageSha256": null
+  },
+  "testKey": {
+    "keyId": "correspondence-garp24-migration-test-5.10.23",
+    "algorithm": "Ed25519",
+    "purpose": "GARP 2.4 migration verification only; not production trust root",
+    "privateKeyIncluded": false
+  },
+  "artifactDigest": "f43d6a0b308c91a17feee345fa55172d40998a4fcfb47bfe6a1a5a9a0c3c98db",
+  "files": 39,
+  "results": [
+    {
+      "id": "RI-PREP-MANIFEST-AND-LEAK-SCAN",
+      "status": "PASS",
+      "detail": "{\n  \"status\": \"PASS\",\n  \"root\": \"/mnt/data/ks_audit/korespondencni-asistent-main/dist-school-server\"\n}\n{\n  \"output\": \"/mnt/data/ks_audit/korespondencni-asistent-main/dist-school-server/release-integrity.json\",\n  \"files\": 39,\n  \"artifactDigest\": \"f43d6a0b308c91a17feee345fa55172d40998a4fcfb47bfe6a1a5a9a0c3c98db\"\n}\n{\n  \"status\": \"VERIFIED\",\n  \"files\": 39,\n  \"artifactDigest\": \"f43d6a0b308c91a17feee345fa55172d40998a4fcfb47bfe6a1a5a9a0c3c98db\"\n}\n{\n  \"status\": \"PASS\",\n  \"profile\": \"RI-PREP\",\n  \"appId\": \"correspondence\",\n  \"version\": \"5.10.23\",\n  \"deploymentDir\": \"/mnt/data/ks_audit/korespondencni-asistent-main/dist-school-server\",\n  \"manifest\": \"/mnt/data/ks_audit/korespondencni-asistent-main/dist-school-server/release-integrity.json\",\n  \"keyId\": \"correspondence-garp24-migration-test-5.10.23\",\n  \"signature\": \"PENDING_EXTERNAL_SIGNER\"\n}"
+    },
+    {
+      "id": "RI-05-DETACHED-SIGNATURE",
+      "status": "PASS",
+      "detail": "{\n  \"signature\": \"/mnt/data/ks_audit/korespondencni-asistent-main/dist-school-server/release-integrity.sig\",\n  \"algorithm\": \"Ed25519\"\n}"
+    },
+    {
+      "id": "RI-03-04-05-06-CLEAN-VERIFY",
+      "status": "PASS",
+      "detail": "{\n  \"status\": \"VERIFIED\",\n  \"files\": 39,\n  \"artifactDigest\": \"f43d6a0b308c91a17feee345fa55172d40998a4fcfb47bfe6a1a5a9a0c3c98db\"\n}\n{\"status\":\"VERIFIED\",\"algorithm\":\"Ed25519\"}\n{\n  \"status\": \"VERIFIED\",\n  \"keyId\": \"correspondence-garp24-migration-test-5.10.23\",\n  \"appId\": \"correspondence\",\n  \"version\": \"5.10.23\",\n  \"artifactDigest\": \"f43d6a0b308c91a17feee345fa55172d40998a4fcfb47bfe6a1a5a9a0c3c98db\"\n}"
+    },
+    {
+      "id": "RISIM-01-ONE-BYTE-TAMPER",
+      "status": "PASS",
+      "detail": "single byte flipped at index.html offset 128; verifier={\n  \"status\": \"TAMPERED\",\n  \"errors\": [\n    \"sha256:index.html\"\n  ]\n}"
+    },
+    {
+      "id": "RISIM-02-MANIFEST-SIGNATURE-SUBSTITUTION",
+      "status": "PASS",
+      "detail": "{\"status\":\"UNVERIFIED\",\"reason\":\"SIGNATURE_INVALID\"}"
+    },
+    {
+      "id": "RISIM-04-WRONG-TRUST-ROOT",
+      "status": "PASS",
+      "detail": "{\n  \"status\": \"VERIFIED\",\n  \"files\": 39,\n  \"artifactDigest\": \"f43d6a0b308c91a17feee345fa55172d40998a4fcfb47bfe6a1a5a9a0c3c98db\"\n}\n{\"status\":\"UNVERIFIED\",\"reason\":\"SIGNATURE_INVALID\"}"
+    },
+    {
+      "id": "RISIM-05-MISSING-SIGNATURE",
+      "status": "PASS",
+      "detail": "{\n  \"status\": \"UNVERIFIED\",\n  \"reason\": \"MISSING_SIGNATURE\"\n}"
+    },
+    {
+      "id": "RISIM-06-PARTIAL-MIXED-DEPLOYMENT",
+      "status": "PASS",
+      "detail": "{\n  \"status\": \"TAMPERED\",\n  \"errors\": [\n    \"unexpected:unexpected-old-release.js\"\n  ]\n}"
+    },
+    {
+      "id": "RISIM-10-SOURCE-DEVELOPMENT-LEAK-NEGATIVE-CONTROL",
+      "status": "PASS",
+      "detail": "{\n  \"status\": \"FAIL\",\n  \"errors\": [\n    \"forbidden-ext:synthetic-debug.js.map\"\n  ]\n}"
+    },
+    {
+      "id": "RISIM-10-CLEAN-DEPLOYMENT-REPASS",
+      "status": "PASS",
+      "detail": "{\n  \"status\": \"PASS\",\n  \"root\": \"/mnt/data/ks_audit/korespondencni-asistent-main/dist-school-server\"\n}"
+    },
+    {
+      "id": "NEGATIVE-CONTROL-CLEAN-VERIFY-REPASS",
+      "status": "PASS",
+      "detail": "{\n  \"status\": \"VERIFIED\",\n  \"files\": 39,\n  \"artifactDigest\": \"f43d6a0b308c91a17feee345fa55172d40998a4fcfb47bfe6a1a5a9a0c3c98db\"\n}\n{\"status\":\"VERIFIED\",\"algorithm\":\"Ed25519\"}\n{\n  \"status\": \"VERIFIED\",\n  \"keyId\": \"correspondence-garp24-migration-test-5.10.23\",\n  \"appId\": \"correspondence\",\n  \"version\": \"5.10.23\",\n  \"artifactDigest\": \"f43d6a0b308c91a17feee345fa55172d40998a4fcfb47bfe6a1a5a9a0c3c98db\"\n}"
+    }
+  ]
+}

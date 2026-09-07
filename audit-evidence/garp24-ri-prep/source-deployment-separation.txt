@@ -1,0 +1,8 @@
+SOURCE PACKAGE != DEPLOYMENT PACKAGE
+
+Source root: repository snapshot (src/, scripts/, tests/audit evidence, vendor).
+Deployment root: dist-school-server/
+Deployment forbidden by policy: .git, .github, audit-evidence, test-results, node_modules, *.map, *.pem, *.key, *.p12, *.pfx.
+Leak scan clean deployment: PASS.
+RISIM-10 injected synthetic .map: expected FAIL -> PASS negative control.
+Browser JavaScript remains inspectable by design; separation minimizes disclosure but is not source secrecy.

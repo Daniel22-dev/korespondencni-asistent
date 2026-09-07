@@ -1,0 +1,6 @@
+status=PASS
+method=two school-server builds from exact frozen build-input source with fixed GHRAB_BUILD_TIME; compared with GARP 2.5.1 canonical artifactDigest
+build_time=2026-09-06T14:45:00.000Z
+sourcePackageSha256=b3075a0858cff614d5e3a5eeecfadd5ca807f0ef7658b89233774f92fa85166d
+artifactDigest_build_1=7af5b8cab1cbd07a0f0a5bd7e47af5800932cd22d8605cd1322defba295b49d0
+artifactDigest_build_2=7af5b8cab1cbd07a0f0a5bd7e47af5800932cd22d8605cd1322defba295b49d0

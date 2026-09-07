@@ -1,0 +1,39 @@
+{
+  "schema": "ghrab-assurance-links-verification-v1",
+  "status": "FAIL",
+  "manifest": "dist-school-server/release-integrity.json",
+  "observed": [
+    {
+      "field": "buildProvenanceSha256",
+      "status": "PASS",
+      "expected": "d4dc1ba3c9c6a37776b6ae79e1ae07fdefdff10bf5a5a85e25aa6e7f494d6954",
+      "actual": "d4dc1ba3c9c6a37776b6ae79e1ae07fdefdff10bf5a5a85e25aa6e7f494d6954",
+      "file": "audit-evidence/garp25-shield-fix-5.10.25/supply-chain/build-provenance.json"
+    },
+    {
+      "field": "evidenceManifestSha256",
+      "status": "FAIL",
+      "expected": "8343ce9cc11f8a24fca90b175fb5ce2fe3b3b101ab8759b0e602e361afb703d9",
+      "actual": "c90f71d542257564695d35df4319cbf8d19be1b171edbfaa9aab985c9fcf2d06",
+      "file": "/tmp/ks-nc.9uyLw1/evidence.json"
+    },
+    {
+      "field": "sbomSha256",
+      "status": "PASS",
+      "expected": "af3d0a03cf31f808ce013d7fc88ca6b978af356bf41205b580f558a7ab543670",
+      "actual": "af3d0a03cf31f808ce013d7fc88ca6b978af356bf41205b580f558a7ab543670",
+      "file": "security/ks-5.10.25.cdx.json"
+    },
+    {
+      "field": "deploymentPackageSha256",
+      "status": "PASS",
+      "expected": "d396edcd4612fa438858c7a2f7f9c8ef8e7227f6a03e080ac6ddca8b716d296e",
+      "actual": "d396edcd4612fa438858c7a2f7f9c8ef8e7227f6a03e080ac6ddca8b716d296e",
+      "file": "/mnt/data/KS-5.10.25-GARP2.5-SHIELD-DEPLOYMENT-PAYLOAD.zip"
+    }
+  ],
+  "errors": [
+    "evidenceManifestSha256:hash-mismatch"
+  ],
+  "note": "deploymentPackageSha256 may refer to the pre-sign deployment payload package. The final signed bundle is externally hashed because embedding its own final hash would be self-referential."
+}

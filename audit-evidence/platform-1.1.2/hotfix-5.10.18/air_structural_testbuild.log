@@ -1,0 +1,24 @@
+{
+  "schema": "garp23-ai-red-structural-v1",
+  "generatedAt": "2026-09-04T19:22:41.992Z",
+  "canaryId": "MTNCCKP4-JJD1N1P",
+  "summary": {
+    "structuralPassed": 33,
+    "structuralFailed": 0,
+    "structuralTotal": 33,
+    "structuralStatus": "PASS",
+    "behavioralStatus": "NOT_TESTED",
+    "rt09Status": "NOT_TESTED",
+    "redTeamGateMaximum": "AMBER"
+  },
+  "negativeControls": [
+    {
+      "id": "NC-AIRED-TRUST-BOUNDARY",
+      "expectedUnsafe": "FAIL",
+      "observedUnsafe": "FAIL",
+      "expectedSafe": "PASS",
+      "observedSafe": "PASS",
+      "synthetic": true
+    }
+  ]
+}

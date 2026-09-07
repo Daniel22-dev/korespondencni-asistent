@@ -1,0 +1,106 @@
+AI Studio: access configuration could not be loaded Error: configuration-unavailable
+    at initialiseSignedPermit (file:///mnt/data/ka_newcycle_c/korespondencni-asistent-main/audit-evidence/garp22-newcycle-round2/.access-harness-work/access/access-control.mjs?1787991020093:371:27)
+    at async Module.initialiseAccess (file:///mnt/data/ka_newcycle_c/korespondencni-asistent-main/audit-evidence/garp22-newcycle-round2/.access-harness-work/access/access-control.mjs?1787991020093:489:10)
+    at async file:///mnt/data/ka_newcycle_c/korespondencni-asistent-main/audit-evidence/garp22-newcycle-round2/access-runtime-harness.mjs:125:13 {
+  cause: TypeError: synthetic offline
+      at globalThis.fetch (file:///mnt/data/ka_newcycle_c/korespondencni-asistent-main/audit-evidence/garp22-newcycle-round2/access-runtime-harness.mjs:120:34)
+      at fetchWithTimeout (file:///mnt/data/ka_newcycle_c/korespondencni-asistent-main/audit-evidence/garp22-newcycle-round2/.access-harness-work/access/access-control.mjs?1787991020093:88:18)
+      at fetchJson (file:///mnt/data/ka_newcycle_c/korespondencni-asistent-main/audit-evidence/garp22-newcycle-round2/.access-harness-work/access/access-control.mjs?1787991020093:95:26)
+      at initialiseSignedPermit (file:///mnt/data/ka_newcycle_c/korespondencni-asistent-main/audit-evidence/garp22-newcycle-round2/.access-harness-work/access/access-control.mjs?1787991020093:334:60)
+      at Module.initialiseAccess (file:///mnt/data/ka_newcycle_c/korespondencni-asistent-main/audit-evidence/garp22-newcycle-round2/.access-harness-work/access/access-control.mjs?1787991020093:489:16)
+      at async file:///mnt/data/ka_newcycle_c/korespondencni-asistent-main/audit-evidence/garp22-newcycle-round2/access-runtime-harness.mjs:125:13
+}
+{
+  "schema": "garp22-access-runtime-harness-v2",
+  "generatedAt": "2026-08-29T08:10:20.208Z",
+  "syntheticOnly": true,
+  "sourceArtifact": "AI-Studio-GHRAB GitHub Pages artifact 328701510c0cad4005d935a95b8c28c04255fe71",
+  "tests": [
+    {
+      "id": "RT01-no-permit-failclosed",
+      "ok": true,
+      "detail": "{\"valid\":false,\"reason\":\"missing\",\"access\":{\"enabled\":false,\"reason\":\"missing\",\"permit\":null}}"
+    },
+    {
+      "id": "RT02-storage-tamper-does-not-authorize",
+      "ok": true,
+      "detail": "{\"valid\":false,\"reason\":\"invalid-signature\",\"access\":{\"enabled\":false,\"reason\":\"invalid-signature\",\"permit\":{\"schema\":\"ghrab-access-permit-v1\",\"iss\":\"ai-studio-ghrab\",\"aud\":\"ai-studio-ghrab\",\"sub\":\"synthetic-teacher\",\"jti\":\"garp-synth-tampered\",\"kid\":\"garp-synth-permit-key\",\"role\":\"teacher\",\"apps\":[\"generator\"],\"training\":{\"generator\":{\"code\":\"GEN-01\",\"version\":\"2026-09\"}},\"iat\":1787990990,\"exp\":1787994620}}}"
+    },
+    {
+      "id": "RT03-invalid-signature-rejected",
+      "ok": true,
+      "detail": "{\"valid\":false,\"reason\":\"invalid-signature\"}"
+    },
+    {
+      "id": "SIM01-valid-signed-permit",
+      "ok": true,
+      "detail": "valid"
+    },
+    {
+      "id": "RT01-set-valid-permit",
+      "ok": true
+    },
+    {
+      "id": "SIM01-app-A-allowed",
+      "ok": true,
+      "detail": "permitted"
+    },
+    {
+      "id": "SIM01-app-B-denied",
+      "ok": true,
+      "detail": "{\"enabled\":false,\"reason\":\"app-not-permitted\",\"permit\":{\"schema\":\"ghrab-access-permit-v1\",\"iss\":\"ai-studio-ghrab\",\"aud\":\"ai-studio-ghrab\",\"sub\":\"synthetic-teacher\",\"jti\":\"garp-synth-jti-main\",\"kid\":\"garp-synth-permit-key\",\"role\":\"teacher\",\"apps\":[\"generator\"],\"training\":{\"generator\":{\"code\":\"GEN-01\",\"version\":\"2026-09\"}},\"iat\":1787990990,\"exp\":1787994620}}"
+    },
+    {
+      "id": "SIM01-app-B-no-training-policy-denied",
+      "ok": true,
+      "detail": "{\"enabled\":false,\"reason\":\"app-not-permitted\",\"permit\":{\"schema\":\"ghrab-access-permit-v1\",\"iss\":\"ai-studio-ghrab\",\"aud\":\"ai-studio-ghrab\",\"sub\":\"synthetic-teacher\",\"jti\":\"garp-synth-jti-main\",\"kid\":\"garp-synth-permit-key\",\"role\":\"teacher\",\"apps\":[\"generator\"],\"training\":{\"generator\":{\"code\":\"GEN-01\",\"version\":\"2026-09\"}},\"iat\":1787990990,\"exp\":1787994620}}"
+    },
+    {
+      "id": "RT11-teacher-not-admin",
+      "ok": true,
+      "detail": "teacher unexpectedly admin"
+    },
+    {
+      "id": "SIM01-wrong-audience",
+      "ok": true,
+      "detail": "{\"ok\":false,\"valid\":false,\"reason\":\"invalid-audience\",\"permit\":{\"schema\":\"ghrab-access-permit-v1\",\"iss\":\"ai-studio-ghrab\",\"aud\":\"other-app\",\"sub\":\"synthetic-teacher\",\"jti\":\"garp-synth-jti-main\",\"kid\":\"garp-synth-permit-key\",\"role\":\"teacher\",\"apps\":[\"generator\"],\"training\":{\"generator\":{\"code\":\"GEN-01\",\"version\":\"2026-09\"}},\"iat\":1787990990,\"exp\":1787994620}}"
+    },
+    {
+      "id": "RT11-invalid-role",
+      "ok": true,
+      "detail": "{\"ok\":false,\"valid\":false,\"reason\":\"invalid-role\",\"permit\":{\"schema\":\"ghrab-access-permit-v1\",\"iss\":\"ai-studio-ghrab\",\"aud\":\"ai-studio-ghrab\",\"sub\":\"synthetic-teacher\",\"jti\":\"garp-synth-jti-main\",\"kid\":\"garp-synth-permit-key\",\"role\":\"superadmin\",\"apps\":[\"generator\"],\"training\":{\"generator\":{\"code\":\"GEN-01\",\"version\":\"2026-09\"}},\"iat\":1787990990,\"exp\":1787994620}}"
+    },
+    {
+      "id": "RT04-expired",
+      "ok": true,
+      "detail": "{\"ok\":false,\"valid\":false,\"reason\":\"expired\",\"permit\":{\"schema\":\"ghrab-access-permit-v1\",\"iss\":\"ai-studio-ghrab\",\"aud\":\"ai-studio-ghrab\",\"sub\":\"synthetic-teacher\",\"jti\":\"garp-synth-jti-main\",\"kid\":\"garp-synth-permit-key\",\"role\":\"teacher\",\"apps\":[\"generator\"],\"training\":{\"generator\":{\"code\":\"GEN-01\",\"version\":\"2026-09\"}},\"iat\":1787990990,\"exp\":1787990420}}"
+    },
+    {
+      "id": "RT04-too-long",
+      "ok": true,
+      "detail": "{\"ok\":false,\"valid\":false,\"reason\":\"validity-too-long\",\"permit\":{\"schema\":\"ghrab-access-permit-v1\",\"iss\":\"ai-studio-ghrab\",\"aud\":\"ai-studio-ghrab\",\"sub\":\"synthetic-teacher\",\"jti\":\"garp-synth-jti-main\",\"kid\":\"garp-synth-permit-key\",\"role\":\"teacher\",\"apps\":[\"generator\"],\"training\":{\"generator\":{\"code\":\"GEN-01\",\"version\":\"2026-09\"}},\"iat\":1787990990,\"exp\":1795853420}}"
+    },
+    {
+      "id": "RT03-wrong-audience-rejected",
+      "ok": true,
+      "detail": "{\"ok\":false,\"valid\":false,\"reason\":\"invalid-audience\",\"permit\":{\"schema\":\"ghrab-access-permit-v1\",\"iss\":\"ai-studio-ghrab\",\"aud\":\"rt03-other-audience\",\"sub\":\"synthetic-teacher\",\"jti\":\"garp-synth-jti-main\",\"kid\":\"garp-synth-permit-key\",\"role\":\"teacher\",\"apps\":[\"generator\"],\"training\":{\"generator\":{\"code\":\"GEN-01\",\"version\":\"2026-09\"}},\"iat\":1787990990,\"exp\":1787994620}}"
+    },
+    {
+      "id": "SIM02-online-revocation-propagates",
+      "ok": true,
+      "detail": "{\"valid\":false,\"reason\":\"revoked\",\"version\":\"garp-synth-access-v2\"}"
+    },
+    {
+      "id": "SIM02-offline-LKG-keeps-revocation",
+      "ok": true,
+      "detail": "{\"connectionState\":\"offline-fresh\",\"valid\":false,\"reason\":\"revoked\"}"
+    },
+    {
+      "id": "RT05-partial-sharedAccessVersion-mismatch-failclosed",
+      "ok": true,
+      "detail": "{\"valid\":false,\"reason\":\"configuration-unavailable\",\"connection\":\"checking\"}"
+    }
+  ],
+  "status": "passed",
+  "unexpectedError": null
+}
