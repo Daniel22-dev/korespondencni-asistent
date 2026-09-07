@@ -1,7 +1,0 @@
-{
-  "status": "failed",
-  "filesScanned": 77,
-  "unexpectedExactHits": [
-    "src/__synthetic_canary_nc.txt"
-  ]
-}

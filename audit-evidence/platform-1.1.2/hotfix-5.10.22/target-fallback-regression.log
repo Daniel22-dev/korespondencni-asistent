@@ -1,4 +1,0 @@
-Synthetic CDP target readiness regression
-BEFORE=[]
-CREATE=page True about:blank
-AFTER=[('page', 'about:blank', True)]
