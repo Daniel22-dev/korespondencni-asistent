@@ -1,12 +1,10 @@
 #!/usr/bin/env node
 // GARP 2.5.1 GHRAB - scan-deployment-leaks
-// Zmeny proti 2.5:
-//  - odstranen limit 2 MB (secret ve velkem bundlu drive proklouzl); velke soubory
-//    se ctou po blocich s prekryvem, aby se pattern nerozpadl na hranici bloku;
-//    binarni soubory se preskakuji podle NUL bytu, ne podle velikosti;
-//  - cela rodina .env* (drive prosel .env.production, .env.school apod.);
-//  - doplneny vzory a zakazane pripony/adresare relevantni pro GHRAB.
-import { readdir, readFile, lstat, open } from 'node:fs/promises';
+// Kumulativni N5 hardening pro KS:
+//  - zachovava blokove cteni velkych souboru a vsechny dosavadni kontroly;
+//  - doplnuje private JWK a PGP private-key material;
+//  - encrypted/private PEM nadale pokryva obecny PRIVATE KEY pattern.
+import { readdir, lstat, open } from 'node:fs/promises';
 import path from 'node:path';
 
 const root = path.resolve(process.argv[2] || 'dist');
@@ -20,6 +18,7 @@ const forbiddenNames = new Set([
 const forbiddenExt = new Set(['.map', '.pem', '.key', '.p12', '.pfx', '.p8', '.jks', '.keystore', '.kdb', '.ppk', '.asc', '.gpg', '.bak', '.orig']);
 const secretPatterns = [
   [/-----BEGIN [A-Z ]*PRIVATE KEY-----/, 'private-key-block'],
+  [/-----BEGIN PGP PRIVATE KEY BLOCK-----/, 'pgp-private-key'],
   [/\bAIza[A-Za-z0-9_-]{20,}\b/, 'google-api-key'],
   [/\bghp_[A-Za-z0-9]{20,}\b/, 'github-token'],
   [/\bgithub_pat_[A-Za-z0-9_]{20,}\b/, 'github-fine-grained-pat'],
@@ -35,6 +34,18 @@ const secretPatterns = [
 const CHUNK = 1 << 20, OVERLAP = 4096;
 const errors = [];
 
+function containsPrivateJwk(text) {
+  const variants = [text, text.replace(/\\(["'])/g, '$1')];
+  for (const value of variants) {
+    const kty = /(?:["']?kty["']?)\s*:\s*["'](?:EC|OKP|RSA)["']/i;
+    const d = /(?:["']?d["']?)\s*:\s*["'][A-Za-z0-9_-]{20,}["']/i;
+    const km = kty.exec(value);
+    const dm = d.exec(value);
+    if (km && dm && Math.abs(km.index - dm.index) <= 4096) return true;
+  }
+  return false;
+}
+
 async function scanFile(abs, rel, size) {
   const fh = await open(abs, 'r');
   try {
@@ -47,6 +58,7 @@ async function scanFile(abs, rel, size) {
       if (pos === 0 && slice.subarray(0, Math.min(8192, bytesRead)).includes(0)) { binary = true; break; }
       const text = tail + slice.toString('utf8');
       for (const [re, label] of secretPatterns) if (re.test(text)) errors.push(`secret-pattern:${rel}:${label}`);
+      if (containsPrivateJwk(text)) errors.push(`secret-pattern:${rel}:jwk-private-key`);
       tail = text.slice(-OVERLAP);
       pos += bytesRead;
     }
