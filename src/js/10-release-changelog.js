@@ -8,11 +8,12 @@ function isTrustedLocalTestOrigin(){
 }
 const IS_TEST_MODE=TEST_HOOKS_BUILD_ENABLED&&isTrustedLocalTestOrigin()&&new URLSearchParams(window.location.search).get("test")==="1";
 const RELEASE = {
-  version: "5.10.25",
-  date: "2026-09-06",
+  version: "5.10.26",
+  date: "2026-09-16",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.10.26: AI Studio auto-promotion — veřejný studio-manifest zachovává kanonický Platform 1.1.2 kontrakt, deploy čeká na skutečně živý manifest a poté bezpečně vyšle app-updated do AI Studia; AI logika a anonymizace se nemění.",
     "5.10.25: GARP 2.5.1 opravné kolo po Claude — opraven falešně negativní GH-02 service-worker checker i skutečný P3 precache platform runtime, AI assurance baseline nově kryje anonymizaci a prompt assembly a release podpis je svázán s provenance/evidence/SBOM. Předchozí GH-02 PASS 5.10.24 byl false negative.",
     "5.10.24: GARP 2.5.1 SHIELD-PREP — zachována RI vrstva z 2.4, doplněny trust-root/registry/provenance/SBOM a SHIELD negative controls; service worker obsluhuje bezpečnostně kritické runtime a release-integrity assety výhradně network-only + no-store. Uživatelská AI logika, anonymizace a prompt assembly zůstávají funkčně beze změny.",
     "5.10.22: Browser QA target readiness hotfix — P3 browser harness po startu Chromia čeká na DevTools page target a při jeho absenci jej umí vytvořit přes /json/new; produkční runtime ani Platforma 1.1.2 se nemění.",

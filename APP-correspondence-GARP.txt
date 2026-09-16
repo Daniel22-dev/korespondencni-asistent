@@ -6,7 +6,7 @@ GARP 2.5.1 GHRAB – PRŮVODNÍ LIST APLIKACE
 appId:                    correspondence
 Název:                    Korespondenční asistent (KS)
 Repozitář:                korespondencni-asistent (repo snapshot; veřejná Pages cesta je v README)
-Aktuální verze:           5.10.25
+Aktuální verze:           5.10.26
 Verze standardu:          GARP 2.5.1 GHRAB
 SHA-256 SHA256SUMS balíčku, podle kterého se audituje:  234414662bbe6b3f8b97ccd7efacff0ec581703bd7c6f06e8c3c5f3a1f179b24
 Poslední uzavřené kolo:   2026-08-29, GARP 2.3 Claude kolo 1 + ChatGPT corrective 5.10.14, OVERALL AMBER
@@ -60,6 +60,7 @@ Served headers/HSTS | lokální build není skutečná HTTP serverová konfigura
 2026-09-06 | ChatGPT | 224b5ff19177fdfa433f59f0f10c711f196abb24b191edcabfdff88e8266dc6a (GARP 2.4 5.10.23 mezistav) | GARP 2.5.1 SHIELD-PREP delta probíhá | PREDANI 5.10.24
 2026-09-06 | Claude role B | 6cf34302d32a6f49a26a9dd8d249c307219fab651a5d73d638636f8f84a12417 (review 5.10.24) | OVERALL AMBER; N1/N2 HIGH potvrzeny k opravě | OVERENI-KANDIDATA-KS-5.10.24-GARP2.5.1-SHIELD.txt
 2026-09-06 | ChatGPT corrective | 5.10.25 | GARP 2.5.1 Prompt C corrective round probíhá | audit-evidence/garp25-shield-fix-5.10.25
+2026-09-16 | ChatGPT integration patch | 5.10.26 | Studio manifest + post-deploy repository_dispatch pro auto-promotion; AI/anonymizace/prompt logika beze změny | bezpečnostní baseline 5.10.25 zachována
 
 ======================================================================
 7. CO SE MUSÍ ZNOVU OTEVŘÍT PŘI PŘÍŠTÍ ZMĚNĚ

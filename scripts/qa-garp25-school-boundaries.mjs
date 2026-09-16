@@ -25,7 +25,7 @@ const context={window:win,CustomEvent,TextEncoder,TextDecoder,AbortController,co
 vm.runInNewContext(coreSource,context,{filename:'ghrab-ai-core-1.0.0.js'});
 const ai=context.window.GHRAB_AI;
 ai.configure({
-  app:{id:'correspondence',version:'5.10.25'},runtimeConfig:runtime,
+  app:{id:'correspondence',version:'5.10.26'},runtimeConfig:runtime,
   operations:{schema:'ghrab-ai-operations-v1',appId:'correspondence',operations:{probe:{outputSchemaId:'correspondence.probe.v1',defaultModelProfile:'balanced',allowedModelProfiles:['balanced'],inputTypes:['text'],streaming:false,expectedOutputs:1,maxOutputTokensHint:256}}},
   outputSchemas:{'correspondence.probe.v1':{type:'object'}},
   credentialProvider:async()=>{credentialCalls++;return {apiKey:'SYNTHETIC-GHNC05-KEY-NOT-REAL'};},
@@ -56,6 +56,6 @@ const agentHits=agentPatterns.filter(r=>r.test(appCode)).map(String);
 const generateCalls=(appCode.match(/GHRAB_AI\.generate\s*\(/g)||[]).length;
 check('GH14-agentic-no',agentHits.length===0&&generateCalls>0,`GHRAB_AI.generate=${generateCalls}; agentHits=${agentHits.join(',')||'none'}`);
 
-const out={schema:'ghrab-ks-garp25-school-boundaries-v1',appId:'correspondence',version:'5.10.25',syntheticOnly:true,checks,summary:{total:checks.length,passed:checks.length-failures.length,failed:failures.length,status:failures.length?'FAIL':'PASS'}};
+const out={schema:'ghrab-ks-garp25-school-boundaries-v1',appId:'correspondence',version:'5.10.26',syntheticOnly:true,checks,summary:{total:checks.length,passed:checks.length-failures.length,failed:failures.length,status:failures.length?'FAIL':'PASS'}};
 const outPath=path.join(root,'audit-evidence/garp25-shield-prep/school-boundaries.json');fs.mkdirSync(path.dirname(outPath),{recursive:true});fs.writeFileSync(outPath,JSON.stringify(out,null,2)+'\n');
 console.log(JSON.stringify(out,null,2));process.exit(failures.length?1:0);

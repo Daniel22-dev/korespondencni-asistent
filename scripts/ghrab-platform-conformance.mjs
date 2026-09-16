@@ -59,6 +59,26 @@ check(builtIntegration.contract === consumer.platform.contract, 'built platform 
 check(builtIntegration.cacheName === consumer.cache.name, 'built platform cache metadata');
 check(builtIntegration.swContract === 'ghrab-service-worker-v1', 'built service-worker contract');
 check(JSON.stringify(builtIntegration.artifactContracts || {}) === JSON.stringify(consumer.artifact), 'built artifact contracts');
+const studioManifestPath = path.join(dist, 'studio-manifest.json');
+check(fs.existsSync(studioManifestPath), 'Studio manifest exists');
+if (fs.existsSync(studioManifestPath)) {
+  const studioManifest = readJson(studioManifestPath);
+  const studioPlatform = studioManifest.platform || {};
+  check(studioManifest.schema === 'ai-studio-app-manifest-v1', 'Studio manifest schema');
+  check(studioManifest.id === consumer.appId, 'Studio manifest app identity');
+  check(studioManifest.version === consumer.appVersion, 'Studio manifest version');
+  check(studioPlatform.schema === 'ghrab-platform-app-integration-v1', 'Studio manifest platform schema');
+  check(studioPlatform.contract === consumer.platform.contract, 'Studio manifest platform contract');
+  check(studioPlatform.requiredPlatformRange === consumer.platform.requiredRange, 'Studio manifest platform range');
+  check(studioPlatform.platformVersion === consumer.platform.version, 'Studio manifest platform version');
+  check(studioPlatform.brandVersion === consumer.brand.version, 'Studio manifest brand version');
+  check(['ghrab-theme-v1', 1].includes(studioPlatform.themeContract), 'Studio manifest theme contract');
+  check(studioPlatform.swContract === 1, 'Studio manifest SW contract');
+  check(['ghrab-studio-handoff-v2', 2].includes(studioPlatform.studioBridge), 'Studio manifest bridge contract');
+  check(['ghrab-artifact-envelope-v1', 1].includes(studioPlatform.artifactEnvelope), 'Studio manifest artifact envelope');
+  check(studioPlatform.storagePrefix === `ghrab.${consumer.appId}.`, 'Studio manifest storage prefix');
+  check(studioPlatform.cacheName === consumer.cache.name, 'Studio manifest cache identity');
+}
 const builtData = fs.existsSync(path.join(dist, 'config/data-manifest.json')) ? readJson(path.join(dist, 'config/data-manifest.json')) : {};
 check(builtData.storageNamespace?.migrationId === consumer.storageMigration.id, 'data manifest migration id');
 check(builtData.storageNamespace?.prefix === `ghrab.${consumer.appId}.`, 'data manifest canonical prefix');

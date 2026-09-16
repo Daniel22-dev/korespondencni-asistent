@@ -1,3 +1,11 @@
+## 5.10.26 — AI Studio auto-promotion (2026-09-16)
+
+- veřejný `studio-manifest.json` po platformním postprocessingu zachovává kanonická pole, která AI Studio skutečně validuje (`requiredPlatformRange`, `studioBridge`, `artifactEnvelope`, `storagePrefix`, `cacheName`);
+- platformní conformance sada nově přímo kontroluje veřejný Studio manifest a zabrání regresi na staré názvy polí;
+- GitHub Pages deploy po publikaci čeká, dokud živý manifest skutečně nehlásí očekávanou patch verzi, a teprve potom odešle `repository_dispatch` typu `app-updated` do AI Studia;
+- chybějící `AI_STUDIO_DISPATCH_TOKEN` blokuje release před nasazením, aby nevznikla verze, kterou Studio nemůže bezpečně převzít;
+- bez změny AI logiky, anonymizace, prompt assembly a modelových profilů; bezpečnostní GARP 2.5.1 baseline zůstává obsahově navázána na 5.10.25.
+
 ## Post-5.10.25 — GARP 2.5.1 tooling hardening R5 (2026-09-07)
 - GARP 2.5.1 Tooling R5 final closeout: fail-closed AMBER backstop pro `Cache.prototype` (LOW N18) a README build prerequisite pro `qa:garp25:static`; frozen `dist-school-server` beze zmeny.
 

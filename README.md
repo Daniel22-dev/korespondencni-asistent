@@ -1,23 +1,25 @@
 # Korespondenční asistent
 
-**Aktuální verze:** 5.10.25  
+**Aktuální verze:** 5.10.26  
 **Platforma:** GHRAB Platform 1.1.2 · etapa P5 / ecosystem release-wave candidate
 
-**GARP tooling closure:** R5 (2026-09-07). Frozen aplikacni runtime je stale 5.10.25; R5 meni pouze auditni/release tooling a uzavira N17. Policy LIVE polozky zustavaji AMBER / NOT TESTED.
+**GARP tooling closure:** R5 (2026-09-07). Bezpečnostní GARP 2.5.1 baseline zůstává na 5.10.25; verze 5.10.26 je integrační patch pro AI Studio auto-promotion bez změny AI logiky, anonymizace nebo prompt assembly. Policy LIVE položky zůstávají AMBER / NOT TESTED.
 
 
 Samostatná PWA aplikace ekosystému AI Studio Gymnázia Ostrava-Hrabůvka.
 
-- **Verze aplikace:** 5.10.25
+- **Verze aplikace:** 5.10.26
 - **GHRAB AI Core:** 1.0.0
 - **Doporučený repozitář:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
 - **Interaktivní manuál:** 1.3.16 (manuál 1.3.16)
 
-## Co přináší verze 5.10.25
+## Co přináší verze 5.10.26
 
-Verze 5.10.25 je opravné GARP 2.5.1 SHIELD-PREP kolo po nezávislé kontrole Claude. Odstraňuje falešně negativní service-worker kontrolu GH-02, vylučuje security-critical assety z platformního P3 precache podle `security/security-critical-assets.json`, rozšiřuje AI assurance baseline o anonymizaci a prompt assembly a zpřesňuje vazbu release na provenance/evidence.
+Verze 5.10.26 dokončuje provozní auto-promotion do AI Studia: opravuje veřejný Studio manifest, hlídá jeho kontrakt regresním testem a po úspěšném GitHub Pages deployi čeká na živou novou verzi a odešle `app-updated` do AI Studia. AI logika, anonymizace a prompt assembly se nemění.
+
+Bezpečnostní baseline zůstává odvozena od 5.10.25. Verze 5.10.25 byla opravné GARP 2.5.1 SHIELD-PREP kolo po nezávislé kontrole Claude. Odstraňuje falešně negativní service-worker kontrolu GH-02, vylučuje security-critical assety z platformního P3 precache podle `security/security-critical-assets.json`, rozšiřuje AI assurance baseline o anonymizaci a prompt assembly a zpřesňuje vazbu release na provenance/evidence.
 
 Technický souhrn a disposition Claude nálezů je v `RELEASE-NOTES-5.10.25-GARP-2.5.1-CLAUDE-CORRECTIVE.md`. SHIELD-LIVE a RI-LIVE zůstávají samostatnou školní-server fází.
 
