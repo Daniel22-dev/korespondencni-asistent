@@ -51,6 +51,9 @@ jobs:
       - name: Enforce P5 R2 release gate
         run: npm run qa:p5:ci
 
+      - name: Enforce GARP 2.5.1 static security gate
+        run: npm run qa:garp25:static
+
       - name: Verify AI Studio dispatch credential
         if: github.event_name != 'pull_request'
         shell: bash
