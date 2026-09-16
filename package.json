@@ -53,7 +53,8 @@
     "qa:garp25:school-boundaries": "node scripts/qa-garp25-school-boundaries.mjs",
     "qa:garp25:sw": "node scripts/garp25/check-sw-security-freeze.mjs dist-school-server/sw.js dist-school-server security/security-critical-assets.json",
     "qa:garp25:vendored": "node scripts/garp25/check-vendored-consistency.mjs security/vendored-consistency.KS.json",
-    "qa:garp25:static": "npm run qa:garp25:school-boundaries && npm run qa:garp25:sw && npm run qa:garp25:vendored && npm run qa:garp25:pinned-inputs && npm run qa:garp25:ai-baseline",
+    "qa:garp25:n5-secret-regression": "node scripts/qa-garp25-n5-secret-scan-regression.mjs",
+    "qa:garp25:static": "npm run qa:garp25:school-boundaries && npm run qa:garp25:sw && npm run qa:garp25:vendored && npm run qa:garp25:pinned-inputs && npm run qa:garp25:ai-baseline && npm run qa:garp25:n5-secret-regression",
     "qa:garp25:pinned-inputs": "node scripts/qa-garp25-pinned-inputs.mjs",
     "qa:garp25:ai-baseline": "node scripts/qa-garp25-ai-assurance-baseline.mjs"
   },
