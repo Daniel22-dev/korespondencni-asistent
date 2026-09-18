@@ -29,7 +29,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          cat .migration/patch.b64.* > "$RUNNER_TEMP/migration.patch.gz.b64"
+          {
+            head -c 7000 .migration/patch.b64.00
+            cat .migration/patch.b64.01 .migration/patch.b64.02 .migration/patch.b64.03 .migration/patch.b64.04 .migration/patch.b64.05
+          } > "$RUNNER_TEMP/migration.patch.gz.b64"
           base64 --decode "$RUNNER_TEMP/migration.patch.gz.b64" | gzip -dc > "$RUNNER_TEMP/migration.patch"
           test "$(sha256sum "$RUNNER_TEMP/migration.patch" | awk '{print $1}')" = "2af99c953c9c985de81df8a5f57243988efb7051ffcba549b651bdb90942b5b1" || {
             echo "::error::Migration patch digest mismatch."
