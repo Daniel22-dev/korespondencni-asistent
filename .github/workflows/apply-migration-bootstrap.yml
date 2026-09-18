@@ -38,10 +38,17 @@ jobs:
             echo "::error::Migration patch digest mismatch."
             exit 1
           }
-          git apply --check "$RUNNER_TEMP/migration.patch"
-          git apply "$RUNNER_TEMP/migration.patch"
+          git apply --check \
+            --exclude=.github/workflows/deploy.yml \
+            --exclude=.github/workflows/p5-release-gate.yml \
+            --exclude=.github/workflows/safe-promotion.yml \
+            "$RUNNER_TEMP/migration.patch"
+          git apply \
+            --exclude=.github/workflows/deploy.yml \
+            --exclude=.github/workflows/p5-release-gate.yml \
+            --exclude=.github/workflows/safe-promotion.yml \
+            "$RUNNER_TEMP/migration.patch"
           rm -rf .migration
-          rm -f .github/workflows/apply-migration-bootstrap.yml
           git add -A
           git diff --cached --check
           git config user.name "github-actions[bot]"
