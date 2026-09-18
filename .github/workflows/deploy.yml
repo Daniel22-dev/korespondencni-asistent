@@ -14,7 +14,8 @@ permissions:
   pull-requests: read
 
 concurrency:
-  group: pages
+  # Isolate candidate/main workflow_run events so a skipped candidate deploy can never cancel a live main deploy.
+  group: pages-${{ github.event.workflow_run.head_branch || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
