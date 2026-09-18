@@ -1,6 +1,6 @@
 {
   "name": "ghrab-korespondencni-asistent",
-  "version": "5.10.26",
+  "version": "5.10.27",
   "private": true,
   "description": "Korespondenční asistent — samostatná PWA pro GitHub Pages",
   "type": "module",
@@ -54,9 +54,18 @@
     "qa:garp25:sw": "node scripts/garp25/check-sw-security-freeze.mjs dist-school-server/sw.js dist-school-server security/security-critical-assets.json",
     "qa:garp25:vendored": "node scripts/garp25/check-vendored-consistency.mjs security/vendored-consistency.KS.json",
     "qa:garp25:n5-secret-regression": "node scripts/qa-garp25-n5-secret-scan-regression.mjs",
-    "qa:garp25:static": "npm run qa:garp25:school-boundaries && npm run qa:garp25:sw && npm run qa:garp25:vendored && npm run qa:garp25:pinned-inputs && npm run qa:garp25:ai-baseline && npm run qa:garp25:n5-secret-regression",
+    "qa:garp25:static": "npm run qa:garp25:tooling && npm run qa:garp25:school-boundaries && npm run qa:garp25:sw && npm run qa:garp25:vendored && npm run qa:garp25:pinned-inputs && npm run qa:garp25:ai-baseline && npm run qa:garp25:n5-secret-regression && npm run qa:manifest-contract && npm run qa:promotion-architecture && npm run qa:auto-patch-contract",
     "qa:garp25:pinned-inputs": "node scripts/qa-garp25-pinned-inputs.mjs",
-    "qa:garp25:ai-baseline": "node scripts/qa-garp25-ai-assurance-baseline.mjs"
+    "qa:garp25:ai-baseline": "node scripts/qa-garp25-ai-assurance-baseline.mjs",
+    "qa:garp25:tooling": "node scripts/garp25/selftest-garp251.mjs",
+    "qa:manifest-contract": "node scripts/verify-studio-manifest-contract.mjs",
+    "qa:promotion-architecture": "node scripts/verify-promotion-workflow-architecture.mjs",
+    "qa:auto-patch-contract": "node scripts/test-ai-studio-dispatch.mjs",
+    "prepare:pages": "node scripts/prepare-pages-artifact.mjs",
+    "qa:release-chain": "node scripts/verify-release-chain.mjs",
+    "verify:live-release": "node scripts/verify-live-release.mjs",
+    "qa:promotion-origin": "node scripts/verify-safe-promotion-origin.mjs",
+    "qa:github-governance": "node scripts/verify-github-deployment-governance.mjs"
   },
   "engines": {
     "node": ">=18"
