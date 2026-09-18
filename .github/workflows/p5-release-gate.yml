@@ -3,8 +3,9 @@ name: P5 R2 pre-production release gate
 on:
   workflow_dispatch:
   push:
-    branches: [main, master]
+    branches: [candidate, main]
   pull_request:
+    branches: [main]
 
 permissions:
   contents: read
@@ -12,9 +13,11 @@ permissions:
 jobs:
   p5-release-gate:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 55
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
@@ -31,14 +34,32 @@ jobs:
         run: |
           npx playwright install --with-deps chromium
           node -e "console.log('CHROMIUM_PATH=' + require('playwright').chromium.executablePath())" >> "$GITHUB_ENV"
-      - name: Run P5 R2 release gate
+      - name: Run P5 R2 application release gate
         run: npm run qa:p5:ci
-      - name: Upload audit evidence
+      - name: Enforce cumulative GARP 2.5.1 and N5 release gate
+        run: npm run qa:garp25:static
+      - name: Build PREP release identity and verify complete release chain
+        run: npm run prepare:pages
+        env:
+          GHRAB_SOURCE_COMMIT: ${{ github.sha }}
+      - name: Upload current P5 and release evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: p5-r2-${{ github.sha }}
           path: |
-            dist/qa-p5-*.json
-            dist/qa-p3-browser-report.json
-            dist/quality-report.json
+            qa-results/current
+            dist/release-integrity.json
+            dist/studio-manifest.json
+            dist/sbom.cdx.json
+            dist/build-provenance.json
+            dist/security-evidence-manifest.json
+
+  # Compatibility context retained because the existing protected-main ruleset
+  # already requires "build-test". It can be removed only after the ruleset is
+  # deliberately migrated; p5-release-gate remains the authoritative gate.
+  build-test:
+    needs: p5-release-gate
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "build-test compatibility context PASS after authoritative p5-release-gate"

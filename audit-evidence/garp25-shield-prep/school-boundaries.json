@@ -1,7 +1,7 @@
 {
   "schema": "ghrab-ks-garp25-school-boundaries-v1",
   "appId": "correspondence",
-  "version": "5.10.25",
+  "version": "5.10.27",
   "syntheticOnly": true,
   "checks": [
     {
