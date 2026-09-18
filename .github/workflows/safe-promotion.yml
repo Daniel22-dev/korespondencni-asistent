@@ -1,0 +1,145 @@
+name: Safe Promotion controller
+
+on:
+  workflow_run:
+    workflows: ["P5 R2 pre-production release gate"]
+    types: [completed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: safe-promotion-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
+jobs:
+  open-promotion-pr:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'candidate'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Verify candidate head and open or reuse promotion PR
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.SAFE_PROMOTION_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          CHECKED_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "::error::Missing SAFE_PROMOTION_TOKEN. Promotion is fail-closed; no PR was created."
+            exit 1
+          fi
+          remote_candidate="$(gh api "repos/${REPOSITORY}/git/ref/heads/candidate" --jq '.object.sha')"
+          if [ "$remote_candidate" != "$CHECKED_SHA" ]; then
+            echo "Candidate advanced after this P5 run; stale GREEN is ignored safely."
+            exit 0
+          fi
+          changed_files="$(gh api "repos/${REPOSITORY}/compare/main...candidate" --jq '.files | length')"
+          if [ "$changed_files" = "0" ]; then
+            echo "Candidate has no content delta against main; promotion is a safe NO-OP."
+            exit 0
+          fi
+          existing="$(gh pr list --repo "$REPOSITORY" --state open --base main --head candidate --json number --jq '.[0].number // empty')"
+          if [ -n "$existing" ]; then
+            echo "Promotion PR #${existing} already exists and follows candidate automatically."
+            exit 0
+          fi
+          short_sha="${CHECKED_SHA:0:12}"
+          gh pr create --repo "$REPOSITORY" --base main --head candidate             --title "chore: safe promotion ${short_sha}"             --body "Automated Safe Promotion from durable candidate after GREEN candidate P5/GARP/N5. The PR must pass required checks again before merge. Candidate SHA: ${CHECKED_SHA}."
+
+  merge-promotion-pr:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'pull_request'
+    permissions:
+      contents: write
+      pull-requests: write
+      checks: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Merge only verified candidate to protected main
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.SAFE_PROMOTION_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          CHECKED_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "::error::Missing SAFE_PROMOTION_TOKEN. Promotion is fail-closed; merge was not attempted."
+            exit 1
+          fi
+          pr_number="$(gh api "repos/${REPOSITORY}/commits/${CHECKED_SHA}/pulls" --jq '[.[] | select(.state == "open" and .base.ref == "main" and .head.ref == "candidate")][0].number // empty')"
+          if [ -z "$pr_number" ]; then
+            echo "No canonical candidate -> main pull request is associated with this GREEN run; safe NO-OP."
+            exit 0
+          fi
+          pr_json="$(gh api "repos/${REPOSITORY}/pulls/${pr_number}")"
+          state="$(jq -r '.state' <<<"$pr_json")"
+          base_ref="$(jq -r '.base.ref' <<<"$pr_json")"
+          head_ref="$(jq -r '.head.ref' <<<"$pr_json")"
+          head_sha="$(jq -r '.head.sha' <<<"$pr_json")"
+          draft="$(jq -r '.draft' <<<"$pr_json")"
+          if [ "$state" != "open" ] || [ "$draft" != "false" ] || [ "$base_ref" != "main" ] || [ "$head_ref" != "candidate" ]; then
+            echo "PR #${pr_number} is not the canonical candidate -> main promotion; safe NO-OP."
+            exit 0
+          fi
+          if [ "$head_sha" != "$CHECKED_SHA" ]; then
+            echo "PR head moved after this P5 run; stale GREEN is ignored safely."
+            exit 0
+          fi
+          remote_candidate="$(gh api "repos/${REPOSITORY}/git/ref/heads/candidate" --jq '.object.sha')"
+          if [ "$remote_candidate" != "$CHECKED_SHA" ]; then
+            echo "Candidate moved after this P5 run; stale GREEN is ignored safely."
+            exit 0
+          fi
+          branch_json="$(gh api "repos/${REPOSITORY}/branches/main")"
+          if [ "$(jq -r '.protected' <<<"$branch_json")" != "true" ]; then
+            echo "::error::main is not protected; automatic merge is blocked."
+            exit 1
+          fi
+          ruleset_ok="false"
+          while read -r ruleset_id; do
+            [ -n "$ruleset_id" ] || continue
+            ruleset_json="$(gh api "repos/${REPOSITORY}/rulesets/${ruleset_id}")"
+            if jq -e '
+              .enforcement == "active" and
+              .target == "branch" and
+              ((.conditions.ref_name.include // []) | any(. == "~DEFAULT_BRANCH" or . == "refs/heads/main")) and
+              ((.rules // []) | any(.type == "pull_request")) and
+              ((.rules // []) | any(
+                .type == "required_status_checks" and
+                ((.parameters.required_status_checks // []) | any(.context == "p5-release-gate"))
+              )) and
+              ((.bypass_actors // []) | length == 0)
+            ' <<<"$ruleset_json" >/dev/null; then
+              ruleset_ok="true"
+              break
+            fi
+          done < <(gh api "repos/${REPOSITORY}/rulesets" --jq '.[] | select(.enforcement == "active" and .target == "branch") | .id')
+          if [ "$ruleset_ok" != "true" ]; then
+            echo "::error::No active default-branch ruleset requires both pull requests and p5-release-gate without bypass actors; automatic merge is blocked."
+            exit 1
+          fi
+          checks_json="$(gh api -H 'Accept: application/vnd.github+json' "repos/${REPOSITORY}/commits/${CHECKED_SHA}/check-runs")"
+          if ! jq -e '[.check_runs[] | select(.name == "p5-release-gate" and .conclusion == "success")] | length > 0' <<<"$checks_json" >/dev/null; then
+            echo "::error::Required p5-release-gate is not GREEN for ${CHECKED_SHA}; merge is blocked."
+            exit 1
+          fi
+          result="$(gh api --method PUT "repos/${REPOSITORY}/pulls/${pr_number}/merge" -f sha="$CHECKED_SHA" -f merge_method='merge')"
+          if [ "$(jq -r '.merged' <<<"$result")" != "true" ]; then
+            echo "::error::GitHub refused the protected merge: $(jq -r '.message // "unknown reason"' <<<"$result")"
+            exit 1
+          fi
+          merge_sha="$(jq -r '.sha' <<<"$result")"
+          if [ -z "$merge_sha" ] || [ "$merge_sha" = "null" ]; then
+            echo "::error::GitHub merged the PR but did not return the merge SHA; candidate synchronization is blocked."
+            exit 1
+          fi
+          gh api --method PATCH "repos/${REPOSITORY}/git/refs/heads/candidate" -f sha="$merge_sha" -F force=false >/dev/null
+          echo "Safe Promotion merged PR #${pr_number} from candidate into protected main and fast-forwarded candidate to ${merge_sha}."
