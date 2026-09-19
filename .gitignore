@@ -4,3 +4,4 @@ qa-results/
 *.log
 !audit-evidence/**/*.log
 dist/
+test-results/

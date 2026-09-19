@@ -31,3 +31,14 @@ Permanentní negativní regrese musí blokovat:
 ## Stav
 
 Lokální strukturální/GARP/release-chain ověření používá pouze syntetická data. Finální LIVE status vzniká až nad konkrétním GitHub commitem a konkrétními GREEN workflow runy; historické GREEN reporty se za aktuální důkaz nepovažují.
+
+## Závěrečný clean-up / audit — 2026-09-19
+
+- odstraněny duplicitní legacy workflow `p3-quality.yml` a `p4-release.yml`; autoritativní release gate zůstává `p5-release-gate.yml`;
+- generovaný `test-results/` byl vyřazen z verzování a přidán do `.gitignore`;
+- README a CHANGELOG byly srovnány s reálnou verzí 5.10.27 a LIVE Safe Promotion stavem;
+- `dist-school-server/` je výslovně veden jako frozen 5.10.25 school-server artefakt, nikoli jako aktuální Pages build;
+- E2E nalezená race condition Pages deploy concurrency byla opravena branch-isolated group;
+- žádná z těchto clean-up změn nemění uživatelskou AI logiku, anonymizaci, prompt assembly ani UI/UX.
+
+Aktuální empirický stav se dokládá konkrétními GitHub Actions runy a LIVE release identity; historické GREEN soubory v repozitáři se za současný důkaz nepovažují.

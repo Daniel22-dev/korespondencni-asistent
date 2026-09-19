@@ -1,3 +1,21 @@
+## Post-5.10.27 — final clean-up a audit (2026-09-19)
+
+- odstraněny dva duplicitní legacy GitHub Actions entrypointy `p3-quality.yml` a `p4-release.yml`, které pouze znovu spouštěly celý P5 a nebyly required checks;
+- generovaný `test-results/` už není verzován a je ignorován; error-reporter regresní skript si report nadále vytváří při běhu;
+- README/CHANGELOG/release notes byly srovnány s aktuální 5.10.27 Safe Promotion architekturou;
+- verzovaný `dist-school-server/` zůstává záměrně frozen na 5.10.25; aktuální Pages release 5.10.27 se sestavuje a ověřuje samostatně;
+- bez změny uživatelské AI logiky, anonymizace, prompt assembly nebo UI/UX; runtime verze zůstává 5.10.27.
+
+## 5.10.27 — Safe Promotion + exact release identity (2026-09-18)
+
+- zavedena dlouhodobá vstupní větev `candidate` a Safe Promotion `candidate -> P5/GARP/N5 -> PR -> protected main`;
+- P5 běží na `candidate`, na promotion PR i na výsledném `main`; ruleset vyžaduje stabilní `p5-release-gate`, `build-test` a `axe`;
+- produkční Pages deploy se spouští pouze po GREEN P5 konkrétního commitu v `main` a fail-closed ověřuje původ i branch governance;
+- public Pages artefakt obsahuje `ghrab-release-integrity-v2` vazbu přes appId, verzi, source SHA, artifact digest, manifest, SBOM, provenance a evidence manifest;
+- `app-updated` se odesílá až po úspěšném LIVE ověření publikovaného releasu; AI Studio pro `correspondence` vyžaduje stejný evidence contract;
+- E2E migrace odhalila race condition v globálním Pages concurrency group; group je nyní izolována podle zdrojové větve, takže candidate/no-op běh nemůže zrušit main deploy;
+- Pages assurance zůstává explicitně `TRANSITIONAL` / unsigned; produkční signing key custody není v tomto patchi tvrzena jako uzavřená.
+
 ## 5.10.26 — AI Studio auto-promotion (2026-09-16)
 
 - veřejný `studio-manifest.json` po platformním postprocessingu zachovává kanonická pole, která AI Studio skutečně validuje (`requiredPlatformRange`, `studioBridge`, `artifactEnvelope`, `storagePrefix`, `cacheName`);

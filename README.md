@@ -1,19 +1,29 @@
 # Korespondenční asistent
 
-**Aktuální verze:** 5.10.26  
-**Platforma:** GHRAB Platform 1.1.2 · etapa P5 / ecosystem release-wave candidate
+**Aktuální verze:** 5.10.27  
+**Platforma:** GHRAB Platform 1.1.2 · P5 / Safe Promotion / LIVE auto-patch
 
-**GARP tooling closure:** R5 (2026-09-07). Bezpečnostní GARP 2.5.1 baseline zůstává na 5.10.25; verze 5.10.26 je integrační patch pro AI Studio auto-promotion bez změny AI logiky, anonymizace nebo prompt assembly. Policy LIVE položky zůstávají AMBER / NOT TESTED.
+**GARP tooling closure:** R5 (2026-09-07). Bezpečnostní GARP 2.5.1 baseline zůstává obsahově navázána na 5.10.25; verze 5.10.27 přidává Safe Promotion, exact release identity a LIVE-ověřený Pages/AI Studio auto-patch bez změny AI logiky, anonymizace nebo prompt assembly. Veřejný Pages release je označen přesně jako `TRANSITIONAL` / unsigned; školní-server SHIELD-LIVE/RI-LIVE zůstává samostatnou fází.
 
 
 Samostatná PWA aplikace ekosystému AI Studio Gymnázia Ostrava-Hrabůvka.
 
-- **Verze aplikace:** 5.10.26
+- **Verze aplikace:** 5.10.27
 - **GHRAB AI Core:** 1.0.0
 - **Doporučený repozitář:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
 - **Interaktivní manuál:** 1.3.16 (manuál 1.3.16)
+
+## Co přináší verze 5.10.27
+
+Verze 5.10.27 zavádí dlouhodobou větev `candidate`, povinný P5/GARP 2.5.1/N5 gate před promotion, PR do chráněného `main`, produkční deploy pouze z ověřeného `main` a exact release identity `ghrab-release-integrity-v2`. LIVE Pages release je před odesláním `app-updated` znovu ověřen proti verzi, source SHA, artifact digestu, manifestu, SBOM, provenance a evidence manifestu. AI Studio stejný evidence contract vyžaduje před auto-patch promotion.
+
+E2E test migrace odhalil a opravil race condition v Pages concurrency: kandidátní/no-op workflow už nemůže zrušit legitimní `main` deploy. Assurance veřejného Pages releasu zůstává přesně označena `TRANSITIONAL`, protože produkční podpisový klíč není součástí tohoto releasu.
+
+**Poznámka k `dist-school-server/`:** verzovaný school-server artefakt zůstává záměrně frozen na 5.10.25 jako historický/signed-prep artefakt. Není zdrojem aktuálního Pages releasu 5.10.27 a nemá se mechanicky přepisovat pouze kvůli srovnání verze.
+
+Technický souhrn je v `RELEASE-NOTES-5.10.27-SAFE-PROMOTION.md`.
 
 ## Co přináší verze 5.10.26
 
