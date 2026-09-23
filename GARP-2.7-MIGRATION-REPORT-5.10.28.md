@@ -1,4 +1,4 @@
-# Korespondenční asistent / SORTIO — GARP 2.7 migration report
+# Korespondenční asistent — GARP 2.7 migration report
 
 **Datum uzavření:** 2026-09-23  
 **Aplikace:** `ghrab-korespondencni-asistent` / `correspondence`  
@@ -61,7 +61,7 @@ Gate prokazatelně odmítl všech deset připravených negativních scénářů,
 
 **Celý `qa:p5` není v tomto sandboxu prohlášen za PASS.** `suite-session` / runtime větev narazila na omezení lokálního Chromium pro navigaci na loopback HTTP server; jde proto o environmentální blokaci, nikoli o úspěšný ani neúspěšný aplikační výsledek.
 
-`npm ci` se v tomto pracovním prostředí nedokončilo v dostupném limitu, takže zde nebyl proveden strict `qa:axe` s repozitářem připnutými npm závislostmi. CI zůstává nakonfigurované na Node 24 a přesné verze závislostí. Lokální runtime použitý pro většinu výše uvedených Node kontrol byl Node 22.16.0; Node 24 je proto nutné definitivně potvrdit v GitHub CI.
+`npm ci` se v původním lokálním pracovním prostředí nedokončilo v dostupném limitu, takže v tomto lokálním běhu nebyl proveden strict `qa:axe` s repozitářem připnutými npm závislostmi. Následné GitHub CI dne 23. 9. 2026 však na Node 24 úspěšně dokončilo P5 release gate, GARP 2.7 foundation, explicitní legacy GARP 2.5.1/N5 regresi i blocking axe audit. Tento odstavec proto popisuje pouze limit původního lokálního běhu, nikoli současný stav CI.
 
 XSS kontrola je regresní inventář, nikoli důkaz úplné absence XSS. Současný baseline stále obsahuje 99 použití `innerHTML`, 2 použití `insertAdjacentHTML` a CSP architektura stále pracuje s `unsafe-inline`. Migrace GARP 2.7 tento stav nezhoršila, ale samostatný CSP/XSS refactoring by byl další hardening krok.
 

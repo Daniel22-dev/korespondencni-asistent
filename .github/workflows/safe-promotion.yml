@@ -43,13 +43,22 @@ jobs:
             echo "Candidate has no content delta against main; promotion is a safe NO-OP."
             exit 0
           fi
-          existing="$(gh pr list --repo "$REPOSITORY" --state open --base main --head candidate --json number --jq '.[0].number // empty')"
+          owner="${REPOSITORY%%/*}"
+          existing="$(gh api --method GET "repos/${REPOSITORY}/pulls" -f state=open -f base=main -f head="${owner}:candidate" -F per_page=1 --jq '.[0].number // empty')"
           if [ -n "$existing" ]; then
             echo "Promotion PR #${existing} already exists and follows candidate automatically."
             exit 0
           fi
           short_sha="${CHECKED_SHA:0:12}"
-          gh pr create --repo "$REPOSITORY" --base main --head candidate             --title "chore: safe promotion ${short_sha}"             --body "Automated Safe Promotion from durable candidate after GREEN candidate P5/GARP/N5. The PR must pass required checks again before merge. Candidate SHA: ${CHECKED_SHA}."
+          title="chore: safe promotion ${short_sha}"
+          body="Automated Safe Promotion from durable candidate after GREEN candidate P5/GARP/N5. The PR must pass required checks again before merge. Candidate SHA: ${CHECKED_SHA}."
+          created="$(gh api --method POST "repos/${REPOSITORY}/pulls" -f title="$title" -f head=candidate -f base=main -f body="$body")"
+          created_number="$(jq -r '.number // empty' <<<"$created")"
+          if [ -z "$created_number" ]; then
+            echo "::error::GitHub REST API did not return a promotion PR number."
+            exit 1
+          fi
+          echo "Created promotion PR #${created_number} via GitHub REST API."
 
   merge-promotion-pr:
     if: >-
