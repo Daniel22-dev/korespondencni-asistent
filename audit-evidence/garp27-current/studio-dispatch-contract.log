@@ -1,0 +1,11 @@
+$ npm run qa:auto-patch-contract
+EXIT=0
+
+STDOUT
+
+> ghrab-korespondencni-asistent@5.10.28 qa:auto-patch-contract
+> node scripts/test-ai-studio-dispatch.mjs
+
+AI Studio dispatch contract: PASS (10/10 top-level properties).
+
+STDERR

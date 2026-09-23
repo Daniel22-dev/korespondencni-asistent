@@ -1,0 +1,85 @@
+{
+  "schema": "garp27-application-migration-profile-v1",
+  "garpVersion": "2.7",
+  "appId": "correspondence",
+  "appVersion": "5.10.28",
+  "serverApproval": "DEFERRED_BY_OWNER_DECISION",
+  "requiredComponents": [
+    {
+      "componentId": "AG-01-policy",
+      "required": true,
+      "serverDependent": false
+    },
+    {
+      "componentId": "AG-02-identity",
+      "required": true,
+      "serverDependent": false
+    },
+    {
+      "componentId": "AG-03-request-api-ai",
+      "required": true,
+      "serverDependent": false
+    },
+    {
+      "componentId": "AG-04-egress",
+      "required": true,
+      "serverDependent": true
+    },
+    {
+      "componentId": "AG-05-files",
+      "required": true,
+      "serverDependent": false
+    },
+    {
+      "componentId": "AG-06-data-lifecycle",
+      "required": true,
+      "serverDependent": false
+    },
+    {
+      "componentId": "AG-07-release",
+      "required": true,
+      "serverDependent": false
+    },
+    {
+      "componentId": "AG-08-architecture",
+      "required": true,
+      "serverDependent": false
+    },
+    {
+      "componentId": "AG-09-inventory",
+      "required": true,
+      "serverDependent": false
+    },
+    {
+      "componentId": "AG-10-live-health",
+      "required": true,
+      "serverDependent": true
+    },
+    {
+      "componentId": "AG-11-recovery",
+      "required": true,
+      "serverDependent": true
+    },
+    {
+      "componentId": "AG-12-orchestration",
+      "required": true,
+      "serverDependent": true
+    }
+  ],
+  "trustedEvidence": {
+    "garp27-contracts": "6fdb1952f33d67d35c589904048dd74302eaefec3e413ef8c54dd0be3fb23e73",
+    "garp27-architecture": "a5ba769eb2e7ecdf46303f8c5e7598f2f4518aca6d4cf78ec22eb57d7b4ead2b",
+    "garp27-mutations": "809738370c5ad7f1c927e95b3c0dec79b323e6ef81c896c3a9c62e8ddcd00acf",
+    "garp27-auto-patch": "52ec52830f2bfc3a7356969ced170f7aaee15b23df60822742846fcda63fc3e4",
+    "legacy-garp25-static": "53670089770ae66e5dd4f5a66f09aeede1f2ec7c47534fb828c8998699754c6f",
+    "promotion-architecture": "8446bc4b1c2583506e70c248187aba7c6b2d25b67b4d1d87ad6fada52ddbc984",
+    "studio-dispatch-contract": "2a81829fc74ce47103a9c9065b7edd9fb9f515bce4cf671d9cf2b1f11f078025"
+  },
+  "maxEvidenceAgeHours": 168,
+  "releaseIdentity": {
+    "appId": "correspondence",
+    "appVersion": "5.10.28",
+    "sourceCommit": "34f257c524ed8f7ef8a5e5b9dbc7ebdef406f56a"
+  },
+  "releaseIdentityResolution": "The foundation gate replaces sourceCommit with GITHUB_SHA when available; local archive review uses a deterministic source-tree SHA-1 surrogate and labels it as such in evidence."
+}

@@ -1,0 +1,62 @@
+{
+  "schema": "garp27-architecture-policy-v1",
+  "garpVersion": "2.7",
+  "appId": "correspondence",
+  "appVersion": "5.10.28",
+  "toolRevision": "ks-garp27-architecture-integrity-v1",
+  "sourceScopes": [
+    "src",
+    "scripts"
+  ],
+  "productionArtifacts": [
+    "dist"
+  ],
+  "forbiddenSourceEdges": [
+    {
+      "fromPrefix": "src/",
+      "toPrefix": "scripts/"
+    },
+    {
+      "fromPrefix": "src/",
+      "toPrefix": "security/"
+    },
+    {
+      "fromPrefix": "src/",
+      "toPrefix": ".github/"
+    },
+    {
+      "fromPrefix": "src/",
+      "toPrefix": "audit-evidence/"
+    }
+  ],
+  "forbiddenArtifactFragments": [
+    "__GHRAB_KORESP_TESTS__=Object.freeze",
+    "const TEST_HOOKS_BUILD_ENABLED=\"1\"===\"1\";",
+    "const TEST_HOOKS_BUILD_ENABLED=true;",
+    "-----BEGIN PRIVATE KEY-----",
+    "-----BEGIN ENCRYPTED PRIVATE KEY-----",
+    "-----BEGIN PGP PRIVATE KEY BLOCK-----"
+  ],
+  "forbiddenArtifactPathPrefixes": [
+    "scripts/",
+    "security/",
+    "audit-evidence/",
+    ".github/",
+    "vendor/garp-2.7-consolidated-r1/"
+  ],
+  "requiredFiles": [
+    "package-lock.json",
+    "src/ai-operations.json",
+    "src/config/deployment.json",
+    "src/config/deployment.school-server.json",
+    "security/garp27/garp-policy.json",
+    "security/garp27/capability-inventory.json",
+    "vendor/garp-2.7-consolidated-r1/MASTER/CONTRACTS/garp27-core.json"
+  ],
+  "minimumCheckedSourceFiles": 40,
+  "liveServerValidationRequired": true,
+  "singleAuthority": "GARP-2.7",
+  "legacyAuthorities": [
+    "GARP-2.5.1"
+  ]
+}

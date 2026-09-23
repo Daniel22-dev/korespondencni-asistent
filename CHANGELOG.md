@@ -1,3 +1,12 @@
+## 5.10.28 — GARP 2.7 konsolidace (2026-09-23)
+
+- GARP 2.7 je jediná aktivní bezpečnostní autorita; GARP 2.5.1 zůstává regresní baseline.
+- Přidány capability inventory, architecture policy, architecture-integrity gate, mutation testy, contract gate a GARP 2.7 auto-patch kontrakt.
+- Konsolidovaný GARP 2.7 master je vendored a kontrolován přes otisky; gate odmítá změnu policy/inventory/masteru mimo trust anchor.
+- `liveServerValidationRequired=true`; školní-server závislé kontroly zůstávají `DEFERRED_BY_OWNER_DECISION` / `NOT_TESTED`.
+- P5/CI cesta spouští GARP 2.7 statický gate; historické GARP 2.5.1/N5 kontroly se zachovávají.
+- Bez změny uživatelské AI logiky, anonymizace a prompt assembly.
+
 ## Post-5.10.27 — final clean-up a audit (2026-09-19)
 
 - odstraněny dva duplicitní legacy GitHub Actions entrypointy `p3-quality.yml` a `p4-release.yml`, které pouze znovu spouštěly celý P5 a nebyly required checks;

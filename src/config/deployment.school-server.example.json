@@ -49,7 +49,7 @@
     "sharedDeviceControls": true,
     "dataDeletion": true,
     "schoolServerConnected": false,
-    "liveServerValidationRequired": false
+    "liveServerValidationRequired": true
   },
   "appId": "correspondence",
   "appBaseUrl": "/apps/korespondencni-asistent/",

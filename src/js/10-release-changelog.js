@@ -8,11 +8,12 @@ function isTrustedLocalTestOrigin(){
 }
 const IS_TEST_MODE=TEST_HOOKS_BUILD_ENABLED&&isTrustedLocalTestOrigin()&&new URLSearchParams(window.location.search).get("test")==="1";
 const RELEASE = {
-  version: "5.10.27",
+  version: "5.10.28",
   date: "2026-09-18",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.10.28: GARP 2.7 konsolidace — aktivní bezpečnostní autorita je GARP 2.7 s capability inventory, architecture-integrity, mutation testy, fail-closed LIVE statusem a GARP 2.7 auto-patch kontraktem; GARP 2.5.1 zůstává povinný regresní baseline a školní server je výslovně NOT_TESTED / DEFERRED_BY_OWNER_DECISION.",
     "5.10.27: Safe Promotion a exact release identity — candidate prochází P5/GARP/N5 přes PR do chráněného main, deploy ověřuje původ i governance a app-updated vzniká až po live kontrole release-integrity v2 se SHA-256 vazbou na manifest, SBOM, provenance a evidence; assurance je výslovně TRANSITIONAL a AI logika se nemění.",
     "5.10.26: AI Studio auto-promotion — veřejný studio-manifest zachovává kanonický Platform 1.1.2 kontrakt, deploy čeká na skutečně živý manifest a poté bezpečně vyšle app-updated do AI Studia; AI logika a anonymizace se nemění.",
     "5.10.25: GARP 2.5.1 opravné kolo po Claude — opraven falešně negativní GH-02 service-worker checker i skutečný P3 precache platform runtime, AI assurance baseline nově kryje anonymizaci a prompt assembly a release podpis je svázán s provenance/evidence/SBOM. Předchozí GH-02 PASS 5.10.24 byl false negative.",

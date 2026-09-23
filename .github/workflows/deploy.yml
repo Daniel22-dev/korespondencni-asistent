@@ -63,7 +63,7 @@ jobs:
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
           registry-url: https://registry.npmjs.org
 
@@ -124,8 +124,10 @@ jobs:
       - name: Verify platform conformance of rebuilt artifact
         run: npm run qa:platform
 
-      - name: Re-enforce cumulative GARP 2.5.1 and N5 controls on release source
-        run: npm run qa:garp25:static
+      - name: Re-enforce GARP 2.7 foundation and legacy controls on release source
+        run: npm run qa:garp27:foundation
+        env:
+          GARP27_EXTERNAL_TRUST_SHA256: 643671aa18b4e8bf54988b4fd109945b0fb4b38f8edc54f4560d9b96e09001aa
 
       - name: Verify AI Studio dispatch credential
         shell: bash
@@ -238,7 +240,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 22
+          node-version: 24
 
       - name: Verify the live release before notifying AI Studio
         env:

@@ -1,0 +1,111 @@
+{
+  "classification": "GARP27_FOUNDATION_GATE",
+  "schema": "garp27-foundation-summary-v1",
+  "garpVersion": "2.7",
+  "appId": "correspondence",
+  "appVersion": "5.10.28",
+  "status": "FOUNDATION_PASS_LIVE_NOT_TESTED",
+  "serverPhase": "DEFERRED_BY_OWNER_DECISION",
+  "liveStatus": "NOT_TESTED",
+  "sourceIdentity": {
+    "value": "34f257c524ed8f7ef8a5e5b9dbc7ebdef406f56a",
+    "kind": "local-source-tree-sha1-surrogate"
+  },
+  "steps": [
+    {
+      "id": "build-production",
+      "expectedExit": 0,
+      "actualExit": 0,
+      "pass": true,
+      "evidence": {
+        "id": "build-production",
+        "sha256": "e4da844ced094fa9f6b8e768664ab450a3d27ab753f4581caf425d844e935c80"
+      }
+    },
+    {
+      "id": "garp27-contracts",
+      "expectedExit": 0,
+      "actualExit": 0,
+      "pass": true,
+      "evidence": {
+        "id": "garp27-contracts",
+        "sha256": "6fdb1952f33d67d35c589904048dd74302eaefec3e413ef8c54dd0be3fb23e73"
+      }
+    },
+    {
+      "id": "garp27-architecture",
+      "expectedExit": 0,
+      "actualExit": 0,
+      "pass": true,
+      "evidence": {
+        "id": "garp27-architecture",
+        "sha256": "a5ba769eb2e7ecdf46303f8c5e7598f2f4518aca6d4cf78ec22eb57d7b4ead2b"
+      }
+    },
+    {
+      "id": "garp27-mutations",
+      "expectedExit": 0,
+      "actualExit": 0,
+      "pass": true,
+      "evidence": {
+        "id": "garp27-mutations",
+        "sha256": "809738370c5ad7f1c927e95b3c0dec79b323e6ef81c896c3a9c62e8ddcd00acf"
+      }
+    },
+    {
+      "id": "garp27-auto-patch",
+      "expectedExit": 0,
+      "actualExit": 0,
+      "pass": true,
+      "evidence": {
+        "id": "garp27-auto-patch",
+        "sha256": "52ec52830f2bfc3a7356969ced170f7aaee15b23df60822742846fcda63fc3e4"
+      }
+    },
+    {
+      "id": "legacy-garp25-static",
+      "expectedExit": 0,
+      "actualExit": 0,
+      "pass": true,
+      "evidence": {
+        "id": "legacy-garp25-static",
+        "sha256": "53670089770ae66e5dd4f5a66f09aeede1f2ec7c47534fb828c8998699754c6f"
+      }
+    },
+    {
+      "id": "promotion-architecture",
+      "expectedExit": 0,
+      "actualExit": 0,
+      "pass": true,
+      "evidence": {
+        "id": "promotion-architecture",
+        "sha256": "8446bc4b1c2583506e70c248187aba7c6b2d25b67b4d1d87ad6fada52ddbc984"
+      }
+    },
+    {
+      "id": "studio-dispatch-contract",
+      "expectedExit": 0,
+      "actualExit": 0,
+      "pass": true,
+      "evidence": {
+        "id": "studio-dispatch-contract",
+        "sha256": "2a81829fc74ce47103a9c9065b7edd9fb9f515bce4cf671d9cf2b1f11f078025"
+      }
+    },
+    {
+      "id": "assurance-admission",
+      "expectedExit": 0,
+      "actualExit": 0,
+      "pass": true,
+      "evidence": {
+        "id": "assurance-admission",
+        "sha256": "19f2f1135fca6ac0057b390d85947f0dc8a019f73aeb766cac60bd111d81f0ba"
+      }
+    }
+  ],
+  "summary": {
+    "total": 9,
+    "passed": 9,
+    "failed": 0
+  }
+}

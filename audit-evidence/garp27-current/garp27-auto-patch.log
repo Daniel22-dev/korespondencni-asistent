@@ -1,0 +1,54 @@
+$ npm run qa:garp27:auto-patch
+EXIT=0
+
+STDOUT
+
+> ghrab-korespondencni-asistent@5.10.28 qa:garp27:auto-patch
+> node scripts/garp27/auto-patch-contract.mjs
+
+{
+  "classification": "GARP27_AUTO_PATCH_CONTRACT",
+  "status": "PASS",
+  "liveAutoPatchClaim": false,
+  "note": "Synthetic admission/state-machine test only; actual Pages dispatch remains separately gated by exact live release verification.",
+  "results": [
+    {
+      "id": "prepared-admission",
+      "expectedExit": 0,
+      "actualExit": 0,
+      "pass": true
+    },
+    {
+      "id": "validated-admission",
+      "expectedExit": 0,
+      "actualExit": 0,
+      "pass": true
+    },
+    {
+      "id": "committed-admission",
+      "expectedExit": 0,
+      "actualExit": 0,
+      "pass": true
+    },
+    {
+      "id": "transition-prepared-validated",
+      "expectedExit": 0,
+      "actualExit": 0,
+      "pass": true
+    },
+    {
+      "id": "transition-validated-committed",
+      "expectedExit": 0,
+      "actualExit": 0,
+      "pass": true
+    },
+    {
+      "id": "negative-empty-gates",
+      "expectedExit": 1,
+      "actualExit": 1,
+      "pass": true
+    }
+  ]
+}
+
+STDERR

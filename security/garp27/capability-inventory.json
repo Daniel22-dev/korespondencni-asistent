@@ -1,0 +1,64 @@
+{
+  "schema": "garp27-capability-inventory-v1",
+  "garpVersion": "2.7",
+  "appId": "correspondence",
+  "appVersion": "5.10.28",
+  "dataClass": "D2",
+  "agentic": false,
+  "aiOperations": [
+    "incoming-analysis",
+    "reply-draft",
+    "outgoing-rewrite",
+    "outgoing-compose",
+    "outgoing-proofread",
+    "draft-refinement",
+    "tone-check",
+    "synonym-suggestions"
+  ],
+  "aiCore": "1.0.0",
+  "platform": "1.1.2",
+  "runtimeProfiles": {
+    "standalone": {
+      "defaultMode": "direct-gemini",
+      "allowedModes": ["direct-gemini"],
+      "allowLocalProviderKeys": true,
+      "automaticFallback": false
+    },
+    "school": {
+      "defaultMode": "school-gateway",
+      "allowedModes": ["school-gateway"],
+      "allowLocalProviderKeys": false,
+      "automaticFallback": false,
+      "status": "DEFERRED_BY_OWNER_DECISION"
+    }
+  },
+  "localInputClasses": [
+    "manual-text",
+    "eml-message",
+    "school-json-artifact",
+    "local-library-artifact"
+  ],
+  "storageClasses": ["localStorage", "sessionStorage", "CacheStorage"],
+  "crossAppInterfaces": [
+    "AI Studio signed permit and app-guard bootstrap",
+    "suite-session events",
+    "studio-manifest contract",
+    "repository_dispatch app-updated after verified public release"
+  ],
+  "privilegedBrowserCapabilities": [],
+  "autonomousToolCapabilities": [],
+  "releaseAuthorities": [
+    "GARP-2.7",
+    "GARP-2.5.1-legacy-regression",
+    "P5-R2",
+    "Safe-Promotion"
+  ],
+  "serverCapabilities": {
+    "schoolSession": "DEFERRED",
+    "schoolGateway": "DEFERRED",
+    "serverEgress": "DEFERRED",
+    "uploadQuarantine": "DEFERRED",
+    "serverAuditWatchdog": "DEFERRED",
+    "containerReverseProxyValidation": "DEFERRED"
+  }
+}

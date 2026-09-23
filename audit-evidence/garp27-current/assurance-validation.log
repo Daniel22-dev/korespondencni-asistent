@@ -1,0 +1,10 @@
+EXIT=0
+{
+  "classification": "CONTRACT_TEST",
+  "status": "PASS",
+  "derivedOverall": "FOUNDATION_PASS_LIVE_NOT_TESTED",
+  "foundationPass": true,
+  "liveStatus": "NOT_TESTED",
+  "notes": []
+}
+
