@@ -1,0 +1,33 @@
+GARP 2.7 — KONSOLIDOVANÝ PROTOKOL r1
+=====================================
+
+TOTO JE NÁHRADNÍ MASTER BALÍK PRO DALŠÍ MIGRACE.
+Aktuální bezpečnostní kontrakt zůstává GARP 2.7; nejde o GARP 2.8.
+Konsolidace: 2026-09-23-r1.
+
+ZAČNI ZDE
+1. 01-GARP-2.7-BEZPECNOSTNI-PROTOKOL.md — úplný bezpečnostní kontrakt.
+2. 09-CONSOLIDATION-R1.md — co tato konsolidace opravila a jak se používá.
+3. MASTER/README.md — referenční validátory a selftesty.
+4. 03-RED-TEAM-KATALOG.json — 67 přejímacích RED TEAM specifikací.
+5. 04-IMPLEMENTACNI-ZADANI.txt — postup migrace konkrétní aplikace.
+
+DŮLEŽITÉ
+- Funkční ochrany GARP 2.5/2.6 se při migraci zachovávají jako regresní základ;
+  jedinou aktuální autoritou je GARP 2.7.
+- A-01 až A-07 už nejsou pouze otevřené nálezy: MASTER obsahuje opravené
+  referenční validátory a pozitivní/negativní contract selftesty.
+- Serverová implementace je rozhodnutím vlastníka ODLOŽENA. Bez serveru se
+  lokální/CI GARP nevypíná ani nezměkčuje. Server-dependent kontroly jsou
+  DEFERRED/NOT_TESTED a nesmějí vytvářet falešný LIVE PASS.
+- PACKAGE_SELFTEST/CONTRACT_TEST není certifikace konkrétní aplikace.
+- Po první referenční aplikaci LUDUS má následovat druhá odlišná aplikace (KS),
+  teprve poté plošný rollout.
+
+RYCHLÁ KONTROLA BALÍKU
+node MASTER/TOOLS/package-selftest.mjs
+node MASTER/TOOLS/contract-selftest.mjs
+
+OSOBNÍ ÚDAJE
+Používej syntetická testovací data; do auditů nevkládej reálné studentské práce,
+přihlašovací údaje nebo klíče.

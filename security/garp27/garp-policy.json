@@ -1,0 +1,55 @@
+{
+  "schema": "garp27-policy-v1",
+  "garpVersion": "2.7",
+  "appId": "correspondence",
+  "appVersion": "5.10.28",
+  "identity": {
+    "standaloneProfile": "signed-permit client bootstrap bound to appId=correspondence",
+    "schoolProfile": "server-session enforcement remains deferred until an approved school runtime exists",
+    "rule": "Client-supplied role, ownership or app identity is never sufficient evidence for a future server-side protected operation."
+  },
+  "requestApiAi": {
+    "registry": "src/ai-operations.json",
+    "registeredOperations": 8,
+    "agentic": false,
+    "controls": "GHRAB AI Core registry, bounded request sizes, anonymization and privacy preflight, schema-bound operation IDs, no autonomous tool or action executor."
+  },
+  "egress": {
+    "standalone": "direct-gemini only, explicitly selected by the standalone runtime profile, without automatic fallback",
+    "school": "same-origin school-gateway only; provider egress and provider credentials belong outside the browser and remain server-phase deferred",
+    "crossApp": "No child application receives a generic cross-application network or administrative capability."
+  },
+  "files": {
+    "currentBoundary": "User-controlled text and supported local imports are parsed in the browser and pass existing type, size, privacy and sanitization checks before AI use.",
+    "serverBoundary": "Upload quarantine and server-side document processing are deferred with the school-server phase; no LIVE claim is made for them."
+  },
+  "dataLifecycle": {
+    "classification": "D2 school correspondence",
+    "storage": "Namespaced local/session storage and PWA cache under the existing data manifest and suite-session cleanup rules.",
+    "retention": "Configured retention is 30 days; shared-device cleanup and explicit data deletion remain part of the existing baseline."
+  },
+  "release": {
+    "activeAuthority": "GARP-2.7",
+    "legacyRegression": "GARP-2.5.1 tooling R5 and N5 controls remain mandatory regression inputs and are not relabeled as GARP 2.7.",
+    "promotion": "candidate -> cumulative security gate -> pull request -> protected main -> exact release identity -> verified public Pages release -> app-updated",
+    "publicAssurance": "TRANSITIONAL unsigned Pages release; school-server SHIELD-LIVE and RI-LIVE remain deferred."
+  },
+  "inventory": {
+    "source": "security/garp27/capability-inventory.json",
+    "architecturePolicy": "security/garp27/architecture-policy.json",
+    "changeRule": "A new AI operation, egress mode, import class, privileged capability or release authority requires inventory update and matching tests before admission."
+  },
+  "securityHealth": {
+    "localCi": "GARP 2.7 contract, architecture-integrity, mutation, secret, legacy GARP 2.5.1 and release-chain gates remain active without the school server.",
+    "live": "NOT_TESTED until an approved target runtime supplies trusted runtime evidence.",
+    "failureMode": "Harness error, empty scope, stale or mismatched evidence and missing required controls never become PASS."
+  },
+  "incident": {
+    "current": "Existing bounded error reporter, release evidence and fail-closed promotion path are retained; diagnostic content remains minimized and user-controlled.",
+    "future": "Central server monitoring, watchdog and infrastructure containment are deferred and must be reviewed separately before use."
+  },
+  "recovery": {
+    "current": "Safe Promotion, exact release identity, rollback-aware release-integrity tooling and local data cleanup remain the recovery baseline.",
+    "future": "Server restore, trust-root custody and live recovery drills are NOT_TESTED until the school runtime is approved."
+  }
+}

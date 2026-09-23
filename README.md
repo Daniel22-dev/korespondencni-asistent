@@ -1,19 +1,29 @@
 # Korespondenční asistent
 
-**Aktuální verze:** 5.10.27  
-**Platforma:** GHRAB Platform 1.1.2 · P5 / Safe Promotion / LIVE auto-patch
+**Aktuální verze:** 5.10.28  
+**Platforma:** GHRAB Platform 1.1.2 · GARP 2.7 / P5 / Safe Promotion
 
-**GARP tooling closure:** R5 (2026-09-07). Bezpečnostní GARP 2.5.1 baseline zůstává obsahově navázána na 5.10.25; verze 5.10.27 přidává Safe Promotion, exact release identity a LIVE-ověřený Pages/AI Studio auto-patch bez změny AI logiky, anonymizace nebo prompt assembly. Veřejný Pages release je označen přesně jako `TRANSITIONAL` / unsigned; školní-server SHIELD-LIVE/RI-LIVE zůstává samostatnou fází.
+**Aktivní bezpečnostní autorita:** GARP 2.7 (konsolidovaný master 2026-09-23-r1). GARP 2.5.1 zůstává povinným regresním baseline, nikoli konkurenční autoritou. Lokální/CI foundation kontroly zůstávají aktivní; školní-server a runtime-dependent kontroly jsou výslovně `DEFERRED_BY_OWNER_DECISION` / `NOT_TESTED`, dokud nebude serverová fáze schválena.
 
 
 Samostatná PWA aplikace ekosystému AI Studio Gymnázia Ostrava-Hrabůvka.
 
-- **Verze aplikace:** 5.10.27
+- **Verze aplikace:** 5.10.28
 - **GHRAB AI Core:** 1.0.0
 - **Doporučený repozitář:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
 - **Interaktivní manuál:** 1.3.16 (manuál 1.3.16)
+
+## Co přináší verze 5.10.28
+
+Verze 5.10.28 migruje Korespondenčního asistenta na **GARP 2.7** jako jedinou aktivní bezpečnostní autoritu. Přidává kanonický konsolidovaný GARP 2.7 balíček, capability inventory, architecture policy, architecture-integrity gate, mutation testy, GARP 2.7 contract gate, fail-closed LIVE status a GARP 2.7 auto-patch kontrakt. Stávající GARP 2.5.1/N5/P5/Safe Promotion ochrany zůstávají beze ztráty jako regresní baseline.
+
+Serverová implementace se tímto releasem **neprovádí**. `liveServerValidationRequired` je naopak přepnuto na `true`, aby aplikace nemohla zaměnit odloženou školní-server fázi za ověřený LIVE stav. Školní session/gateway, server egress, upload quarantine, watchdog a live recovery jsou vedeny jako `DEFERRED_BY_OWNER_DECISION` / `NOT_TESTED`.
+
+**Poznámka k `dist-school-server/`:** verzovaný artefakt zůstává záměrně frozen na 5.10.25 jako historický signed-prep artefakt; není zdrojem aktuálního Pages releasu 5.10.28.
+
+Technický souhrn je v `RELEASE-NOTES-5.10.28-GARP-2.7.md`.
 
 ## Co přináší verze 5.10.27
 

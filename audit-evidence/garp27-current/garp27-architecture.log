@@ -1,0 +1,243 @@
+$ npm run qa:garp27:architecture
+EXIT=0
+
+STDOUT
+
+> ghrab-korespondencni-asistent@5.10.28 qa:garp27:architecture
+> node scripts/garp27/architecture-integrity.mjs
+
+{
+  "classification": "FOUNDATION_ARCHITECTURE_INTEGRITY",
+  "schema": "garp27-architecture-integrity-report-v1",
+  "garpVersion": "2.7",
+  "appId": "correspondence",
+  "appVersion": "5.10.28",
+  "status": "PASS",
+  "trustMode": "EXTERNAL_CI_PIN",
+  "candidateSourceIdentity": {
+    "sha1": "900dfbc4f25b403dc4626bf4ae46539e60709d9c",
+    "files": 142
+  },
+  "scope": {
+    "sourceFiles": 96,
+    "artifactFiles": 38,
+    "resolvedRelativeImports": 14
+  },
+  "checks": [
+    {
+      "id": "G27-AR04.policy-present",
+      "pass": true,
+      "detail": "architecture policy must parse"
+    },
+    {
+      "id": "G27-AR03.inventory-present",
+      "pass": true,
+      "detail": "capability inventory must parse"
+    },
+    {
+      "id": "G27-AUTH.policy-2.7",
+      "pass": true,
+      "detail": "active policy must be GARP 2.7"
+    },
+    {
+      "id": "G27-AUTH.architecture-2.7",
+      "pass": true,
+      "detail": "architecture authority must be GARP 2.7"
+    },
+    {
+      "id": "G27-AUTH.inventory-2.7",
+      "pass": true,
+      "detail": "inventory must be GARP 2.7"
+    },
+    {
+      "id": "G27-VERSION.package",
+      "pass": true,
+      "detail": "package version=5.10.28"
+    },
+    {
+      "id": "G27-VERSION.policy",
+      "pass": true,
+      "detail": "GARP adapter versions must match package"
+    },
+    {
+      "id": "G27-AR04.required:package-lock.json",
+      "pass": true,
+      "detail": "package-lock.json"
+    },
+    {
+      "id": "G27-AR04.required:src/ai-operations.json",
+      "pass": true,
+      "detail": "src/ai-operations.json"
+    },
+    {
+      "id": "G27-AR04.required:src/config/deployment.json",
+      "pass": true,
+      "detail": "src/config/deployment.json"
+    },
+    {
+      "id": "G27-AR04.required:src/config/deployment.school-server.json",
+      "pass": true,
+      "detail": "src/config/deployment.school-server.json"
+    },
+    {
+      "id": "G27-AR04.required:security/garp27/garp-policy.json",
+      "pass": true,
+      "detail": "security/garp27/garp-policy.json"
+    },
+    {
+      "id": "G27-AR04.required:security/garp27/capability-inventory.json",
+      "pass": true,
+      "detail": "security/garp27/capability-inventory.json"
+    },
+    {
+      "id": "G27-AR04.required:vendor/garp-2.7-consolidated-r1/MASTER/CONTRACTS/garp27-core.json",
+      "pass": true,
+      "detail": "vendor/garp-2.7-consolidated-r1/MASTER/CONTRACTS/garp27-core.json"
+    },
+    {
+      "id": "G27-AR04.policy-digest",
+      "pass": true,
+      "detail": "policy digest must match trust anchor"
+    },
+    {
+      "id": "G27-AR04.inventory-digest",
+      "pass": true,
+      "detail": "inventory digest must match trust anchor"
+    },
+    {
+      "id": "G27-AR04.garp-policy-digest",
+      "pass": true,
+      "detail": "GARP policy digest must match trust anchor"
+    },
+    {
+      "id": "G27-AR05.vendor-master-digest",
+      "pass": true,
+      "detail": "55 files; effd55892c413bcb9d3fe719c168a240ba84478e21ab8242c42e7dc3f7b67007"
+    },
+    {
+      "id": "G27-AR04.tool-digest:scripts/garp27/architecture-integrity.mjs",
+      "pass": true,
+      "detail": "scripts/garp27/architecture-integrity.mjs must match the trusted adapter-tool digest"
+    },
+    {
+      "id": "G27-AR04.tool-digest:scripts/garp27/mutation-tests.mjs",
+      "pass": true,
+      "detail": "scripts/garp27/mutation-tests.mjs must match the trusted adapter-tool digest"
+    },
+    {
+      "id": "G27-AR04.tool-digest:scripts/garp27/contract-gate.mjs",
+      "pass": true,
+      "detail": "scripts/garp27/contract-gate.mjs must match the trusted adapter-tool digest"
+    },
+    {
+      "id": "G27-AR04.tool-digest:scripts/garp27/auto-patch-contract.mjs",
+      "pass": true,
+      "detail": "scripts/garp27/auto-patch-contract.mjs must match the trusted adapter-tool digest"
+    },
+    {
+      "id": "G27-AR04.tool-digest:scripts/garp27/foundation-gate.mjs",
+      "pass": true,
+      "detail": "scripts/garp27/foundation-gate.mjs must match the trusted adapter-tool digest"
+    },
+    {
+      "id": "G27-AR04.tool-scope",
+      "pass": true,
+      "detail": "5 application-specific GARP 2.7 tools bound"
+    },
+    {
+      "id": "G27-AR04.external-ci-trust",
+      "pass": true,
+      "detail": "protected CI trust digest matched"
+    },
+    {
+      "id": "G27-AR04.nonempty-source-scope",
+      "pass": true,
+      "detail": "96 JS/MJS files checked"
+    },
+    {
+      "id": "G27-AR01.resolver",
+      "pass": true,
+      "detail": "14 relative imports resolved; 0 unresolved"
+    },
+    {
+      "id": "G27-AR01.forbidden-edges",
+      "pass": true,
+      "detail": "0 forbidden dependency edges"
+    },
+    {
+      "id": "G27-AR02.artifact-present",
+      "pass": true,
+      "detail": "38 files in dist"
+    },
+    {
+      "id": "G27-AR02.no-test-security-paths",
+      "pass": true,
+      "detail": "0 forbidden artifact paths"
+    },
+    {
+      "id": "G27-AR02.no-production-bypass",
+      "pass": true,
+      "detail": "0 forbidden production fragments"
+    },
+    {
+      "id": "G27-AR02.test-hooks-disabled",
+      "pass": true,
+      "detail": "production build must compile test hooks to disabled state"
+    },
+    {
+      "id": "G27-AR03.ai-operation-inventory",
+      "pass": true,
+      "detail": "observed=8, expected=8"
+    },
+    {
+      "id": "G27-AR03.agentic-none",
+      "pass": true,
+      "detail": "agentic/tool capability inventory must remain empty"
+    },
+    {
+      "id": "G27-AR03.standalone-egress-mode",
+      "pass": true,
+      "detail": "standalone must stay explicit direct-gemini"
+    },
+    {
+      "id": "G27-AR03.school-egress-mode",
+      "pass": true,
+      "detail": "school profile must be provider-neutral and forbid local provider keys"
+    },
+    {
+      "id": "G27-LIVE.validation-required-standalone-config",
+      "pass": true,
+      "detail": "server LIVE validation must remain required before server claims"
+    },
+    {
+      "id": "G27-LIVE.validation-required-school-config",
+      "pass": true,
+      "detail": "server LIVE validation must remain required before server claims"
+    },
+    {
+      "id": "G27-AR03.no-automatic-fallback",
+      "pass": true,
+      "detail": "both runtime profiles must remain explicit/fail-closed"
+    },
+    {
+      "id": "G27-AR03.school-runtime-only-gateway",
+      "pass": true,
+      "detail": "school runtime exposes only school-gateway"
+    },
+    {
+      "id": "G27-AR05.single-active-authority",
+      "pass": true,
+      "detail": "0 conflicting active GARP versions"
+    }
+  ],
+  "findings": [],
+  "summary": {
+    "total": 41,
+    "passed": 41,
+    "failed": 0,
+    "critical": 0,
+    "high": 0
+  }
+}
+
+STDERR

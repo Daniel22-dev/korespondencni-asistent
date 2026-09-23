@@ -1,0 +1,125 @@
+{
+  "schema": "garp27-assurance-status-v1",
+  "garpVersion": "2.7",
+  "environment": "local-ci",
+  "releaseIdentity": {
+    "appId": "correspondence",
+    "appVersion": "5.10.28",
+    "sourceCommit": "34f257c524ed8f7ef8a5e5b9dbc7ebdef406f56a"
+  },
+  "overall": "DERIVE",
+  "components": [
+    {
+      "componentId": "AG-01-policy",
+      "presence": "PRESENT",
+      "health": "HEALTHY",
+      "effectiveness": "PASS",
+      "evidenceFreshness": "FRESH",
+      "observedAt": "2026-09-23T13:14:40.141Z",
+      "evidenceRefs": [
+        {
+          "id": "garp27-contracts",
+          "sha256": "6fdb1952f33d67d35c589904048dd74302eaefec3e413ef8c54dd0be3fb23e73"
+        }
+      ]
+    },
+    {
+      "componentId": "AG-02-identity",
+      "presence": "PRESENT",
+      "health": "HEALTHY",
+      "effectiveness": "PASS",
+      "evidenceFreshness": "FRESH",
+      "observedAt": "2026-09-23T13:14:40.141Z",
+      "evidenceRefs": [
+        {
+          "id": "legacy-garp25-static",
+          "sha256": "53670089770ae66e5dd4f5a66f09aeede1f2ec7c47534fb828c8998699754c6f"
+        }
+      ]
+    },
+    {
+      "componentId": "AG-03-request-api-ai",
+      "presence": "PRESENT",
+      "health": "HEALTHY",
+      "effectiveness": "PASS",
+      "evidenceFreshness": "FRESH",
+      "observedAt": "2026-09-23T13:14:40.141Z",
+      "evidenceRefs": [
+        {
+          "id": "legacy-garp25-static",
+          "sha256": "53670089770ae66e5dd4f5a66f09aeede1f2ec7c47534fb828c8998699754c6f"
+        }
+      ]
+    },
+    {
+      "componentId": "AG-05-files",
+      "presence": "PRESENT",
+      "health": "HEALTHY",
+      "effectiveness": "PASS",
+      "evidenceFreshness": "FRESH",
+      "observedAt": "2026-09-23T13:14:40.141Z",
+      "evidenceRefs": [
+        {
+          "id": "legacy-garp25-static",
+          "sha256": "53670089770ae66e5dd4f5a66f09aeede1f2ec7c47534fb828c8998699754c6f"
+        }
+      ]
+    },
+    {
+      "componentId": "AG-06-data-lifecycle",
+      "presence": "PRESENT",
+      "health": "HEALTHY",
+      "effectiveness": "PASS",
+      "evidenceFreshness": "FRESH",
+      "observedAt": "2026-09-23T13:14:40.141Z",
+      "evidenceRefs": [
+        {
+          "id": "legacy-garp25-static",
+          "sha256": "53670089770ae66e5dd4f5a66f09aeede1f2ec7c47534fb828c8998699754c6f"
+        }
+      ]
+    },
+    {
+      "componentId": "AG-07-release",
+      "presence": "PRESENT",
+      "health": "HEALTHY",
+      "effectiveness": "PASS",
+      "evidenceFreshness": "FRESH",
+      "observedAt": "2026-09-23T13:14:40.141Z",
+      "evidenceRefs": [
+        {
+          "id": "promotion-architecture",
+          "sha256": "8446bc4b1c2583506e70c248187aba7c6b2d25b67b4d1d87ad6fada52ddbc984"
+        }
+      ]
+    },
+    {
+      "componentId": "AG-08-architecture",
+      "presence": "PRESENT",
+      "health": "HEALTHY",
+      "effectiveness": "PASS",
+      "evidenceFreshness": "FRESH",
+      "observedAt": "2026-09-23T13:14:40.141Z",
+      "evidenceRefs": [
+        {
+          "id": "garp27-architecture",
+          "sha256": "a5ba769eb2e7ecdf46303f8c5e7598f2f4518aca6d4cf78ec22eb57d7b4ead2b"
+        }
+      ]
+    },
+    {
+      "componentId": "AG-09-inventory",
+      "presence": "PRESENT",
+      "health": "HEALTHY",
+      "effectiveness": "PASS",
+      "evidenceFreshness": "FRESH",
+      "observedAt": "2026-09-23T13:14:40.141Z",
+      "evidenceRefs": [
+        {
+          "id": "garp27-architecture",
+          "sha256": "a5ba769eb2e7ecdf46303f8c5e7598f2f4518aca6d4cf78ec22eb57d7b4ead2b"
+        }
+      ]
+    }
+  ]
+}

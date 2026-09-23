@@ -20,7 +20,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
           registry-url: https://registry.npmjs.org
       - name: Install locked dependencies
@@ -36,7 +36,13 @@ jobs:
           node -e "console.log('CHROMIUM_PATH=' + require('playwright').chromium.executablePath())" >> "$GITHUB_ENV"
       - name: Run P5 R2 application release gate
         run: npm run qa:p5:ci
-      - name: Enforce cumulative GARP 2.5.1 and N5 release gate
+        env:
+          GARP27_EXTERNAL_TRUST_SHA256: 643671aa18b4e8bf54988b4fd109945b0fb4b38f8edc54f4560d9b96e09001aa
+      - name: Enforce GARP 2.7 foundation admission and legacy regressions
+        run: npm run qa:garp27:foundation
+        env:
+          GARP27_EXTERNAL_TRUST_SHA256: 643671aa18b4e8bf54988b4fd109945b0fb4b38f8edc54f4560d9b96e09001aa
+      - name: Enforce explicit legacy GARP 2.5.1 and N5 regression gate
         run: npm run qa:garp25:static
       - name: Build PREP release identity and verify complete release chain
         run: npm run prepare:pages
