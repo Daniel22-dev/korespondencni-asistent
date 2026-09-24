@@ -3,12 +3,12 @@
   "schema": "garp27-foundation-summary-v1",
   "garpVersion": "2.7",
   "appId": "correspondence",
-  "appVersion": "5.10.28",
+  "appVersion": "5.10.29",
   "status": "FOUNDATION_PASS_LIVE_NOT_TESTED",
   "serverPhase": "DEFERRED_BY_OWNER_DECISION",
   "liveStatus": "NOT_TESTED",
   "sourceIdentity": {
-    "value": "34f257c524ed8f7ef8a5e5b9dbc7ebdef406f56a",
+    "value": "50b57c160d4a3babd06e6ef4046c7f753e9ad536",
     "kind": "local-source-tree-sha1-surrogate"
   },
   "steps": [
@@ -19,7 +19,7 @@
       "pass": true,
       "evidence": {
         "id": "build-production",
-        "sha256": "e4da844ced094fa9f6b8e768664ab450a3d27ab753f4581caf425d844e935c80"
+        "sha256": "b780c55029cf0d16d84e555e9af75787d1fe1aaad97220b5ee4e0bde6dbfbf17"
       }
     },
     {
@@ -29,7 +29,7 @@
       "pass": true,
       "evidence": {
         "id": "garp27-contracts",
-        "sha256": "6fdb1952f33d67d35c589904048dd74302eaefec3e413ef8c54dd0be3fb23e73"
+        "sha256": "ad3d5d854454f3f4988056ac8e86c97fafbb951a77879c1205cbd692281c021c"
       }
     },
     {
@@ -39,7 +39,17 @@
       "pass": true,
       "evidence": {
         "id": "garp27-architecture",
-        "sha256": "a5ba769eb2e7ecdf46303f8c5e7598f2f4518aca6d4cf78ec22eb57d7b4ead2b"
+        "sha256": "f079dc6ab496217249b2f870891ee70ceb94b08e6fe0473ed9fe2ccde3d9c44b"
+      }
+    },
+    {
+      "id": "garp27-policy-mutations",
+      "expectedExit": 0,
+      "actualExit": 0,
+      "pass": true,
+      "evidence": {
+        "id": "garp27-policy-mutations",
+        "sha256": "6befc6dd6ee68035c6e6334daaf6f3cd6760c2e04e027762bd89adc870972367"
       }
     },
     {
@@ -49,7 +59,7 @@
       "pass": true,
       "evidence": {
         "id": "garp27-mutations",
-        "sha256": "809738370c5ad7f1c927e95b3c0dec79b323e6ef81c896c3a9c62e8ddcd00acf"
+        "sha256": "dd4fd04351512c8d2a6a3c914984db9727ddd290e40a8775357463f88d3f0942"
       }
     },
     {
@@ -59,7 +69,7 @@
       "pass": true,
       "evidence": {
         "id": "garp27-auto-patch",
-        "sha256": "52ec52830f2bfc3a7356969ced170f7aaee15b23df60822742846fcda63fc3e4"
+        "sha256": "a787bbc634370bc06ef6a175aff5801ac17a262254bc25cd5370fc45b8d3acc4"
       }
     },
     {
@@ -69,7 +79,7 @@
       "pass": true,
       "evidence": {
         "id": "legacy-garp25-static",
-        "sha256": "53670089770ae66e5dd4f5a66f09aeede1f2ec7c47534fb828c8998699754c6f"
+        "sha256": "ee067d912c914e08a71c4a971be1d992457dece25e0e067d6d2f71b8f2f9fdc1"
       }
     },
     {
@@ -79,7 +89,7 @@
       "pass": true,
       "evidence": {
         "id": "promotion-architecture",
-        "sha256": "8446bc4b1c2583506e70c248187aba7c6b2d25b67b4d1d87ad6fada52ddbc984"
+        "sha256": "2396cc52179576cfe070d374bdd8349fdc9038199ffb32287c90322d6e935d1b"
       }
     },
     {
@@ -89,7 +99,7 @@
       "pass": true,
       "evidence": {
         "id": "studio-dispatch-contract",
-        "sha256": "2a81829fc74ce47103a9c9065b7edd9fb9f515bce4cf671d9cf2b1f11f078025"
+        "sha256": "9cbe1131102847f7f05d4f7457943feaa171f85b6af2a9333b199684071fd210"
       }
     },
     {
@@ -104,8 +114,8 @@
     }
   ],
   "summary": {
-    "total": 9,
-    "passed": 9,
+    "total": 10,
+    "passed": 10,
     "failed": 0
   }
 }

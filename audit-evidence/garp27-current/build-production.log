@@ -3,19 +3,19 @@ EXIT=0
 
 STDOUT
 
-> ghrab-korespondencni-asistent@5.10.28 build
+> ghrab-korespondencni-asistent@5.10.29 build
 > node scripts/build.mjs
 
-[build] Korespondenční asistent: verze 5.10.28 · Core 1.0.0 ověřen SHA-256 · 8 AI operací · 14 aplikačních JS modulů · test hooks OFF · dist připraven
-[P3] correspondence 5.10.28: platform 1.1.2, HTML 2, cache ghrab-correspondence-v5.10.28
+[build] Korespondenční asistent: verze 5.10.29 · Core 1.0.0 ověřen SHA-256 · 8 AI operací · 14 aplikačních JS modulů · test hooks OFF · dist připraven
+[P3] correspondence 5.10.29: platform 1.1.2, HTML 2, cache ghrab-correspondence-v5.10.29
 
-> ghrab-korespondencni-asistent@5.10.28 postbuild
+> ghrab-korespondencni-asistent@5.10.29 postbuild
 > node scripts/ghrab-platform-conformance.mjs
 
 {
   "schema": "ghrab-platform-conformance-result-v1",
   "appId": "correspondence",
-  "appVersion": "5.10.28",
+  "appVersion": "5.10.29",
   "total": 139,
   "passed": 139,
   "failed": 0,
@@ -43,7 +43,7 @@ STDOUT
     {
       "label": "package ↔ consumer version",
       "ok": true,
-      "detail": "5.10.28 / 5.10.28"
+      "detail": "5.10.29 / 5.10.29"
     },
     {
       "label": "platform contract",
@@ -83,7 +83,7 @@ STDOUT
     {
       "label": "cache naming",
       "ok": true,
-      "detail": "ghrab-correspondence-v5.10.28"
+      "detail": "ghrab-correspondence-v5.10.29"
     },
     {
       "label": "storage migration declared",

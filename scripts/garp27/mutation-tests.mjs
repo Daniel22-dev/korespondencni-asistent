@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { evaluateArchitecture } from './architecture-integrity.mjs';
 const ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..','..');
-const COPY=['src','scripts','security/garp27','vendor/garp-2.7-consolidated-r1','dist','package.json','package-lock.json'];
+const COPY=['src','scripts','security/garp27','vendor/garp-2.7-consolidated-r2','dist','package.json','package-lock.json'];
 function fixture(){const dir=fs.mkdtempSync(path.join(os.tmpdir(),'ks-garp27-'));for(const rel of COPY){const s=path.join(ROOT,rel),d=path.join(dir,rel);if(!fs.existsSync(s))continue;fs.mkdirSync(path.dirname(d),{recursive:true});fs.cpSync(s,d,{recursive:true});}return dir;}
 function mutateJson(root,rel,fn){const p=path.join(root,rel),x=JSON.parse(fs.readFileSync(p,'utf8'));fn(x);fs.writeFileSync(p,JSON.stringify(x,null,2)+'\n');}
 const cases=[
@@ -17,7 +17,7 @@ const cases=[
   {id:'G27-AR03-school-local-key-bypass',expect:'FAIL',mutate:r=>mutateJson(r,'src/config/deployment.school-server.json',x=>{x.features.allowLocalProviderKeys=true;})},
   {id:'G27-AR04-policy-self-edit',expect:'FAIL',mutate:r=>mutateJson(r,'security/garp27/architecture-policy.json',x=>{x.minimumCheckedSourceFiles=1;})},
   {id:'G27-AR04-tool-self-edit',expect:'FAIL',mutate:r=>fs.appendFileSync(path.join(r,'scripts/garp27/architecture-integrity.mjs'),'\n// synthetic tool drift\n')},
-  {id:'G27-AR05-vendored-master-drift',expect:'FAIL',mutate:r=>fs.appendFileSync(path.join(r,'vendor/garp-2.7-consolidated-r1/MASTER/README.md'),'\nsynthetic drift\n')},
+  {id:'G27-AR05-vendored-master-drift',expect:'FAIL',mutate:r=>fs.appendFileSync(path.join(r,'vendor/garp-2.7-consolidated-r2/MASTER/README.md'),'\nsynthetic drift\n')},
   {id:'G27-AR05-conflicting-active-authority',expect:'FAIL',mutate:r=>fs.writeFileSync(path.join(r,'security/garp27/synthetic-conflict.json'),JSON.stringify({garpVersion:'2.6'},null,2))}
 ];
 const results=[];let failed=0;

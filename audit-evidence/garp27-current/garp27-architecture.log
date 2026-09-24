@@ -3,7 +3,7 @@ EXIT=0
 
 STDOUT
 
-> ghrab-korespondencni-asistent@5.10.28 qa:garp27:architecture
+> ghrab-korespondencni-asistent@5.10.29 qa:garp27:architecture
 > node scripts/garp27/architecture-integrity.mjs
 
 {
@@ -11,15 +11,15 @@ STDOUT
   "schema": "garp27-architecture-integrity-report-v1",
   "garpVersion": "2.7",
   "appId": "correspondence",
-  "appVersion": "5.10.28",
+  "appVersion": "5.10.29",
   "status": "PASS",
   "trustMode": "EXTERNAL_CI_PIN",
   "candidateSourceIdentity": {
-    "sha1": "900dfbc4f25b403dc4626bf4ae46539e60709d9c",
-    "files": 142
+    "sha1": "4d5b0645f8b95884243f2fafd3e6fd075bd1756b",
+    "files": 143
   },
   "scope": {
-    "sourceFiles": 96,
+    "sourceFiles": 97,
     "artifactFiles": 38,
     "resolvedRelativeImports": 14
   },
@@ -52,12 +52,27 @@ STDOUT
     {
       "id": "G27-VERSION.package",
       "pass": true,
-      "detail": "package version=5.10.28"
+      "detail": "package=5.10.29, trusted=5.10.29"
     },
     {
       "id": "G27-VERSION.policy",
       "pass": true,
       "detail": "GARP adapter versions must match package"
+    },
+    {
+      "id": "G27-G02.core-revision",
+      "pass": true,
+      "detail": "core=2026-09-23-r2, trust=2026-09-23-r2"
+    },
+    {
+      "id": "G27-G02.inventory-revision",
+      "pass": true,
+      "detail": "inventory revision=2026-09-23-r2"
+    },
+    {
+      "id": "G27-G02.inventory-app-id",
+      "pass": true,
+      "detail": "correspondence must exist in trusted ecosystem inventory"
     },
     {
       "id": "G27-AR04.required:package-lock.json",
@@ -90,9 +105,14 @@ STDOUT
       "detail": "security/garp27/capability-inventory.json"
     },
     {
-      "id": "G27-AR04.required:vendor/garp-2.7-consolidated-r1/MASTER/CONTRACTS/garp27-core.json",
+      "id": "G27-AR04.required:vendor/garp-2.7-consolidated-r2/MASTER/CONTRACTS/garp27-core.json",
       "pass": true,
-      "detail": "vendor/garp-2.7-consolidated-r1/MASTER/CONTRACTS/garp27-core.json"
+      "detail": "vendor/garp-2.7-consolidated-r2/MASTER/CONTRACTS/garp27-core.json"
+    },
+    {
+      "id": "G27-AR04.required:vendor/garp-2.7-consolidated-r2/MASTER/INVENTORY/ecosystem-apps.json",
+      "pass": true,
+      "detail": "vendor/garp-2.7-consolidated-r2/MASTER/INVENTORY/ecosystem-apps.json"
     },
     {
       "id": "G27-AR04.policy-digest",
@@ -112,7 +132,17 @@ STDOUT
     {
       "id": "G27-AR05.vendor-master-digest",
       "pass": true,
-      "detail": "55 files; effd55892c413bcb9d3fe719c168a240ba84478e21ab8242c42e7dc3f7b67007"
+      "detail": "64 files; 2c653aa771c16ce1b610492bf5bf9d57c37af4987c85109de6cbb7cf8aa9a2fb"
+    },
+    {
+      "id": "G27-G02.core-digest",
+      "pass": true,
+      "detail": "r2 core contract digest must match trust anchor"
+    },
+    {
+      "id": "G27-G02.inventory-digest",
+      "pass": true,
+      "detail": "r2 ecosystem inventory digest must match trust anchor"
     },
     {
       "id": "G27-AR04.tool-digest:scripts/garp27/architecture-integrity.mjs",
@@ -130,6 +160,11 @@ STDOUT
       "detail": "scripts/garp27/contract-gate.mjs must match the trusted adapter-tool digest"
     },
     {
+      "id": "G27-AR04.tool-digest:scripts/garp27/policy-admission-mutations.mjs",
+      "pass": true,
+      "detail": "scripts/garp27/policy-admission-mutations.mjs must match the trusted adapter-tool digest"
+    },
+    {
       "id": "G27-AR04.tool-digest:scripts/garp27/auto-patch-contract.mjs",
       "pass": true,
       "detail": "scripts/garp27/auto-patch-contract.mjs must match the trusted adapter-tool digest"
@@ -142,7 +177,7 @@ STDOUT
     {
       "id": "G27-AR04.tool-scope",
       "pass": true,
-      "detail": "5 application-specific GARP 2.7 tools bound"
+      "detail": "6 application-specific GARP 2.7 tools bound"
     },
     {
       "id": "G27-AR04.external-ci-trust",
@@ -152,7 +187,7 @@ STDOUT
     {
       "id": "G27-AR04.nonempty-source-scope",
       "pass": true,
-      "detail": "96 JS/MJS files checked"
+      "detail": "97 JS/MJS files checked"
     },
     {
       "id": "G27-AR01.resolver",
@@ -232,8 +267,8 @@ STDOUT
   ],
   "findings": [],
   "summary": {
-    "total": 41,
-    "passed": 41,
+    "total": 48,
+    "passed": 48,
     "failed": 0,
     "critical": 0,
     "high": 0

@@ -4,8 +4,8 @@
   "environment": "local-ci",
   "releaseIdentity": {
     "appId": "correspondence",
-    "appVersion": "5.10.28",
-    "sourceCommit": "34f257c524ed8f7ef8a5e5b9dbc7ebdef406f56a"
+    "appVersion": "5.10.29",
+    "sourceCommit": "50b57c160d4a3babd06e6ef4046c7f753e9ad536"
   },
   "overall": "DERIVE",
   "components": [
@@ -15,11 +15,15 @@
       "health": "HEALTHY",
       "effectiveness": "PASS",
       "evidenceFreshness": "FRESH",
-      "observedAt": "2026-09-23T13:14:40.141Z",
+      "observedAt": "2026-09-24T05:41:08.069Z",
       "evidenceRefs": [
         {
           "id": "garp27-contracts",
-          "sha256": "6fdb1952f33d67d35c589904048dd74302eaefec3e413ef8c54dd0be3fb23e73"
+          "sha256": "ad3d5d854454f3f4988056ac8e86c97fafbb951a77879c1205cbd692281c021c"
+        },
+        {
+          "id": "garp27-policy-mutations",
+          "sha256": "6befc6dd6ee68035c6e6334daaf6f3cd6760c2e04e027762bd89adc870972367"
         }
       ]
     },
@@ -29,11 +33,11 @@
       "health": "HEALTHY",
       "effectiveness": "PASS",
       "evidenceFreshness": "FRESH",
-      "observedAt": "2026-09-23T13:14:40.141Z",
+      "observedAt": "2026-09-24T05:41:08.069Z",
       "evidenceRefs": [
         {
           "id": "legacy-garp25-static",
-          "sha256": "53670089770ae66e5dd4f5a66f09aeede1f2ec7c47534fb828c8998699754c6f"
+          "sha256": "ee067d912c914e08a71c4a971be1d992457dece25e0e067d6d2f71b8f2f9fdc1"
         }
       ]
     },
@@ -43,11 +47,11 @@
       "health": "HEALTHY",
       "effectiveness": "PASS",
       "evidenceFreshness": "FRESH",
-      "observedAt": "2026-09-23T13:14:40.141Z",
+      "observedAt": "2026-09-24T05:41:08.069Z",
       "evidenceRefs": [
         {
           "id": "legacy-garp25-static",
-          "sha256": "53670089770ae66e5dd4f5a66f09aeede1f2ec7c47534fb828c8998699754c6f"
+          "sha256": "ee067d912c914e08a71c4a971be1d992457dece25e0e067d6d2f71b8f2f9fdc1"
         }
       ]
     },
@@ -57,11 +61,11 @@
       "health": "HEALTHY",
       "effectiveness": "PASS",
       "evidenceFreshness": "FRESH",
-      "observedAt": "2026-09-23T13:14:40.141Z",
+      "observedAt": "2026-09-24T05:41:08.069Z",
       "evidenceRefs": [
         {
           "id": "legacy-garp25-static",
-          "sha256": "53670089770ae66e5dd4f5a66f09aeede1f2ec7c47534fb828c8998699754c6f"
+          "sha256": "ee067d912c914e08a71c4a971be1d992457dece25e0e067d6d2f71b8f2f9fdc1"
         }
       ]
     },
@@ -71,11 +75,11 @@
       "health": "HEALTHY",
       "effectiveness": "PASS",
       "evidenceFreshness": "FRESH",
-      "observedAt": "2026-09-23T13:14:40.141Z",
+      "observedAt": "2026-09-24T05:41:08.069Z",
       "evidenceRefs": [
         {
           "id": "legacy-garp25-static",
-          "sha256": "53670089770ae66e5dd4f5a66f09aeede1f2ec7c47534fb828c8998699754c6f"
+          "sha256": "ee067d912c914e08a71c4a971be1d992457dece25e0e067d6d2f71b8f2f9fdc1"
         }
       ]
     },
@@ -85,11 +89,11 @@
       "health": "HEALTHY",
       "effectiveness": "PASS",
       "evidenceFreshness": "FRESH",
-      "observedAt": "2026-09-23T13:14:40.141Z",
+      "observedAt": "2026-09-24T05:41:08.069Z",
       "evidenceRefs": [
         {
           "id": "promotion-architecture",
-          "sha256": "8446bc4b1c2583506e70c248187aba7c6b2d25b67b4d1d87ad6fada52ddbc984"
+          "sha256": "2396cc52179576cfe070d374bdd8349fdc9038199ffb32287c90322d6e935d1b"
         }
       ]
     },
@@ -99,11 +103,11 @@
       "health": "HEALTHY",
       "effectiveness": "PASS",
       "evidenceFreshness": "FRESH",
-      "observedAt": "2026-09-23T13:14:40.141Z",
+      "observedAt": "2026-09-24T05:41:08.069Z",
       "evidenceRefs": [
         {
           "id": "garp27-architecture",
-          "sha256": "a5ba769eb2e7ecdf46303f8c5e7598f2f4518aca6d4cf78ec22eb57d7b4ead2b"
+          "sha256": "f079dc6ab496217249b2f870891ee70ceb94b08e6fe0473ed9fe2ccde3d9c44b"
         }
       ]
     },
@@ -113,11 +117,11 @@
       "health": "HEALTHY",
       "effectiveness": "PASS",
       "evidenceFreshness": "FRESH",
-      "observedAt": "2026-09-23T13:14:40.141Z",
+      "observedAt": "2026-09-24T05:41:08.069Z",
       "evidenceRefs": [
         {
           "id": "garp27-architecture",
-          "sha256": "a5ba769eb2e7ecdf46303f8c5e7598f2f4518aca6d4cf78ec22eb57d7b4ead2b"
+          "sha256": "f079dc6ab496217249b2f870891ee70ceb94b08e6fe0473ed9fe2ccde3d9c44b"
         }
       ]
     }

@@ -29,3 +29,7 @@ Tyto změny **nemění canonical GARP 2.7 master**. Zpřesňují pouze adaptér 
 ## Výsledek druhé migrace
 
 Na úrovni dostupné FOUNDATION evidence nebyl nalezen důvod měnit společný GARP 2.7 kontrakt. KS může sloužit jako druhý referenční migrační vzor vedle LUDUS, ale school-server/LIVE tvrzení zůstává samostatně neověřené.
+
+## Dodatek 2026-09-24 — r2 / G-02
+
+GARP 2.7 r2 zpřísňuje policy admission, nikoli cross-app runtime rozhraní. Tento dokument proto zůstává použitelný pro architektonické porovnání LUDUS × Korespondenční asistent, ale každý z obou repozitářů musí samostatně projít r2 inventory/semver/semantic/placeholder admission a mít vlastní aktualizovaný trust anchor.

@@ -2,7 +2,7 @@
   "schema": "garp27-application-migration-profile-v1",
   "garpVersion": "2.7",
   "appId": "correspondence",
-  "appVersion": "5.10.28",
+  "appVersion": "5.10.29",
   "serverApproval": "DEFERRED_BY_OWNER_DECISION",
   "requiredComponents": [
     {
@@ -67,19 +67,20 @@
     }
   ],
   "trustedEvidence": {
-    "garp27-contracts": "6fdb1952f33d67d35c589904048dd74302eaefec3e413ef8c54dd0be3fb23e73",
-    "garp27-architecture": "a5ba769eb2e7ecdf46303f8c5e7598f2f4518aca6d4cf78ec22eb57d7b4ead2b",
-    "garp27-mutations": "809738370c5ad7f1c927e95b3c0dec79b323e6ef81c896c3a9c62e8ddcd00acf",
-    "garp27-auto-patch": "52ec52830f2bfc3a7356969ced170f7aaee15b23df60822742846fcda63fc3e4",
-    "legacy-garp25-static": "53670089770ae66e5dd4f5a66f09aeede1f2ec7c47534fb828c8998699754c6f",
-    "promotion-architecture": "8446bc4b1c2583506e70c248187aba7c6b2d25b67b4d1d87ad6fada52ddbc984",
-    "studio-dispatch-contract": "2a81829fc74ce47103a9c9065b7edd9fb9f515bce4cf671d9cf2b1f11f078025"
+    "garp27-contracts": "ad3d5d854454f3f4988056ac8e86c97fafbb951a77879c1205cbd692281c021c",
+    "garp27-architecture": "f079dc6ab496217249b2f870891ee70ceb94b08e6fe0473ed9fe2ccde3d9c44b",
+    "garp27-policy-mutations": "6befc6dd6ee68035c6e6334daaf6f3cd6760c2e04e027762bd89adc870972367",
+    "garp27-mutations": "dd4fd04351512c8d2a6a3c914984db9727ddd290e40a8775357463f88d3f0942",
+    "garp27-auto-patch": "a787bbc634370bc06ef6a175aff5801ac17a262254bc25cd5370fc45b8d3acc4",
+    "legacy-garp25-static": "ee067d912c914e08a71c4a971be1d992457dece25e0e067d6d2f71b8f2f9fdc1",
+    "promotion-architecture": "2396cc52179576cfe070d374bdd8349fdc9038199ffb32287c90322d6e935d1b",
+    "studio-dispatch-contract": "9cbe1131102847f7f05d4f7457943feaa171f85b6af2a9333b199684071fd210"
   },
   "maxEvidenceAgeHours": 168,
   "releaseIdentity": {
     "appId": "correspondence",
-    "appVersion": "5.10.28",
-    "sourceCommit": "34f257c524ed8f7ef8a5e5b9dbc7ebdef406f56a"
+    "appVersion": "5.10.29",
+    "sourceCommit": "50b57c160d4a3babd06e6ef4046c7f753e9ad536"
   },
   "releaseIdentityResolution": "The foundation gate replaces sourceCommit with GITHUB_SHA when available; local archive review uses a deterministic source-tree SHA-1 surrogate and labels it as such in evidence."
 }

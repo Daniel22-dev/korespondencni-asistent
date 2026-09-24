@@ -1,0 +1,70 @@
+$ npm run qa:garp27:policy-mutations
+EXIT=0
+
+STDOUT
+
+> ghrab-korespondencni-asistent@5.10.29 qa:garp27:policy-mutations
+> node scripts/garp27/policy-admission-mutations.mjs
+
+{
+  "classification": "GARP27_G02_APP_POLICY_MUTATION_TEST",
+  "status": "PASS",
+  "garpVersion": "2.7",
+  "consolidationRevision": "2026-09-23-r2",
+  "syntheticOnly": true,
+  "total": 6,
+  "passed": 6,
+  "failed": 0,
+  "results": [
+    {
+      "id": "G02-app-positive-current-policy",
+      "expectedExit": 0,
+      "actualExit": 0,
+      "pass": true,
+      "stdout": "{\n  \"classification\": \"CONTRACT_TEST\",\n  \"status\": \"PASS\",\n  \"contract\": \"garp27-policy-v1\",\n  \"appId\": \"correspondence\",\n  \"appVersion\": \"5.10.29\",\n  \"inventory\": \"/mnt/data/work_garp_sortio/app/korespondencni-asistent-main/vendor/garp-2.7-consolidated-r2/MASTER/INVENTORY/ecosystem-apps.json\"\n}",
+      "stderr": ""
+    },
+    {
+      "id": "G02-app-reject-unknown-app-id",
+      "expectedExit": 1,
+      "actualExit": 1,
+      "pass": true,
+      "stdout": "{\n  \"classification\": \"CONTRACT_TEST\",\n  \"status\": \"FAIL\",\n  \"message\": \"GARP 2.7 policy is not admissible\",\n  \"details\": [\n    \"appId not present in inventory: ghost-app\"\n  ]\n}",
+      "stderr": ""
+    },
+    {
+      "id": "G02-app-reject-zero-version",
+      "expectedExit": 1,
+      "actualExit": 1,
+      "pass": true,
+      "stdout": "{\n  \"classification\": \"CONTRACT_TEST\",\n  \"status\": \"FAIL\",\n  \"message\": \"GARP 2.7 policy is not admissible\",\n  \"details\": [\n    \"appVersion 0.0.0 is not admissible\"\n  ]\n}",
+      "stderr": ""
+    },
+    {
+      "id": "G02-app-reject-invalid-semver",
+      "expectedExit": 1,
+      "actualExit": 1,
+      "pass": true,
+      "stdout": "{\n  \"classification\": \"CONTRACT_TEST\",\n  \"status\": \"FAIL\",\n  \"message\": \"GARP 2.7 policy is not admissible\",\n  \"details\": [\n    \"appVersion is not valid semver: 5.10\"\n  ]\n}",
+      "stderr": ""
+    },
+    {
+      "id": "G02-app-reject-mode-only-sections",
+      "expectedExit": 1,
+      "actualExit": 1,
+      "pass": true,
+      "stdout": "{\n  \"classification\": \"CONTRACT_TEST\",\n  \"status\": \"FAIL\",\n  \"message\": \"GARP 2.7 policy is not admissible\",\n  \"details\": [\n    \"identity: requires at least 1 semantic field(s) from [rule, controls, authentication, authorization, session, standaloneProfile, schoolProfile, provider, roles]\",\n    \"requestApiAi: requires at least 1 semantic field(s) from [registry, registeredOperations, controls, operations, agentic, requestPolicy, aiPolicy, maxCallsPerOperation, modelPolicy]\",\n    \"egress: requires at least 1 semantic field(s) from [standalone, school, crossApp, allowedDestinations, allowedEgress, defaultDeny, networkPolicy, providerEgress]\",\n    \"files: requires at least 1 semantic field(s) from [currentBoundary, serverBoundary, uploads, imports, uploadPolicy, importPolicy, quarantine, allowedMimeTypes, maxBytes]\",\n    \"dataLifecycle: requires at least 1 semantic field(s) from [classification, storage, retention, deletion, retentionDays, temporaryDataTtlMinutes, securityLogContentPolicy]\",\n    \"release: requires at least 1 semantic field(s) from [activeAuthority, promotion, publicAssurance, signing, signedReleaseRequired, antiRollbackRequired, rollback, releasePolicy]\",\n    \"inventory: requires at least 1 semantic field(s) from [source, architecturePolicy, changeRule, components, dependencies, inventoryPolicy]\",\n    \"securityHealth: requires at least 1 semantic field(s) from [localCi, live, failureMode, checks, monitoring, assurance, healthPolicy]\",\n    \"incident: requires at least 1 semantic field(s) from [current, future, response, escalation, contacts, incidentPolicy]\",\n    \"recovery: requires at least 1 semantic field(s) from [current, future, rollback, restore, backup, recoveryPolicy]\",\n    \"identity.mode: forbidden placeholder value\",\n    \"requestApiAi.mode: forbidden placeholder value\",\n    \"egress.mode: forbidden placeholder value\",\n    \"files.mode: forbidden placeholder value\",\n    \"dataLifecycle.mode: forbidden placeholder value\",\n    \"release.mode: forbidden placeholder value\",\n    \"inventory.mode: forbidden placeholder value\",\n    \"securityHealth.mode: forbidden placeholder value\",\n    \"incident.mode: forbidden placeholder value\",\n    \"recovery.mode: forbidden placeholder value\"\n  ]\n}",
+      "stderr": ""
+    },
+    {
+      "id": "G02-app-reject-placeholder-substring",
+      "expectedExit": 1,
+      "actualExit": 1,
+      "pass": true,
+      "stdout": "{\n  \"classification\": \"CONTRACT_TEST\",\n  \"status\": \"FAIL\",\n  \"message\": \"GARP 2.7 policy is not admissible\",\n  \"details\": [\n    \"incident.response: placeholder substring: replace-with\"\n  ]\n}",
+      "stderr": ""
+    }
+  ]
+}
+
+STDERR

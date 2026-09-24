@@ -1,34 +1,29 @@
-# Korespondenční asistent — GARP 2.7 migration assessment
+# Korespondenční asistent — GARP 2.7 r2 migration assessment
 
-Datum: 2026-09-23  
-Aplikace: `correspondence` / Korespondenční asistent 5.10.28  
-Vstupní aplikace SHA-256: `d11923e625e989aed6079b446beffa446618078cf70ff80afebd7a0cf81fdb8f`  
-GARP 2.7 balík SHA-256: `f54e5b5c271ff05c5a4d4cf85882ba972b9a78945724bb60a369432e984803d4`
+Datum: 2026-09-24  
+Aplikace: `correspondence` / Korespondenční asistent 5.10.29  
+Aktivní kontrakt: GARP 2.7 / konsolidace `2026-09-23-r2`  
+Vstupní aplikační ZIP SHA-256: `9c96a8588785c218d99e0f2451fbc47b0cfd996619497319d4998766eb5e60a0`  
+GARP r2 vstupní ZIP SHA-256: `0c278aefa0581b3ba13dd5725da9d3fc624976c255602ec16b054fc81da6f7c8`
 
-## A-01 až A-07
+## Rozhodnutí
 
-| Nález | Stav pro konsolidovaný master | Ověření v KS |
-|---|---|---|
-| A-01 ASSURANCE nesmí přijmout PASS s chybějící/selhanou povinnou komponentou | ACCEPT | master contract selftest + app-specific `qa:garp27:foundation`; assurance admission PASS pouze z trusted evidence |
-| A-02 AUTO-PATCH nesmí přijmout COMMITTED bez bran | ACCEPT | `qa:garp27:auto-patch`; negativní empty-gates scénář správně odmítnut |
-| A-03 AUTO-PATCH musí ověřovat pravdivost PASS/evidence/zdroje/cíle | ACCEPT | master contract selftest + app auto-patch trust/evidence kontrakt |
-| A-04 schémata a validátory musí být konzistentní | ACCEPT | canonical package selftest 15/15 + contract selftest 20/20 + app policy validation |
-| A-05 aktivní master musí být skutečně 2.7 | ACCEPT | `garpVersion=2.7`, single-authority check; 2.5.1 je pouze legacy regression baseline |
-| A-06 podmínky produkčních testů musí být strojově vyjádřené | ACCEPT | LIVE validator vrací při odloženém serveru očekávané `NOT_TESTED` a blokuje false PASS |
-| A-07 selftest nesmí vydávat užší kontrolu za širší důkaz | ACCEPT | canonical selftest classification + app gate odděluje PACKAGE/CONTRACT/FOUNDATION/LIVE |
+Původní 5.10.28 implementace GARP 2.7 r1 byla funkční, ale nový master r2 uzavírá G-02: r1 policy validator mohl přijmout formálně vyplněnou šablonu bez skutečné aplikační sémantiky. Korespondenční asistent proto musí být re-baselined na r2, nikoli pouze ponechán na r1 s konstatováním, že jeho aktuální policy náhodou projde přísnějším validátorem.
 
-## G27-AR01 až G27-AR05
+## Aplikační dopad
 
-- **G27-AR01 — dependency integrity:** kontrola relativních importů, unresolved importů a forbidden edges. Implementace ignoruje import-like text uvnitř string literalů, aby nevznikal falešný nález z testovacích needle řetězců.
-- **G27-AR02 — production artifact integrity:** kontrola zakázaných produkčních cest, test bypassů, private-key markerů a explicitní důkaz, že produkční build kompiluje `TEST_HOOKS_BUILD_ENABLED` do vypnutého stavu.
-- **G27-AR03 — capability delta:** přesná shoda osmi AI operací, žádné agentic/tool capabilities, explicitní standalone/school egress a zákaz local provider key ve school profilu.
-- **G27-AR04 — trusted gate:** policy, inventory, GARP policy, vendored master i pět app-specific GARP 2.7 toolů jsou svázány SHA-256 trust anchorem; CI vyžaduje externí pin trust anchoru.
-- **G27-AR05 — single authority:** aktivní `security/garp27` nesmí obsahovat konkurenční GARP 2.5/2.6 autoritu; drift vendored masteru je fail.
+- aktuální `garp-policy.json` je s r2 sémantickým kontraktem kompatibilní;
+- trusted ecosystem inventory obsahuje `appId=correspondence`;
+- vendored master je přepnut na `vendor/garp-2.7-consolidated-r2/`;
+- architecture gate ověřuje r2 revision, inventory identity, core/inventory digests a celý vendor tree;
+- contract gate vyžaduje trusted package `checkDigest` a explicitně ověřuje G-02 reference selftest;
+- přidána vlastní G-02 mutation sada, aby integrace prokazatelně odmítala unknown app, `0.0.0`, invalid semver, mode-only policy a placeholder substring;
+- trust anchor a chráněný CI pin musejí být po všech změnách přepočteny společně.
 
-## Mutation evidence
+## Server/LIVE
 
-10/10 syntetických mutací dopadlo očekávaně: positive baseline PASS a devět bezpečnostních mutací FAIL. Pokryty jsou forbidden dependency, production test bypass, nepovolená AI operace, vypnutá LIVE validace, school local-key bypass, policy self-edit, checker self-edit, master drift a konkurenční 2.6 autorita.
+School-server fáze zůstává `DEFERRED_BY_OWNER_DECISION`. Žádné nové serverové endpointy, Fortinet změny ani infrastruktura se v tomto patchi nepřidávají. LIVE stav zůstává `NOT_TESTED`; r2 re-baseline je lokální/CI foundation změna.
 
-## Serverová fáze
+## Governance
 
-Server se v tomto kole nepřipravuje. `liveServerValidationRequired=true`; school session/gateway, provider egress za serverovou hranicí, upload quarantine, watchdog, recovery a live runtime evidence zůstávají `DEFERRED_BY_OWNER_DECISION` / `NOT_TESTED`. To neblokuje FOUNDATION PASS, ale blokuje tvrzení o school LIVE PASS.
+Technický nález G-02 je uzavřen implementací r2 a negativními testy. G-01 (formální governance přijetí normativní autority) je samostatný vlastnický krok a technický patch jej nesmí označit za automaticky schválený.
