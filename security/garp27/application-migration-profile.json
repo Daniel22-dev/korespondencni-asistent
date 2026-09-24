@@ -2,7 +2,7 @@
   "schema": "garp27-application-migration-profile-v1",
   "garpVersion": "2.7",
   "appId": "correspondence",
-  "appVersion": "5.10.28",
+  "appVersion": "5.10.29",
   "serverApproval": "DEFERRED_BY_OWNER_DECISION",
   "requiredComponents": [
     {"componentId": "AG-01-policy", "required": true, "serverDependent": false},
@@ -22,7 +22,7 @@
   "maxEvidenceAgeHours": 168,
   "releaseIdentity": {
     "appId": "correspondence",
-    "appVersion": "5.10.28",
+    "appVersion": "5.10.29",
     "sourceCommit": "0000000000000000000000000000000000000000"
   },
   "releaseIdentityResolution": "The foundation gate replaces sourceCommit with GITHUB_SHA when available; local archive review uses a deterministic source-tree SHA-1 surrogate and labels it as such in evidence."

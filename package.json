@@ -1,6 +1,6 @@
 {
   "name": "ghrab-korespondencni-asistent",
-  "version": "5.10.28",
+  "version": "5.10.29",
   "private": true,
   "description": "Korespondenční asistent — samostatná PWA pro GitHub Pages",
   "type": "module",
@@ -70,9 +70,10 @@
     "qa:garp27:architecture": "node scripts/garp27/architecture-integrity.mjs",
     "qa:garp27:mutations": "node scripts/garp27/mutation-tests.mjs",
     "qa:garp27:auto-patch": "node scripts/garp27/auto-patch-contract.mjs",
-    "qa:garp27:static": "npm run qa:garp27:contracts && npm run qa:garp27:architecture && npm run qa:garp27:mutations && npm run qa:garp27:auto-patch",
+    "qa:garp27:static": "npm run qa:garp27:contracts && npm run qa:garp27:architecture && npm run qa:garp27:policy-mutations && npm run qa:garp27:mutations && npm run qa:garp27:auto-patch",
     "qa:garp27": "npm run build && npm run qa:garp27:static",
-    "qa:garp27:foundation": "node scripts/garp27/foundation-gate.mjs"
+    "qa:garp27:foundation": "node scripts/garp27/foundation-gate.mjs",
+    "qa:garp27:policy-mutations": "node scripts/garp27/policy-admission-mutations.mjs"
   },
   "engines": {
     "node": ">=24"

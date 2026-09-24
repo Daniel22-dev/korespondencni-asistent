@@ -6,10 +6,10 @@ GARP 2.7 GHRAB – PRŮVODNÍ LIST APLIKACE
 appId:                    correspondence
 Název:                    Korespondenční asistent (KS)
 Repozitář:                korespondencni-asistent (repo snapshot; veřejná Pages cesta je v README)
-Aktuální verze:           5.10.28
+Aktuální verze:           5.10.29
 Verze standardu:          GARP 2.7 GHRAB (aktivní autorita); GARP 2.5.1 = povinný regresní baseline
 Historický SHA-256 auditního balíčku: 234414662bbe6b3f8b97ccd7efacff0ec581703bd7c6f06e8c3c5f3a1f179b24 (není důkazem aktuálního release; aktuální identitu dokládá release-integrity v2 + CI run)
-Poslední uzavřené kolo:   2026-09-23, GARP 2.7 foundation 9/9 PASS; školní LIVE = NOT_TESTED / DEFERRED_BY_OWNER_DECISION
+Poslední uzavřené kolo:   2026-09-24, GARP 2.7 r2 / G-02 re-baseline; školní LIVE = NOT_TESTED / DEFERRED_BY_OWNER_DECISION
 
 ======================================================================
 2. TRVALÁ KLASIFIKACE
@@ -61,7 +61,8 @@ Served headers/HSTS | lokální build není skutečná HTTP serverová konfigura
 2026-09-06 | Claude role B | 6cf34302d32a6f49a26a9dd8d249c307219fab651a5d73d638636f8f84a12417 (review 5.10.24) | OVERALL AMBER; N1/N2 HIGH potvrzeny k opravě | OVERENI-KANDIDATA-KS-5.10.24-GARP2.5.1-SHIELD.txt
 2026-09-06 | ChatGPT corrective | 5.10.25 | GARP 2.5.1 Prompt C corrective round probíhá | audit-evidence/garp25-shield-fix-5.10.25
 2026-09-16 | ChatGPT integration patch | 5.10.26 | Studio manifest + post-deploy repository_dispatch pro auto-promotion; AI/anonymizace/prompt logika beze změny | bezpečnostní baseline 5.10.25 zachována
-2026-09-23 | ChatGPT GARP 2.7 | 5.10.28 | consolidated master + capability inventory + architecture-integrity + mutation tests + fail-closed LIVE status | FOUNDATION; school LIVE DEFERRED/NOT_TESTED
+2026-09-23 | ChatGPT GARP 2.7 r1 | 5.10.28 | consolidated master + capability inventory + architecture-integrity + mutation tests + fail-closed LIVE status | FOUNDATION; school LIVE DEFERRED/NOT_TESTED
+2026-09-24 | ChatGPT GARP 2.7 r2 / G-02 | 5.10.29 | trusted app inventory + semantic policy admission + G-02 app mutations + r2 trust anchor | FOUNDATION re-baseline; school LIVE DEFERRED/NOT_TESTED
 2026-09-18 | ChatGPT Safe Promotion | 5.10.27 | candidate -> P5/GARP/N5 -> PR -> protected main -> deploy -> live release identity -> app-updated | TRANSITIONAL unsigned Pages assurance
 
 ======================================================================

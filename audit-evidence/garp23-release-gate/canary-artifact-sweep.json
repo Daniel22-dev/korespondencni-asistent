@@ -1,6 +1,6 @@
 {
   "schema": "garp23-canary-artifact-sweep-v2",
-  "generatedAt": "2026-09-23T13:17:28.972Z",
+  "generatedAt": "2026-09-24T05:38:26.538Z",
   "mode": "release-pattern-gate",
   "canaryId": null,
   "scope": [
@@ -10,7 +10,7 @@
     "scripts",
     ".github"
   ],
-  "filesScanned": 179,
+  "filesScanned": 178,
   "unexpectedExactHits": [],
   "status": "passed"
 }

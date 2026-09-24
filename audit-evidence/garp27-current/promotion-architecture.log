@@ -3,7 +3,7 @@ EXIT=0
 
 STDOUT
 
-> ghrab-korespondencni-asistent@5.10.28 qa:promotion-architecture
+> ghrab-korespondencni-asistent@5.10.29 qa:promotion-architecture
 > node scripts/verify-promotion-workflow-architecture.mjs
 
 PROMOTION WORKFLOW ARCHITECTURE: PASS - candidate -> P5/GARP 2.7 + legacy regressions -> PR -> protected main -> verified deploy -> live verify -> app-updated.

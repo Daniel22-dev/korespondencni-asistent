@@ -1,19 +1,27 @@
 # Korespondenční asistent
 
-**Aktuální verze:** 5.10.28  
+**Aktuální verze:** 5.10.29  
 **Platforma:** GHRAB Platform 1.1.2 · GARP 2.7 / P5 / Safe Promotion
 
-**Aktivní bezpečnostní autorita:** GARP 2.7 (konsolidovaný master 2026-09-23-r1). GARP 2.5.1 zůstává povinným regresním baseline, nikoli konkurenční autoritou. Lokální/CI foundation kontroly zůstávají aktivní; školní-server a runtime-dependent kontroly jsou výslovně `DEFERRED_BY_OWNER_DECISION` / `NOT_TESTED`, dokud nebude serverová fáze schválena.
+**Aktivní bezpečnostní autorita:** GARP 2.7 (konsolidovaný master 2026-09-23-r2 / G-02 FIX). GARP 2.5.1 zůstává povinným regresním baseline, nikoli konkurenční autoritou. Lokální/CI foundation kontroly zůstávají aktivní; školní-server a runtime-dependent kontroly jsou výslovně `DEFERRED_BY_OWNER_DECISION` / `NOT_TESTED`, dokud nebude serverová fáze schválena.
 
 
 Samostatná PWA aplikace ekosystému AI Studio Gymnázia Ostrava-Hrabůvka.
 
-- **Verze aplikace:** 5.10.28
+- **Verze aplikace:** 5.10.29
 - **GHRAB AI Core:** 1.0.0
 - **Doporučený repozitář:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
 - **Interaktivní manuál:** 1.3.16 (manuál 1.3.16)
+
+## Co přináší verze 5.10.29
+
+Verze 5.10.29 provádí **re-baseline GARP 2.7 z konsolidace r1 na r2 / G-02 FIX**. Aktivní GARP autorita se nemění: stále jde o GARP 2.7, nikoli o novou 2.8. R2 zpřísňuje admission aplikační policy: `appId` musí být v důvěryhodném ekosystémovém inventáři, `appVersion` musí být platný semver a nesmí být `0.0.0`, každá povinná sekce musí obsahovat skutečnou sémantiku a placeholdery včetně `explicit-app-policy` jsou fail-closed odmítnuty.
+
+Korespondenční asistent navíc přidává vlastní negativní G-02 mutation suite, r2 inventory/core digest binding a nový CI trust-anchor pin. Školní-server/LIVE fáze zůstává beze změny `DEFERRED_BY_OWNER_DECISION` / `NOT_TESTED`; `dist-school-server/` zůstává historicky frozen na 5.10.25.
+
+Technický souhrn je v `RELEASE-NOTES-5.10.29-GARP-2.7-R2-G02.md`.
 
 ## Co přináší verze 5.10.28
 
@@ -21,7 +29,7 @@ Verze 5.10.28 migruje Korespondenčního asistenta na **GARP 2.7** jako jedinou 
 
 Serverová implementace se tímto releasem **neprovádí**. `liveServerValidationRequired` je naopak přepnuto na `true`, aby aplikace nemohla zaměnit odloženou školní-server fázi za ověřený LIVE stav. Školní session/gateway, server egress, upload quarantine, watchdog a live recovery jsou vedeny jako `DEFERRED_BY_OWNER_DECISION` / `NOT_TESTED`.
 
-**Poznámka k `dist-school-server/`:** verzovaný artefakt zůstává záměrně frozen na 5.10.25 jako historický signed-prep artefakt; není zdrojem aktuálního Pages releasu 5.10.28.
+**Poznámka k `dist-school-server/`:** verzovaný artefakt zůstává záměrně frozen na 5.10.25 jako historický signed-prep artefakt; není zdrojem aktuálního Pages releasu 5.10.29.
 
 Technický souhrn je v `RELEASE-NOTES-5.10.28-GARP-2.7.md`.
 

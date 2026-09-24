@@ -6,6 +6,9 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_ROOT = path.resolve(SCRIPT_DIR, '..', '..');
+const APP_ID = 'correspondence';
+const VENDOR_REL = 'vendor/garp-2.7-consolidated-r2';
+const CONSOLIDATION_REVISION = '2026-09-23-r2';
 
 const sha256Buffer = value => crypto.createHash('sha256').update(value).digest('hex');
 const sha256File = file => sha256Buffer(fs.readFileSync(file));
@@ -110,14 +113,19 @@ export function evaluateArchitecture(root = DEFAULT_ROOT, options = {}) {
   const garpPolicy = safeJson('security/garp27/garp-policy.json');
   const trust = safeJson('security/garp27/trust-anchor.json');
   const packageJson = safeJson('package.json');
+  const vendorCore = safeJson(`${VENDOR_REL}/MASTER/CONTRACTS/garp27-core.json`);
+  const ecosystemInventory = safeJson(`${VENDOR_REL}/MASTER/INVENTORY/ecosystem-apps.json`);
 
   check('G27-AR04.policy-present', Boolean(policy), 'architecture policy must parse');
   check('G27-AR03.inventory-present', Boolean(inventory), 'capability inventory must parse');
-  check('G27-AUTH.policy-2.7', garpPolicy?.garpVersion === '2.7' && garpPolicy?.appId === 'correspondence', 'active policy must be GARP 2.7');
+  check('G27-AUTH.policy-2.7', garpPolicy?.garpVersion === '2.7' && garpPolicy?.appId === APP_ID, 'active policy must be GARP 2.7');
   check('G27-AUTH.architecture-2.7', policy?.garpVersion === '2.7' && policy?.singleAuthority === 'GARP-2.7', 'architecture authority must be GARP 2.7');
   check('G27-AUTH.inventory-2.7', inventory?.garpVersion === '2.7', 'inventory must be GARP 2.7');
-  check('G27-VERSION.package', packageJson?.version === '5.10.28', `package version=${packageJson?.version ?? 'missing'}`);
+  check('G27-VERSION.package', packageJson?.version === trust?.appVersion, `package=${packageJson?.version ?? 'missing'}, trusted=${trust?.appVersion ?? 'missing'}`);
   check('G27-VERSION.policy', garpPolicy?.appVersion === packageJson?.version && policy?.appVersion === packageJson?.version && inventory?.appVersion === packageJson?.version, 'GARP adapter versions must match package');
+  check('G27-G02.core-revision', vendorCore?.consolidationRevision === CONSOLIDATION_REVISION && trust?.consolidationRevision === CONSOLIDATION_REVISION, `core=${vendorCore?.consolidationRevision ?? 'missing'}, trust=${trust?.consolidationRevision ?? 'missing'}`, 'CRITICAL');
+  check('G27-G02.inventory-revision', ecosystemInventory?.revision === CONSOLIDATION_REVISION, `inventory revision=${ecosystemInventory?.revision ?? 'missing'}`, 'CRITICAL');
+  check('G27-G02.inventory-app-id', Array.isArray(ecosystemInventory?.apps) && ecosystemInventory.apps.some(app => app?.appId === APP_ID), `${APP_ID} must exist in trusted ecosystem inventory`, 'CRITICAL');
 
   for (const rel of policy?.requiredFiles || []) check(`G27-AR04.required:${rel}`, fs.existsSync(path.join(root, rel)), rel);
 
@@ -125,14 +133,18 @@ export function evaluateArchitecture(root = DEFAULT_ROOT, options = {}) {
     check('G27-AR04.policy-digest', sha256File(path.join(root, 'security/garp27/architecture-policy.json')) === trust.architecturePolicySha256, 'policy digest must match trust anchor');
     check('G27-AR04.inventory-digest', sha256File(path.join(root, 'security/garp27/capability-inventory.json')) === trust.capabilityInventorySha256, 'inventory digest must match trust anchor');
     check('G27-AR04.garp-policy-digest', sha256File(path.join(root, 'security/garp27/garp-policy.json')) === trust.garpPolicySha256, 'GARP policy digest must match trust anchor');
-    const vendor = treeDigest(root, 'vendor/garp-2.7-consolidated-r1');
+    const vendor = treeDigest(root, VENDOR_REL);
     check('G27-AR05.vendor-master-digest', vendor.digest === trust.garp27VendorTreeSha256, `${vendor.files} files; ${vendor.digest}`);
+    const corePath = path.join(root, VENDOR_REL, 'MASTER/CONTRACTS/garp27-core.json');
+    const ecosystemInventoryPath = path.join(root, VENDOR_REL, 'MASTER/INVENTORY/ecosystem-apps.json');
+    check('G27-G02.core-digest', fs.existsSync(corePath) && sha256File(corePath) === trust.garp27CoreContractSha256, 'r2 core contract digest must match trust anchor', 'CRITICAL');
+    check('G27-G02.inventory-digest', fs.existsSync(ecosystemInventoryPath) && sha256File(ecosystemInventoryPath) === trust.garp27EcosystemInventorySha256, 'r2 ecosystem inventory digest must match trust anchor', 'CRITICAL');
     const adapterTools = trust.adapterToolSha256s || {};
     for (const [rel, expected] of Object.entries(adapterTools)) {
       const abs = path.join(root, rel);
       check(`G27-AR04.tool-digest:${rel}`, fs.existsSync(abs) && /^[a-f0-9]{64}$/i.test(String(expected || '')) && sha256File(abs) === String(expected).toLowerCase(), `${rel} must match the trusted adapter-tool digest`, 'CRITICAL');
     }
-    check('G27-AR04.tool-scope', Object.keys(adapterTools).length >= 5, `${Object.keys(adapterTools).length} application-specific GARP 2.7 tools bound`, 'CRITICAL');
+    check('G27-AR04.tool-scope', Object.keys(adapterTools).length >= 6, `${Object.keys(adapterTools).length} application-specific GARP 2.7 tools bound`, 'CRITICAL');
     const anchorSha = sha256File(path.join(root, 'security/garp27/trust-anchor.json'));
     const external = process.env.GARP27_EXTERNAL_TRUST_SHA256 || options.externalTrustSha256 || '';
     if (process.env.CI === 'true' || options.requireExternalTrust) {
@@ -230,7 +242,7 @@ export function evaluateArchitecture(root = DEFAULT_ROOT, options = {}) {
     classification: 'FOUNDATION_ARCHITECTURE_INTEGRITY',
     schema: 'garp27-architecture-integrity-report-v1',
     garpVersion: '2.7',
-    appId: 'correspondence',
+    appId: APP_ID,
     appVersion: packageJson?.version || null,
     status,
     trustMode: (process.env.CI === 'true' || options.requireExternalTrust) ? 'EXTERNAL_CI_PIN' : 'LOCAL_PIN',

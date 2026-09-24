@@ -3,7 +3,7 @@ EXIT=0
 
 STDOUT
 
-> ghrab-korespondencni-asistent@5.10.28 qa:garp27:mutations
+> ghrab-korespondencni-asistent@5.10.29 qa:garp27:mutations
 > node scripts/garp27/mutation-tests.mjs
 
 {

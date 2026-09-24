@@ -56,3 +56,13 @@ KONSOLIDACE 2026-09-23-r1
 - Serverová implementace je DEFERRED_BY_OWNER_DECISION; lokální/CI ochrany zůstávají aktivní.
 - LIVE PASS bez cílového prostředí je explicitně zakázán.
 - Doporučený rollout: re-baseline LUDUS -> druhá odlišná aplikace KS -> cross-app review -> zbytek.
+
+
+KONSOLIDACE 2026-09-23-r2 / G-02
+--------------------------------
+- validate-policy now validates appId against trusted inventory.
+- appVersion 0.0.0 is rejected for admissible policy.
+- every required policy section must contain recognized semantic content.
+- placeholder substring/token detection added; explicit-app-policy is a template sentinel and FAIL.
+- contract selftest includes untouched-template, unknown-app, zero-version, mode-only and substring negatives.
+- G-02 is closed in the reference master after r2 selftests; G-01 governance acceptance remains separate.

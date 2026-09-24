@@ -2,8 +2,8 @@
   "schema": "garp27-architecture-policy-v1",
   "garpVersion": "2.7",
   "appId": "correspondence",
-  "appVersion": "5.10.28",
-  "toolRevision": "ks-garp27-architecture-integrity-v1",
+  "appVersion": "5.10.29",
+  "toolRevision": "ks-garp27-architecture-integrity-v2-g02",
   "sourceScopes": [
     "src",
     "scripts"
@@ -42,7 +42,7 @@
     "security/",
     "audit-evidence/",
     ".github/",
-    "vendor/garp-2.7-consolidated-r1/"
+    "vendor/garp-2.7-consolidated-r2/"
   ],
   "requiredFiles": [
     "package-lock.json",
@@ -51,7 +51,8 @@
     "src/config/deployment.school-server.json",
     "security/garp27/garp-policy.json",
     "security/garp27/capability-inventory.json",
-    "vendor/garp-2.7-consolidated-r1/MASTER/CONTRACTS/garp27-core.json"
+    "vendor/garp-2.7-consolidated-r2/MASTER/CONTRACTS/garp27-core.json",
+    "vendor/garp-2.7-consolidated-r2/MASTER/INVENTORY/ecosystem-apps.json"
   ],
   "minimumCheckedSourceFiles": 40,
   "liveServerValidationRequired": true,

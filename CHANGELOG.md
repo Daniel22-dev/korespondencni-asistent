@@ -1,3 +1,13 @@
+## 5.10.29 — GARP 2.7 r2 / G-02 re-baseline (2026-09-24)
+
+- vendored GARP 2.7 master přepnut z `2026-09-23-r1` na `2026-09-23-r2`; nejde o GARP 2.8;
+- policy admission používá důvěryhodný `MASTER/INVENTORY/ecosystem-apps.json`, odmítá neznámé `appId`, `0.0.0`, neplatný semver, mode-only sekce a placeholdery;
+- architecture-integrity nově svazuje r2 core a ecosystem inventory samostatnými SHA-256 otisky a ověřuje revizi i přítomnost `correspondence`;
+- přidána aplikační G-02 mutation suite s pozitivním případem a pěti fail-closed negativními scénáři;
+- contract gate svazuje `PACKAGE_SELFTEST.checkDigest` s trust anchorem a vyžaduje G-02 reference selftest;
+- CI trust pin a aplikační trust anchor re-baselined na r2; GARP 2.5.1/N5/P5/Safe Promotion zůstávají regresní vrstvou;
+- školní server a LIVE validace zůstávají `DEFERRED_BY_OWNER_DECISION` / `NOT_TESTED`; historický `dist-school-server/` se nemění.
+
 ## 5.10.28 — GARP 2.7 konsolidace (2026-09-23)
 
 - GARP 2.7 je jediná aktivní bezpečnostní autorita; GARP 2.5.1 zůstává regresní baseline.

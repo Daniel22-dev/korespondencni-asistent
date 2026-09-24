@@ -3,11 +3,11 @@ EXIT=0
 
 STDOUT
 
-> ghrab-korespondencni-asistent@5.10.28 qa:garp25:static
+> ghrab-korespondencni-asistent@5.10.29 qa:garp25:static
 > npm run qa:garp25:tooling && npm run qa:garp25:school-boundaries && npm run qa:garp25:sw && npm run qa:garp25:vendored && npm run qa:garp25:pinned-inputs && npm run qa:garp25:ai-baseline && npm run qa:garp25:n5-secret-regression && npm run qa:manifest-contract && npm run qa:promotion-architecture && npm run qa:auto-patch-contract
 
 
-> ghrab-korespondencni-asistent@5.10.28 qa:garp25:tooling
+> ghrab-korespondencni-asistent@5.10.29 qa:garp25:tooling
 > node scripts/garp25/selftest-garp251.mjs
 
 {
@@ -17,13 +17,13 @@ STDOUT
   "failed": []
 }
 
-> ghrab-korespondencni-asistent@5.10.28 qa:garp25:school-boundaries
+> ghrab-korespondencni-asistent@5.10.29 qa:garp25:school-boundaries
 > node scripts/qa-garp25-school-boundaries.mjs
 
 {
   "schema": "ghrab-ks-garp25-school-boundaries-v1",
   "appId": "correspondence",
-  "version": "5.10.28",
+  "version": "5.10.29",
   "syntheticOnly": true,
   "checks": [
     {
@@ -80,7 +80,7 @@ STDOUT
   }
 }
 
-> ghrab-korespondencni-asistent@5.10.28 qa:garp25:sw
+> ghrab-korespondencni-asistent@5.10.29 qa:garp25:sw
 > node scripts/garp25/check-sw-security-freeze.mjs dist-school-server/sw.js dist-school-server security/security-critical-assets.json
 
 {
@@ -145,7 +145,7 @@ STDOUT
   "note": "Static bounded analysis. PASS means no critical asset was found in the explicitly recognized Cache API write envelope; recognized writes were resolved/guarded; importScripts is absent; and deployed critical assets have structural isSecurityCriticalRequest -> networkOnlyNoStore routing. Unknown/dynamic recognized writes, including non-literal computed Cache member calls and detached Cache-method calls, are AMBER. This is not a proof for arbitrary JavaScript and does not replace SIM-07 or behavioral revocation tests."
 }
 
-> ghrab-korespondencni-asistent@5.10.28 qa:garp25:vendored
+> ghrab-korespondencni-asistent@5.10.29 qa:garp25:vendored
 > node scripts/garp25/check-vendored-consistency.mjs security/vendored-consistency.KS.json
 
 {
@@ -166,12 +166,12 @@ STDOUT
   "findings": []
 }
 
-> ghrab-korespondencni-asistent@5.10.28 qa:garp25:pinned-inputs
+> ghrab-korespondencni-asistent@5.10.29 qa:garp25:pinned-inputs
 > node scripts/qa-garp25-pinned-inputs.mjs
 
 {
   "schema": "ghrab-ks-pinned-inputs-v1",
-  "root": "/mnt/data/sortio_work/korespondencni-asistent-main",
+  "root": "/mnt/data/work_garp_sortio/app/korespondencni-asistent-main",
   "checks": [
     {
       "id": "SHNC-09-github-actions-full-sha",
@@ -197,13 +197,13 @@ STDOUT
   }
 }
 
-> ghrab-korespondencni-asistent@5.10.28 qa:garp25:ai-baseline
+> ghrab-korespondencni-asistent@5.10.29 qa:garp25:ai-baseline
 > node scripts/qa-garp25-ai-assurance-baseline.mjs
 
 {
   "schema": "ghrab-ai-assurance-baseline-check-v1",
   "status": "PASS",
-  "baselineVersion": "5.10.28",
+  "baselineVersion": "5.10.29",
   "providerModelPolicy": "standalone runtime may use approved direct provider profiles; school-server runtime is provider-neutral and allows school-gateway only",
   "errors": [],
   "observed": [
@@ -219,8 +219,8 @@ STDOUT
     },
     {
       "path": "src/ai-operations.json",
-      "expected": "c2dd7a7e6162a3440e629cf32fe56795188c45f62dfd39ef42f3bb3bdd38e7bc",
-      "observed": "c2dd7a7e6162a3440e629cf32fe56795188c45f62dfd39ef42f3bb3bdd38e7bc"
+      "expected": "6106088ed71ccc70b9996d671e536d7af555a645957da2d348a8d969e7113ca2",
+      "observed": "6106088ed71ccc70b9996d671e536d7af555a645957da2d348a8d969e7113ca2"
     },
     {
       "path": "src/js/28-ai-integration.js",
@@ -250,7 +250,7 @@ STDOUT
   ]
 }
 
-> ghrab-korespondencni-asistent@5.10.28 qa:garp25:n5-secret-regression
+> ghrab-korespondencni-asistent@5.10.29 qa:garp25:n5-secret-regression
 > node scripts/qa-garp25-n5-secret-scan-regression.mjs
 
 {
@@ -263,14 +263,14 @@ STDOUT
   ]
 }
 
-> ghrab-korespondencni-asistent@5.10.28 qa:manifest-contract
+> ghrab-korespondencni-asistent@5.10.29 qa:manifest-contract
 > node scripts/verify-studio-manifest-contract.mjs
 
 {
   "schema": "ghrab-studio-manifest-contract-regression-v1",
   "status": "PASS",
   "appId": "correspondence",
-  "version": "5.10.28",
+  "version": "5.10.29",
   "checks": {
     "schema": true,
     "appId": true,
@@ -293,12 +293,12 @@ STDOUT
   "failed": []
 }
 
-> ghrab-korespondencni-asistent@5.10.28 qa:promotion-architecture
+> ghrab-korespondencni-asistent@5.10.29 qa:promotion-architecture
 > node scripts/verify-promotion-workflow-architecture.mjs
 
 PROMOTION WORKFLOW ARCHITECTURE: PASS - candidate -> P5/GARP 2.7 + legacy regressions -> PR -> protected main -> verified deploy -> live verify -> app-updated.
 
-> ghrab-korespondencni-asistent@5.10.28 qa:auto-patch-contract
+> ghrab-korespondencni-asistent@5.10.29 qa:auto-patch-contract
 > node scripts/test-ai-studio-dispatch.mjs
 
 AI Studio dispatch contract: PASS (10/10 top-level properties).
