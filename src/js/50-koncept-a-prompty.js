@@ -354,14 +354,6 @@ function ensureSignaturePlaceholder(text,pane){
   if(closing.test(t)) return normalizeReplySignature(t.replace(closing,"\n[podpis]").replace(/^\n/,""),pane);
   return normalizeReplySignature(t+(t?"\n\n":"")+"[podpis]",pane);
 }
-function profileContextParts(){
-  const p=loadProfile(), parts=[];
-  const role=String(p.role||"").trim(), subjects=String(p.subjects||"").trim(), school=String(p.school||"").trim();
-  if(role) parts.push("role: "+role);
-  if(subjects) parts.push("vyučované předměty: "+subjects);
-  if(school) parts.push("pracoviště: "+school);
-  return parts;
-}
 const PROFILE_GENDER_LABELS={male:"mužský",female:"ženský",neutral:"bezrodové formulace"};
 function resolvedProfileGender(profile){
   const p=profile||loadProfile(),saved=String(p.gender||"").trim();
@@ -432,7 +424,6 @@ async function refineDraft(p, card, srcText, instruction, options){
   const lLine=p==="my"?myLangLine():langLine();
   const lSystem=p==="my"?myLangSystem():langSystem();
   const locked=Array.isArray(card&&card._locked)?card._locked.filter(Boolean):[];
-  const lockedLine=locked.length?"\nUZAMČENÉ FORMULACE: následující části musí zůstat ve výsledku DOSLOVA a ve stejném pořadí: "+JSON.stringify(locked):"";
   card.style.opacity=".55";
   try{
     const senderMode=ST[p]&&ST[p].replySenderMode||"jednotlivec";

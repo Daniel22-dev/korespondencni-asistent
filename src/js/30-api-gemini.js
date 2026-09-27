@@ -93,7 +93,6 @@ function updateModelUI(){
 }
 document.querySelectorAll("[data-model-profile]").forEach(btn=>{ btn.onclick=()=>setModelProfile(btn.dataset.modelProfile); });
 
-const GEMINI_TIMEOUT_MS=45000;
 const LAST_PROMPT_SK="rozbor_last_prompt_debug";
 const NO_HISTORY_SK="rozbor_no_history";
 const OPS_LOG_SK="rozbor_ops_log";
@@ -306,4 +305,3 @@ async function callGemini(prompt,system,schema,safetyContext,opts){
   });
   return response.result;
 }
-function bumpReq(){return GHRAB_AI.getLastUsage();}

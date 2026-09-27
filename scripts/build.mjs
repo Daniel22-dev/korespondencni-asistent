@@ -41,7 +41,8 @@ if(appJs.includes("__GHRAB_TEST_HOOKS_BUILD_ENABLED__"))fail("v aplikačním JS 
 const TEST_RUNNER_START="/*__GHRAB_TEST_RUNNER_START__*/",TEST_RUNNER_END="/*__GHRAB_TEST_RUNNER_END__*/";
 if(!TEST_HOOKS_BUILD){
   const start=appJs.indexOf(TEST_RUNNER_START),end=appJs.indexOf(TEST_RUNNER_END);
-  if(start<0||end<0||end<=start)fail("produkční stripping nenalezl jednoznačné hranice test runneru");
+  const uniqueMarkers=start>=0&&end>=0&&appJs.lastIndexOf(TEST_RUNNER_START)===start&&appJs.lastIndexOf(TEST_RUNNER_END)===end;
+  if(!uniqueMarkers||end<=start)fail("produkční stripping nenalezl jednoznačné hranice test runneru");
   const stub='function testRunnerAvailable(){return TEST_HOOKS_BUILD_ENABLED&&isTrustedLocalTestOrigin();}\nconst openTestRunner=function(){return false;};\nconst runKorespTests=async function(){if(!testRunnerAvailable())throw new Error("TEST_RUNNER_DISABLED");throw new Error("TEST_RUNNER_NOT_INCLUDED_IN_PRODUCTION");};';
   appJs=appJs.slice(0,start)+stub+appJs.slice(end+TEST_RUNNER_END.length);
   if(appJs.includes('__GHRAB_KORESP_TESTS__=')||appJs.includes('AI-RED tone-check výstup zůstává'))fail("produkční build stále obsahuje test-runner payload");

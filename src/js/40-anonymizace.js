@@ -1,6 +1,14 @@
 /* ===================== TRVALÝ SLOVNÍK JMEN ===================== */
 const MAX_DICTIONARY_ENTRIES=200;
 const MAX_DICTIONARY_NAME_LENGTH=160;
+// Výkonové mezipaměti anonymizace. Uchovávají jen odvozené hodnoty čistých funkcí;
+// uložený slovník se přepočítá při každé změně jeho syrového záznamu v localStorage.
+const NORM_NAME_CACHE=new Map(),NORM_NAME_CACHE_LIMIT=5000,REVERSE_NAME_CACHE=new Map(),REVERSE_NAME_CACHE_LIMIT=5000;
+let KNOWN_PROPER_NORMALIZED=null,KNOWN_PROPER_NORMALIZED_SIZE=-1,DICTIONARY_NAME_INDEX=null,RAW_NORMALIZED_WORDS=null,READ_ONLY_WORD_OBJS=null,REVERSE_NAME_CACHE_DICT=null;
+function clearAnonymizationCaches(){
+  NORM_NAME_CACHE.clear();REVERSE_NAME_CACHE.clear();
+  KNOWN_PROPER_NORMALIZED=null;KNOWN_PROPER_NORMALIZED_SIZE=-1;DICTIONARY_NAME_INDEX=null;RAW_NORMALIZED_WORDS=null;READ_ONLY_WORD_OBJS=null;REVERSE_NAME_CACHE_DICT=null;
+}
 function cleanStoredPersonForms(forms){
   if(!forms||typeof forms!=="object")return null;
   const clean={};let count=0;
@@ -25,6 +33,7 @@ function saveDict(arr){
     const seen=new Set(),clean=[];
     (Array.isArray(arr)?arr:[]).forEach(item=>{if(clean.length>=MAX_DICTIONARY_ENTRIES)return;const entry=cleanDictionaryEntry(item);if(!entry)return;const key=entry.real.toLocaleLowerCase("cs-CZ");if(!seen.has(key)){seen.add(key);clean.push(entry);}});
     localStorage.setItem("rozbor_dict",JSON.stringify(clean));
+    clearAnonymizationCaches();
   }catch(_){}
 }
 function rememberNames(km){
@@ -147,7 +156,6 @@ function autoStructured(text){
   return out;
 }
 function personLabel(n){ let s="", x=(n|0)+1; while(x>0){ x--; s=String.fromCharCode(65+(x%26))+s; x=Math.floor(x/26); } return s; }
-function countPersons(km){ return km.filter(k=>/^osoba\b/.test(k.token||"")).length; }
 function personLabelIndex(label){
   const m=String(label||"").match(/^osoba\s+([A-Z]+)$/); if(!m) return -1;
   let n=0; for(const ch of m[1]) n=n*26+(ch.charCodeAt(0)-64); return n-1;
@@ -191,15 +199,6 @@ function buildKey(st, detected){
 const PERSON_CASE_WORDS={1:"osoba",2:"osoby",3:"osobě",4:"osobu",5:"osobo",6:"osobě",7:"osobou"};
 const PERSON_CASE_LABELS={1:"1. pád – kdo/co",2:"2. pád – bez koho/čeho",3:"3. pád – ke komu/čemu",4:"4. pád – koho/co",5:"5. pád – oslovení",6:"6. pád – o kom/čem",7:"7. pád – s kým/čím"};
 const CZ_SUFFIXES=["níkovi","níkem","níka","ovou","ákovi","ákem","áka","ičkou","ičce","ičku","ičky","čkou","čce","čku","čka","ovi","ové","ova","em","ou","ě","e","i","í","y","a","u"].sort((a,b)=>b.length-a.length);
-const CZ_FEMALE_PALATAL={"k":"c","h":"z","g":"z"};
-function femaleDative(stem){
-  if(stem.endsWith("ch")) return stem.slice(0,-2)+"še";
-  const last=stem.slice(-1), rep=CZ_FEMALE_PALATAL[last];
-  if(rep)return stem.slice(0,-1)+rep+"e";
-  if(last==="r")return stem.slice(0,-1)+"ře";
-  if(/[dtnbpvfm]$/u.test(stem))return stem+"ě";
-  return stem+"e";
-}
 function preserveWholeCase(source,value){
   const src=String(source||""),v=String(value||"");
   if(!src||!v)return v;
@@ -240,7 +239,7 @@ const PERSON_CASE_PREPOSITIONS={
   7:new Set(["s","se","mezi","nad","pod","před","za"])
 };
 function nameCaseHints(raw,phrase){
-  const parsed=wordObjs(raw||""),parts=coreWords(phrase).map(x=>x.toLocaleLowerCase("cs-CZ")),out=[];
+  const parsed=readOnlyWordObjs(raw||""),parts=coreWords(phrase).map(x=>x.toLocaleLowerCase("cs-CZ")),out=[];
   if(!parts.length)return out;
   for(let i=0;i<=parsed.words.length-parts.length;i++){
     if(!parts.every((x,k)=>parsed.words[i+k].coreL===x))continue;
@@ -251,6 +250,14 @@ function nameCaseHints(raw,phrase){
   return [...new Set(out)];
 }
 function reverseNameCandidates(word,caseNo){
+  // Výsledek závisí jen na slovu, pádu a uloženém slovníku (přes knownCanonicalPerson).
+  const dictRaw=dictionaryNameIndex().raw;if(dictRaw===undefined)return reverseNameCandidatesUncached(word,caseNo);
+  if(REVERSE_NAME_CACHE_DICT!==dictRaw||REVERSE_NAME_CACHE.size>=REVERSE_NAME_CACHE_LIMIT){REVERSE_NAME_CACHE.clear();REVERSE_NAME_CACHE_DICT=dictRaw;}
+  const key=String(word||"")+"\u0000"+String(caseNo);let out=REVERSE_NAME_CACHE.get(key);
+  if(!out){out=reverseNameCandidatesUncached(word,caseNo);REVERSE_NAME_CACHE.set(key,out);}
+  return out.slice();
+}
+function reverseNameCandidatesUncached(word,caseNo){
   const src=String(word||"").trim(),lo=src.toLocaleLowerCase("cs-CZ"),cands=[];
   const add=x=>{x=String(x||"").trim();if(x.length>=2&&!cands.includes(x))cands.push(x);};
   const addMobileEl=st=>{if(/[^aeiouyáéíóúůý]l$/u.test(st))add(st.slice(0,-1)+"el");};
@@ -321,8 +328,13 @@ function phraseMatchesCase(base,observed,caseNo){
   if(normName(analysis[caseNo])===normName(observed))return true;
   return bases.every((word,i)=>wordCaseForms(word,caseNo,analysis.contexts&&analysis.contexts[i],analysis.wordForms&&analysis.wordForms[i]).has(normName(seen[i])));
 }
+function normalizedRawWords(raw){
+  const key=String(raw||"");
+  if(!RAW_NORMALIZED_WORDS||RAW_NORMALIZED_WORDS.raw!==key)RAW_NORMALIZED_WORDS={raw:key,words:wordObjs(key).words.map(word=>normName(word.core))};
+  return RAW_NORMALIZED_WORDS.words;
+}
 function rawContainsExactPerson(raw,real,observed){
-  const target=coreWords(real).map(normName),seen=wordObjs(raw||"").words.map(word=>normName(word.core));
+  const target=coreWords(real).map(normName),seen=normalizedRawWords(raw);
   if(!target.length||seen.length<target.length)return false;
   let count=0;for(let i=0;i<=seen.length-target.length;i++)if(target.every((word,index)=>seen[i+index]===word))count++;
   // Přesně označený úsek není sám o sobě důkazem, že jde o nominativ.
@@ -337,7 +349,7 @@ function canonicalizePersonPhrase(raw,phrase){
   const observed=String(phrase||"").replace(/\s+/g," ").trim(),parts=coreWords(observed);
   if(!observed||!parts.length)return {real:observed,observed,caseNo:1,changed:false,confidence:"unresolved",reviewReasons:["Základní tvar jména se nepodařilo určit."]};
   const hints=nameCaseHints(raw,observed),order=[...hints,2,3,4,7,6,5,1].filter((x,i,a)=>a.indexOf(x)===i),matches=[],rank={high:3,medium:2,low:1,unresolved:0};
-  const storedExact=new Set(loadDict().map(item=>normName(item.real)));
+  const storedExact=dictionaryNameIndex().exact;
   for(const caseNo of order){
     const rows=parts.map(w=>reverseNameCandidates(w,caseNo));if(rows.some(x=>!x.length))continue;
     for(const bases of cartesianCandidateRows(rows)){
@@ -416,7 +428,6 @@ function genderedNominativeCounterparts(a,b){
 function nameMatchWord(variants,coreL){return variants.has(coreL);}
 function parsePersonToken(token){const m=String(token||"").match(/^osoba\s+([A-Z]+)$/);return m?m[1]:"";}
 function personTokenForCase(token,caseNo){const label=parsePersonToken(token);return label?(PERSON_CASE_WORDS[+caseNo]||PERSON_CASE_WORDS[1])+" "+label:token;}
-function modelPersonToken(token,caseNo){const label=parsePersonToken(token);return label?"[[PERSON_"+label+(caseNo?("|"+caseNo):"")+"]]":token;}
 function toModelPersonTokens(p,text){
   if(text===undefined){text=p;p="";}
   return String(text||"").replace(/\b(osoba|osoby|osobě|osobu|osobo|osobou)\s+([A-Z]+)\b/g,(m,_word,label)=>"[[PERSON_"+label+"]]");
@@ -449,6 +460,13 @@ function buildMatchers(km){
     [...new Set((Array.isArray(k.aliases)?k.aliases:[]).map(v=>String(v).trim()).filter(Boolean))].forEach(alias=>pushMatcher(k,alias,true,false,coreWords(alias).map(word=>new Set([String(word).toLocaleLowerCase("cs-CZ")]))));
   });
   return out.filter(m=>m.n>0).sort((a,b)=>(b.n-a.n)||(b.weight-a.weight));
+}
+// Sdílený rozbor posledního textu pouze pro volající, kteří výsledek jen čtou
+// (nameCaseHints, suggestionLineContext). Volající, kteří by výsledek měnili, používají wordObjs().
+function readOnlyWordObjs(text){
+  const key=String(text);
+  if(!READ_ONLY_WORD_OBJS||READ_ONLY_WORD_OBJS.key!==key)READ_ONLY_WORD_OBJS={key,parsed:wordObjs(key)};
+  return READ_ONLY_WORD_OBJS.parsed;
 }
 function wordObjs(text){
   const source=String(text),segs=source.split(/(\s+)/),words=[];
@@ -619,18 +637,6 @@ function categoryToken(st,kind){
   return "["+base+" "+(max+1)+"]";
 }
 function removeByToken(p, token){ const st=ST[p]; st.km=st.km.filter(k=>k.token!==token); afterKeyChange(p); }
-let nameHintOn=(function(){ try{ return localStorage.getItem("rozbor_name_hints")==="1"; }catch(_){ return false; } })();
-function ensureNameHintToggle(p){
-  if($(p+"_nameHintRow")) return;
-  const view=E(p,"view"); if(!view||!view.parentNode) return;
-  const row=document.createElement("label"); row.id=p+"_nameHintRow"; row.className="name-hint-toggle";
-  row.innerHTML='<input type="checkbox" '+(nameHintOn?"checked":"")+'><span>Zvýraznit možná jména k ťuknutí</span>';
-  row.querySelector("input").addEventListener("change",e=>{ nameHintOn=e.target.checked; try{localStorage.setItem("rozbor_name_hints",nameHintOn?"1":"0");}catch(_){} renderView("in"); renderView("my"); });
-  view.parentNode.insertBefore(row, view);
-  if(p+"_nameHintRow"){ const cb=row.querySelector("input"); if(cb) cb.checked=nameHintOn; }
-}
-let tapPopEl=null;
-function hideTapPop(){ if(tapPopEl) tapPopEl.style.display="none"; }
 function tokenForRelatedPerson(st, cleaned){
   const norm=x=>String(x||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("cs-CZ");
   const n=norm(cleaned),observedParts=coreWords(cleaned); if(n.length<2) return "";
@@ -696,12 +702,23 @@ function mergeOverlappingPersonEntries(st){
 function knownGivenSpelling(value){return KNOWN_GIVEN_SPELLINGS.has(String(value||"").normalize("NFC").toLocaleLowerCase("cs-CZ"));}
 function knownSurnameSpelling(value){return KNOWN_SURNAME_SPELLINGS.has(String(value||"").normalize("NFC").toLocaleLowerCase("cs-CZ"));}
 function knownGivenPerson(real){const first=coreWords(real)[0];return !!first&&knownGivenSpelling(first);}
+function knownProperNormalized(){
+  if(!KNOWN_PROPER_NORMALIZED||KNOWN_PROPER_NORMALIZED_SIZE!==KNOWN_PROPER_WORDS.size){KNOWN_PROPER_NORMALIZED=new Set([...KNOWN_PROPER_WORDS].map(normName));KNOWN_PROPER_NORMALIZED_SIZE=KNOWN_PROPER_WORDS.size;}
+  return KNOWN_PROPER_NORMALIZED;
+}
+function dictionaryNameIndex(){
+  let raw;try{raw=localStorage.getItem("rozbor_dict");}catch(_){raw=undefined;}
+  if(raw!==undefined&&DICTIONARY_NAME_INDEX&&DICTIONARY_NAME_INDEX.raw===raw)return DICTIONARY_NAME_INDEX;
+  const dict=loadDict(),exact=new Set(dict.map(x=>normName(x.real))),parts=new Set();
+  dict.forEach(x=>coreWords(x.real).forEach(part=>parts.add(normName(part))));
+  const index={raw,exact,parts};if(raw!==undefined)DICTIONARY_NAME_INDEX=index;
+  return index;
+}
 function knownCanonicalPerson(real){
-  const parts=coreWords(real),known=new Set([...KNOWN_PROPER_WORDS].map(normName));if(!parts.length)return false;
-  const dict=loadDict(),dictExact=new Set(dict.map(x=>normName(x.real))),dictParts=new Set();
-  dict.forEach(x=>coreWords(x.real).forEach(part=>dictParts.add(normName(part))));
-  if(dictExact.has(normName(real)))return true;
-  return parts.every((part,index)=>known.has(normName(part))||dictParts.has(normName(part))||(index>0&&knownSurnameSpelling(part)));
+  const parts=coreWords(real);if(!parts.length)return false;
+  const known=knownProperNormalized(),dict=dictionaryNameIndex();
+  if(dict.exact.has(normName(real)))return true;
+  return parts.every((part,index)=>known.has(normName(part))||dict.parts.has(normName(part))||(index>0&&knownSurnameSpelling(part)));
 }
 function personCaseNeedsReview(raw,observed,normalized){
   return !!(normalized&&normalized.changed&&normalized.confidence!=="unresolved"&&!nameCaseHints(raw,observed).length&&!knownCanonicalPerson(normalized.real));
@@ -752,7 +769,6 @@ function addPhraseAs(p, phrase, kind){
   else if(related)toast("Přidáno ke stejné osobě ("+token+").");
   else if(normalized.changed)toast("Jméno bylo uloženo v základním tvaru „"+storedReal+"“. Označený pád zůstává rozpoznatelný.");
 }
-function addPhrase(p, phrase){ addPhraseAs(p,phrase,"person"); }
 function keepSuggestion(p,phrase){
   const st=ST[p]; st.reviewedSuggestions=st.reviewedSuggestions||{}; st.reviewedSuggestions[suggestionKey(phrase)]="keep-explicit";
   resetReview(p); renderView(p); renderPreview(p); toast("Výraz ponechán beze změny. Přesto ještě pročti celý text.");
@@ -824,28 +840,17 @@ function renderSuggestionPanel(p,suggestions){
   }
   wireSuggestionActions(panel,p);
 }
-function showTapHide(p, phrase, rect){
-  if(!tapPopEl){ tapPopEl=document.createElement("div"); tapPopEl.id="tapPop"; document.body.appendChild(tapPopEl); }
-  tapPopEl.innerHTML='<b class="tap-pop-title">Jak naložit s „'+esc(phrase)+'“?</b>'+suggestionActionButtons(p,phrase);
-  tapPopEl.style.display="block";
-  const w=tapPopEl.offsetWidth||360;
-  tapPopEl.style.left=Math.max(8, Math.min(window.scrollX+rect.left, window.scrollX+window.innerWidth-w-12))+"px";
-  tapPopEl.style.top=(window.scrollY+rect.bottom+6)+"px";
-  paintIcons(tapPopEl); wireSuggestionActions(tapPopEl,p,hideTapPop);
-  tapPopEl.querySelectorAll("button").forEach(b=>b.onmousedown=(e)=>e.preventDefault());
-}
 function wireTapSelection(p){
   const view=E(p,"view"); if(!view||view.dataset.selWired) return; view.dataset.selWired="1";
   const handler=()=>setTimeout(()=>{
     const sel=window.getSelection(); if(!sel||!sel.rangeCount){ return; }
     const txt=sel.toString().trim();
-    if(!txt || !/\s/.test(txt)){ hideTapPop(); return; }
-    if(!view.contains(sel.anchorNode) || !view.contains(sel.focusNode)){ hideTapPop(); return; }
+    if(!txt || !/\s/.test(txt)) return;
+    if(!view.contains(sel.anchorNode) || !view.contains(sel.focusNode)) return;
     selectPhraseForReview(p, txt, true);
   },10);
   view.addEventListener("mouseup",handler); view.addEventListener("touchend",handler);
 }
-if(typeof document!=="undefined"){ document.addEventListener("click",(e)=>{ if(tapPopEl && tapPopEl.style.display==="block" && !tapPopEl.contains(e.target) && !(e.target.closest&&e.target.closest(".tapview"))) hideTapPop(); }); }
 
 function renderView(p){
   const el=E(p,"view"); if(!el) return; el.innerHTML="";
@@ -1026,7 +1031,7 @@ function likelyCzechSurnameShape(word){return /(?:ová|ové|ovi|ovou)$/u.test(St
 function explicitlyKeptSingleSuggestion(p,item,observed){return observed.length===1&&ST[p]&&ST[p].reviewedSuggestions&&ST[p].reviewedSuggestions[item.key||suggestionKey(item.phrase)]==="keep-explicit";}
 const NON_PERSON_ENTITY_LINE_RE=/^(?:gymn\u00e1zium|st\u0159edn\u00ed\s+\u0161kola|z\u00e1kladn\u00ed\s+\u0161kola|mate\u0159sk\u00e1\s+\u0161kola|\u0161kola|univerzita|fakulta|ministerstvo|magistr\u00e1t|krajsk\u00fd\s+\u00fa\u0159ad|m\u011bstsk\u00fd\s+\u00fa\u0159ad|obecn\u00ed\s+\u00fa\u0159ad|\u00fa\u0159ad|organizace|spole\u010dnost|firma|centrum|institut|nemocnice|knihovna|muzeum|divadlo|z\u00e1kladn\u00ed\s+um\u011bleck\u00e1\s+\u0161kola)\b/iu;
 function suggestionLineContext(source,item){
-  const text=String(source||""),parsed=wordObjs(text),words=parsed.words||[];
+  const text=String(source||""),parsed=readOnlyWordObjs(text),words=parsed.words||[];
   const first=words[item&&Number.isInteger(item.start)?item.start:-1],last=words[item&&Number.isInteger(item.end)?item.end:-1]||first;
   if(!first)return {line:"",prev:"",next:"",phrase:String(item&&item.phrase||"")};
   const start=Math.max(0,Number(first.segmentStart)||0),end=Math.max(start,Number(last&&last.segmentEnd)||start);
@@ -1140,7 +1145,11 @@ function preflightIssues(text,p){
   }catch(_){}
   const result={danger,warn,names,personalNames}; ANALYSIS_CACHE.preflight.set(cacheKey,result); return result;
 }
-function normName(value){return String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("cs-CZ");}
+function normName(value){
+  const key=String(value||"");let out=NORM_NAME_CACHE.get(key);
+  if(out===undefined){out=key.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("cs-CZ");if(NORM_NAME_CACHE.size>=NORM_NAME_CACHE_LIMIT)NORM_NAME_CACHE.clear();NORM_NAME_CACHE.set(key,out);}
+  return out;
+}
 function editDistance(a,b){
   a=normName(a);b=normName(b);const prev=Array.from({length:b.length+1},(_,i)=>i),cur=new Array(b.length+1);
   for(let i=1;i<=a.length;i++){cur[0]=i;for(let j=1;j<=b.length;j++)cur[j]=Math.min(cur[j-1]+1,prev[j]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1));for(let j=0;j<=b.length;j++)prev[j]=cur[j];}
@@ -1357,10 +1366,6 @@ function flashPreview(p){
 });
 
 /* ===================== SKLÁDÁNÍ / ZNAČKY ===================== */
-function preserveInitialCase(source,value){
-  if(!source)return value;
-  return source[0]===source[0].toLocaleUpperCase("cs-CZ")?value[0].toLocaleUpperCase("cs-CZ")+value.slice(1):value.toLocaleLowerCase("cs-CZ");
-}
 function czechVocativeWord(word,context){const forms=declineNameWord(word,context||{});return forms[5]||String(word||"");}
 function nameParts(real){
   const titles=/^(?:mgr|ing|bc|mudr|rndr|phdr|judr|doc|prof)\.?$/i;

@@ -1,7 +1,7 @@
 {
   "schema": "ghrab-ai-assurance-baseline-v1",
   "appId": "correspondence",
-  "appVersion": "5.10.29",
+  "appVersion": "5.10.31",
   "garp": "2.5.1",
   "purpose": "Any change to these AI/provider/model/prompt/anonymization assurance inputs invalidates the current AIR evidence until revalidated.",
   "providerModelPolicy": "standalone runtime may use approved direct provider profiles; school-server runtime is provider-neutral and allows school-gateway only",
@@ -16,7 +16,7 @@
     },
     {
       "path": "src/ai-operations.json",
-      "sha256": "6106088ed71ccc70b9996d671e536d7af555a645957da2d348a8d969e7113ca2"
+      "sha256": "3a9ed6162a213b892323f9357fd36e4ee43aa46afc175804edb5617209e0c721"
     },
     {
       "path": "src/js/28-ai-integration.js",
@@ -24,7 +24,7 @@
     },
     {
       "path": "src/js/30-api-gemini.js",
-      "sha256": "84380f413cc82f0cb60182b93268fa8b56bc03671c9b2fcb6d0c1e3a45ed4ecd"
+      "sha256": "020df0ab12b44e2de08a1cb175c7806fd3e17c336d67fbd980a0d710092cdedf"
     },
     {
       "path": "vendor/ghrab-ai-core-1.0.0/ghrab-ai-core-1.0.0.js",
@@ -32,11 +32,11 @@
     },
     {
       "path": "src/js/40-anonymizace.js",
-      "sha256": "b743d0fbf59f27beede5e2ffd83cbba877cda7397fcd71ca8866ec2f53a5e10c"
+      "sha256": "9c21249f2a3d487e973c59bb8cecfaa064b04bf9db051c05cc41a8baef9029e7"
     },
     {
       "path": "src/js/50-koncept-a-prompty.js",
-      "sha256": "892d2e3da4c367a62c91ca6b4eefe44747089d59ee479ac0432b0c3e2523ce5c"
+      "sha256": "ab126d643bfb934e1c26c2ad894697c31124e76a090140abde21d9e603ac38dc"
     }
   ]
 }
