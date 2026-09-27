@@ -5,7 +5,7 @@
     "cs": "Korespondenční asistent",
     "en": "Correspondence Assistant"
   },
-  "version": "5.10.25",
+  "version": "5.10.32",
   "status": {
     "cs": "Pracovní pilotní verze",
     "en": "Working pilot release"
@@ -46,7 +46,7 @@
     "platformContract": "ghrab-platform-v1",
     "platformRange": ">=1.1.2 <2.0.0"
   },
-  "publishedAt": "2026-09-06T19:30:00.000Z",
+  "publishedAt": "2026-09-27T19:07:53.456Z",
   "aiCore": {
     "schema": "ghrab-ai-app-integration-v1",
     "status": "integrated-p1",
@@ -68,18 +68,20 @@
     "manifest": "https://daniel22-dev.github.io/korespondencni-asistent/studio-manifest.json"
   },
   "platform": {
+    "schema": "ghrab-platform-app-integration-v1",
     "contract": "ghrab-platform-v1",
+    "requiredPlatformRange": ">=1.1.2 <2.0.0",
     "platformVersion": "1.1.2",
-    "requiredRange": ">=1.1.2 <2.0.0",
     "brandVersion": "1.0.0",
     "themeContract": "ghrab-theme-v1",
-    "storageContract": "ghrab-storage-namespace-v1",
-    "bridgeContract": "ghrab-studio-handoff-v2",
-    "artifactContract": "ghrab-artifact-envelope-v1",
+    "swContract": 1,
+    "studioBridge": "ghrab-studio-handoff-v2",
+    "artifactEnvelope": "ghrab-artifact-envelope-v1",
+    "storagePrefix": "ghrab.correspondence.",
+    "cacheName": "ghrab-correspondence-v5.10.32",
     "accessibilityContract": "ghrab-a11y-v1",
     "performanceContract": "ghrab-performance-v1",
-    "moduleContract": "ghrab-lazy-modules-v1",
-    "cacheName": "ghrab-correspondence-v5.10.25"
+    "moduleContract": "ghrab-lazy-modules-v1"
   },
   "deploymentProfile": "school-server",
   "serverReadyPhase": "P3"

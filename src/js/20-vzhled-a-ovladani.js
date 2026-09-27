@@ -143,11 +143,12 @@ document.addEventListener("webkitfullscreenchange",applyFsIcon);
 
 function bindShellControls(){
   const bindOnce=(el,key,fn)=>{ if(!el||el.dataset[key]==="1") return; el.dataset[key]="1"; el.addEventListener("click",fn); };
-  const tabIn=$("tabIn"), tabMy=$("tabMy"), mode=$("btnMode"), fs=$("btnFs"), back=$("backToStart");
+  const tabIn=$("tabIn"), tabMy=$("tabMy"), mode=$("btnMode"), about=$("btnAbout"), fs=$("btnFs"), back=$("backToStart");
   bindOnce(tabIn,"boundShell",()=>switchTab("in"));
   bindOnce(tabMy,"boundShell",()=>switchTab("my"));
   bindOnce(back,"boundShell",showStartScreen);
   bindOnce(mode,"boundShell",toggleMode);
+  bindOnce(about,"boundShell",()=>openAboutApp(false));
   bindOnce(fs,"boundShell",toggleFullscreen);
   document.querySelectorAll("[data-open-safety-rules]").forEach(btn=>{if(btn.dataset.boundSafety!=="1"){btn.dataset.boundSafety="1";btn.addEventListener("click",openSafetyRulesModal);}});
   document.documentElement.dataset.ksShellReady="true";

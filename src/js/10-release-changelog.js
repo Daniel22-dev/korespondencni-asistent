@@ -8,11 +8,12 @@ function isTrustedLocalTestOrigin(){
 }
 const IS_TEST_MODE=TEST_HOOKS_BUILD_ENABLED&&isTrustedLocalTestOrigin()&&new URLSearchParams(window.location.search).get("test")==="1";
 const RELEASE = {
-  version: "5.10.31",
+  version: "5.10.32",
   date: "2026-09-27",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.10.32: nová sekce O aplikaci — jednotná karta identity a účelu Korespondenčního asistenta, autor a vývojový garant, školní projekt, technický stav a provozní zásady. Dosavadní Přehled změn je přesunut do rozbalovací Historie vydání uvnitř této sekce; samostatná položka changelogu v nabídce byla odstraněna. Přidán přímý vstup O aplikaci do horní lišty i do Dalších možností. AI logika, prompty, anonymizace a modelové chování se nemění.",
     "5.10.31: konzervativní úklid zdrojů — interní test runner je oddělen do samostatného modulu bez změny produkčního chování, odstraněny jsou osiřelé CSS styly a anonymizační mezipaměti se při smazání dat i změně slovníku výslovně čistí z paměti. Build navíc fail-closed ověřuje jedinečné hranice test runneru. AI operace, prompty, provider/model a uživatelský workflow se nemění.",
     "5.10.30: zrychlení anonymizace — kontrola jmen před odesláním už opakovaně nepřepočítává známá jména, slovník ani rozbor textu; anonymizace e-mailu je zhruba 14× rychlejší a psaní v tabulce klíče se nezasekává. Výsledky anonymizace, návrhy i bezpečnostní kontrola zůstávají beze změny. Odstraněn nepoužívaný kód a opraven úklid po interních testech.",
     "5.10.29: GARP 2.7 r2 / G-02 re-baseline — policy admission je svázána s důvěryhodným inventářem aplikací, odmítá 0.0.0, neplatný semver, mode-only policy a placeholdery; přidány aplikační negativní G-02 mutace a nový r2 trust anchor. Serverová/LIVE fáze zůstává NOT_TESTED / DEFERRED_BY_OWNER_DECISION.",

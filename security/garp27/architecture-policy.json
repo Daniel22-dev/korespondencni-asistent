@@ -2,7 +2,7 @@
   "schema": "garp27-architecture-policy-v1",
   "garpVersion": "2.7",
   "appId": "correspondence",
-  "appVersion": "5.10.31",
+  "appVersion": "5.10.32",
   "toolRevision": "ks-garp27-architecture-integrity-v2-g02",
   "sourceScopes": [
     "src",
