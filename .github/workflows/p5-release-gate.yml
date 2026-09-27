@@ -37,11 +37,11 @@ jobs:
       - name: Run P5 R2 application release gate
         run: npm run qa:p5:ci
         env:
-          GARP27_EXTERNAL_TRUST_SHA256: add1e3dd7922cf871ea9928154d1a6d7c2ca966613934fa3ac4176cfa447ad33
+          GARP27_EXTERNAL_TRUST_SHA256: a4eaa61991bf43c191ea2cee7cf3ff259f12b1aea5ec96aa4cc7aaff126ac914
       - name: Enforce GARP 2.7 foundation admission and legacy regressions
         run: npm run qa:garp27:foundation
         env:
-          GARP27_EXTERNAL_TRUST_SHA256: add1e3dd7922cf871ea9928154d1a6d7c2ca966613934fa3ac4176cfa447ad33
+          GARP27_EXTERNAL_TRUST_SHA256: a4eaa61991bf43c191ea2cee7cf3ff259f12b1aea5ec96aa4cc7aaff126ac914
       - name: Enforce explicit legacy GARP 2.5.1 and N5 regression gate
         run: npm run qa:garp25:static
       - name: Build PREP release identity and verify complete release chain

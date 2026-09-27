@@ -309,7 +309,7 @@ try {
   check('click.custom-subject.available', subjectState.visible && subjectState.value === 'Konzultace ve čtvrtek' && subjectState.max === 60, JSON.stringify(subjectState));
 
   const footerLabels = await client.eval(`[...document.querySelectorAll('[data-footer-tool]')].map(button=>button.dataset.footerTool)`);
-  const expectedFooterLabels = ['Uložené koncepty','Formulace a podpisy','Scénáře školní komunikace','Čekám na odpověď','Školní balíček šablon','Profil odesílatele','Poslední výstupy','Přehled změn','Prohlídka aplikace','Správa dat','Vývojářské nástroje'];
+  const expectedFooterLabels = ['Uložené koncepty','Formulace a podpisy','Scénáře školní komunikace','Čekám na odpověď','Školní balíček šablon','Profil odesílatele','Poslední výstupy','O aplikaci','Prohlídka aplikace','Správa dat','Vývojářské nástroje'];
   check('footer.menu.complete', expectedFooterLabels.every(label=>footerLabels.includes(label)) && footerLabels.length===expectedFooterLabels.length, JSON.stringify(footerLabels));
   await exerciseFooterModal('Uložené koncepty', /^Rozpracované koncepty$/, 'footer.saved-drafts.opens');
   await exerciseFooterModal('Formulace a podpisy', /^(?:Formulace a podpisy|Podpisy)$/, 'footer.blocks-signatures.opens');
@@ -332,8 +332,9 @@ try {
   check('footer.history.opens', await client.eval(`document.getElementById('histOverlay')?.classList.contains('open')`), 'history overlay');
   await clickReal('histClose');
 
-  await openFooterTool('Přehled změn');
-  check('footer.changelog.opens', await client.eval(`Boolean(document.querySelector('.modal-overlay.open [aria-label="Co je nového"]'))`), 'changelog modal');
+  await openFooterTool('O aplikaci');
+  check('footer.about.opens', await client.eval(`Boolean(document.querySelector('.modal-overlay.open [aria-label="O aplikaci Korespondenční asistent"]'))`), 'about modal');
+  check('footer.about.contains-changelog', await client.eval(`Boolean(document.querySelector('.modal-overlay.open #ksAboutChangelog'))`), 'about changelog');
   await clickRealSelector('.modal-overlay.open .modal-close');
 
   await openFooterTool('Prohlídka aplikace');

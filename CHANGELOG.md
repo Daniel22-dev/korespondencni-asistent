@@ -1,3 +1,12 @@
+## 5.10.32 — sekce O aplikaci (2026-09-27)
+
+- přidána jednotná sekce **O aplikaci** podle standardu AI Studio GHRAB: identita a účel aplikace, autor a vývojový garant, školní projekt, technický stav a provozní zásady;
+- do horní lišty přidán přímý vstup **O aplikaci** a stejná položka nahradila samostatný **Přehled změn** v nabídce Další možnosti;
+- dosavadní changelog je zachován a přesunut do rozbalovací **Historie vydání / Katalog změn** uvnitř sekce O aplikaci;
+- patička už nepoužívá formulaci „Vlastník aplikace: Daniel Baláž · Gymnázium...“, ale odděluje **Autora a vývojového garanta** od **Školního projektu**;
+- záměrně nebyly přidány samostatné bloky Podpora, Licence a právní informace ani Práce s daty;
+- AI logika, prompty, anonymizace, provider/model, AI operace a bezpečnostní chování se nemění.
+
 ## 5.10.31 — konzervativní strukturální úklid (2026-09-27)
 
 - interní test runner byl bez změny jeho logiky oddělen z monolitického `70-nastroje-testy-data.js` do samostatných modulů `70-nastroje.js`, `71-test-runner.js` a `72-sprava-dat.js`; pořadí vykonání zůstává zachováno a produkční build jej dál odstraňuje z distribučního artefaktu;

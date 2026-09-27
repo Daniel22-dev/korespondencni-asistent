@@ -127,7 +127,7 @@ jobs:
       - name: Re-enforce GARP 2.7 foundation and legacy controls on release source
         run: npm run qa:garp27:foundation
         env:
-          GARP27_EXTERNAL_TRUST_SHA256: add1e3dd7922cf871ea9928154d1a6d7c2ca966613934fa3ac4176cfa447ad33
+          GARP27_EXTERNAL_TRUST_SHA256: a4eaa61991bf43c191ea2cee7cf3ff259f12b1aea5ec96aa4cc7aaff126ac914
 
       - name: Verify AI Studio dispatch credential
         shell: bash

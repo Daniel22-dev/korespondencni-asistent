@@ -1,7 +1,7 @@
 {
   "schema": "ghrab-ai-assurance-baseline-v1",
   "appId": "correspondence",
-  "appVersion": "5.10.31",
+  "appVersion": "5.10.32",
   "garp": "2.5.1",
   "purpose": "Any change to these AI/provider/model/prompt/anonymization assurance inputs invalidates the current AIR evidence until revalidated.",
   "providerModelPolicy": "standalone runtime may use approved direct provider profiles; school-server runtime is provider-neutral and allows school-gateway only",
@@ -16,7 +16,7 @@
     },
     {
       "path": "src/ai-operations.json",
-      "sha256": "3a9ed6162a213b892323f9357fd36e4ee43aa46afc175804edb5617209e0c721"
+      "sha256": "58a68e7fecb330e4251caf30c3d250b217b1515a7990f6ed7f8e5419f0a61edf"
     },
     {
       "path": "src/js/28-ai-integration.js",

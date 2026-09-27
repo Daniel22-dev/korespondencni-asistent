@@ -25,15 +25,51 @@ function buildFooterTools(){
   foot.appendChild(panel);
 
   const divider=document.createElement("div"); divider.className="legal-divider"; divider.setAttribute("aria-hidden","true"); foot.appendChild(divider);
-  foot.insertAdjacentHTML("beforeend",'<span class="owner-lines"><span class="owner-main"><strong>Vlastník aplikace:</strong> Daniel Baláž · Gymnázium, Ostrava-Hrabůvka</span><br><span class="copyright">© 2026 Daniel Baláž. Všechna práva vyhrazena.</span></span>');
+  foot.insertAdjacentHTML("beforeend",'<span class="owner-lines"><span class="owner-main"><strong>Autor a vývojový garant:</strong> Daniel Baláž · <strong>Školní projekt:</strong> Gymnázium, Ostrava-Hrabůvka</span><br><span class="copyright">© 2026 Daniel Baláž. Všechna práva vyhrazena.</span></span>');
 }
-function openChangelog(){
-  const last10=RELEASE.changes.slice(0,10);
-  openModal("Co je nového",
-    '<ul style="margin:0;padding-left:18px;color:var(--ink-soft);font-size:13px;line-height:1.55">'+
-      last10.map(c=>"<li style='margin:6px 0'>"+esc(c)+"</li>").join("")+
-    '</ul>', {label:"Co je nového"});
+function aboutChangeMarkup(){
+  return RELEASE.changes.map((entry,index)=>{
+    const text=String(entry||"");
+    const match=text.match(/^([^:]+):\s*(.*)$/);
+    const version=match?match[1].trim():(index===0?RELEASE.version:"");
+    const body=match?match[2].trim():text;
+    return '<article class="ks-about-change"><div class="ks-about-change-head"><span class="ks-about-version">v'+esc(version)+'</span>'+(index===0?'<span class="ks-about-current">aktuální</span>':'')+'</div><p>'+esc(body)+'</p></article>';
+  }).join("");
 }
+function openAboutApp(openHistory){
+  const html=`<div class="ks-about">
+    <div class="ks-about-overview">
+      <article class="ks-about-card ks-about-identity">
+        <div class="ks-about-mark" aria-hidden="true">KS</div>
+        <p class="ks-about-eyebrow">KORESPONDENČNÍ ASISTENT</p>
+        <h2>Bezpečnější školní komunikace s podporou AI</h2>
+        <p>Pomáhá analyzovat přijaté e-maily, připravovat odpovědi a vytvářet nebo upravovat vlastní zprávy. Před odesláním k AI vede uživatele přes anonymizaci a povinnou kontrolu náhledu.</p>
+      </article>
+      <div class="ks-about-facts">
+        <article class="ks-about-card"><p class="ks-about-eyebrow">AUTOR A VÝVOJOVÝ GARANT</p><h3>Daniel Baláž</h3><p>Koncepce, návrh funkcí, metodické vedení a vývoj Korespondenčního asistenta.</p></article>
+        <article class="ks-about-card"><p class="ks-about-eyebrow">ŠKOLNÍ PROJEKT</p><h3>Gymnázium, Ostrava-Hrabůvka</h3><p>Interní školní nástroj pro každodenní pracovní komunikaci učitelů a bezpečnější využívání AI při přípravě e-mailů.</p></article>
+        <article class="ks-about-card"><p class="ks-about-eyebrow">TECHNICKÝ STAV</p><h3>v${esc(RELEASE.version)} · PWA</h3><p>GHRAB Platform 1.1.2 · GHRAB AI Core 1.0.0 · GARP 2.7 r2 / G-02 · ${esc(RELEASE.status)}.</p></article>
+        <article class="ks-about-card"><p class="ks-about-eyebrow">ÚČEL A ODPOVĚDNOST</p><h3>AI připravuje návrh, člověk rozhoduje</h3><p>Aplikace sama e-mail neodesílá. Finální text, oslovení, fakta i případné citlivé údaje vždy před použitím kontroluje uživatel.</p></article>
+      </div>
+    </div>
+    <section class="ks-about-principles" aria-labelledby="ksAboutPrinciplesTitle">
+      <div class="ks-about-section-head"><p class="ks-about-eyebrow">PROVOZNÍ ZÁSADY</p><h2 id="ksAboutPrinciplesTitle">Co je dobré vědět</h2></div>
+      <div class="ks-about-principle-grid">
+        <article class="ks-about-card ks-about-principle"><span>01</span><div><h3>Kontrola před odesláním k AI</h3><p>Skutečná jména, kontakty a další citlivé údaje mají být nahrazeny. Do AI se odesílá až ručně zkontrolovaný anonymizovaný obsah.</p></div></article>
+        <article class="ks-about-card ks-about-principle"><span>02</span><div><h3>Výstup je pracovní návrh</h3><p>Asistent pomáhá s formulací a rozborem, ale nenahrazuje úsudek autora zprávy. Před kopírováním je třeba ověřit význam, tón i konkrétní údaje.</p></div></article>
+      </div>
+    </section>
+    <details class="ks-about-changelog" id="ksAboutChangelog">
+      <summary><span><span class="ks-about-eyebrow">HISTORIE VYDÁNÍ</span><strong>Katalog změn</strong><small>Rozbal úplnou uživatelskou historii změn Korespondenčního asistenta.</small></span><span class="ks-about-toggle" aria-hidden="true"></span></summary>
+      <div class="ks-about-changelog-body"><p class="ks-about-note">Zobrazeny jsou hlavní uživatelsky důležité změny. Podrobná technická a bezpečnostní evidence zůstává ve vývojové dokumentaci.</p><div class="ks-about-change-list">${aboutChangeMarkup()}</div></div>
+    </details>
+  </div>`;
+  return openModal("O aplikaci",html,{className:"ks-about-dialog",label:"O aplikaci Korespondenční asistent",onMount(body){
+    const details=body.querySelector("#ksAboutChangelog");
+    if(openHistory&&details){ details.open=true; requestAnimationFrame(()=>details.scrollIntoView({block:"nearest"})); }
+  }});
+}
+function openChangelog(){ return openAboutApp(true); }
 
 /* ===================== DEBUG PROMPT + AUTOMATICKÉ TESTY ===================== */
 function openLastPromptDebug(){

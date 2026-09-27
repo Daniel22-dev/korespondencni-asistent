@@ -1,6 +1,6 @@
 # Korespondenční asistent
 
-**Aktuální verze:** 5.10.31
+**Aktuální verze:** 5.10.32
 **Platforma:** GHRAB Platform 1.1.2 · GARP 2.7 / P5 / Safe Promotion
 
 **Aktivní bezpečnostní autorita:** GARP 2.7 (konsolidovaný master 2026-09-23-r2 / G-02 FIX). GARP 2.5.1 zůstává povinným regresním baseline, nikoli konkurenční autoritou. Lokální/CI foundation kontroly zůstávají aktivní; školní-server a runtime-dependent kontroly jsou výslovně `DEFERRED_BY_OWNER_DECISION` / `NOT_TESTED`, dokud nebude serverová fáze schválena.
@@ -8,12 +8,16 @@
 
 Samostatná PWA aplikace ekosystému AI Studio Gymnázia Ostrava-Hrabůvka.
 
-- **Verze aplikace:** 5.10.31
+- **Verze aplikace:** 5.10.32
 - **GHRAB AI Core:** 1.0.0
 - **Doporučený repozitář:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
 - **Interaktivní manuál:** 1.3.16 (manuál 1.3.16)
+
+## Co přináší verze 5.10.32
+
+Verze 5.10.32 zařazuje Korespondenčního asistenta do jednotného standardu **„O aplikaci“** používaného v ekosystému AI Studio GHRAB. Nová karta uvádí identitu a účel aplikace, autora a vývojového garanta, školní projekt, technický stav a stručné provozní zásady. Dosavadní samostatný **Přehled změn** je přesunut do rozbalovací **Historie vydání** uvnitř této sekce a přístup k „O aplikaci“ je dostupný z horní lišty i z nabídky Další možnosti. Současně byla patička sjednocena na formulaci „Autor a vývojový garant“ a „Školní projekt“. AI logika, prompty, anonymizace, provider/model a datové formáty se nemění.
 
 ## Co přináší verze 5.10.31
 

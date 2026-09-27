@@ -1061,3 +1061,29 @@ html[data-ghrab-suite-session="blocked"]::before{
   box-sizing:border-box;padding:32px;background:var(--paper,#fff);color:var(--ink,#17202a);
   font:700 16px/1.5 var(--sans,system-ui,sans-serif);text-align:center;visibility:visible!important
 }
+
+
+/* ===================== KS 5.10.32 — O APLIKACI ===================== */
+.ks-about-dialog{max-width:920px;padding:22px 24px}
+.ks-about{display:grid;gap:18px}
+.ks-about-overview{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.55fr);gap:14px;align-items:stretch}
+.ks-about-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.ks-about-card{border:1px solid var(--line);border-radius:14px;background:var(--paper);padding:15px;color:var(--ink)}
+.ks-about-card h2,.ks-about-card h3{margin:4px 0 7px;color:var(--ink);font-family:var(--serif)}
+.ks-about-card h2{font-size:22px;line-height:1.18}.ks-about-card h3{font-size:16px;line-height:1.25}
+.ks-about-card p{margin:0;color:var(--ink-soft);font-size:12.8px;line-height:1.55}
+.ks-about-identity{display:flex;flex-direction:column;justify-content:flex-end;min-height:248px;background:linear-gradient(145deg,color-mix(in srgb,var(--token-bg) 82%,var(--paper)),var(--paper))}
+.ks-about-mark{display:grid;place-items:center;width:74px;height:74px;margin-bottom:auto;border:1px solid color-mix(in srgb,var(--accent) 38%,var(--line));border-radius:20px;background:var(--accent);color:#fff;font:900 27px var(--sans);letter-spacing:.04em;box-shadow:0 10px 26px color-mix(in srgb,var(--accent) 24%,transparent)}
+.ks-about-eyebrow{margin:0!important;color:var(--accent-text)!important;font:900 10.5px/1.25 var(--sans)!important;letter-spacing:.09em;text-transform:uppercase}
+.ks-about-section-head{margin:2px 0 9px}.ks-about-section-head h2{margin:4px 0 0;font:700 19px var(--serif);color:var(--ink)}
+.ks-about-principle-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.ks-about-principle{display:grid;grid-template-columns:34px 1fr;gap:11px;align-items:start}.ks-about-principle>span{display:grid;place-items:center;width:31px;height:31px;border-radius:10px;background:var(--token-bg);color:var(--accent-text);font:900 10px var(--sans)}
+.ks-about-principle h3{margin:0 0 5px}
+.ks-about-changelog{border:1px solid var(--line);border-radius:14px;background:var(--paper);overflow:hidden}
+.ks-about-changelog>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:15px 16px;cursor:pointer;user-select:none}.ks-about-changelog>summary::-webkit-details-marker{display:none}
+.ks-about-changelog>summary>span:first-child{display:grid;gap:4px}.ks-about-changelog>summary strong{font:700 17px var(--serif);color:var(--ink)}.ks-about-changelog>summary small{color:var(--ink-soft);font:600 11.8px/1.35 var(--sans)}
+.ks-about-toggle{position:relative;flex:0 0 28px;width:28px;height:28px;border:1px solid var(--line);border-radius:9px;background:var(--desk)}.ks-about-toggle::before,.ks-about-toggle::after{content:"";position:absolute;left:8px;right:8px;top:13px;height:2px;border-radius:2px;background:var(--accent-text)}.ks-about-toggle::after{transform:rotate(90deg);transition:transform .18s ease}.ks-about-changelog[open] .ks-about-toggle::after{transform:rotate(0)}
+.ks-about-changelog-body{border-top:1px solid var(--line);padding:14px 16px 16px}.ks-about-note{margin:0 0 10px;color:var(--ink-soft);font-size:12px;line-height:1.45}
+.ks-about-change-list{display:grid;gap:8px}.ks-about-change{border:1px solid var(--line);border-radius:11px;background:var(--desk);padding:10px 11px}.ks-about-change-head{display:flex;align-items:center;gap:7px;margin-bottom:5px}.ks-about-version,.ks-about-current{display:inline-flex;align-items:center;border-radius:999px;font:900 10px var(--sans);padding:3px 7px}.ks-about-version{background:var(--token-bg);color:var(--accent-text)}.ks-about-current{background:rgba(52,122,93,.10);color:var(--calm);border:1px solid rgba(52,122,93,.28);text-transform:uppercase;letter-spacing:.05em}.ks-about-change p{margin:0;color:var(--ink-soft);font-size:12.2px;line-height:1.5}
+@media(max-width:760px){.ks-about-dialog{padding:18px}.ks-about-overview{grid-template-columns:1fr}.ks-about-identity{min-height:220px}.ks-about-facts,.ks-about-principle-grid{grid-template-columns:1fr}}
+@media(max-width:480px){.ks-about-dialog{padding:15px}.ks-about-card{padding:13px}.ks-about-mark{width:62px;height:62px;border-radius:17px;font-size:23px}.ks-about-identity{min-height:205px}.ks-about-changelog>summary{padding:13px}.ks-about-changelog-body{padding:12px}}

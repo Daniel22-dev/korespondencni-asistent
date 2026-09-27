@@ -27,7 +27,7 @@ if(typeof restoreWorkingSession==="function") restoreWorkingSession();
 if(typeof renderPersonReferenceChips==="function") renderPersonReferenceChips("my");
 footBtn("Profil odesílatele", "👤", "Jméno, role a podpis doplňované do hotových e-mailů", ()=>{ if(window.__openProfile) window.__openProfile(); });
 footBtn("Poslední výstupy", "🕘", "Anonymizované výstupy uložené v tomto prohlížeči", ()=>{ if(window.__openHistory) window.__openHistory(); });
-footBtn("Přehled změn", "✨", "Co se změnilo v aktuálních verzích aplikace", openChangelog);
+footBtn("O aplikaci", "ⓘ", "Identita, účel, technický stav a historie vydání", ()=>openAboutApp(false));
 footBtn("Prohlídka aplikace", "🧭", "Krátká průvodcovaná prohlídka bezpečného pracovního postupu", ()=>openOnboardingTour(true));
 footBtn("Správa dat", "🧹", "Historie, export nastavení a smazání lokálních dat", openDataManager);
 const ADMIN_ACCESS=!!(window.__GHRAB_STUDIO_ACCESS__&&window.__GHRAB_STUDIO_ACCESS__.permit&&window.__GHRAB_STUDIO_ACCESS__.permit.role==="admin");
