@@ -1,0 +1,218 @@
+KORESPONDENČNÍ ASISTENT 5.10.30 – VÝKON ANONYMIZACE A ÚKLID KÓDU
+Zpráva Claude (opravář v režimu migrace), 26. 9. 2026
+
+Vstup:  korespondencni-asistent-main.zip (5.10.29)
+        SHA-256 d6269c61e163b54d8fe5e3d1850d3fa4ebded7733a2c73b43501b2d7ab7819ea
+Výstup: korespondencni-asistent-5.10.30.zip
+
+======================================================================
+1. SHRNUTÍ
+======================================================================
+Aplikace se nezpomalovala při spuštění (~220 ms do připravenosti, beze
+změny), ale v anonymizaci. Kontrola jmen před odesláním při každé akci
+tisíckrát znovu počítala tytéž mezivýsledky. Po opravě:
+
+                                        rychlý stroj      CPU zpomalené 4×
+  kliknutí na anonymizaci               489 → 39 ms       2 233 → 127 ms
+  jedno písmeno v tabulce klíče         457 → 24 ms       2 194 →  98 ms
+  písmeno v hlavním textovém poli         4 →  4 ms          17 →  17 ms
+  spuštění aplikace                     beze změny (219–234 ms, v rozptylu)
+
+(e-mail 2 854 znaků, Chromium, medián; zpomalení 4× je emulace pomalého
+školního notebooku přes CDP, nikoli měření na skutečném zařízení.)
+
+Výstupy anonymizace jsou na 70 syntetických případech bajtově shodné
+s verzí 5.10.29. Všechny lokálně dostupné kontroly jsou zelené.
+
+======================================================================
+2. ZMĚNY V ZDROJOVÉM KÓDU (src: 19 souborů, +75 / −94 řádků)
+======================================================================
+2.1 Výkon – src/js/40-anonymizace.js
+  Příčina (profil procesoru): knownCanonicalPerson() při každém volání
+  znovu normalizovala všechna známá jména a znovu parsovala uložený
+  slovník; volala se tisíckrát v řetězci safetyAudit → preflightIssues →
+  strongPersonalNameCandidates → canonicalizePersonPhrase →
+  reverseNameCandidates. Samotná normName() spotřebovala ~2/3 času.
+
+  Oprava – pět mezipamětí, všechny jen pro funkce závislé výhradně na
+  svém vstupu:
+  a) normName(): mapa hotových tvarů, strop 5 000 položek.
+  b) knownProperNormalized(): normalizovaná množina KNOWN_PROPER_WORDS se
+     spočítá jednou (množina se plní jen při startu; pojistka na změnu
+     velikosti).
+  c) dictionaryNameIndex(): přesné tvary a části jmen ze slovníku; klíčem
+     je syrový řetězec localStorage["rozbor_dict"], takže každá změna
+     slovníku index sama zneplatní. Při nedostupném localStorage se
+     nic neukládá. Využívá ho i canonicalizePersonPhrase (storedExact),
+     kde se výsledek jen čte (.has).
+  d) reverseNameCandidates(): výsledek podle (slovo, pád); mezipaměť se
+     vymaže při změně slovníku a vrací kopii pole. Původní tělo je beze
+     změny jako reverseNameCandidatesUncached().
+  e) readOnlyWordObjs() a normalizedRawWords(): sdílený rozbor posledního
+     textu jen pro volající, kteří výsledek pouze čtou (nameCaseHints,
+     suggestionLineContext, rawContainsExactPerson). Ověřeno, že žádný
+     volající vrácené objekty nemění. Ostatní dál volají wordObjs().
+
+2.2 Odstraněný mrtvý kód (žádný volající v src, body.html, manuálu ani
+    v testovacích skriptech; ESLint no-unused-vars + ruční kontrola)
+  40: countPersons, femaleDative + CZ_FEMALE_PALATAL, modelPersonToken,
+      ensureNameHintToggle + nameHintOn, addPhrase, preserveInitialCase,
+      celá nefunkční vrstva vyskakovacího okna: showTapHide, tapPopEl,
+      hideTapPop a globální posluchač kliknutí (tapPopEl nemohl nikdy
+      vzniknout, všechna volání byla prázdná)
+  50: profileContextParts; lockedLine – starý nebezpečnější zápis
+      uzamčených formulací. Model je dál dostává bezpečným blokem
+      buildUntrustedModelDataBlock("locked-formulations", …); text
+      promptu se nemění.
+  30: GEMINI_TIMEOUT_MS, bumpReq
+  35: retainedEk
+  60: encodeUntrustedEmailData
+  styles.css: osiřelá pravidla #tapPop (2×), .tap-pop-title,
+      .name-hint-toggle (2×)
+
+2.3 Oprava chyby v testovacím sestavení – src/js/75-pracovni-stul.js
+  restoreTestState() volala refreshDeskStatus(), která byla uzavřená
+  uvnitř modulu. Výjimku pohltil try{} a přeskočily se tři další kroky
+  obnovy (applyAiRuntimeUi, updateKeyStatus, updateModelUI). Funkce je
+  nově exportovaná stejně jako ostatní funkce pracovního stolu
+  (window.refreshDeskStatus). Produkce tím nezískává nové chování;
+  test runner se do produkce nesestavuje.
+
+2.4 Verze 5.10.30
+  Aktuální verze přepsána ve všech slotech (package*, manifesty, sw.js,
+  šablona, manuál, adaptér reportéru, konfigurace, testovací skripty,
+  GARP 2.7 policy/inventory/profil). Changelog v aplikaci, CHANGELOG.md,
+  README a APP-correspondence-GARP.txt doplněny. Historické záznamy
+  (RELEASE-NOTES-5.10.29, závěrečné zprávy, MIGRATION-ASSESSMENT.md)
+  ponechány. Manuál zůstává 1.3.16 (obsah beze změny).
+
+======================================================================
+3. DŮKAZ EKVIVALENCE
+======================================================================
+Korpus: 10 syntetických e-mailů (pády jmen, vokativ, tituly, malá
+písmena, citlivé a preventivní téma, adresa, rodné číslo, datum
+narození, účet, podobná jména Petra/Petr, instituce). Žádná reálná data.
+
+Pro každý případ se porovnává: computeSuggestionData (oba režimy),
+strong/strict/untrusted kandidáti, detekce citlivých témat, doAnon (klíč
+a vyčištěný text), přidání všech návrhů jako osob (klíč a text),
+preflightIssues (čistý i syrový text), safetyAudit, HTML tabulky klíče,
+náhled, knownCanonicalPerson pro každé slovo i frázi, normName a stav
+tlačítek panelu.
+
+  A) 10 e-mailů × 2 stavy slovníku × 2 panely = 40 případů
+     5.10.29: 8cbacc893d8cd167afb6655f19f3a81215b2a9b7bc68fd29435b70a9cad15292
+     5.10.30: 8cbacc893d8cd167afb6655f19f3a81215b2a9b7bc68fd29435b70a9cad15292
+  B) změna slovníku během práce (prázdný → 3 jména → smazán), 30 případů;
+     ve 3 e-mailech slovník výsledek skutečně mění, takže se ověřuje
+     i zneplatnění mezipaměti
+     5.10.29: ddd2ba513f97b423dd95b4111396982797fa4d5bd17bba9ad9aa8ea03923d816
+     5.10.30: ddd2ba513f97b423dd95b4111396982797fa4d5bd17bba9ad9aa8ea03923d816
+  Postroj je deterministický (dva běhy 5.10.29 bajtově shodné).
+
+Reprodukce (v kořeni repozitáře po npm ci a npm run build):
+  CHROMIUM_PATH=… node audit-evidence/claude-5.10.30-vykon/equiv.mjs dist out.json
+  CHROMIUM_PATH=… node audit-evidence/claude-5.10.30-vykon/equiv-switch.mjs dist out2.json
+  CHROMIUM_PATH=… THROTTLE=4 node audit-evidence/claude-5.10.30-vykon/interact.mjs dist
+  CHROMIUM_PATH=… node audit-evidence/claude-5.10.30-vykon/startup.mjs dist 7
+  (postroj servíruje dist lokálně a bránu AI Studia nahrazuje stubem;
+  kontroluje logiku a výkon, ne bránu.)
+
+Hranice důkazu: ekvivalence je empirická na syntetickém korpusu, opřená
+o to, že všechny mezipaměti obalují čisté funkce a klíče obsahují vše,
+na čem výsledek závisí. Neprokazuje shodu pro každý myslitelný vstup.
+
+======================================================================
+4. VÝSLEDKY KONTROL (lokálně, Node 22.22.2, Chromium 1194)
+======================================================================
+  npm test: AI profily 15/15, interní testy 171/171, Core 17/17,
+            release gate vše zelené, klikací UI 51/51, platforma 139/139
+  P5 (qa:p5): release report 49/49, acceptance 24/24, runtime passed
+            (0 blokujících nálezů), UI 48/48, quality 31/31, XSS,
+            secret scan, canary scan – vše PASS
+  AXE (AXE_REQUIRED=1): PASS
+  test:reporter: PASS
+  GARP 2.3 AI-RED strukturální (testovací build): 33/33 + negativní
+            kontrola NC-AIRED-TRUST-BOUNDARY; behaviorální = NOT_TESTED,
+            RED TEAM strop AMBER (beze změny)
+  GARP 2.5.1 regresní statický řetězec: PASS
+  GARP 2.7 statický řetězec (s novým CI pinem): PASS
+  GARP 2.7 Foundation: 10/10, FOUNDATION_PASS_LIVE_NOT_TESTED
+  AI assurance baseline: PASS (nové otisky)
+
+Poznámka: předchozí kolo hlásilo lokální timeout qa:runtime a nespuštěný
+AXE. V tomto prostředí oba prošly.
+
+======================================================================
+5. DOPADY NA GARP – K VĚDOMÍ A SCHVÁLENÍ VLASTNÍKA
+======================================================================
+5.1 security/AI-ASSURANCE-BASELINE.json – nové otisky:
+    src/js/30-api-gemini.js, 40-anonymizace.js, 50-koncept-a-prompty.js,
+    src/ai-operations.json (tam jen appVersion).
+    Podle průvodního listu (oddíl 7) to OTEVÍRÁ delta revalidaci AIR/RT-09.
+    Pro nezávislou kontrolu: změny v 30 a 50 jsou výhradně odstranění
+    nevolaného kódu; žádný řetězec promptu, systémový text, schéma ani
+    volání callGemini se nezměnil. Změny v 40 mění jen rychlost.
+
+5.2 security/garp27/trust-anchor.json – přepočítány otisky
+    architecturePolicySha256, capabilityInventorySha256, garpPolicySha256
+    (změnila se v nich jen appVersion) a appVersion.
+    inputGarpZipSha256 a inputAppZipSha256 ponechány: dokumentují původ
+    re-baseline r2, ne aktuální verzi.
+    Nový otisk kotvy (CI pin):
+      7868b3e45d0efc917fd2e361afd13219d41a62fa0b326ccd4630285fd1d4b0e0
+    přepsán v .github/workflows/deploy.yml (1×) a p5-release-gate.yml (2×).
+    Změna pinu v chráněném workflow je bezpečnostně citlivá – má projít
+    tvým vědomým schválením v PR do chráněné main.
+
+5.3 Nezměněno: service worker, app-guard / přístupová brána, runtime
+    konfigurace, vendorované komponenty (Platform 1.1.2, AI Core 1.0.0,
+    GARP 2.7 r2), úložiště a jeho klíče, AI operace, provider a model.
+    dist-school-server zůstává bajtově zmrazený na 5.10.25 (QA ho při
+    běhu přegenerovává – obnoveno z gitu). Historické evidence
+    garp23-release-gate a garp25-shield-prep obnoveny; aktualizovány
+    jen složky *-current, které popisují poslední běh.
+
+5.4 Registr dluhů beze změny (DL-01 až DL-06). Školní server / LIVE
+    zůstává DEFERRED_BY_OWNER_DECISION / NOT_TESTED.
+
+======================================================================
+6. CO JSEM ÚMYSLNĚ NEDĚLAL A DOPORUČENÍ
+======================================================================
+6.1 Service worker načítá stránku při každém otevření ze sítě bez
+    mezipaměti (≈197 KB komprimovaně). Je to bezpečnostní rozhodnutí
+    (GH-02: čerstvá brána). Neměnit bez GARP kola.
+6.2 Úklid repozitáře (1 446 souborů, 13 MB):
+    - 48 souborů v kořeni (44× RELEASE-NOTES-*, 2× OVERENI-*, 2 závěrečné
+      zprávy GARP 2.7)
+      → docs/release-notes/ (odkazy jsou v README a v historických
+      důkazech; README lze opravit, historické důkazy ne);
+    - audit-evidence (1 077 souborů, 8 MB) → archiv mimo pracovní strom,
+      v repozitáři ponechat jen *-current a poslední uzavřené kolo;
+    - scripts/garp24/ vedle scripts/garp25/ (starší generace nástrojů).
+    Nedělal jsem to, protože jde o důkazní řetězec GARP; doporučuji jako
+    samostatný krok s vlastním záznamem.
+6.3 Struktura kódu, kterou vnímáš jako „chaotickou“:
+    - ~14 funkcí si moduly předávají přes window.* s pozdní vazbou
+      (typeof … === "function"); funguje, ale je to křehké;
+    - dlouhé řádky ve stylu minifikovaného kódu (až 1 747 znaků);
+    - 70-nastroje-testy-data.js má 180 KB, z toho ~1 660 řádků je test
+      runner, který build z produkce vyřezává – patří do samostatného
+      souboru;
+    - 10-release-changelog.js (53 KB) nese celou historii změn do
+      produkčního balíčku.
+    Plošné přeformátování nedoporučuji: velký rozdíl bez užitku pro
+    uživatele a znehodnocení historie změn. Doporučuji postupně, modul
+    po modulu, vždy s tímto typem důkazu ekvivalence.
+
+======================================================================
+7. ZNÁMÉ LIMITY
+======================================================================
+- Projekt deklaruje Node ≥24, lokálně Node 22.22.2 (stejně jako
+  předchozí kola). Rozhodující je běh CI.
+- Výkon měřen na rychlém stroji a s emulovaným 4× zpomalením, ne na
+  skutečném školním notebooku nebo iPadu.
+- Mezipaměti zvyšují paměť v řádu desítek až stovek KB (strop 2 × 5 000
+  položek), halda po startu 5,4 → 5,7 MB.
+- Balíček neobsahuje git historii; commit a PR přes candidate → main
+  provádí vlastník.

@@ -30,7 +30,6 @@ function recordCorrespondenceTelemetry(outputKind,attempted,successful,failed,ca
 
 const UNTRUSTED_EMAIL_BEGIN='<untrusted-data kind="incoming-email" encoding="json">';
 const UNTRUSTED_EMAIL_END=UNTRUSTED_MODEL_DATA_END;
-function encodeUntrustedEmailData(text){ return encodeModelBoundaryValue(String(text||"")); }
 function buildUntrustedEmailDataBlock(text){ return buildUntrustedModelDataBlock("incoming-email",String(text||"")); }
 function buildIncomingAnalysisPrompt(text){
   return ["ÚLOHA: Analyzuj přijatý e-mail podle systémových pravidel aplikace.",buildUntrustedEmailDataBlock(text)].join("\n");

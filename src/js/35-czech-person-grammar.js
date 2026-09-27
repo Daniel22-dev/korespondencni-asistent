@@ -100,7 +100,6 @@ const CZ_PERSON_GRAMMAR=(()=>{
     const st=prefix+"k";
     return {1:lo,2:st+"a",3:st+"ovi",4:st+"a",5:st+"u",6:st+"ovi",7:st+"em"};
   };
-  const retainedEk=lo=>({1:lo,2:lo+"a",3:lo+"ovi",4:lo+"a",5:lo+"u",6:lo+"ovi",7:lo+"em"});
   const mobileEc=lo=>{
     const st=lo.slice(0,-2)+"c",voc=st.slice(0,-1)+"če";
     return {1:lo,2:st+"e",3:st+"ovi",4:st+"e",5:voc,6:st+"ovi",7:st+"em"};

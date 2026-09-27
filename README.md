@@ -1,6 +1,6 @@
 # Korespondenční asistent
 
-**Aktuální verze:** 5.10.29  
+**Aktuální verze:** 5.10.31
 **Platforma:** GHRAB Platform 1.1.2 · GARP 2.7 / P5 / Safe Promotion
 
 **Aktivní bezpečnostní autorita:** GARP 2.7 (konsolidovaný master 2026-09-23-r2 / G-02 FIX). GARP 2.5.1 zůstává povinným regresním baseline, nikoli konkurenční autoritou. Lokální/CI foundation kontroly zůstávají aktivní; školní-server a runtime-dependent kontroly jsou výslovně `DEFERRED_BY_OWNER_DECISION` / `NOT_TESTED`, dokud nebude serverová fáze schválena.
@@ -8,12 +8,20 @@
 
 Samostatná PWA aplikace ekosystému AI Studio Gymnázia Ostrava-Hrabůvka.
 
-- **Verze aplikace:** 5.10.29
+- **Verze aplikace:** 5.10.31
 - **GHRAB AI Core:** 1.0.0
 - **Doporučený repozitář:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
 - **Interaktivní manuál:** 1.3.16 (manuál 1.3.16)
+
+## Co přináší verze 5.10.31
+
+Verze 5.10.31 provádí **konzervativní úklid zdrojového kódu bez změny uživatelského workflow**. Interní test runner je oddělen do samostatného modulu, produkční build navíc fail-closed ověřuje jeho jednoznačné hranice před odstraněním z distribučního artefaktu. Odstraněny byly osiřelé CSS bloky a anonymizační mezipaměti se při výslovném smazání lokálních dat čistí také z operační paměti; změna uloženého slovníku je rovněž aktivně invaliduje. AI operace, prompty, provider/model, datové formáty, GHRAB AI Core i GARP 2.7 bezpečnostní model zůstávají funkčně beze změny. Podrobnosti jsou v `CHANGELOG.md`.
+
+## Co přináší verze 5.10.30
+
+Verze 5.10.30 **zrychluje anonymizaci** a **uklízí nepoužívaný kód**. Kontrola jmen před odesláním dříve při každé akci znovu normalizovala všechna známá jména, znovu četla uložený slovník a opakovaně rozebírala tentýž text. Nově si tyto mezivýsledky pamatuje; uložený slovník se přepočítá automaticky, jakmile se změní. Anonymizace e-mailu o 2 854 znacích klesla z 487 na 34 ms a jedno písmeno v tabulce klíče z 464 na 19 ms. Výsledky anonymizace jsou na 70 syntetických případech bajtově shodné s 5.10.29. Prompt assembly, provider, model, AI operace, service worker ani app-guard se nemění. Podrobnosti jsou v `CHANGELOG.md`.
 
 ## Co přináší verze 5.10.29
 

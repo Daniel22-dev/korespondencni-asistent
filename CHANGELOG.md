@@ -1,3 +1,20 @@
+## 5.10.31 — konzervativní strukturální úklid (2026-09-27)
+
+- interní test runner byl bez změny jeho logiky oddělen z monolitického `70-nastroje-testy-data.js` do samostatných modulů `70-nastroje.js`, `71-test-runner.js` a `72-sprava-dat.js`; pořadí vykonání zůstává zachováno a produkční build jej dál odstraňuje z distribučního artefaktu;
+- `scripts/build.mjs` nyní fail-closed požaduje právě jednu počáteční a jednu koncovou značku test runneru, takže nejednoznačný nebo poškozený stripping build zastaví;
+- odstraněny byly pouze prokazatelně osiřelé CSS bloky bez aktivního HTML/JS protějšku; dynamické a platformou vkládané třídy zůstaly zachovány;
+- `40-anonymizace.js`: explicitní `clearAnonymizationCaches()` čistí nové výkonové mezipaměti při uložení slovníku a při volbě „Smazat všechna lokální data“, aby po výmazu nezůstával poslední zpracovaný text nebo slovník v paměti otevřené karty; interní regresní test tuto vlastnost ověřuje;
+- uživatelský workflow, prompty, provider/model, AI operace, AI Core 1.0.0, datové formáty a bezpečnostní hranice se nemění; releasové/GARP identity a assurance hashe jsou po změně zdrojů znovu svázány s 5.10.31.
+
+## 5.10.30 — výkon anonymizace a úklid kódu (2026-09-26)
+
+- `40-anonymizace.js`: pět mezipamětí pro čisté funkce — `normName`, normalizovaná množina známých jmen, index uloženého slovníku (klíčem je syrový záznam `rozbor_dict`, takže změna slovníku mezipaměť sama zneplatní), `reverseNameCandidates` (vázáno na stav slovníku) a sdílený rozbor slov jen pro čtoucí volající (`nameCaseHints`, `suggestionLineContext`);
+- měření (e-mail 2 854 znaků, Chromium): anonymizace 487 → 34 ms, jedno písmeno v tabulce klíče 464 → 19 ms, psaní do hlavního pole beze změny (~3 ms), start aplikace beze změny;
+- ekvivalence: 40 případů (10 syntetických e-mailů × 2 stavy slovníku × 2 panely) + 30 případů se změnou slovníku během práce — klíč, vyčištěný text, návrhy, preflight, bezpečnostní audit i HTML tabulky klíče jsou bajtově shodné s 5.10.29;
+- odstraněn mrtvý kód bez volajících: `countPersons`, `femaleDative` + `CZ_FEMALE_PALATAL`, `modelPersonToken`, `ensureNameHintToggle` + `nameHintOn`, `addPhrase`, `showTapHide` + `tapPopEl` / `hideTapPop` / globální posluchač kliknutí, `preserveInitialCase` (40), `profileContextParts` a nevyužitá `lockedLine` (50; uzamčené formulace se modelu dál předávají bezpečným blokem `locked-formulations`), `GEMINI_TIMEOUT_MS` a `bumpReq` (30), `retainedEk` (35), `encodeUntrustedEmailData` (60) a osiřelé styly `#tapPop`, `.tap-pop-title`, `.name-hint-toggle`;
+- test runner: `restoreTestState` volal neexportovanou `refreshDeskStatus`, výjimku pohltil `try` a přeskočil obnovu AI UI, stavu klíče a modelu; `75-pracovni-stul.js` ji nyní exportuje stejně jako ostatní funkce pracovního stolu;
+- prompt assembly, texty promptů, provider, model, AI operace, service worker, app-guard ani úložiště se nemění; AI assurance baseline a GARP 2.7 trust anchor přepnuty na 5.10.30 s odůvodněním v průvodním listu (delta AIR revalidace 30/40/50).
+
 ## 5.10.29 — GARP 2.7 r2 / G-02 re-baseline (2026-09-24)
 
 - vendored GARP 2.7 master přepnut z `2026-09-23-r1` na `2026-09-23-r2`; nejde o GARP 2.8;
