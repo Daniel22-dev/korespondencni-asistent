@@ -6,7 +6,7 @@ import {spawn,execSync} from "node:child_process";
 import {setTimeout as sleep} from "node:timers/promises";
 const ROOT=join(dirname(fileURLToPath(import.meta.url)),".."),BASE=join(ROOT,"dist");
 const CORE_VERSION="1.0.0",CORE_DIR=join(ROOT,"vendor",`ghrab-ai-core-${CORE_VERSION}`),CONFORMANCE_SOURCE=readFileSync(join(CORE_DIR,`ghrab-ai-conformance-${CORE_VERSION}.js`),"utf-8");
-const REPO="korespondencni-asistent",APP_ID="correspondence",APP_VERSION="5.10.32",SUITE="__GHRAB_KORESP_TESTS__.open(false); __GHRAB_KORESP_TESTS__.run()",ITEM="#testOut .test-result",FAIL="#testOut .test-result.fail",CACHE_PREFIX="ghrab-correspondence-v";
+const REPO="korespondencni-asistent",APP_ID="correspondence",APP_VERSION="5.10.34",SUITE="__GHRAB_KORESP_TESTS__.open(false); __GHRAB_KORESP_TESTS__.run()",ITEM="#testOut .test-result",FAIL="#testOut .test-result.fail",CACHE_PREFIX="ghrab-correspondence-v";
 let failures=0;const ok=m=>console.log("  ✓ "+m),bad=m=>{console.error("  ✗ "+m);failures++};
 if(!existsSync(join(BASE,"index.html"))){console.error("Chybí dist. Spusť nejdřív npm run build.");process.exit(1)}
 function testHtml(raw){return raw.replace('type="application/ghrab-protected" data-ghrab-protected','type="text/javascript" data-ghrab-test-executable').replace(/<script type="module" data-ghrab-access-bootstrap>[\s\S]*?<\/script>/,'')}
@@ -46,9 +46,29 @@ async function runWithChromium(raw){
 const raw=readFileSync(join(BASE,"index.html"),"utf-8");
 const manualPath=join(BASE,"manual","index.html");
 const manualHtml=existsSync(manualPath)?readFileSync(manualPath,"utf-8"):"";
+const frameGuard=readFileSync(join(ROOT,"src","frame-guard.js"),"utf-8"),sourceSw=readFileSync(join(ROOT,"src","sw.js"),"utf-8");
 const readme=readFileSync(join(ROOT,"README.md"),"utf-8");
 let runtime;try{runtime=await runWithJsdom(raw)}catch(e){if(e&&e.code!=="ERR_MODULE_NOT_FOUND")throw e;console.log("  ℹ jsdom není lokálně dostupný, používám hermetický Chromium fallback");runtime=await runWithChromium(raw)}
 if(!raw.includes('data-ghrab-access-bootstrap')||!raw.includes('application/ghrab-protected')||!raw.includes('/AI-Studio-GHRAB/access/app-guard.js'))bad("chybí přístupová brána AI Studia");else ok("přístupová brána AI Studia");
+const firstIndexScript=raw.match(/<head>[\s\S]*?<script\s+src=["']([^"']+)["']/i)?.[1]||"";
+const firstManualScript=manualHtml.match(/<head>[\s\S]*?<script\s+src=["']([^"']+)["']/i)?.[1]||"";
+if(firstIndexScript!=="./frame-guard.js?v=5.10.34"||firstManualScript!=="../frame-guard.js?v=5.10.34")bad("frame-guard není první klasický skript hned po CSP v aplikaci i manuálu");else ok("frame-guard je první skript aplikace i manuálu");
+if(!frameGuard.includes("window.top === window.self")||!frameGuard.includes("window.top.location.origin === window.location.origin")||!frameGuard.includes("GHRAB_FRAMED_BY_FOREIGN_ORIGIN"))bad("frame-guard nemá fail-closed same-origin logiku");else ok("frame-guard povoluje top-level/same-origin a blokuje cizí rám");
+function runFrameGuardCase(mode){
+  const state={blocked:false,display:null,priority:null,stopped:false,error:""};
+  const document={documentElement:{setAttribute(name,value){if(name==="data-ghrab-framed"&&value==="blocked")state.blocked=true},style:{setProperty(name,value,priority){if(name==="display"){state.display=value;state.priority=priority}}}}};
+  const self={};
+  const window={self,location:{origin:"https://app.test"},stop(){state.stopped=true}};
+  if(mode==="top"){window.self=window;window.top=window;}
+  else if(mode==="same"){window.top={location:{origin:"https://app.test"}};}
+  else if(mode==="foreign"){window.top={location:{origin:"https://evil.test"}};}
+  try{new Function("window","document",frameGuard)(window,document);}catch(error){state.error=String(error?.message||error)}
+  return state;
+}
+const frameTop=runFrameGuardCase("top"),frameSame=runFrameGuardCase("same"),frameForeign=runFrameGuardCase("foreign");
+if(frameTop.blocked||frameTop.stopped||frameTop.error||frameSame.blocked||frameSame.stopped||frameSame.error)bad("frame-guard blokuje top-level nebo same-origin spuštění");else ok("frame-guard behaviorálně povoluje top-level i same-origin iframe");
+if(!frameForeign.blocked||frameForeign.display!=="none"||frameForeign.priority!=="important"||!frameForeign.stopped||frameForeign.error!=="GHRAB_FRAMED_BY_FOREIGN_ORIGIN")bad("frame-guard behaviorálně nezablokoval cizí origin fail-closed");else ok("frame-guard behaviorálně blokuje cizí origin fail-closed");
+if(!sourceSw.includes("./frame-guard.js?v=5.10.34"))bad("service worker nepředukládá frame-guard");else ok("service worker předukládá frame-guard");
 if(/\b(?:prompt|confirm)\s*\(/.test(raw))bad("obsahuje nativní prompt/confirm");else ok("bez nativních blokujících dialogů");
 if(runtime.errors.length)bad("runtime chyby: "+runtime.errors.join(" | "));else ok("start bez runtime chyb");
 if(runtime.dup.length)bad("duplicitní ID: "+runtime.dup.join(", "));else ok("žádná duplicitní ID");
@@ -72,7 +92,7 @@ if(!existsSync(reporterJsPath)||!existsSync(reporterCssPath)||!existsSync(report
   if(!reporterJs.includes("Smazat hlášení a zavřít")||!reporterJs.includes("Ponechat rozepsané a zavřít")||!reporterJs.includes("resetDraft()")||!reporterJs.includes("state.screenshots.forEach(revokeScreenshot)"))bad("zavření reportu neumí bezpečně smazat nebo ponechat koncept");else ok("zavření reportu nabízí smazání nebo ponechání konceptu");
   if(!reporterJs.includes('"Přejít do aplikace"')||!reporterJs.includes('"Pořídit snímek"')||!reporterJs.includes('"Zpět k hlášení"')||!reporterJs.includes('"Ukončit snímání"'))bad("chybí sjednocený workflow snímání");else ok("sjednocený workflow snímání je přítomen");
   if(!reporterCss.includes('[data-theme="light"]')||!reporterCss.includes('color-scheme: dark')||!reporterCss.includes("safe-area-inset-bottom"))bad("společné CSS nepokrývá oba motivy a bezpečné okraje");else ok("společné CSS pokrývá oba motivy a bezpečné okraje");
-  if(!reporterAdapter.includes("document.body.classList.contains('dark')")||!reporterAdapter.includes("appVersion: '5.10.32'"))bad("adaptér KS nesleduje body.dark nebo nemá správnou verzi");else ok("adaptér KS respektuje skutečný motiv a verzi");
+  if(!reporterAdapter.includes("document.body.classList.contains('dark')")||!reporterAdapter.includes("appVersion: '5.10.34'"))bad("adaptér KS nesleduje body.dark nebo nemá správnou verzi");else ok("adaptér KS respektuje skutečný motiv a verzi");
   try{execSync(`node --check "${reporterJsPath}"`,{stdio:"ignore"});ok("společný reportér je syntakticky platný")}catch{bad("společný reportér má syntaktickou chybu")}
 }
 if(existsSync(join(ROOT,"src","access","error-reporter-ks.js"))||existsSync(join(ROOT,"src","access","error-reporter-ks.css"))||existsSync(join(ROOT,"src","js","26-error-reporter-compat.js")))bad("v projektu zůstala stará paralelní implementace KS");else ok("stará paralelní implementace KS byla odstraněna");
@@ -112,6 +132,24 @@ if(manualHtml){
   if(!safetySection||safetyNavCount<2||!safetySection.includes('class="safety-list"')||safetyItems<3)bad("bezpečnostní kapitola nemá požadované ID, navigaci nebo strukturu");else ok("bezpečnostní kapitola má stabilní ID, navigaci a strukturu");
   if(!safetySection.includes("Novákovic")||!safetySection.includes("Novákových"))bad("manuál nepopisuje známé omezení odvozených příjmení");else ok("manuál dokumentuje omezení odvozených příjmení");
 }
+// GARP 2.8: workflow syncu AI Core musí oddělovat spuštění nedůvěryhodného kódu od write oprávnění.
+const syncWorkflow=readFileSync(join(ROOT,".github","workflows","sync-ghrab-ai-core.yml"),"utf-8");
+const jobsAt=syncWorkflow.indexOf("\njobs:");
+const verifyAt=syncWorkflow.indexOf("\n  verify-core:",jobsAt);
+const publishAt=syncWorkflow.indexOf("\n  publish:",verifyAt);
+const workflowTop=jobsAt>=0?syncWorkflow.slice(0,jobsAt):syncWorkflow;
+const verifyBlock=verifyAt>=0&&publishAt>verifyAt?syncWorkflow.slice(verifyAt,publishAt):"";
+const publishBlock=publishAt>=0?syncWorkflow.slice(publishAt):"";
+if(!/^permissions:\s*\n\s{2}contents:\s*read\s*$/m.test(workflowTop)||/contents:\s*write|pull-requests:\s*write/.test(workflowTop))bad("sync AI Core nemá top-level pouze contents: read");else ok("sync AI Core má top-level pouze contents: read");
+if(!verifyBlock||!/^\s{4}permissions:\s*\n\s{6}contents:\s*read\s*$/m.test(verifyBlock)||!/persist-credentials:\s*false/.test(verifyBlock))bad("verify-core není read-only nebo checkout ponechává credentials");else ok("verify-core je read-only a checkout neponechává credentials");
+const npmCiLines=syncWorkflow.split(/\r?\n/).filter(line=>/\bnpm ci\b/.test(line));
+if(!npmCiLines.length||npmCiLines.some(line=>!["--ignore-scripts","--no-audit","--no-fund","--registry=https://registry.npmjs.org"].every(flag=>line.includes(flag))))bad("některé npm ci v sync workflow není fail-closed vůči lifecycle skriptům");else ok("všechna npm ci v sync workflow mají bezpečné instalační přepínače");
+const writeContents=(syncWorkflow.match(/contents:\s*write/g)||[]).length,writePr=(syncWorkflow.match(/pull-requests:\s*write/g)||[]).length;
+if(!publishBlock||!/^\s{4}needs:\s*verify-core\s*$/m.test(publishBlock)||writeContents!==1||writePr!==1||!/contents:\s*write/.test(publishBlock)||!/pull-requests:\s*write/.test(publishBlock))bad("write oprávnění nejsou izolována pouze do jobu publish");else ok("write oprávnění jsou izolována pouze do jobu publish");
+if(/\bnpm ci\b|\bnpm test\b|node\s+scripts\/sync-ghrab-ai-core\.mjs/.test(publishBlock))bad("publish job spouští instalační/testovací/sync kód");else ok("publish job nespouští npm ani synchronizační kód z artefaktu");
+if(!/actions\/upload-artifact@[0-9a-f]{40}/i.test(verifyBlock)||!/actions\/download-artifact@[0-9a-f]{40}/i.test(publishBlock)||!/git apply --check/.test(publishBlock)||!/gh pr create --draft/.test(publishBlock)||!/git switch -c \"\$branch\"/.test(publishBlock)||/git push[^\n]*(?:\s|:)main(?:\s|$)/.test(publishBlock))bad("ověřený patch není bezpečně předán do nové větve a draft PR");else ok("ověřený patch jde přes připnutý artifact do nové větve a draft PR");
+const payloadLines=syncWorkflow.split(/\r?\n/).filter(line=>line.includes("github.event.client_payload"));
+if(!payloadLines.length||payloadLines.some(line=>!/^\s+[A-Z][A-Z0-9_]*:\s*\$\{\{\s*github\.event\.client_payload\.[A-Za-z0-9_]+\s*\}\}\s*$/.test(line)))bad("client_payload se v sync workflow používá mimo env");else ok("client_payload vstupuje do shellu pouze přes env");
 const gitignore=readFileSync(join(ROOT,".gitignore"),"utf-8");if(!/^dist\/$/m.test(gitignore))bad("generované dist není v .gitignore");else ok("generované dist je v .gitignore");
 if(existsSync(join(ROOT,".git"))){let tracked="";try{tracked=execSync("git ls-files dist",{cwd:ROOT,stdio:["ignore","pipe","ignore"]}).toString().trim()}catch{}if(tracked)bad("dist je stále verzované v Git repozitáři; před vydáním ho odstraň");else ok("dist není verzované v Git repozitáři")}
 

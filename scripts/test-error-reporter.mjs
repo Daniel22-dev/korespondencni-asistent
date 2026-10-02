@@ -51,6 +51,7 @@ const CHROMIUM = findChromium();
 const config = JSON.parse(readFileSync(CONFIG_PATH, 'utf8'));
 const packageJson = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'));
 const TEST_SENSITIVE_EMAIL = ['student.fixture', 'example.test'].join(String.fromCharCode(64));
+const TEST_GOOGLE_KEY = ['AI', 'za', 'x'.repeat(35)].join('');
 const results = [];
 const failures = [];
 
@@ -102,6 +103,36 @@ function pathExists(path) {
 function count(source, pattern) {
   return [...source.matchAll(pattern)].length;
 }
+async function functionalSanitizerAudit() {
+  const { sanitizeTechnicalText, fitMailBodyToComposeUrl } = await import(new URL('../src/access/error-reporter.js', import.meta.url));
+  const sanitized = sanitizeTechnicalText(`provider=${TEST_GOOGLE_KEY} url=https://example.test/provider?key=XYZ&mode=test`, 900);
+  check(
+    'Funkční sanitizace odstraňuje AIza klíč i hodnotu ?key=',
+    !sanitized.includes(TEST_GOOGLE_KEY) && !sanitized.includes('XYZ') && sanitized.includes('[klíč odstraněn]') && sanitized.includes('?key=[odstraněno]'),
+    sanitized,
+  );
+
+  globalThis.__GHRAB_REPORTER_SENSITIVE_FIXTURE__ = Object.freeze({
+    emailText: 'ANON_ORIGINAL_TEXT_TOKEN',
+    anonymizationMap: 'ANON_PERSON_TOKEN',
+  });
+  const fitted = fitMailBodyToComposeUrl({
+    to: 'admin@example.test',
+    subject: 'Test',
+    description: 'Anonymizovaný popis chyby',
+    stepsText: '1. Otevřít aplikaci',
+    diagnostics: ['Bezpečná diagnostika'],
+    environmentLines: ['Aplikace: test'],
+    closingLines: ['Děkuji.'],
+  });
+  const hiddenFixtures = Object.values(globalThis.__GHRAB_REPORTER_SENSITIVE_FIXTURE__);
+  check(
+    'Compose helper automaticky nepřebírá text e-mailu ani anonymizační mapu z globálního stavu',
+    !hiddenFixtures.some((value) => fitted.body.includes(value) || fitted.gmailUrl.includes(encodeURIComponent(value))),
+  );
+  delete globalThis.__GHRAB_REPORTER_SENSITIVE_FIXTURE__;
+}
+
 function staticAudit() {
   check('Patch verze v package.json', packageJson.version === config.version, packageJson.version);
   for (const path of [config.reporterPath, config.stylePath, config.adapterPath]) {
@@ -689,6 +720,12 @@ async function runBrowserTests() {
         message: 'OLD_DRAFT_MARKER ' + ${JSON.stringify(TEST_SENSITIVE_EMAIL)} + ' api_key=ANON_KEY_TOKEN prompt: ANON_PROMPT_TOKEN',
         source: location.origin + '/private/' + encodeURIComponent(${JSON.stringify(TEST_SENSITIVE_EMAIL)}) + '?token=SECRET_QUERY',
       });
+      const googleKeyFixture = ['AI', 'za', 'x'.repeat(35)].join('');
+      window.GHRABErrorReporter.recordTechnicalError({
+        type: 'custom',
+        message: 'GOOGLE_KEY_MARKER ' + googleKeyFixture + ' url=' + location.origin + '/provider?key=XYZ',
+        source: location.origin + '/provider?key=XYZ',
+      });
       await wait(80);
 
       const primary = root.querySelector('button.ghrab-report-button.primary[data-support-email]');
@@ -727,6 +764,8 @@ async function runBrowserTests() {
     })()`);
     check('Gmail zůstává skrytý, dokud uživatel nestáhne ZIP', staged.mailHidden && staged.downloadName.endsWith('.zip'));
     check('Předvyplněný Gmail má správného příjemce a upozornění na přílohu', staged.gmailHref.includes('mail.google.com') && staged.recipient === 'balaz@ghrabuvka.cz' && staged.subject.includes(ui.idBeforeKeep) && staged.body.includes('PŘÍLOHA NENÍ PŘIPOJENA AUTOMATICKY'));
+    check('Gmail diagnostika odstraňuje Google klíč i parametr ?key=', !staged.body.includes(TEST_GOOGLE_KEY) && !staged.body.includes('XYZ') && !staged.gmailHref.includes(encodeURIComponent(TEST_GOOGLE_KEY)) && !staged.gmailHref.includes('XYZ'));
+    check('Gmail odkaz nepřebírá obsah zpracovávaného e-mailu ani anonymizační mapu', ![TEST_SENSITIVE_EMAIL, 'ANON_ORIGINAL_TEXT_TOKEN', 'ANON_PERSON_TOKEN', 'ANON_DOCUMENT_TOKEN', 'ANON_MODEL_OUTPUT_TOKEN'].some((value) => staged.body.includes(value) || staged.gmailHref.includes(encodeURIComponent(value))));
 
     const firstDownloadSnapshot = zipDownloadSnapshot(downloadDir);
     const downloadBox = await client.evaluate(`(() => {
@@ -774,7 +813,7 @@ async function runBrowserTests() {
       expectedScreenshots: 5,
       requiredTypes: ['javascript', 'promise', 'http', 'network'],
       forbidden: [
-        TEST_SENSITIVE_EMAIL, 'ANON_KEY_TOKEN', 'ANON_PROMPT_TOKEN',
+        TEST_SENSITIVE_EMAIL, 'ANON_KEY_TOKEN', 'ANON_PROMPT_TOKEN', TEST_GOOGLE_KEY, 'XYZ',
         'ANON_ORIGINAL_TEXT_TOKEN', 'ANON_MODEL_OUTPUT_TOKEN',
         'ANON_DOCUMENT_TOKEN', 'ANON_PERSON_TOKEN', 'SECRET_HASH_FIXTURE', 'SECRET_QUERY',
       ],
@@ -949,6 +988,7 @@ async function runBrowserTests() {
 let browser = browserEnvironmentStatus();
 try {
   staticAudit();
+  await functionalSanitizerAudit();
   if (browser.status === 'ready') {
     await runBrowserTests();
     browser = { status: 'passed', reason: '' };

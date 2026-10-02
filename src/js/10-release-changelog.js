@@ -8,11 +8,13 @@ function isTrustedLocalTestOrigin(){
 }
 const IS_TEST_MODE=TEST_HOOKS_BUILD_ENABLED&&isTrustedLocalTestOrigin()&&new URLSearchParams(window.location.search).get("test")==="1";
 const RELEASE = {
-  version: "5.10.32",
-  date: "2026-09-27",
+  version: "5.10.34",
+  date: "2026-10-02",
   status: "řízený pilot",
   build: "__BUILD__", // build skript (scripts/build.mjs) nahradí "__BUILD__" za git rev-parse --short HEAD; nenahrazeno = v patičce se nezobrazí
   changes: [
+    "5.10.34: bezpečnostní hardening synchronizačního workflow GHRAB AI Core — ověření a spuštění kandidátního Core probíhá pouze v read-only jobu bez checkout credentials a bez npm lifecycle skriptů; write job už pouze aplikuje ověřený patch, vytvoří novou větev a draft PR. Aplikace, UI, prompty, AI operace, anonymizace a Platforma 1.1.2 se nemění.",
+    "5.10.33: bezpečnostní hardening podle auditu GARP 2.8 — přidán fail-closed frame guard proti vložení aplikace a manuálu do cizího iframe i na GitHub Pages; guard povoluje same-origin spuštění z AI Studia. Reportér technických chyb nově odstraňuje holé Google API klíče AIza… i parametry ?key=/&key= před vložením diagnostiky do Gmail/mailto odkazu. Přidány regresní kontroly; UI, prompty, AI operace a anonymizační workflow se nemění.",
     "5.10.32: nová sekce O aplikaci — jednotná karta identity a účelu Korespondenčního asistenta, autor a vývojový garant, školní projekt, technický stav a provozní zásady. Dosavadní Přehled změn je přesunut do rozbalovací Historie vydání uvnitř této sekce; samostatná položka changelogu v nabídce byla odstraněna. Přidán přímý vstup O aplikaci do horní lišty i do Dalších možností. AI logika, prompty, anonymizace a modelové chování se nemění.",
     "5.10.31: konzervativní úklid zdrojů — interní test runner je oddělen do samostatného modulu bez změny produkčního chování, odstraněny jsou osiřelé CSS styly a anonymizační mezipaměti se při smazání dat i změně slovníku výslovně čistí z paměti. Build navíc fail-closed ověřuje jedinečné hranice test runneru. AI operace, prompty, provider/model a uživatelský workflow se nemění.",
     "5.10.30: zrychlení anonymizace — kontrola jmen před odesláním už opakovaně nepřepočítává známá jména, slovník ani rozbor textu; anonymizace e-mailu je zhruba 14× rychlejší a psaní v tabulce klíče se nezasekává. Výsledky anonymizace, návrhy i bezpečnostní kontrola zůstávají beze změny. Odstraněn nepoužívaný kód a opraven úklid po interních testech.",

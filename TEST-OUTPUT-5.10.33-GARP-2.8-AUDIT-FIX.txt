@@ -1,0 +1,100 @@
+Korespondenční asistent 5.10.33 — výstup ověření GARP 2.8 audit fix
+Datum: 2026-10-02
+
+POUŽITÝ RUNTIME
+- Systémový Node dostupný v pracovním kontejneru: v22.16.0.
+- Repozitář deklaruje Node >=24.
+- Pokus získat Node 24 zvenčí nebyl v izolovaném prostředí možný (DNS/externí download není dostupný).
+- Kvůli tomu je níže explicitně odděleno, co bylo skutečně spuštěno; žádný test nebyl vypnut ani obcházen.
+
+1) npm test
+Výsledek: PASS
+Relevantní výstup:
+  ✓ frame-guard je první skript aplikace i manuálu
+  ✓ frame-guard povoluje top-level/same-origin a blokuje cizí rám
+  ✓ frame-guard behaviorálně povoluje top-level i same-origin iframe
+  ✓ frame-guard behaviorálně blokuje cizí origin fail-closed
+  ✓ service worker předukládá frame-guard
+  ✓ 171/171 interních testů prošlo
+  ✓ 17/17 Core conformance testů prošlo
+  CELKEM: vše zelené — release gate OK.
+
+2) npm run test:reporter
+Výsledek: 54 PASS / 0 FAIL; browserová část NOT_READY kvůli politice prostředí.
+Relevantní výstup:
+  PASS: Funkční sanitizace odstraňuje Google API klíč i hodnotu ?key=
+        provider=[klíč odstraněn] url=https://example.test/provider?key=[odstraněno]&mode=test
+  PASS: Compose helper automaticky nepřebírá text e-mailu ani anonymizační mapu z globálního stavu
+  NOT_READY: Spravovaná politika URLBlocklist blokuje všechny testovací stránky
+             (/etc/chromium/policies/managed/000_policy_merge.json).
+  Souhrn reportéru Korespondenční asistent 5.10.33: 54 PASS / 0 FAIL
+Poznámka: browserový test je v kódu rozšířen i o kontrolu Gmail odkazu proti uniknutí testovacího klíče,
+parametru ?key=XYZ, obsahu e-mailu a anonymizační mapy, ale v tomto kontejneru jej Chromium nespustí.
+
+3) CI=false npm run qa:garp25:static
+Výsledek: PASS
+Relevantní dílčí kontroly:
+  - GARP 2.5.1 tooling: PASS
+  - school boundaries: PASS
+  - service worker security: PASS
+  - vendored consistency: PASS
+  - pinned inputs / připnuté GitHub Actions SHA: PASS
+  - AI assurance baseline 5.10.33: PASS
+  - N5 secret regression: PASS
+  - manifest contract: PASS
+  - promotion workflow architecture: PASS
+  - AI Studio dispatch contract: PASS (10/10)
+
+4) GARP 2.7 static
+Lokální režim:
+  CI=false npm run qa:garp27:static
+  Výsledek: PASS
+Simulace chráněného CI po rebasingu trust anchoru:
+  CI=true GARP27_EXTERNAL_TRUST_SHA256=215b5b8ce50c6fcbc48f82d6c7b01a718e5aa3c44aadffeb60e4e51ca727dc2d npm run qa:garp27:static
+  Výsledek: PASS; G27-AR04.external-ci-trust prošel, souhrn hlavního admission bloku 48/48 PASS.
+Poznámka: první CI pokus bez externího trust digestu korektně failnul; nejde o aplikační chybu, ale o očekávaný fail-closed kontrakt.
+
+5) Release integrity — dist-school-server
+npm run ri:prepare
+  PASS
+  files: 40
+  artifactDigest: 666da963f0f9af7ebb763d8a716213eab905b9c2a0e5cc7b229e818f2460923a
+  signature: PENDING_EXTERNAL_SIGNER
+npm run ri:verify-files
+  VERIFIED, files: 40, stejný artifactDigest
+npm run ri:scan
+  PASS
+Kontrola inventáře: release-integrity.json obsahuje frame-guard.js.
+
+6) P5 / browserová omezení prostředí
+Pokus: CI=false npm run qa:p5
+Výsledek: běh se zastavil v qa:suite-session, protože spravovaná politika Chromium blokuje 127.0.0.1:
+  "127.0.0.1 is blocked"
+  "Your organization doesn’t allow you to view this site"
+Následně spuštěné nebrowserové/simulační P5 části:
+  - qa:suite-session:simulation: PASS
+  - qa:garp:evidence-path: PASS
+  - qa:garp:test-harness: PASS
+  - qa:garp:bootstrap: PASS
+  - qa:quality: 31/31 PASS, 0 warnings
+  - qa:xss: PASS
+  - qa:garp:secret-scan: PASS
+  - qa:garp:canary-scan: PASS
+Finální P5 report/acceptance zůstává v tomto kontejneru neúplný pouze kvůli chybějícím browserovým reportům:
+  qa-p5-release: chybí report.browser, report.runtime, report.ui
+  qa-p5-acceptance: chybí qa-p5-runtime-report.json, qa-p5-ui-interactions-report.json,
+                    qa-p3-browser-report.json a z toho odvozený PASS status release reportu.
+Tyto chybějící reporty nejsou nahrazeny ani uměle vytvořeny.
+
+7) Neměnnost chráněných částí
+- vendor/ghrab-platform-1.1.2/ghrab-platform.js SHA256 před/po:
+  199d03d9dc9263a9e74ed1f1102df0324f3b63e78704f1c70aeacec5feec530c
+- Čtyři auditní snapshoty central-access/app-guard.js mají před/po shodný SHA256:
+  690b537e66427e00e9a6cc35f7f03aa6ff80e457f46ac94df565090d14ad389d
+- Řádky `uses:` v GitHub Actions jsou před/po shodné; připnuté SHA akcí nebyly změněny.
+
+ZÁVĚR
+- Úkol 1: implementován a staticky/behaviorálně ověřen v dostupném runtime.
+- Úkol 2: implementován a funkčně ověřen; browserová integrační větev testu je připravena, ale lokálně blokovaná politikou Chromium.
+- Žádný existující test nebyl vypnut, přeskočen v kódu ani změkčen.
+- Před nezávislým přejímacím ověřením je vhodné spustit kompletní CI/browser gate v běžném prostředí s Node >=24 a bez URLBlocklistu localhostu.

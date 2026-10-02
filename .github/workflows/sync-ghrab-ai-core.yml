@@ -5,21 +5,23 @@ on:
     types: [ghrab-ai-core-released]
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 env:
   TRUSTED_STUDIO_ORIGIN: https://daniel22-dev.github.io
   TRUSTED_MANIFEST_PREFIX: /AI-Studio-GHRAB/ai-core/releases/
 
 jobs:
-  sync-core:
+  verify-core:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
@@ -50,10 +52,13 @@ jobs:
           curl --proto '=https' --tlsv1.2 --fail --silent --show-error --location --max-time 30 \
             "$MANIFEST_URL" -o /tmp/core-manifest.json
 
-      - name: Install dependencies from lockfile
-        run: npm ci --registry=https://registry.npmjs.org
+      - name: Install dependencies from lockfile without lifecycle scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
 
-      - name: Synchronize signed artifacts
+      - name: Install pinned Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Synchronize candidate artifacts in read-only job
         env:
           MANIFEST_URL: ${{ github.event.client_payload.manifestUrl }}
           CORE_VERSION: ${{ github.event.client_payload.coreVersion }}
@@ -63,6 +68,49 @@ jobs:
 
       - name: Conformance and application release gate
         run: npm test
+
+      - name: Export verified change set
+        run: |
+          git add -A -- vendor ghrab-ai-core.consumer.json scripts/sync-ghrab-ai-core.mjs
+          git diff --cached --binary -- vendor ghrab-ai-core.consumer.json scripts/sync-ghrab-ai-core.mjs > /tmp/ai-core-sync.patch
+          test -s /tmp/ai-core-sync.patch || echo 'No changes.' > /tmp/no-changes.txt
+
+      - name: Upload verified patch
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: verified-ai-core-sync-${{ github.run_id }}
+          path: |
+            /tmp/ai-core-sync.patch
+            /tmp/no-changes.txt
+          if-no-files-found: error
+
+  publish:
+    needs: verify-core
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Download verified patch only
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: verified-ai-core-sync-${{ github.run_id }}
+          path: /tmp/verified-sync
+
+      - name: Apply verified patch without executing downloaded code
+        run: |
+          if [ ! -s /tmp/verified-sync/ai-core-sync.patch ]; then
+            echo 'No changes to publish.'
+            exit 0
+          fi
+          git apply --check /tmp/verified-sync/ai-core-sync.patch
+          git apply /tmp/verified-sync/ai-core-sync.patch
 
       - name: Create review branch and draft pull request
         env:
@@ -79,9 +127,9 @@ jobs:
           git switch -c "$branch"
           git add vendor ghrab-ai-core.consumer.json scripts/sync-ghrab-ai-core.mjs
           git commit -m "chore: sync GHRAB AI Core ${CORE_VERSION}"
-          git push --set-upstream origin "$branch"
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:${branch}"
           gh pr create --draft \
             --title "chore: sync GHRAB AI Core ${CORE_VERSION}" \
-            --body "Automaticky stažené artefakty prošly kontrolou důvěryhodné URL, SHA-256 a celou aplikační testovací sadou. Před sloučením zkontrolujte změny integrace." \
+            --body "Artefakty byly staženy a spuštěny pouze v read-only jobu, který prošel testy. Write job pouze aplikuje ověřený patch a vytváří draft PR; nikdy nespouští kód z artefaktu ani nepushuje do main." \
             --base "${{ github.event.repository.default_branch }}" \
             --head "$branch"

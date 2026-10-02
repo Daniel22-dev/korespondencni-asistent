@@ -1,6 +1,6 @@
 # Korespondenční asistent
 
-**Aktuální verze:** 5.10.32
+**Aktuální verze:** 5.10.34
 **Platforma:** GHRAB Platform 1.1.2 · GARP 2.7 / P5 / Safe Promotion
 
 **Aktivní bezpečnostní autorita:** GARP 2.7 (konsolidovaný master 2026-09-23-r2 / G-02 FIX). GARP 2.5.1 zůstává povinným regresním baseline, nikoli konkurenční autoritou. Lokální/CI foundation kontroly zůstávají aktivní; školní-server a runtime-dependent kontroly jsou výslovně `DEFERRED_BY_OWNER_DECISION` / `NOT_TESTED`, dokud nebude serverová fáze schválena.
@@ -8,12 +8,20 @@
 
 Samostatná PWA aplikace ekosystému AI Studio Gymnázia Ostrava-Hrabůvka.
 
-- **Verze aplikace:** 5.10.32
+- **Verze aplikace:** 5.10.34
 - **GHRAB AI Core:** 1.0.0
 - **Doporučený repozitář:** `korespondencni-asistent`
 - **GitHub Pages:** `https://daniel22-dev.github.io/korespondencni-asistent/`
 - **Vlastník:** Daniel Baláž
 - **Interaktivní manuál:** 1.3.16 (manuál 1.3.16)
+
+## Co přináší verze 5.10.34
+
+Verze 5.10.34 je úzký bezpečnostní patch workflow podle auditu GARP 2.8. Synchronizace GHRAB AI Core je rozdělena na read-only job `verify-core`, který validuje dispatch, instaluje závislosti bez lifecycle skriptů, synchronizuje a testuje kandidátní Core, a samostatný write job `publish`, který pouze stáhne ověřený patch, aplikuje jej a vytvoří novou větev s draft PR. `publish` nespouští `npm ci`, testy ani synchronizační kód a nikdy nepushuje přímo do `main`. Funkce aplikace, UI, prompty, AI operace, anonymizace a GHRAB Platform 1.1.2 se nemění.
+
+## Co přináší verze 5.10.33
+
+Verze 5.10.33 je malý bezpečnostní patch podle auditu GARP 2.8. Aplikace i interaktivní manuál dostávají časný `frame-guard.js`, který na GitHub Pages blokuje vložení do cizího iframe, ale zachovává same-origin spuštění z AI Studia. Reportér technických chyb navíc před vložením diagnostiky do Gmail/mailto odkazu odstraňuje holé Google API klíče ve tvaru `AIza…` a hodnoty parametrů `?key=`, `&key=`, `api_key` a `apikey`. Regresní test současně hlídá, že Gmail koncept automaticky nepřebírá text zpracovávaného e-mailu ani anonymizační mapu. UI/UX, prompty, AI operace, anonymizace a GHRAB Platform 1.1.2 se nemění.
 
 ## Co přináší verze 5.10.32
 
