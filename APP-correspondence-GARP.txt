@@ -6,7 +6,7 @@ GARP 2.7 GHRAB – PRŮVODNÍ LIST APLIKACE
 appId:                    correspondence
 Název:                    Korespondenční asistent (KS)
 Repozitář:                korespondencni-asistent (repo snapshot; veřejná Pages cesta je v README)
-Aktuální verze:           5.10.32
+Aktuální verze:           5.10.34
 Verze standardu:          GARP 2.7 GHRAB (aktivní autorita); GARP 2.5.1 = povinný regresní baseline
 Historický SHA-256 auditního balíčku: 234414662bbe6b3f8b97ccd7efacff0ec581703bd7c6f06e8c3c5f3a1f179b24 (není důkazem aktuálního release; aktuální identitu dokládá release-integrity v2 + CI run)
 Poslední uzavřené kolo:   2026-09-24, GARP 2.7 r2 / G-02 re-baseline; školní LIVE = NOT_TESTED / DEFERRED_BY_OWNER_DECISION
@@ -67,6 +67,8 @@ Served headers/HSTS | lokální build není skutečná HTTP serverová konfigura
 2026-09-26 | Claude (opravář, režim migrace) | 5.10.30 | výkon anonymizace (mezipaměti čistých funkcí v 40) + odstranění mrtvého kódu v 30/35/40/50/60 + export refreshDeskStatus; ekvivalence 70/70 bajtově shodných případů; AI-ASSURANCE-BASELINE a GARP 2.7 trust anchor přepnuty na 5.10.30 | OTEVŘENO: delta AIR/RT-09 nezávislá kontrola 30/40/50 (texty promptů beze změny) | audit-evidence/claude-5.10.30-vykon/CLAUDE-KS-5.10.30-VYKON-A-UKLID.txt
 2026-09-27 | ChatGPT O aplikaci standard | 5.10.32 | jednotná identita/účel/garant/školní projekt/technický stav + provozní zásady + changelog přesunut pod O aplikaci; bez změny AI/prompt/anonymizační logiky | UI/release delta, GARP 2.7 autorita beze změny | CHANGELOG.md
 2026-09-27 | ChatGPT surgical cleanup | 5.10.31 | rozdělení interního test runneru bez změny pořadí/logiky + fail-closed build guard + odstranění osiřelých CSS + explicitní vyčištění anonymizačních cache při změně slovníku a smazání lokálních dat | lokální funkční/statické gate PASS; browserová P5 session vyžaduje CI kvůli lokální URLBlocklist politice Chromia | CHANGELOG.md
+2026-10-02 | ChatGPT GARP 2.8 audit hardening | 5.10.33 | frame guard S-BRW-12 pro aplikaci/manuál + precache; redakce AIza a ?key=/&key= v error reporteru; regresní Gmail privacy kontrola | bezpečnostní patch, GARP 2.7 autorita beze změny | RELEASE-NOTES-5.10.33-GARP-2.8-AUDIT-HARDENING.md
+2026-10-02 | ChatGPT GARP 2.8 workflow hardening | 5.10.34 | read-only verify-core + artifact boundary + write-only publish draft PR; npm lifecycle scripts disabled | GitHub Actions supply-chain hardening, aplikační runtime beze změny | RELEASE-NOTES-5.10.34-GARP-2.8-WORKFLOW-HARDENING.md
 
 ======================================================================
 7. CO SE MUSÍ ZNOVU OTEVŘÍT PŘI PŘÍŠTÍ ZMĚNĚ

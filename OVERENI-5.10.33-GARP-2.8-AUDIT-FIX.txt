@@ -1,0 +1,101 @@
+KORESPONDENČNÍ ASISTENT — OVĚŘENÍ A SEZNAM ZMĚN
+Verze: 5.10.33
+Datum: 2026-10-02
+Základ: aktuální uživatelský ZIP, původní verze 5.10.32
+
+ROZSAH
+- Implementován ÚKOL 1 auditu GARP 2.8: ochrana proti vložení do cizího rámu pro aplikaci i manuál, včetně SW precache a release-integrity.
+- Implementován ÚKOL 2 auditu GARP 2.8: redakce holého Google API klíče a parametrů key/api_key/apikey v technické diagnostice reportéru.
+- Doplněny regresní testy redakce a kontroly, že Gmail koncept automaticky nepřebírá zpracovávaný e-mail ani anonymizační mapu.
+- PATCH verze zvýšena z 5.10.32 na 5.10.33 podle stávajícího release modelu repozitáře.
+- UI/UX, ghrab-platform.js, centrální access gate, závislosti a připnuté SHA GitHub Actions nebyly měněny.
+
+PŘEJÍMACÍ KRITÉRIA
+1. Frame guard je první klasický skript po CSP v aplikaci i manuálu: SPLNĚNO.
+2. Frame guard je v service-worker precache a v release-integrity inventáři: SPLNĚNO.
+3. Same-origin rám (AI Studio) je logikou guardu povolen a behaviorální simulace prošla: SPLNĚNO.
+4. Reportér odstraňuje Google API klíč i ?key=/&key= hodnoty: SPLNĚNO a funkčně otestováno.
+5. Automatické převzetí textu e-mailu/anonymizační mapy do Gmail odkazu nebylo ve zdroji nalezeno a regresní kontroly byly doplněny: SPLNĚNO v dostupném non-browser ověření.
+6. Existující testy nebyly vypnuty ani změkčeny: SPLNĚNO; úplný browser P5 běh nelze v tomto kontejneru dokončit kvůli spravovanému URLBlocklistu localhostu.
+
+TESTY
+- `npm test`: PASS, 171/171 interních + 17/17 Core conformance; nové frame-guard testy PASS.
+- `npm run test:reporter`: 54 PASS / 0 FAIL; browserová větev NOT_READY pouze kvůli Chromium URLBlocklistu.
+- `CI=false npm run qa:garp25:static`: PASS.
+- `CI=false npm run qa:garp27:static`: PASS.
+- simulovaný chráněný GARP 2.7 CI se správným externím trust digestem: PASS, hlavní admission 48/48.
+- nebrowserové/simulační P5 části: suite-session simulation, evidence path, harness, bootstrap, quality 31/31, XSS, secret scan a canary scan PASS.
+- `ri:prepare`, `ri:verify-files`, `ri:scan`: PASS/VERIFIED; 40 souborů, artifactDigest 666da963f0f9af7ebb763d8a716213eab905b9c2a0e5cc7b229e818f2460923a.
+- Úplný P5 browser gate: NEOVĚŘEN V TOMTO PROSTŘEDÍ; Chromium blokuje 127.0.0.1 organizační politikou a chybějící browser reporty nejsou falšovány ani obcházeny.
+- Runtime pracovního kontejneru je Node 22.16.0, zatímco repo vyžaduje Node >=24; externí stažení Node 24 nebylo v izolovaném prostředí dostupné.
+- Detailní výstup je v TEST-OUTPUT-5.10.33-GARP-2.8-AUDIT-FIX.txt.
+
+NEMĚNNOST CHRÁNĚNÝCH ČÁSTÍ
+- vendor/ghrab-platform-1.1.2/ghrab-platform.js: SHA256 před i po 199d03d9dc9263a9e74ed1f1102df0324f3b63e78704f1c70aeacec5feec530c.
+- Čtyři uložené central-access/app-guard.js snapshoty: SHA256 před i po 690b537e66427e00e9a6cc35f7f03aa6ff80e457f46ac94df565090d14ad389d.
+- GitHub Actions `uses:` řádky jsou proti původnímu ZIPu beze změny; změněn byl jen GARP27_EXTERNAL_TRUST_SHA256 odpovídající novému trust anchoru.
+
+SEZNAM ZMĚNĚNÝCH SOUBORŮ — jedna věta ke každému
+- MODIFIED `.github/workflows/deploy.yml` — Aktualizuje pouze externí GARP 2.7 trust digest pro nový trust anchor; připnuté `uses:` SHA zůstávají beze změny.
+- MODIFIED `.github/workflows/p5-release-gate.yml` — Aktualizuje pouze externí GARP 2.7 trust digest v chráněném P5/GARP gate; připnuté `uses:` SHA zůstávají beze změny.
+- MODIFIED `APP-correspondence-GARP.txt` — Zapisuje aktuální verzi 5.10.33 a auditní hardening GARP 2.8 do aplikačního GARP přehledu.
+- MODIFIED `CHANGELOG.md` — Přidává vydání 5.10.33 s popisem frame guardu, sanitizace reportéru a zachovaných bezpečnostních hranic.
+- MODIFIED `README.md` — Přepíná dokumentovanou aktuální verzi na 5.10.33 a stručně popisuje úzký bezpečnostní patch.
+- NEW `RELEASE-NOTES-5.10.33-GARP-2.8-AUDIT-HARDENING.md` — Nové release notes dokumentují auditní důvod, implementované kontroly a nezměněné části systému.
+- NEW `TEST-OUTPUT-5.10.33-GARP-2.8-AUDIT-FIX.txt` — Nový souhrnný testovací protokol zachycuje skutečně spuštěné gate, PASS výsledky i omezení browserových testů prostředím.
+- MODIFIED `audit-evidence/garp25-shield-prep/school-boundaries.json` — Obnovuje evidenci school-boundaries pro aplikační verzi 5.10.33 bez změny hranic platformy.
+- MODIFIED `dist-school-server/access/error-reporter-adapter.js` — Regenerovaný serverový artefakt nese aplikační verzi 5.10.33 při zachovaném chování adaptéru.
+- MODIFIED `dist-school-server/access/error-reporter.js` — Regenerovaný serverový reportér obsahuje nové redakce Google API klíče a query parametrů key/api_key/apikey.
+- MODIFIED `dist-school-server/ai-operations.json` — Regenerovaný serverový AI operations manifest synchronizuje pouze release identitu na 5.10.33.
+- MODIFIED `dist-school-server/config/data-manifest.json` — Regenerovaný serverový datový manifest synchronizuje release identitu na 5.10.33.
+- MODIFIED `dist-school-server/config/platform-manifest.json` — Regenerovaný serverový platform manifest synchronizuje release identitu na 5.10.33.
+- MODIFIED `dist-school-server/config/release-acceptance.json` — Regenerovaný serverový acceptance manifest synchronizuje release identitu na 5.10.33.
+- MODIFIED `dist-school-server/config/security-headers.json` — Regenerovaný serverový security-headers manifest synchronizuje release identitu na 5.10.33 bez oslabení deklarovaných hlaviček.
+- NEW `dist-school-server/frame-guard.js` — Nový nasazovaný frame guard fail-closed blokuje cizí origin a povoluje top-level nebo same-origin rám.
+- MODIFIED `dist-school-server/ghrab-platform.consumer.json` — Regenerovaný serverový consumer manifest synchronizuje aplikační release identitu na 5.10.33.
+- MODIFIED `dist-school-server/index.html` — Regenerovaný index načítá frame-guard.js jako první klasický skript bezprostředně za CSP.
+- MODIFIED `dist-school-server/manifest.webmanifest` — Regenerovaný PWA manifest synchronizuje verzi vydání na 5.10.33.
+- MODIFIED `dist-school-server/manual/index.html` — Regenerovaný manuál načítá ../frame-guard.js jako první klasický skript bezprostředně za CSP.
+- MODIFIED `dist-school-server/platform-build-info.json` — Regenerovaná build metadata zaznamenávají serverový build verze 5.10.33.
+- MODIFIED `dist-school-server/release-integrity.json` — Regenerovaný release-integrity inventář obsahuje frame-guard.js a nové hashe artefaktů verze 5.10.33.
+- MODIFIED `dist-school-server/server-ready-build-info.json` — Regenerovaná server-ready metadata zaznamenávají release 5.10.33.
+- MODIFIED `dist-school-server/studio-manifest.json` — Regenerovaný Studio manifest synchronizuje release identitu na 5.10.33.
+- MODIFIED `dist-school-server/sw.js` — Regenerovaný service worker používá cache 5.10.33 a předukládá verzovaný frame-guard.js.
+- MODIFIED `ghrab-platform.consumer.json` — Synchronizuje aplikační release identitu consumer kontraktu na 5.10.33 bez změny platformní závislosti.
+- MODIFIED `package-lock.json` — Synchronizuje kořenovou verzi balíčku na 5.10.33; žádná závislost nebyla přidána ani změněna.
+- MODIFIED `package.json` — Zvyšuje PATCH verzi z 5.10.32 na 5.10.33; seznam závislostí a Node engine zůstávají beze změny.
+- MODIFIED `reporter-test.config.json` — Synchronizuje testovací konfiguraci reportéru s verzí aplikace 5.10.33.
+- MODIFIED `scripts/qa-garp25-school-boundaries.mjs` — Synchronizuje očekávanou aplikační verzi GARP 2.5.1 school-boundaries kontroly na 5.10.33.
+- MODIFIED `scripts/qa-suite-session-simulation.mjs` — Synchronizuje simulační suite-session očekávání s release identitou 5.10.33.
+- MODIFIED `scripts/test-ai-studio-dispatch.mjs` — Synchronizuje očekávanou verzi v AI Studio dispatch kontraktu na 5.10.33.
+- MODIFIED `scripts/test-error-reporter.mjs` — Přidává regresní ověření redakce dynamicky sestaveného Google klíče, ?key=XYZ a nepropagace e-mailového obsahu či anonymizační mapy.
+- MODIFIED `scripts/test.mjs` — Přidává strukturální i behaviorální testy pořadí a fail-closed logiky frame guardu a kontrolu jeho SW precache.
+- MODIFIED `security/AI-ASSURANCE-BASELINE.json` — Převádí assurance baseline na 5.10.33 a aktualizuje hash verzi nesoucího AI operations manifestu.
+- MODIFIED `security/garp27/application-migration-profile.json` — Synchronizuje GARP 2.7 migrační profil s aplikační verzí 5.10.33.
+- MODIFIED `security/garp27/architecture-policy.json` — Synchronizuje GARP 2.7 architecture policy s release identitou 5.10.33 bez změny bezpečnostního modelu.
+- MODIFIED `security/garp27/capability-inventory.json` — Synchronizuje GARP 2.7 capability inventory s release identitou 5.10.33 bez přidání schopností.
+- MODIFIED `security/garp27/garp-policy.json` — Synchronizuje aktivní GARP 2.7 policy s release identitou 5.10.33 bez změny autority nebo kontrol.
+- MODIFIED `security/garp27/trust-anchor.json` — Rebasuje trust anchor na hashe verzovaných GARP 2.7 souborů pro 5.10.33 a dokumentuje úzký auditní delta rozsah.
+- MODIFIED `src/access/error-reporter-adapter.js` — Synchronizuje aplikační verzi reportérového adaptéru na 5.10.33 bez změny jeho rozhraní.
+- MODIFIED `src/access/error-reporter.js` — Rozšiřuje sanitizeTechnicalText o redakci holého Google API klíče a query parametrů key/api_key/apikey před omezením délky.
+- MODIFIED `src/ai-operations.json` — Synchronizuje release identitu AI operations manifestu na 5.10.33 bez změny operací.
+- MODIFIED `src/config/data-manifest.json` — Synchronizuje aplikační verzi datového manifestu na 5.10.33.
+- MODIFIED `src/config/platform-manifest.json` — Synchronizuje aplikační verzi platformního manifestu na 5.10.33.
+- MODIFIED `src/config/release-acceptance.json` — Synchronizuje aplikační verzi release-acceptance kontraktu na 5.10.33.
+- MODIFIED `src/config/security-headers.json` — Synchronizuje aplikační verzi security-headers konfigurace na 5.10.33 bez oslabení CSP/hlaviček.
+- NEW `src/frame-guard.js` — Nový přesně zadaný GARP 2.8 frame guard blokuje cizí rám fail-closed a ponechává same-origin AI Studio rám funkční.
+- MODIFIED `src/ghrab-platform.consumer.json` — Synchronizuje zdrojový consumer kontrakt s release identitou 5.10.33 bez zásahu do platformy.
+- MODIFIED `src/index.template.html` — Vkládá ./frame-guard.js?v=5.10.33 jako první klasický script bezprostředně za CSP meta.
+- MODIFIED `src/js/10-release-changelog.js` — Přidává uživatelskou release položku 5.10.33 pro auditní frame-guard a redakční pojistky reportéru.
+- MODIFIED `src/manifest.webmanifest` — Synchronizuje PWA manifest s release verzí 5.10.33.
+- MODIFIED `src/manual/index.html` — Vkládá ../frame-guard.js?v=5.10.33 jako první klasický script bezprostředně za CSP a synchronizuje verzi manuálu.
+- MODIFIED `src/sw.js` — Zvyšuje cache/release verzi na 5.10.33 a přidává verzovaný frame-guard.js do CORE_ASSETS precache.
+- NEW `test-results/error-reporter.json` — Ukládá strojový výsledek posledního testu reportéru 5.10.33 včetně 54 PASS a informace o blokované browserové části.
+- NEW `OVERENI-5.10.33-GARP-2.8-AUDIT-FIX.txt` — Tento soubor poskytuje přejímací souhrn, omezení prostředí a úplný seznam změněných souborů.
+
+BALENÍ
+- Finální ZIP má být vytvořen bez kořenového `dist/` a bez `node_modules/`.
+- `dist-school-server/` je ponechán, protože je součástí aktuálního repozitáře a nese požadovaný release-integrity inventář pro nasazovací artefakt.
+
+ZÁVĚR
+Patch 5.10.33 je připraven k nahrání a k nezávislému ověření nástroji GARP 2.8; před produkčním označením za plně přijatý má smysl nechat CI zopakovat browserové gate na Node >=24 v prostředí, které neblokuje localhost.

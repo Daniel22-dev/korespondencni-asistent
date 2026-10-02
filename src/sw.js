@@ -1,7 +1,7 @@
 const GHRAB_SW_CONTRACT='ghrab-service-worker-v1';
 /* GHRAB service-worker contract v1 · update activation is user-controlled. */
-const APP_VERSION = "5.10.32";
-const CACHE_NAME = "ghrab-correspondence-v5.10.32";
+const APP_VERSION = "5.10.34";
+const CACHE_NAME = "ghrab-correspondence-v5.10.34";
 const CACHE_PREFIXES = ["ghrab-correspondence-v", "korespondencni-asistent-"];
 const CORE_ASSETS = [
   "./",
@@ -9,6 +9,7 @@ const CORE_ASSETS = [
   "./manifest.webmanifest",
   "./manual/",
   "./manual/index.html",
+  "./frame-guard.js?v=5.10.34",
   "./access/error-reporter.js",
   "./access/error-reporter.css",
   "./access/error-reporter-adapter.js",

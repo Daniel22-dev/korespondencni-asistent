@@ -1,13 +1,13 @@
 {
   "schema": "ghrab-release-integrity-v1",
   "appId": "correspondence",
-  "version": "5.10.32",
-  "buildId": "correspondence-5.10.32-ri-prep",
-  "createdAt": "2026-09-27T19:07:54.133Z",
+  "version": "5.10.33",
+  "buildId": "correspondence-5.10.33-ri-prep",
+  "createdAt": "2026-10-02T05:27:10.935Z",
   "sourceCommit": null,
   "sourcePackageSha256": null,
   "deploymentPackageSha256": null,
-  "artifactDigest": "8bbb371157807c4809eb275cdc4b17ec48e0d818e1ef8f4390dfa3e3f358a768",
+  "artifactDigest": "666da963f0f9af7ebb763d8a716213eab905b9c2a0e5cc7b229e818f2460923a",
   "hashAlgorithm": "SHA-256",
   "signature": {
     "algorithm": "Ed25519",
@@ -22,7 +22,7 @@
     {
       "path": "access/error-reporter-adapter.js",
       "size": 473,
-      "sha256": "dda69aa1f08ea0e49daeb76357fc8bd8a148d3c3fd0c8d9766aaeffe4190cf23"
+      "sha256": "5bc558f44f41196b1f9dd32b753d6c1e60b140c9a7b126f7de36bb1eb0ba1381"
     },
     {
       "path": "access/error-reporter.css",
@@ -31,13 +31,13 @@
     },
     {
       "path": "access/error-reporter.js",
-      "size": 73387,
-      "sha256": "bd017b1ba8c94d53554a1f9bd4a47794063a77c96d196ab7f64356b2d779d7e6"
+      "size": 73531,
+      "sha256": "1e232d48819d655707574b76e776c3627cde9a132591fbee6a718b138439a0dd"
     },
     {
       "path": "ai-operations.json",
       "size": 3190,
-      "sha256": "58a68e7fecb330e4251caf30c3d250b217b1515a7990f6ed7f8e5419f0a61edf"
+      "sha256": "e218182ebdb1bf5df8b32e8db36188bb0f06642556c3fbcaefe2807dd4f5a9c5"
     },
     {
       "path": "assets/brand/school-logo.png",
@@ -52,7 +52,7 @@
     {
       "path": "config/data-manifest.json",
       "size": 9968,
-      "sha256": "7f19381745ab809b21ae8cffe917bc85dcd647905a1551e613f7a4aefdcb8ac2"
+      "sha256": "c49830b70c454921994ffe406c295022de325eb059c7e0c0f67d39978bdc418a"
     },
     {
       "path": "config/deployment.json",
@@ -72,22 +72,27 @@
     {
       "path": "config/platform-manifest.json",
       "size": 3249,
-      "sha256": "33a7c08314e14ae3cbe0d279485f8a7b8417f2d45ea891fe350a4df2b9752543"
+      "sha256": "13bcbbd2fa6f44783df6b9f3e3f312ff277605c3a246d4a8138ca11fb74fd534"
     },
     {
       "path": "config/release-acceptance.json",
       "size": 1251,
-      "sha256": "e52ba332dd9743dda9518d29afdd6df222d26c46aa0efb2f802623ed07b990a5"
+      "sha256": "b4fdec0e8e4ac95f440cb2b171f1fae3d03b017dbf5a1b50ea8e66e6afcf634f"
     },
     {
       "path": "config/security-headers.json",
       "size": 1544,
-      "sha256": "d0c6819fc1ec0dd67c8951dd47ac46333d4dcbc21a54dbbb0062dff1d45b5419"
+      "sha256": "61f46766fac42e4109ee9bef6e0d617a186954da48f5dfed95eb52ed841a1725"
+    },
+    {
+      "path": "frame-guard.js",
+      "size": 856,
+      "sha256": "d7e1c854bc6776aa102b0619bc83f3512bd16627658766c57542dffadb0bcd6e"
     },
     {
       "path": "ghrab-platform.consumer.json",
       "size": 5501,
-      "sha256": "c9e4ad29d0a065032ef9ff794ed86c5e4673ed9908b68795179d2b4dd57fe62e"
+      "sha256": "1b28c66632db6a425f0212c9e837268dfa7624f2af2f7cd600a63225b884e5cb"
     },
     {
       "path": "ghrab/ghrab-app-registry-v2.schema.json",
@@ -166,23 +171,23 @@
     },
     {
       "path": "index.html",
-      "size": 680886,
-      "sha256": "9d1b9629d5451d7d88fce4aa639281d8752132ce6959e67d8e5aac4dc004508b"
+      "size": 681411,
+      "sha256": "da53e75f0cdcc1fa92da6801c9892398a72e000abb9f100177289d3bdb966fbf"
     },
     {
       "path": "manifest.webmanifest",
       "size": 1439,
-      "sha256": "b29679a79d76a81c7e91336af12ed1bbbbf818d766f7e5bb0ffdec9d73ea6683"
+      "sha256": "5c69c62c716d91da515b75af4c187623f1bdde513c43201c52cf6df66cd19a62"
     },
     {
       "path": "manual/index.html",
-      "size": 69170,
-      "sha256": "a82361d3aa26bcf227e19e01a5be21cc2ca44659a2fb319dfd6375220adce9da"
+      "size": 69222,
+      "sha256": "796670298cafffbb1f61fab91bb288a56f340fcfd946611721a5b4116c5d64e0"
     },
     {
       "path": "platform-build-info.json",
       "size": 463,
-      "sha256": "801757e8b84ddc9f8720e10c343641e3dd8638694ebdb4854d7260e6e0d212e0"
+      "sha256": "9eca62899b2f139ba730bd4e7150cb13dfd5e1044b87b3ccc16d1ca7d563cc75"
     },
     {
       "path": "runtime-config.js",
@@ -197,17 +202,17 @@
     {
       "path": "server-ready-build-info.json",
       "size": 628,
-      "sha256": "a890e6dd41375a1740b1552c38ccbe33d5657b653bf467c34d4c2a6a459cf695"
+      "sha256": "902ca6435e783631adf06cd918651a83c64c6d5da131e37a6e37e8ef21814f6f"
     },
     {
       "path": "studio-manifest.json",
       "size": 2871,
-      "sha256": "31eacad84f048ef6ad1d5eb82d2a253784aaedc3527ef8dbd2e3e5a189844788"
+      "sha256": "31eb26388cf5f272a9ae2d8a0a38beef05d05bf307a944bf96ff64fe1b8774b7"
     },
     {
       "path": "sw.js",
-      "size": 5611,
-      "sha256": "d4fce36b4a54202a912d78dd661741cd53db973c123b4082ae3abb3ed33ea5da"
+      "size": 5643,
+      "sha256": "b635a72b437e9da147d6022555a2bdca7a6616a4ff7c219c91433e1e367bfd9d"
     }
   ]
 }

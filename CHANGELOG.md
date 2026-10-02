@@ -1,3 +1,20 @@
+## 5.10.34 — GARP 2.8 workflow hardening (2026-10-02)
+
+- `sync-ghrab-ai-core.yml` je rozdělen na read-only `verify-core` a write-only `publish`; write oprávnění už nejsou dostupná při `npm ci`, synchronizaci ani testech kandidátního Core;
+- checkout v ověřovacím jobu používá `persist-credentials: false` a každé `npm ci` má `--ignore-scripts --no-audit --no-fund` s explicitním npm registry;
+- ověřená změna se mezi joby přenáší jako připnutý GitHub Actions artifact a `publish` ji pouze aplikuje, vytvoří novou větev a draft PR bez přímého push do `main`;
+- přidány regresní testy architektury workflow; existující SHA pinning akcí byl zachován a nebyla přidána npm závislost;
+- aplikace, UI, GHRAB Platform 1.1.2, prompty, AI operace a anonymizační workflow se funkčně nemění.
+
+## 5.10.33 — GARP 2.8 audit hardening (2026-10-02)
+
+- přidán `src/frame-guard.js` jako první klasický skript po CSP v aplikaci i interaktivním manuálu; top-level a same-origin iframe z AI Studia jsou povoleny, cizí origin i sandbox bez `allow-same-origin` jsou fail-closed skryty a zastaveny;
+- service worker předukládá verzovaný `frame-guard.js?v=5.10.33`, takže ochrana zůstává dostupná i v offline cache;
+- technická diagnostika reportéru nově rediguje holé Google API klíče ve tvaru `AIza` + 35 povolených znaků a hodnoty URL parametrů `key`, `api_key` a `apikey`;
+- regresní sada skládá testovací Google klíč až za běhu, ověřuje odstranění klíče i `?key=XYZ` a kontroluje, že Gmail koncept automaticky neobsahuje text zpracovávaného e-mailu ani anonymizační mapu;
+- GARP 2.7 trust anchor je po patch bumpu znovu svázán s verzovanými policy/inventory soubory a chráněné CI workflow dostává odpovídající nový externí trust pin; připnuté SHA akcí se nemění;
+- UI/UX, platforma `ghrab/ghrab-platform.js`, přístupová brána AI Studia, prompty, AI operace a anonymizační workflow se nemění.
+
 ## 5.10.32 — sekce O aplikaci (2026-09-27)
 
 - přidána jednotná sekce **O aplikaci** podle standardu AI Studio GHRAB: identita a účel aplikace, autor a vývojový garant, školní projekt, technický stav a provozní zásady;
