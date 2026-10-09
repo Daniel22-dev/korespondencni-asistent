@@ -3,6 +3,7 @@ import { createServer } from "node:http";
 import { readFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { execFileSync } from "node:child_process";
 import { chromium } from "playwright";
 
 const baseDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "src");
@@ -11,6 +12,11 @@ await mkdir(out,{recursive:true});
 const server=createServer(async (req,res)=>{
   try {
     const url=new URL(req.url,"http://localhost");
+    if(url.pathname==="/manualy/pdf-export.js"){
+      res.writeHead(200,{"Content-Type":"text/javascript;charset=utf-8"});
+      res.end(await readFile(path.join(out,"shared-pdf-export.js")));
+      return;
+    }
     if(url.pathname==="/AI-Studio-GHRAB/manualy/viewer.html") {
       res.writeHead(200,{"Content-Type":"text/html;charset=utf-8"});
       res.end('<!doctype html><html><body><iframe id="manual-frame" title="Manuál" src="/manual/index.html?from=studio" style="width:100%;height:900px"></iframe></body></html>');
@@ -48,6 +54,42 @@ try{
     const x=lum(a),y=lum(b);return{contrast:(Math.max(x,y)+.05)/(Math.min(x,y)+.05),fg,bg};
   });
   assert(colorCheck.contrast>=4.5,"Dark mode return-link contrast too low: "+JSON.stringify(colorCheck));
+  // CI-only full-content export. UI remains fail-closed while reviewStatus != verified.
+  const editorial = await page.evaluate(() => ({
+    contract: window.GHRAB_MANUAL_DOC_INFO?.pdfContentContract || "",
+    headings: (window.GHRAB_MANUAL_EXPORT || [])
+      .filter(x => x && x.type === "h3" && typeof x.text === "string")
+      .map(x => x.text.trim()).filter(Boolean)
+  }));
+  if (editorial.contract === "map-tour-v1")
+    assert(editorial.headings.length >= 5, "Map/tour is incomplete in runtime export");
+  const pdfDownload = page.waitForEvent("download", {timeout: 120000});
+  await page.evaluate(async () => {
+    const {downloadManualPdf} = await import("/manualy/pdf-export.js");
+    await downloadManualPdf(document, {
+      title: document.title,
+      filename: "manual-content-qa.pdf",
+      extras: Array.isArray(window.GHRAB_MANUAL_EXPORT) ? window.GHRAB_MANUAL_EXPORT : []
+    });
+  });
+  const pdfFile = await (await pdfDownload).path();
+  const qaApp = process.env.MANUAL_APP_NAME || "korespondencni-asistent";
+  const actualPdf = path.join(out, qaApp + "-full-manual.pdf");
+  await import("node:fs/promises").then(fs => fs.copyFile(pdfFile, actualPdf));
+  const pdfBuffer = await readFile(actualPdf);
+  assert(pdfBuffer.toString("latin1", 0, 8).startsWith("%PDF-1."), "PDF signature invalid");
+  const pdfText = execFileSync("pdftotext", ["-layout", actualPdf, "-"],
+    {encoding: "utf8", timeout: 50000});
+  const norm = t => t.replace(/\s+/g, " ").trim();
+  const flatPdf = norm(pdfText);
+  const expectedParts = [...editorial.headings.slice(0, 4), ...editorial.headings.slice(-4)]
+    .filter(s => s.length < 75);
+  for (const phrase of new Set(expectedParts))
+    assert(flatPdf.includes(norm(phrase)), "PDF lost a map/tour heading: " + phrase);
+  assert(!flatPdf.includes("Ověřuji přístup k manuálu"), "Access gate leaked into PDF");
+  execFileSync("pdftoppm", ["-f", "1", "-l", "1", "-r", "140", "-png",
+    "-singlefile", actualPdf, path.join(out, qaApp + "-pdf-first-page")],
+    {timeout: 50000});
   await page.screenshot({path:path.join(out,"ka-studio-dark.png"),fullPage:false});
   await page.locator("#themeBtn").click();
   await page.screenshot({path:path.join(out,"ka-studio-light.png"),fullPage:false});
