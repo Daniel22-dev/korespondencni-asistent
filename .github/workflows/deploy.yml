@@ -4,7 +4,7 @@ on:
   workflow_run:
     workflows: ["P5 R2 pre-production release gate"]
     types: [completed]
-  workflow_dispatch:
+  # Intentionally no workflow_dispatch: direct manual deploy has no trusted P5 triggering run.
 
 permissions:
   contents: read
@@ -21,10 +21,10 @@ concurrency:
 jobs:
   release-build:
     if: >-
-      (github.event_name == 'workflow_dispatch' && github.ref_name == 'main') ||
-      (github.event.workflow_run.conclusion == 'success' &&
-       github.event.workflow_run.event == 'push' &&
-       github.event.workflow_run.head_branch == 'main')
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
     timeout-minutes: 35
     outputs:
@@ -45,11 +45,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [ "${{ github.event_name }}" = "workflow_run" ]; then
-            source_sha="${{ github.event.workflow_run.head_sha }}"
-          else
-            source_sha="${{ github.sha }}"
-          fi
+          source_sha="${{ github.event.workflow_run.head_sha }}"
           if ! [[ "$source_sha" =~ ^[0-9a-fA-F]{40}$ ]]; then
             echo "::error::Invalid release source SHA."
             exit 1
@@ -84,7 +80,6 @@ jobs:
           GITHUB_REF_NAME: main
 
       - name: Restore current P5 evidence from the triggering run
-        if: github.event_name == 'workflow_run'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -125,9 +120,19 @@ jobs:
         run: npm run qa:platform
 
       - name: Re-enforce GARP 2.7 foundation and legacy controls on release source
-        run: npm run qa:garp27:foundation
+        shell: bash
         env:
           GARP27_EXTERNAL_TRUST_SHA256: 2f6d63d43ca83ffb6ce0efe6e2f2dfe957e21443eb75af2b419c1ffa8e88bcb5
+          VERIFIED_SOURCE_SHA: ${{ steps.release-source.outputs.source_sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$VERIFIED_SOURCE_SHA" || {
+            echo "::error::Checked-out SHA is not the certified release source."
+            exit 1
+          }
+          # GARP 2.7 foundation is digest-pinned. Set its expected SHA in the
+          # child process only; do not mutate the trusted foundation script.
+          GITHUB_SHA="$VERIFIED_SOURCE_SHA" npm run qa:garp27:foundation
 
       - name: Verify AI Studio dispatch credential
         shell: bash
@@ -143,6 +148,7 @@ jobs:
         run: npm run prepare:pages
         env:
           GHRAB_SOURCE_COMMIT: ${{ steps.release-source.outputs.source_sha }}
+          GHRAB_P5_RUN_ID: ${{ github.event.workflow_run.id }}
 
       - name: Export verified release identity
         id: release-identity

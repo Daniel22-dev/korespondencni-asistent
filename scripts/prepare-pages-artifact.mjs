@@ -2,6 +2,10 @@
 import fs from 'node:fs';import path from 'node:path';import {spawnSync} from 'node:child_process';
 const root=process.cwd(),dist=path.join(root,'dist'),qaDir=path.join(root,'qa-results','current');if(!fs.existsSync(dist))throw new Error('Chybi dist/. Nejprve spust build a QA.');
 fs.mkdirSync(qaDir,{recursive:true});
+// A release cannot be marked GREEN with a partial, mismatched or stale P5/GARP evidence set.
+const seal=spawnSync(process.execPath,[path.join(root,'scripts','p5-evidence-gate.mjs'),'seal'],{cwd:root,encoding:'utf8'});
+if(seal.status!==0)throw new Error(`Pages artifact FAIL: incomplete P5/GARP evidence.\n${seal.stdout||''}\n${seal.stderr||''}`);
+console.log(seal.stdout.trim());
 // Preserve evidence restored from the triggering P5 run and add reports from this exact build.
 for(const name of fs.readdirSync(dist)){if(/^(?:qa-|quality-report).*\.json$/i.test(name)){fs.copyFileSync(path.join(dist,name),path.join(qaDir,name));}}
 const testResults=path.join(root,'test-results');if(fs.existsSync(testResults))for(const name of fs.readdirSync(testResults)){const file=path.join(testResults,name);if(fs.statSync(file).isFile()&&name.endsWith('.json'))fs.copyFileSync(file,path.join(qaDir,`test-${name}`));}
