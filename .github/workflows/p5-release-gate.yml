@@ -29,6 +29,8 @@ jobs:
         run: |
           node -e "const p=require('./node_modules/axe-core/package.json'); if(p.version!=='4.12.1') process.exit(1)"
           node -e "const p=require('./node_modules/playwright/package.json'); if(p.version!=='1.61.1') process.exit(1)"
+      - name: Exercise fail-closed P5 evidence regression suite
+        run: node --test tests/p5-evidence-gate.test.mjs
       - name: Install pinned Playwright Chromium
         shell: bash
         run: |
@@ -38,6 +40,10 @@ jobs:
         run: npm run qa:p5:ci
         env:
           GARP27_EXTERNAL_TRUST_SHA256: 2f6d63d43ca83ffb6ce0efe6e2f2dfe957e21443eb75af2b419c1ffa8e88bcb5
+      - name: Preserve and validate P5 evidence before foundation rebuild
+        run: node scripts/p5-evidence-gate.mjs capture
+        env:
+          GHRAB_SOURCE_COMMIT: ${{ github.sha }}
       - name: Enforce GARP 2.7 foundation admission and legacy regressions
         run: npm run qa:garp27:foundation
         env:

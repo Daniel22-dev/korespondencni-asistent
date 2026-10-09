@@ -125,9 +125,19 @@ jobs:
         run: npm run qa:platform
 
       - name: Re-enforce GARP 2.7 foundation and legacy controls on release source
-        run: npm run qa:garp27:foundation
+        shell: bash
         env:
           GARP27_EXTERNAL_TRUST_SHA256: 2f6d63d43ca83ffb6ce0efe6e2f2dfe957e21443eb75af2b419c1ffa8e88bcb5
+          VERIFIED_SOURCE_SHA: ${{ steps.release-source.outputs.source_sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$VERIFIED_SOURCE_SHA" || {
+            echo "::error::Checked-out SHA is not the certified release source."
+            exit 1
+          }
+          # GARP 2.7 foundation is digest-pinned. Set its expected SHA in the
+          # child process only; do not mutate the trusted foundation script.
+          GITHUB_SHA="$VERIFIED_SOURCE_SHA" npm run qa:garp27:foundation
 
       - name: Verify AI Studio dispatch credential
         shell: bash
@@ -143,6 +153,7 @@ jobs:
         run: npm run prepare:pages
         env:
           GHRAB_SOURCE_COMMIT: ${{ steps.release-source.outputs.source_sha }}
+          GHRAB_P5_RUN_ID: ${{ github.event.workflow_run.id }}
 
       - name: Export verified release identity
         id: release-identity
