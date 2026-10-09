@@ -17,6 +17,8 @@ assert(action.includes('ghrabAccess === "granted"'), "PDF control must require p
 assert(action.includes('downloadManualPdf'), "Missing shared PDF exporter");
 assert(action.includes("manualy/pdf-export.js"), "Incorrect PDF module location");
 assert(action.includes("MutationObserver"), "Access transition not monitored");
+assert(action.includes("background:var(--panel)") && action.includes("color:var(--text)"),
+  "The protected PDF control must remain readable in light and dark themes");
 assert(!["https://cdn.", "https://unpkg.", "https://jsdelivr."].some(host => action.includes(host)), "Unpinned CDN");
 // Completeness checks: actual dynamic structures must be part of the exported content.
 if ("map" === "map") {
