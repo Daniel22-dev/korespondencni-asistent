@@ -69,5 +69,5 @@ const granted = simulate("checking", "granted");
 assert.equal(granted.after, true, "PDF unavailable after grant");
 assert(granted.handlers?.click, "PDF has no functional click handler");
 assert.equal(simulate("granted", "denied").after, false, "PDF control survives revocation");
-assert.match(granted.label, /Náhled PDF/, "Unreviewed manuals should be labelled preview");
+assert.match(granted.label, /Stáhnout PDF/, "Export action must have a consistent accessible label");
 console.log("[MANUAL PDF] PASS: access deny/grant/revoke, complete source, module syntax");
