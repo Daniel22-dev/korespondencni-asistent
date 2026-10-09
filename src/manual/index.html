@@ -226,6 +226,7 @@ const links=[...document.querySelectorAll('.navlink')];const obs=new Intersectio
 const overlay=document.getElementById('searchOverlay'),input=document.getElementById('searchInput'),results=document.getElementById('searchResults');const index=[...document.querySelectorAll('main section')].map(s=>({id:s.id||'start',title:(s.querySelector('h2,h1')||{}).textContent||'Úvod',text:s.innerText.replace(/\s+/g,' ')}));function openSearch(){overlay.classList.add('open');input.value='';renderSearch('');setTimeout(()=>input.focus(),20)}function closeSearch(){overlay.classList.remove('open')}function renderSearch(q){q=q.trim().toLowerCase();const arr=index.filter(x=>!q||x.text.toLowerCase().includes(q));results.innerHTML=arr.map(x=>'<a class="result" href="#'+x.id+'"><b>'+x.title+'</b>'+(!q?'Otevřít část manuálu':x.text.slice(Math.max(0,x.text.toLowerCase().indexOf(q)-55),Math.max(0,x.text.toLowerCase().indexOf(q)-55)+170)+'…')+'</a>').join('')||'<div class="result">Nic nenalezeno.</div>';results.querySelectorAll('a').forEach(a=>a.onclick=closeSearch)}searchBtn.onclick=openSearch;overlay.onclick=e=>{if(e.target===overlay)closeSearch()};input.oninput=()=>renderSearch(input.value);document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openSearch()}if(e.key==='Escape')closeSearch()});
 </script>
 
+<script type="module" src="./navigation-context.js"></script>
 <script type="module" data-ghrab-access-bootstrap>
 const APP_ID="correspondence";
 function showManualAccessFailure(denied){
