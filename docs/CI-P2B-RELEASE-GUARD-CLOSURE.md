@@ -1,0 +1,11 @@
+# KS CI/CD P2B – closure decision (2026-10-09)
+
+**Decision: NO-GO to removing further build stages.** This change strengthens evidence without eliminating any GARP, P5, axe, or production-build stage. Current signature mode remains explicitly \`TRANSITIONAL-UNSIGNED\`; checksums are not cryptographic signatures.
+
+Empirical reference: P5 run 37921646521 / deploy 37921825057, same SHA \`7917ae4426f8eb79dfc84ae9e0ed40dd3756ee53\`. Of 40 application files, 38 were byte-identical across independent runners. Exactly two were different but normalize to the **exact same original P5 SHA-256 and byte length** using narrowly reviewed transformations: \`studio-manifest.json\` (\`publishedAt\` + the exact \`releaseIdentity\` object) and \`platform-build-info.json\` (\`builtAt\` only). Four release-only security provenance files are mandatory. Nine QA-only reports must remain absent from Pages.
+
+New release sequence: download SHA-named full-tree inventory from the exact triggering P5 run, check its Actions artifact digest, rebuild exact source SHA, execute untouched pinned GARP Foundation, seal release, verify P5/GARP proof, fail on unexpected cross-run drift, upload the independent GARP proof away from public \`dist\`, only then upload Pages artifact and deploy. The upload preserves release Foundation logs and output metadata under GitHub Actions access control (30-day retention), without publishing test logs to the website.
+
+Every unexpected file, wrong build or run identity, changed executable byte, unreviewed metadata field, missing evidence, changed signature mode, QA leak, symlink, incorrect release digest or failed archive must block release. This supplementary comparison cannot authorize reusing P5 build bytes across trust boundaries.
+
+**Acceptance before closing issue #31:** PR into candidate P5 + independent axe PASS, candidate push P5 PASS, protected candidate-to-main PR P5 + axe PASS, main P5 PASS, release-build + new guard + archive PASS, actual newly uploaded archive inspected (including new 10/10 Foundation log hashes), Pages live exact-SHA PASS and AI Studio dispatch accepted. Until those checks pass, this is **patch prepared / release unverified**, not deployed closure. The unrelated manual UX PRs #19/#26 must remain unchanged. No CI time savings are claimed.
