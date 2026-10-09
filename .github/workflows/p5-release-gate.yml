@@ -33,6 +33,8 @@ jobs:
         run: node --test tests/p5-evidence-gate.test.mjs
       - name: Verify P1 browser instrumentation unit tests
         run: node --test tests/ci-playwright-bootstrap.test.mjs
+      - name: Verify safe-promotion settled-check regression suite
+        run: node --test tests/ci-safe-promotion-readiness.test.mjs
       - name: Install pinned Playwright Chromium with P1 timing
         env:
           CI_BOOTSTRAP_JOB: p5
