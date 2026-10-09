@@ -55,6 +55,8 @@ jobs:
         run: node --test tests/ci-p2b-garp27-static-dedup.test.mjs
       - name: Verify single platform conformance in CI build
         run: node --test tests/ci-p2b-platform-postbuild-dedup.test.mjs
+      - name: Verify new release evidence and cross-run guard workflow contracts
+        run: node --test tests/ci-p2b-release-workflow.test.mjs
       - name: Install pinned Playwright Chromium with P1 timing
         env:
           CI_BOOTSTRAP_JOB: p5
