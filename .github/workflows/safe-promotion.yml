@@ -77,6 +77,7 @@ jobs:
           GH_TOKEN: ${{ secrets.SAFE_PROMOTION_TOKEN }}
           REPOSITORY: ${{ github.repository }}
           CHECKED_SHA: ${{ github.event.workflow_run.head_sha }}
+          TRIGGER_RUN_ID: ${{ github.event.workflow_run.id }}
         run: |
           set -euo pipefail
           if [ -z "${GH_TOKEN:-}" ]; then
@@ -135,11 +136,56 @@ jobs:
             echo "::error::No active default-branch ruleset requires both pull requests and p5-release-gate without bypass actors; automatic merge is blocked."
             exit 1
           fi
-          checks_json="$(gh api -H 'Accept: application/vnd.github+json' "repos/${REPOSITORY}/commits/${CHECKED_SHA}/check-runs")"
-          if ! jq -e '[.check_runs[] | select(.name == "p5-release-gate" and .conclusion == "success")] | length > 0' <<<"$checks_json" >/dev/null; then
-            echo "::error::Required p5-release-gate is not GREEN for ${CHECKED_SHA}; merge is blocked."
+          # GitHub may report workflow_run=completed before protected check-runs settle.
+          # This job is privileged: NEVER check out or execute code from the PR.
+          # Poll exact triggering P5 run plus independent required axe check on exact SHA.
+          # BEGIN_PROMOTION_CHECK_READINESS
+          promotion_ready=false
+          for attempt in {1..24}; do
+            current_pr="$(gh api "repos/${REPOSITORY}/pulls/${pr_number}")"
+            if ! jq -e --arg sha "$CHECKED_SHA" '
+              .state == "open" and .draft == false and
+              .head.ref == "candidate" and .base.ref == "main" and
+              .head.sha == $sha
+            ' <<<"$current_pr" >/dev/null; then
+              echo "::error::Canonical promotion PR identity changed during check polling; fail closed."
+              exit 1
+            fi
+            remote_candidate="$(gh api "repos/${REPOSITORY}/git/ref/heads/candidate" --jq '.object.sha')"
+            if [ "$remote_candidate" != "$CHECKED_SHA" ]; then
+              echo "::error::Candidate advanced during check polling; fail closed."
+              exit 1
+            fi
+            checks_json="$(gh api -H 'Accept: application/vnd.github+json' "repos/${REPOSITORY}/commits/${CHECKED_SHA}/check-runs?per_page=100")"
+            readiness="$(jq -r --arg run "$TRIGGER_RUN_ID" '
+              def from_trigger($run): ((.details_url // "") | contains("/actions/runs/" + $run + "/"));
+              def latest($name): ([.check_runs[] | select(.name == $name and .app.slug == "github-actions")] | sort_by(.started_at // "") | last);
+              ([.check_runs[] | select(.name == "p5-release-gate" and .app.slug == "github-actions" and from_trigger($run))] | sort_by(.started_at // "") | last) as $p5 |
+              ([.check_runs[] | select(.name == "build-test" and .app.slug == "github-actions" and from_trigger($run))] | sort_by(.started_at // "") | last) as $build |
+              latest("axe") as $axe |
+              if ([$p5, $build, $axe] | any(. == null)) then "PENDING"
+              elif ([$p5, $build, $axe] | any(.status == "completed" and .conclusion != "success")) then "FAIL"
+              elif ([$p5, $build, $axe] | all(.status == "completed" and .conclusion == "success")) then "READY"
+              else "PENDING" end
+            ' <<<"$checks_json")"
+            if [ "$readiness" = "FAIL" ]; then
+              echo "::error::At least one required check failed for exact SHA ${CHECKED_SHA}; promotion blocked."
+              exit 1
+            fi
+            mergeable_state="$(jq -r '.mergeable_state // "unknown"' <<<"$current_pr")"
+            if [ "$readiness" = "READY" ] && [ "$mergeable_state" = "clean" ]; then
+              promotion_ready=true
+              echo "Protected check-runs fully settled for SHA ${CHECKED_SHA} from P5 run ${TRIGGER_RUN_ID} (attempt ${attempt})."
+              break
+            fi
+            echo "Promotion waiting: attempt ${attempt}/24, check-runs=${readiness}, PR mergeability=${mergeable_state}."
+            sleep 5
+          done
+          if [ "$promotion_ready" != "true" ]; then
+            echo "::error::Required check-run convergence timed out; fail closed without merging."
             exit 1
           fi
+          # END_PROMOTION_CHECK_READINESS
           result="$(gh api --method PUT "repos/${REPOSITORY}/pulls/${pr_number}/merge" -f sha="$CHECKED_SHA" -f merge_method='merge')"
           if [ "$(jq -r '.merged' <<<"$result")" != "true" ]; then
             echo "::error::GitHub refused the protected merge: $(jq -r '.message // "unknown reason"' <<<"$result")"
