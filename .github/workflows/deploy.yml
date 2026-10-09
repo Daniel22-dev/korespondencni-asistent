@@ -108,6 +108,35 @@ jobs:
           fi
           test -n "$(find qa-results/current -type f -print -quit)" || { echo "::error::qa-results/current missing in P5 evidence."; exit 1; }
 
+      - name: Restore complete P5 tested-tree inventory
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          SOURCE_SHA: ${{ steps.release-source.outputs.source_sha }}
+        run: |
+          set -euo pipefail
+          artifact_name="p2b-full-dist-parity-${SOURCE_SHA}"
+          target="${RUNNER_TEMP}/p2b-inventory"
+          mkdir -p "${target}/extracted"
+          gh api "repos/${REPOSITORY}/actions/runs/${RUN_ID}/artifacts?per_page=100" > "${target}/artifacts.json"
+          artifact_id="$(jq -r --arg name "${artifact_name}" '[.artifacts[] | select(.name == $name)] | if length == 1 then .[0].id else empty end' "${target}/artifacts.json")"
+          expected_digest="$(jq -r --arg name "${artifact_name}" '[.artifacts[] | select(.name == $name)] | if length == 1 then .[0].digest else empty end' "${target}/artifacts.json")"
+          if ! [[ "${artifact_id}" =~ ^[0-9]+$ ]] || ! [[ "${expected_digest}" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+            echo "::error::Missing or ambiguous P5 full-tree artifact/digest from the exact triggering P5 run."
+            exit 1
+          fi
+          gh api "repos/${REPOSITORY}/actions/artifacts/${artifact_id}/zip" > "${target}/inventory.zip"
+          actual_digest="$(sha256sum "${target}/inventory.zip" | cut -d' ' -f1)"
+          if [ "sha256:${actual_digest}" != "${expected_digest}" ]; then
+            echo "::error::P5 full-tree ZIP digest mismatch."
+            exit 1
+          fi
+          unzip -q "${target}/inventory.zip" -d "${target}/extracted"
+          test -s "${target}/extracted/p2b-pre-dist-tree.json"
+          test -s "${target}/extracted/p2b-full-dist-parity.json"
+
       - name: Rebuild verified commit
         run: npm run build
         env:
@@ -186,6 +215,44 @@ jobs:
             process.stdout.write(`${key}=${value}\n`);
           }
           NODE
+
+      - name: Verify final P5 and independent release GARP evidence
+        run: node scripts/p5-evidence-gate.mjs verify
+        env:
+          GHRAB_SOURCE_COMMIT: ${{ steps.release-source.outputs.source_sha }}
+          GHRAB_P5_RUN_ID: ${{ github.event.workflow_run.id }}
+
+      - name: Guard independent release build against cross-run drift
+        run: node scripts/ci-p2b-release-drift-guard.mjs
+        env:
+          GHRAB_SOURCE_COMMIT: ${{ steps.release-source.outputs.source_sha }}
+          GHRAB_P5_RUN_ID: ${{ github.event.workflow_run.id }}
+          P2B_SOURCE_TREE: ${{ runner.temp }}/p2b-inventory/extracted/p2b-pre-dist-tree.json
+          P2B_SOURCE_COMPARE: ${{ runner.temp }}/p2b-inventory/extracted/p2b-full-dist-parity.json
+          P2B_RELEASE_OUTPUT: ${{ runner.temp }}/ci-metrics/p2b-cross-run-release.json
+
+      - name: Assemble private release evidence away from public dist
+        shell: bash
+        run: |
+          set -euo pipefail
+          proof="${RUNNER_TEMP}/ks-release-proof"
+          mkdir -p "${proof}/garp27" "${proof}/p5" "${proof}/release" "${proof}/diagnostic"
+          cp -a qa-results/current/garp27/. "${proof}/garp27/"
+          cp qa-results/current/p5/p5-evidence-receipt.json "${proof}/p5/"
+          for file in studio-manifest.json release-integrity.json sbom.cdx.json build-provenance.json security-evidence-manifest.json; do
+            cp "dist/${file}" "${proof}/release/${file}"
+          done
+          cp "${RUNNER_TEMP}/ci-metrics/p2b-cross-run-release.json" "${proof}/diagnostic/"
+          test -s "${proof}/garp27/foundation-summary.json"
+          test -s "${proof}/diagnostic/p2b-cross-run-release.json"
+
+      - name: Archive separate release GARP proof outside Pages
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: p2b-release-proof-${{ steps.release-source.outputs.source_sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/ks-release-proof/
+          if-no-files-found: error
+          retention-days: 30
 
       - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
       - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
