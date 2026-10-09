@@ -51,6 +51,8 @@ jobs:
         run: node --test tests/ci-p2b-build-time-binding.test.mjs
       - name: Verify P2B complete-dist inventory regressions
         run: node --test tests/ci-p2b-full-tree.test.mjs
+      - name: Verify P2B de-duplicated GARP27 CI coverage
+        run: node --test tests/ci-p2b-garp27-static-dedup.test.mjs
       - name: Install pinned Playwright Chromium with P1 timing
         env:
           CI_BOOTSTRAP_JOB: p5
