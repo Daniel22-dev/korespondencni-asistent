@@ -24,11 +24,13 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org
       - name: Verify exact axe-core version
         run: node -e "const p=require('./node_modules/axe-core/package.json'); if(p.version!=='4.12.1') process.exit(1)"
-      - name: Install pinned Playwright Chromium
-        shell: bash
-        run: |
-          npx playwright install --with-deps chromium
-          node -e "console.log('CHROMIUM_PATH=' + require('playwright').chromium.executablePath())" >> "$GITHUB_ENV"
+      - name: Verify P1 browser instrumentation unit tests
+        run: node --test tests/ci-playwright-bootstrap.test.mjs
+      - name: Install pinned Playwright Chromium with P1 timing
+        env:
+          CI_BOOTSTRAP_JOB: axe
+          CI_BOOTSTRAP_METRICS_PATH: ${{ runner.temp }}/ci-metrics/axe.json
+        run: node scripts/ci-playwright-bootstrap.mjs
       - name: Build application
         run: npm run build
       - name: Run blocking axe audit on executed UI
@@ -39,3 +41,9 @@ jobs:
         with:
           name: axe-p5-r2-${{ github.sha }}
           path: dist/qa-p5-axe-runtime-report.json
+      - name: Upload P1 Chromium timing evidence (independent)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: axe-ci-chromium-timing-${{ github.sha }}
+          path: ${{ runner.temp }}/ci-metrics/axe.json
