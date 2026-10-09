@@ -37,6 +37,8 @@ jobs:
         run: node --test tests/ci-playwright-bootstrap.test.mjs
       - name: Verify safe-promotion settled-check regression suite
         run: node --test tests/ci-safe-promotion-readiness.test.mjs
+      - name: Verify P2B build-parity diagnostic regression suite
+        run: node --test tests/ci-p2b-build-parity.test.mjs
       - name: Install pinned Playwright Chromium with P1 timing
         env:
           CI_BOOTSTRAP_JOB: p5
@@ -56,6 +58,11 @@ jobs:
           GARP27_EXTERNAL_TRUST_SHA256: 2f6d63d43ca83ffb6ce0efe6e2f2dfe957e21443eb75af2b419c1ffa8e88bcb5
       # P2B: legacy GARP 2.5.1/N5 executes inside the mandatory GARP 2.7
       # foundation. Its log/hash and PASS remain mandatory for evidence sealing.
+      - name: Measure P2B tested-build parity after independent GARP foundation
+        env:
+          GHRAB_SOURCE_COMMIT: ${{ github.sha }}
+          P2B_AUDIT_OUTPUT: ${{ runner.temp }}/ci-metrics/p2b-build-parity.json
+        run: node scripts/ci-p2b-build-parity.mjs
       - name: Build PREP release identity and verify complete release chain
         run: npm run prepare:pages
         env:
@@ -78,6 +85,12 @@ jobs:
         with:
           name: p5-ci-chromium-timing-${{ github.sha }}
           path: ${{ runner.temp }}/ci-metrics/p5.json
+      - name: Upload separate P2B build-parity diagnostic (not release evidence)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: p2b-build-parity-${{ github.sha }}
+          path: ${{ runner.temp }}/ci-metrics/p2b-build-parity.json
 
   # Compatibility context retained because the existing protected-main ruleset
   # already requires "build-test". It can be removed only after the ruleset is
