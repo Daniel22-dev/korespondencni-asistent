@@ -127,6 +127,9 @@ function simulateNavigation(search, {embedded=false, granted=true, referrer=""}=
     embedded:document.documentElement.dataset.ghrabManualEmbedded,
     headerHidden:outerHeader.hidden};
 }
+const launcherSource = read("src/body.html");
+assert(launcherSource.includes("./manual/?from=app"),
+  "Opening the manual from its application must preserve origin context");
 assert.deepEqual(simulateNavigation("?from=studio").labels,
   ["← Zpět na manuály","AI Studio"],"Catalog entry must not return to application");
 assert.deepEqual(simulateNavigation("?from=app").labels,
