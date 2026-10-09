@@ -49,6 +49,8 @@ jobs:
         run: node --test tests/ci-p2b-build-parity.test.mjs
       - name: Verify P2B deterministic timestamp binding
         run: node --test tests/ci-p2b-build-time-binding.test.mjs
+      - name: Verify P2B complete-dist inventory regressions
+        run: node --test tests/ci-p2b-full-tree.test.mjs
       - name: Install pinned Playwright Chromium with P1 timing
         env:
           CI_BOOTSTRAP_JOB: p5
@@ -62,6 +64,11 @@ jobs:
         run: node scripts/p5-evidence-gate.mjs capture
         env:
           GHRAB_SOURCE_COMMIT: ${{ github.sha }}
+      - name: Inventory complete P5-tested dist before foundation rebuild (diagnostic only)
+        env:
+          GHRAB_SOURCE_COMMIT: ${{ github.sha }}
+          P2B_TREE_BASELINE: ${{ runner.temp }}/ci-metrics/p2b-pre-dist-tree.json
+        run: node scripts/ci-p2b-full-tree.mjs capture
       - name: Enforce GARP 2.7 foundation admission and legacy regressions
         run: npm run qa:garp27:foundation
         env:
@@ -73,6 +80,12 @@ jobs:
           GHRAB_SOURCE_COMMIT: ${{ github.sha }}
           P2B_AUDIT_OUTPUT: ${{ runner.temp }}/ci-metrics/p2b-build-parity.json
         run: node scripts/ci-p2b-build-parity.mjs
+      - name: Compare entire Foundation production dist to P5 inventory
+        env:
+          GHRAB_SOURCE_COMMIT: ${{ github.sha }}
+          P2B_TREE_BASELINE: ${{ runner.temp }}/ci-metrics/p2b-pre-dist-tree.json
+          P2B_TREE_REPORT: ${{ runner.temp }}/ci-metrics/p2b-full-dist-parity.json
+        run: node scripts/ci-p2b-full-tree.mjs compare
       - name: Build PREP release identity and verify complete release chain
         run: npm run prepare:pages
         env:
@@ -101,6 +114,14 @@ jobs:
         with:
           name: p2b-build-parity-${{ github.sha }}
           path: ${{ runner.temp }}/ci-metrics/p2b-build-parity.json
+      - name: Upload separate full-dist parity diagnostic (not release evidence)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: p2b-full-dist-parity-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/ci-metrics/p2b-pre-dist-tree.json
+            ${{ runner.temp }}/ci-metrics/p2b-full-dist-parity.json
 
   # Compatibility context retained because the existing protected-main ruleset
   # already requires "build-test". It can be removed only after the ruleset is
