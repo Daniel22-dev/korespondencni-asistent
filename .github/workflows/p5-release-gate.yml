@@ -31,6 +31,8 @@ jobs:
           node -e "const p=require('./node_modules/playwright/package.json'); if(p.version!=='1.61.1') process.exit(1)"
       - name: Exercise fail-closed P5 evidence regression suite
         run: node --test tests/p5-evidence-gate.test.mjs
+      - name: Verify P2B deduplicated legacy gate contract
+        run: node --test tests/ci-p2b-legacy-dedup.test.mjs
       - name: Verify P1 browser instrumentation unit tests
         run: node --test tests/ci-playwright-bootstrap.test.mjs
       - name: Verify safe-promotion settled-check regression suite
@@ -52,8 +54,8 @@ jobs:
         run: npm run qa:garp27:foundation
         env:
           GARP27_EXTERNAL_TRUST_SHA256: 2f6d63d43ca83ffb6ce0efe6e2f2dfe957e21443eb75af2b419c1ffa8e88bcb5
-      - name: Enforce explicit legacy GARP 2.5.1 and N5 regression gate
-        run: npm run qa:garp25:static
+      # P2B: legacy GARP 2.5.1/N5 executes inside the mandatory GARP 2.7
+      # foundation. Its log/hash and PASS remain mandatory for evidence sealing.
       - name: Build PREP release identity and verify complete release chain
         run: npm run prepare:pages
         env:
