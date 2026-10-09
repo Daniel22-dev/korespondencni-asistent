@@ -171,6 +171,29 @@ window.GHRAB_MANUAL_EXPORT = [
  {type:"h2",text:"Kompletní interaktivní prohlídka"},
  ...MANUAL.tour.flatMap((item,index)=>[{type:"h3",text:(index+1)+". "+item.title},{type:"body",text:item.body},{type:"body",text:"Tip: "+item.tip}])
 ];
+// Etapa D: úplný datový obsah manuálu pro autorizovaný export AI Studia.
+// Publikuje pouze veřejně popsané kroky; žádné hodnoty formulářů, klíče ani studenty.
+window.GHRAB_MANUAL_DOC_INFO=Object.freeze({
+  appId: MANUAL.id,
+  appVersion: MANUAL.version,
+  docRevision: 'D-2026-10-08',
+  lastReviewedAt: '2026-10-08',
+  reviewStatus: 'review-required',
+  pdfContentContract: 'map-tour-v1'
+});
+window.GHRAB_MANUAL_EXPORT=[
+  {type:'h2',text:'Úplná mapa ovládání'},
+  ...MANUAL.map.flatMap(part=>[
+    {type:'h3',text:(part.n ? part.n+'. ' : '')+part.title},
+    {type:'body',text:part.desc}
+  ]),
+  {type:'h2',text:'Kompletní interaktivní prohlídka'},
+  ...MANUAL.tour.flatMap((step,i)=>[
+    {type:'h3',text:(i+1)+'. '+step.title},
+    {type:'body',text:step.body},
+    {type:'body',text:'Praktická poznámka: '+step.tip}
+  ])
+];
 const KEY='ghrab-manual-progress-'+MANUAL.id+'-'+MANUAL.version;
 let state={tour:[],checks:[]};try{state=Object.assign(state,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(_){ }
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(_){ } updateProgress()}
