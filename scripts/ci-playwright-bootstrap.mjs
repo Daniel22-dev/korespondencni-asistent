@@ -41,6 +41,27 @@ export class BrowserDownloadTimeline {
   }
 }
 
+// Static compatibility assurance for the existing P5 browser-install gate.
+// The direct-command branch keeps previous workflow configurations valid.
+export function hasGuaranteedChromiumBootstrap(workflow, bootstrapSource) {
+  if (/playwright install --with-deps chromium/.test(workflow)) return true;
+  const checks = [
+    /run:\s*node scripts\/ci-playwright-bootstrap\.mjs/,
+    /CI_BOOTSTRAP_METRICS_PATH:/,
+  ];
+  if (!checks.every(pattern => pattern.test(workflow))) return false;
+  const required = [
+    /await runCommand\(argv,\s*\['--no-install',\s*'playwright',\s*'install-deps',\s*'chromium'\]/,
+    /await runCommand\(argv,\s*\['--no-install',\s*'playwright',\s*'install',\s*'chromium'\]/,
+    /if\s*\(info\.playwrightVersion\s*!==\s*'1\.61\.1'\)/,
+    /fs\.accessSync\(chromiumPath,\s*fs\.constants\.X_OK\)/,
+    /await runCommand\(chromiumPath,\s*\['--version'\]/,
+    /fs\.appendFileSync\(process\.env\.GITHUB_ENV,\s*`CHROMIUM_PATH=/,
+    /if\s*\(info\.status\s*!==\s*'PASS'\)\s*process\.exitCode\s*=\s*1/,
+  ];
+  return required.every(pattern => pattern.test(bootstrapSource));
+}
+
 // Split newline and carriage-return-based progress logs safely across stream chunks.
 export function consumeStream(stream, handleLine) {
   let buffered = '';

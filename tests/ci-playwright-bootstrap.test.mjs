@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { BrowserDownloadTimeline, consumeStream } from '../scripts/ci-playwright-bootstrap.mjs';
+import { BrowserDownloadTimeline, consumeStream, hasGuaranteedChromiumBootstrap } from '../scripts/ci-playwright-bootstrap.mjs';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { PassThrough } from 'node:stream';
 
 test('timings for full Chromium, FFmpeg and headless-shell downloads', () => {
@@ -64,4 +66,28 @@ test('zero-duration completed event can legitimately be recorded', () => {
   t.observe('Downloading FFmpeg', 10);
   t.observe('FFmpeg downloaded to /tmp/ffmpeg', 10);
   assert.deepEqual(t.result().ffmpeg, { observed: true, complete: true, durationMs: 0 });
+});
+
+const source = fs.readFileSync(fileURLToPath(new URL('../scripts/ci-playwright-bootstrap.mjs', import.meta.url)), 'utf8');
+const workflow = 'CI_BOOTSTRAP_METRICS_PATH: /tmp/p5.json\nrun: node scripts/ci-playwright-bootstrap.mjs';
+
+test('existing single-command Playwright installer remains valid', () => {
+  assert.equal(hasGuaranteedChromiumBootstrap('npx playwright install --with-deps chromium', ''), true);
+});
+
+test('P1 two-phase installer is recognized by the static release gate', () => {
+  assert.equal(hasGuaranteedChromiumBootstrap(workflow, source), true);
+});
+
+test('workflow without instrumented installer is rejected', () => {
+  assert.equal(hasGuaranteedChromiumBootstrap('run: echo no-browser', source), false);
+});
+
+test('partial installer that does not install OS dependencies is rejected', () => {
+  assert.equal(hasGuaranteedChromiumBootstrap(workflow, source.replace("['--no-install', 'playwright', 'install-deps', 'chromium']", '[]')), false);
+});
+
+test('installer cannot drop pinned version or binary verification', () => {
+  assert.equal(hasGuaranteedChromiumBootstrap(workflow, source.replace("info.playwrightVersion !== '1.61.1'", "info.playwrightVersion !== 'latest'")), false);
+  assert.equal(hasGuaranteedChromiumBootstrap(workflow, source.replace('fs.accessSync(chromiumPath, fs.constants.X_OK)', 'void 0')), false);
 });
